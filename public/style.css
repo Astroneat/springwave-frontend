@@ -7,12 +7,15 @@ body {
 
 :root {
     --primary: #22C55E;
+    --secondary: #16A34A;
     --background: #F0FDF4;
     --text: #1F2937;
+    --white: #f5f5f5;
 
     --nav-height: 60px;
 }
 
+/* NAV */
 nav {
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -40,6 +43,7 @@ nav {
     font-size: 16px;
 }
 
+/* HERO */
 .hero {
     box-sizing: border-box;
     padding-top: var(--nav-height);
@@ -94,3 +98,126 @@ nav {
 .hero-visual img {
     width: 360px;
 }
+
+/* COMMUNTIY IMPACT */
+.community {
+    padding: 100px 48px;
+    background: #fff;
+    background-image: linear-gradient(
+        rgba(255,255,255,0.80),
+        rgba(255,255,255,0.80)
+    ), url("img/community.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.section-label {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--secondary);
+    margin-bottom: 16px;
+}
+.section-title {
+    text-align: center;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-weight: 900;
+    color: var(--navy);
+    margin-bottom: 12px;
+}
+.section-sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 500px;
+    margin: 0 auto 60px;
+    line-height: 1.6;
+}
+.community-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    max-width: 960px;
+    margin: 0 auto;
+}
+.member-card {
+    background: var(--white);
+    border: 1.5px solid rgba(46,204,113,0.15);
+    border-radius: 24px;
+    padding: 32px 24px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.member-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(46,204,113,0.04), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--green-light);
+}
+.member-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--navy);
+    margin-bottom: 4px;
+}
+.member-role {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+}
+.member-badge {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 100px;
+    letter-spacing: 0.5px;
+}
+
+/* ── FOOTER ── */
+footer {
+    background: var(--text);
+    padding: 32px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.footer-logo {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--secondary);
+}
+.footer-copy {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.35);
+}
+.footer-links {
+    display: flex;
+    gap: 24px;
+}
+.footer-links a {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.45);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--secondary); }
