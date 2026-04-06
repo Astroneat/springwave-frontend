@@ -1,0 +1,40 @@
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: "Outfit", sans-serif;
+}
+
+:root {
+    --primary: #22C55E;
+    --background: #F0FDF4;
+    --text: #1F2937;
+
+    --nav-height: 60px;
+}
+
+nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    margin: 15px 20px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: var(--nav-height);
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 36px;
+    list-style-type: none;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--background);
+    font-weight: 500;
+    font-size: 16px;
+}
