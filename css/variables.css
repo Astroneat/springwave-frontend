@@ -1,0 +1,12 @@
+:root {
+    --bg: #f5f5f5;
+    --bg-panel: #ffffff;
+
+    --accent: #3B6FD4;
+    --accent-dim: #2A55B0;
+    --accent-glow: rgb(59 111 212 / 14%);
+
+    --text-primary: #1a1d2e;
+    --text-secondary: #4a5068;
+    --text-muted: #9298ae;
+}
