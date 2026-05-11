@@ -3,68 +3,39 @@
     --navbar-expanded-bottom-height: 40px;
     --navbar-collapsed-top-height: 50px;
     --logo-skew-angle: -20deg;
+    --logo-stickout: 36px;
 }
 
 .navbar {
     position: fixed;
-
     top: 0;
     left: 0;
-
     width: 100%;
-
     z-index: 1000;
 }
 
-/* =========================
-   MAIN NAV
-========================= */
-
 .nav-main {
     position: relative;
-
     background: var(--accent);
-
     overflow: visible;
-
     box-shadow:
         0 10px 30px var(--accent-glow);
 }
 
-/* =========================
-   TOP ROW
-========================= */
-
 .nav-main-top {
     height: var(--navbar-expanded-top-height);
-
     display: flex;
     align-items: center;
-
-    transition:
-        height 0.45s cubic-bezier(.22,1,.36,1);
+    transition: height 0.45s cubic-bezier(.22,1,.36,1);
 }
-
-/* =========================
-   BOTTOM ROW
-========================= */
 
 .nav-main-bottom {
     height: var(--navbar-expanded-bottom-height);
-
     background: var(--accent-dark);
-        /* linear-gradient(
-            180deg,
-            var(--red-dark),
-            #970b10
-        ); */
-
     display: flex;
     align-items: center;
-
     padding-left: 520px;
-
-    color: white;
+    color: var(--bg-panel);
 
     font-size: 15px;
     font-weight: 600;
@@ -77,13 +48,10 @@
         transform 0.45s cubic-bezier(.22,1,.36,1);
 }
 
-/* live pill */
-
 .next-pill {
     background: #00b96b;
 
-    padding:
-        4px 16px;
+    padding: 4px 16px;
 
     border-radius: 999px;
 
@@ -93,28 +61,14 @@
     font-weight: 700;
 }
 
-/* =========================
-   PARALLELOGRAM LOGO
-========================= */
-
 .logo-panel {
     position: absolute;
 
-    /*
-        extends above AND below navbar
-    */
-
-    top: -26px;
-
+    top: calc(var(--logo-stickout)/(-2));
     left: 70px;
-
     width: 360px;
 
-    /*
-        larger than navbar total height
-    */
-
-    height: 150px;
+    height: calc(var(--navbar-expanded-top-height) + var(--navbar-expanded-bottom-height) + var(--logo-stickout));
 
     background: var(--bg-panel);
     color: var(--accent);
@@ -139,33 +93,10 @@
         box-shadow 0.45s ease;
 }
 
-/* glossy highlight */
-
-.logo-panel::before {
-    content: "";
-
-    position: absolute;
-
-    inset: 0;
-
-    background:
-        linear-gradient(
-            120deg,
-            rgba(255,255,255,0.48),
-            transparent 45%
-        );
-
-    pointer-events: none;
-}
-
-/* reverse skew */
-
 .logo-inner {
     transform:
         skewX(calc(-1 * var(--logo-skew-angle)));
 }
-
-/* logo text */
 
 .logo-text {
     color: var(--red);
@@ -183,10 +114,6 @@
         font-size 0.45s cubic-bezier(.22,1,.36,1);
 }
 
-/* =========================
-   NAV CONTENT
-========================= */
-
 .nav-content {
     width: 100%;
 
@@ -195,10 +122,9 @@
     justify-content: space-between;
 
     padding-left: 450px;
-    padding-right: 36px;
-}
 
-/* links */
+    transition: padding-left 0.25s ease;
+}
 
 .nav-links {
     width: 100%;
@@ -212,7 +138,7 @@
 
     text-decoration: none;
 
-    color: white;
+    color: var(--bg-panel);
 
     font-size: 19px;
     font-weight: 500;
@@ -236,7 +162,7 @@
     width: 0%;
     height: 2px;
 
-    background: white;
+    background: var(--bg-panel);
 
     transition:
         width 0.3s ease;
@@ -246,29 +172,6 @@
     width: 100%;
 }
 
-/* search */
-
-.search-btn {
-    color: white;
-
-    font-size: 24px;
-
-    cursor: pointer;
-
-    transition:
-        transform 0.25s ease,
-        opacity 0.25s ease;
-}
-
-.search-btn:hover {
-    transform: scale(1.1);
-
-    opacity: 0.8;
-}
-
-/* =========================
-   COLLAPSED
-========================= */
 
 .navbar.collapsed .nav-main-bottom {
     height: 0;
@@ -279,26 +182,12 @@
 }
 
 .navbar.collapsed .nav-main-top {
-    height: 56px;
+    height: var(--navbar-collapsed-top-height);
 }
 
-/*
-    logo shrinks to fit navbar
-*/
 .navbar.collapsed .logo-panel {
-
-    width: 250px;
-
-    /*
-        exact navbar height with small margins
-    */
-
-    height: 56px;
-
-    /*
-        fully contained inside navbar
-    */
-
+    width: 200px;
+    height: var(--navbar-collapsed-top-height);
     top: 0;
 
     box-shadow:
@@ -306,5 +195,9 @@
 }
 
 .navbar.collapsed .logo-text {
-    font-size: 2rem;
+    font-size: 1.5rem;
+}
+
+.navbar.collapsed .nav-content {
+    padding-left: 300px;
 }
