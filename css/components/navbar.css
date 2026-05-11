@@ -1,100 +1,310 @@
-/* NAVBAR */
-.navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: var(--accent);
-    box-shadow: 0 16px 16px var(--accent-glow);
-    z-index: 1000;
-
-    transition:
-        background 0.35s ease,
-        box-shadow 0.35s ease;
+:root {
+    --navbar-expanded-top-height: 60px;
+    --navbar-expanded-bottom-height: 40px;
+    --navbar-collapsed-top-height: 50px;
+    --logo-skew-angle: -20deg;
 }
 
-/* TOP SECTION */
-.nav-top {
-    height: 70px;
+.navbar {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+
+    z-index: 1000;
+}
+
+/* =========================
+   MAIN NAV
+========================= */
+
+.nav-main {
+    position: relative;
+
+    background: var(--accent);
+
+    overflow: visible;
+
+    box-shadow:
+        0 10px 30px var(--accent-glow);
+}
+
+/* =========================
+   TOP ROW
+========================= */
+
+.nav-main-top {
+    height: var(--navbar-expanded-top-height);
+
+    display: flex;
+    align-items: center;
+
+    transition:
+        height 0.45s cubic-bezier(.22,1,.36,1);
+}
+
+/* =========================
+   BOTTOM ROW
+========================= */
+
+.nav-main-bottom {
+    height: var(--navbar-expanded-bottom-height);
+
+    background: var(--accent-dark);
+        /* linear-gradient(
+            180deg,
+            var(--red-dark),
+            #970b10
+        ); */
+
+    display: flex;
+    align-items: center;
+
+    padding-left: 520px;
+
+    color: white;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    overflow: hidden;
+
+    transition:
+        height 0.45s cubic-bezier(.22,1,.36,1),
+        opacity 0.35s ease,
+        transform 0.45s cubic-bezier(.22,1,.36,1);
+}
+
+/* live pill */
+
+.next-pill {
+    background: #00b96b;
+
+    padding:
+        4px 16px;
+
+    border-radius: 999px;
+
+    margin-right: 18px;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* =========================
+   PARALLELOGRAM LOGO
+========================= */
+
+.logo-panel {
+    position: absolute;
+
+    /*
+        extends above AND below navbar
+    */
+
+    top: -26px;
+
+    left: 70px;
+
+    width: 360px;
+
+    /*
+        larger than navbar total height
+    */
+
+    height: 150px;
+
+    background: var(--bg-panel);
+    color: var(--accent);
+
+    transform:
+        skewX(var(--logo-skew-angle));
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 20;
+
+    box-shadow:
+        0 18px 38px rgba(0,0,0,0.22);
+
+    transition:
+        width 0.45s cubic-bezier(.22,1,.36,1),
+        height 0.45s cubic-bezier(.22,1,.36,1),
+        top 0.45s cubic-bezier(.22,1,.36,1),
+        transform 0.45s cubic-bezier(.22,1,.36,1),
+        box-shadow 0.45s ease;
+}
+
+/* glossy highlight */
+
+.logo-panel::before {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        linear-gradient(
+            120deg,
+            rgba(255,255,255,0.48),
+            transparent 45%
+        );
+
+    pointer-events: none;
+}
+
+/* reverse skew */
+
+.logo-inner {
+    transform:
+        skewX(calc(-1 * var(--logo-skew-angle)));
+}
+
+/* logo text */
+
+.logo-text {
+    color: var(--red);
+
+    font-size: 3rem;
+    font-weight: 900;
+
+    font-style: italic;
+
+    letter-spacing: -2px;
+
+    user-select: none;
+
+    transition:
+        font-size 0.45s cubic-bezier(.22,1,.36,1);
+}
+
+/* =========================
+   NAV CONTENT
+========================= */
+
+.nav-content {
+    width: 100%;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 40px;
-    box-shadow: 0 8px 16px var(--accent-glow);
 
-    transition:
-        height 0.4s ease,
-        padding 0.4s ease;
+    padding-left: 450px;
+    padding-right: 36px;
 }
 
-.logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--bg);
-}
+/* links */
 
 .nav-links {
+    width: 100%;
     display: flex;
-    gap: 28px;
+    align-items: center;
+    justify-content: space-around;
 }
 
 .nav-links a {
-    text-decoration: none;
-    color: var(--bg);
-    font-weight: 500;
     position: relative;
+
+    text-decoration: none;
+
+    color: white;
+
+    font-size: 19px;
+    font-weight: 500;
+
+    transition:
+        opacity 0.25s ease;
+}
+
+.nav-links a:hover {
+    opacity: 0.75;
 }
 
 .nav-links a::after {
     content: "";
+
     position: absolute;
+
     left: 0;
-    bottom: -4px;
+    bottom: -5px;
+
     width: 0%;
     height: 2px;
-    background: var(--bg);
-    transition: width 0.3s ease;
+
+    background: white;
+
+    transition:
+        width 0.3s ease;
 }
 
 .nav-links a:hover::after {
     width: 100%;
 }
 
-/* BOTTOM SECTION */
-.nav-bottom {
-    height: 42px;
-    overflow: hidden;
+/* search */
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.search-btn {
+    color: white;
 
-    font-size: 0.85rem;
-    color: var(--text-muted);
+    font-size: 24px;
 
-    /* border-top: 1px solid darken(var(--accent)); */
-    background: var(--accent-dim);
+    cursor: pointer;
 
     transition:
-        height 0.45s ease,
-        opacity 0.35s ease,
-        transform 0.45s ease,
-        padding 0.45s ease;
+        transform 0.25s ease,
+        opacity 0.25s ease;
 }
 
-.nav-bottom-content {
-    padding: 0 20px;
+.search-btn:hover {
+    transform: scale(1.1);
+
+    opacity: 0.8;
 }
 
-/* COLLAPSED STATE */
-.navbar.collapsed .nav-bottom {
+/* =========================
+   COLLAPSED
+========================= */
+
+.navbar.collapsed .nav-main-bottom {
     height: 0;
+
     opacity: 0;
-    transform: translateY(-10px);
-    padding: 0;
-    border-top: none;
+
+    transform: translateY(-12px);
 }
 
-.navbar.collapsed .nav-top {
-    height: 60px;
+.navbar.collapsed .nav-main-top {
+    height: 56px;
+}
+
+/*
+    logo shrinks to fit navbar
+*/
+.navbar.collapsed .logo-panel {
+
+    width: 250px;
+
+    /*
+        exact navbar height with small margins
+    */
+
+    height: 56px;
+
+    /*
+        fully contained inside navbar
+    */
+
+    top: 0;
+
+    box-shadow:
+        0 8px 18px rgba(0,0,0,0.16);
+}
+
+.navbar.collapsed .logo-text {
+    font-size: 2rem;
 }
