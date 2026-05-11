@@ -1,0 +1,100 @@
+/* NAVBAR */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: var(--accent);
+    box-shadow: 0 16px 16px var(--accent-glow);
+    z-index: 1000;
+
+    transition:
+        background 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+/* TOP SECTION */
+.nav-top {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    box-shadow: 0 8px 16px var(--accent-glow);
+
+    transition:
+        height 0.4s ease,
+        padding 0.4s ease;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--bg);
+}
+
+.nav-links {
+    display: flex;
+    gap: 28px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--bg);
+    font-weight: 500;
+    position: relative;
+}
+
+.nav-links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0%;
+    height: 2px;
+    background: var(--bg);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+/* BOTTOM SECTION */
+.nav-bottom {
+    height: 42px;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 0.85rem;
+    color: var(--text-muted);
+
+    /* border-top: 1px solid darken(var(--accent)); */
+    background: var(--accent-dim);
+
+    transition:
+        height 0.45s ease,
+        opacity 0.35s ease,
+        transform 0.45s ease,
+        padding 0.45s ease;
+}
+
+.nav-bottom-content {
+    padding: 0 20px;
+}
+
+/* COLLAPSED STATE */
+.navbar.collapsed .nav-bottom {
+    height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    padding: 0;
+    border-top: none;
+}
+
+.navbar.collapsed .nav-top {
+    height: 60px;
+}

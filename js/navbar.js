@@ -3,6 +3,15 @@ async function loadNavbar() {
     const data = await response.text();
 
     document.getElementById("navbar-container").innerHTML = data;
+
+    const navbar = document.getElementById("navbar");
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 60) {
+            navbar.classList.add("collapsed");
+        } else {
+            navbar.classList.remove("collapsed");
+        }
+    });
 }
 
 loadNavbar();
