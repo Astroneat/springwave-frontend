@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SpringWave - Register</title>
+    <title>SpringWave - Login</title>
 
     <style>
         * {
@@ -92,7 +92,7 @@
 
             outline: none;
 
-            font-size: 14px;
+            font-size: 18px;
 
             background: white;
 
@@ -110,7 +110,7 @@
             box-shadow: 0 0 0 5px rgba(35, 73, 155, 0.12);
         }
 
-        .register-btn {
+        .login-btn {
             width: 100%;
 
             padding: 16px;
@@ -119,7 +119,7 @@
 
             border-radius: 14px;
 
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
 
             cursor: pointer;
@@ -129,7 +129,7 @@
             transition: 0.25s;
         }
 
-        .register-btn:hover {
+        .login-btn:hover {
             transform: translateY(-2px);
 
             box-shadow: 0 8px 18px rgba(255, 222, 66, 0.4);
@@ -177,108 +177,34 @@
 
         <form>
 
-            <!-- FULL NAME -->
-            <div class="form-group">
-                <label>
-                    Full Name <span class="required">*</span>
-                </label>
-
-                <div class="name-row">
-                    <input type="text" placeholder="First Name" required>
-                    <input type="text" placeholder="Last Name" required>
-                </div>
-            </div>
-
             <!-- USERNAME -->
             <div class="form-group">
-                <label>
+                <label style="font-size: 20px;">
                     Username <span class="required">*</span>
                 </label>
 
                 <input type="text" placeholder="Albert_Epstein" required>
             </div>
 
-            <!-- CLASS -->
-            <div class="form-group">
-                <label>
-                    Class <span class="required">*</span>
-                </label>
-
-                <input type="text" placeholder="Enter your class" required>
-            </div>
-
-            <!-- EMAIL -->
-            <div class="form-group">
-                <label>
-                    Email <span class="required">*</span>
-                </label>
-
-                <input type="email" placeholder="example@gmail.com" required>
-            </div>
-
-            <!-- PHONE -->
-            <div class="form-group">
-                <label>
-                    Phone No. <span class="required">*</span>
-                </label>
-
-                <input type="tel" placeholder="0123456789" required>
-            </div>
-
-            <!-- DATE OF BIRTH -->
-            <div class="form-group">
-                <label>
-                    Date of Birth <span class="required">*</span>
-                </label>
-
-                <input type="date" required>
-            </div>
-
-            <!-- SCHOOL -->
-            <div class="form-group">
-                <label>
-                    School <span class="required">*</span>
-                </label>
-
-                <input type="search" placeholder="Search your school" required>
-            </div>
-
-            <!-- MAJOR -->
-            <div class="form-group">
-                <label>
-                    Major <span class="required">*</span>
-                </label>
-
-                <input type="search" placeholder="Search your major" required>
-            </div>
-
             <!-- PASSWORD -->
             <div class="form-group">
-                <label>
+                <label style="font-size: 20px;">
                     Password <span class="required">*</span>
                 </label>
 
                 <input type="password" placeholder="Enter password" required>
             </div>
 
-            <!-- CONFIRM PASSWORD -->
-            <div class="form-group">
-                <label>
-                    Confirm Password <span class="required">*</span>
-                </label>
 
-                <input type="password" placeholder="Confirm password" required>
-            </div>
-
-            <!-- REGISTER BUTTON -->
-            <button type="submit" class="register-btn">
-                REGISTER
+            <!-- LOGIN BUTTON -->
+            <button type="submit" class="login-btn">
+                LOGIN
             </button>
 
             <!-- LOGIN -->
             <div class="login-text">
-                Already have an account?
-                <a href="#"><u>Login now.</u></a>
+                Don't have an account?
+                <a href="#"><u>Register now.</u></a>
             </div>
 
         </form>
