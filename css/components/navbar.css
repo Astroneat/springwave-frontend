@@ -172,6 +172,22 @@
     width: 100%;
 }
 
+.login-btn {
+    background-color: var(--secondary);
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 10px 28px;
+    margin: 0 50px;
+    border-radius: 999px;
+    text-align: center;
+
+    transition: padding 0.25s ease;
+}
+
+.navbar.collapsed .login-btn {
+    padding: 7px 20px;
+}
 
 .navbar.collapsed .nav-main-bottom {
     height: 0;
