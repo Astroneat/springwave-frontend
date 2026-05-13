@@ -1,6 +1,6 @@
 .hero {
     position: relative;
-    height: 100vh;
+    height: 113vh;
     overflow: hidden;
 
     display: flex;
@@ -20,12 +20,39 @@
             rgba(255, 255, 255, 0.80)
         ),
         url("../../assets/images/dhdn.jpg");
-    background-position: 50% 70%;
+    background-position: 50% 100%;
 
     background-size: cover;
 
     /* filter: blur(1px); */
-    transform: scale(1.05); /* prevents blur edges */
+    /* transform: scale(1.05); prevents blur edges */
+
+    mask-image:
+        linear-gradient(
+            to bottom,
+
+            rgba(0,0,0,1) 0%,
+            rgba(0,0,0,1) 78%,
+
+            rgba(0,0,0,0.85) 86%,
+            rgba(0,0,0,0.45) 94%,
+
+            rgba(0,0,0,0) 100%
+        );
+
+    -webkit-mask-image:
+        linear-gradient(
+            to bottom,
+
+            rgba(0,0,0,1) 0%,
+            rgba(0,0,0,1) 78%,
+
+            rgba(0,0,0,0.85) 86%,
+            rgba(0,0,0,0.45) 94%,
+
+            rgba(0,0,0,0) 100%
+        );
+
     z-index: -1;
 }
 
