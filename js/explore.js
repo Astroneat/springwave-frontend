@@ -3,6 +3,28 @@ async function loadExplore() {
     const data = await response.text();
 
     document.getElementById("explore-container").innerHTML = data;
+
+    const floatingSearch = document.getElementById("floating-search");
+
+    window.addEventListener("scroll", () => {
+
+        /*
+            show after scrolling
+            near explore section
+        */
+
+        if (window.scrollY > 800) {
+
+            floatingSearch.classList.add("visible");
+
+        }
+        else {
+
+            floatingSearch.classList.remove("visible");
+
+        }
+
+    });
 }
 
 loadExplore();
