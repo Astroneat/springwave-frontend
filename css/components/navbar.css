@@ -127,7 +127,7 @@
 }
 
 .nav-links {
-    width: 100%;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -172,13 +172,19 @@
     width: 100%;
 }
 
+#auth-section {
+    margin-right: 50px;
+    margin-left: 20px;
+    color: var(--bg-panel);
+    font-size: 18px;
+}
+
 .login-btn {
     background-color: var(--secondary);
     color: var(--accent);
     font-weight: 600;
     text-decoration: none;
     padding: 10px 28px;
-    margin: 0 50px;
     border-radius: 999px;
     text-align: center;
 
@@ -216,4 +222,69 @@
 
 .navbar.collapsed .nav-content {
     padding-left: 300px;
+}
+
+
+.user-chip {
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    text-decoration: none;
+
+    background:
+        rgba(255,255,255,0.12);
+
+    border:
+        1px solid rgba(255,255,255,0.18);
+
+    backdrop-filter:
+        blur(12px);
+
+    padding:
+        10px 24px;
+
+    border-radius: 999px;
+
+    color: var(--bg-panel);
+
+    transition:
+        background 0.25s ease,
+        transform 0.25s ease,
+        padding 0.25s ease,
+        border 0.25s ease;
+}
+
+.user-chip:hover {
+
+    background:
+        rgba(255,255,255,0.18);
+
+    transform:
+        translateY(-1px);
+}
+
+.user-name {
+
+    font-size: 15px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+/* collapsed navbar */
+
+.navbar.collapsed .user-chip {
+
+    padding:
+        6px 12px;
+}
+
+.navbar.collapsed .user-avatar {
+
+    width: 30px;
+    height: 30px;
+
+    font-size: 13px;
 }
