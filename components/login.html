@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpringWave Register</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url("/springwave/assets/images/danang-17042710410701744932512.jpeg");
+            backdrop-filter: blur(3px);
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* MAIN FORM CONTAINER */
+        .frame-1 {
+            width: 70%;
+            max-width: 600px;
+
+            background: rgba(255, 255, 255, 0.92);
+
+            backdrop-filter: blur(8px);
+
+            border-radius: 20px;
+
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+
+            padding: 35px;
+        }
+
+        .join-title {
+            font-size: 42px;
+            font-weight: 700;
+            color: #23499b;
+
+            text-align: center;
+
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 10px;
+
+            font-weight: 600;
+            color: #222;
+
+            font-size: 15px;
+        }
+
+        .required {
+            color: red;
+        }
+
+        /* FULL NAME ROW */
+        .name-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        input,
+        select {
+            width: 100%;
+
+            padding: 11px 14px;
+
+            border: 2px solid #23499b;
+
+            border-radius: 12px;
+
+            outline: none;
+
+            font-size: 14px;
+
+            background: white;
+
+            transition: 0.25s;
+        }
+
+        input::placeholder {
+            color: #777;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #183a82;
+
+            box-shadow: 0 0 0 5px rgba(35, 73, 155, 0.12);
+        }
+
+        .register-btn {
+            width: 100%;
+
+            padding: 16px;
+
+            background: #ffde42;
+
+            border-radius: 14px;
+
+            font-size: 18px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            margin-top: 10px;
+
+            transition: 0.25s;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+
+            box-shadow: 0 8px 18px rgba(255, 222, 66, 0.4);
+        }
+
+        .login-text {
+            margin-top: 22px;
+
+            text-align: center;
+
+            font-size: 15px;
+
+            color: #333;
+        }
+
+        .login-text a {
+            color: #23499b;
+
+            font-weight: bold;
+
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .frame-1 {
+                padding: 30px 22px;
+            }
+
+            .join-title {
+                font-size: 30px;
+            }
+
+            .name-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="frame-1">
+
+        <h1 class="join-title">JOIN SPRINGWAVE!</h1>
+
+        <form>
+
+            <!-- FULL NAME -->
+            <div class="form-group">
+                <label>
+                    Full Name <span class="required">*</span>
+                </label>
+
+                <div class="name-row">
+                    <input type="text" placeholder="First Name">
+                    <input type="text" placeholder="Last Name">
+                </div>
+            </div>
+
+            <!-- USERNAME -->
+            <div class="form-group">
+                <label>
+                    Username <span class="required">*</span>
+                </label>
+
+                <input type="text" placeholder="Albert_Epstein">
+            </div>
+
+            <!-- CLASS -->
+            <div class="form-group">
+                <label>
+                    Class <span class="required">*</span>
+                </label>
+
+                <input type="text" placeholder="Enter your class">
+            </div>
+
+            <!-- EMAIL -->
+            <div class="form-group">
+                <label>
+                    Email <span class="required">*</span>
+                </label>
+
+                <input type="email" placeholder="example@gmail.com">
+            </div>
+
+            <!-- PHONE -->
+            <div class="form-group">
+                <label>
+                    Phone No. <span class="required">*</span>
+                </label>
+
+                <input type="tel" placeholder="0123456789">
+            </div>
+
+            <!-- DATE OF BIRTH -->
+            <div class="form-group">
+                <label>
+                    Date of Birth <span class="required">*</span>
+                </label>
+
+                <input type="date">
+            </div>
+
+            <!-- SCHOOL -->
+            <div class="form-group">
+                <label>
+                    School <span class="required">*</span>
+                </label>
+
+                <input type="search" placeholder="Search your school">
+            </div>
+
+            <!-- MAJOR -->
+            <div class="form-group">
+                <label>
+                    Major <span class="required">*</span>
+                </label>
+
+                <input type="search" placeholder="Search your major">
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="form-group">
+                <label>
+                    Password <span class="required">*</span>
+                </label>
+
+                <input type="password" placeholder="Enter password">
+            </div>
+
+            <!-- CONFIRM PASSWORD -->
+            <div class="form-group">
+                <label>
+                    Confirm Password <span class="required">*</span>
+                </label>
+
+                <input type="password" placeholder="Confirm password">
+            </div>
+
+            <!-- REGISTER BUTTON -->
+            <button type="submit" class="register-btn">
+                REGISTER
+            </button>
+
+            <!-- LOGIN -->
+            <div class="login-text">
+                Already have an account?
+                <a href="#">Login now.</a>
+            </div>
+
+        </form>
+
+    </div>
+
+</body>
+
+</html>
