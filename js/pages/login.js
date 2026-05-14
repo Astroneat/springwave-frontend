@@ -1,8 +1,8 @@
 import { login } from "../api/auth.js";
 import { createSession } from "../lib/session.js";
 
-const form = document.getElementById("loginForm");
-const errorMessage = document.getElementById("errorMessage");
+const form = document.getElementById("login-form");
+const statusMsg = document.getElementById("status-msg");
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -10,18 +10,31 @@ form.addEventListener("submit", async (e) => {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
-    errorMessage.textContent = "";
+    setStatus("Logging in", false);
     try {
         const data = await login(username, password);
         createSession(data.token, data.user);
-
+        setStatus("Logged in successfully! Redirecting...", false);
         window.location.href = "/index.html";
     }
     catch(err) {
         if(err.status === 401) {
-            errorMessage.textContent = "Invalid credentials";
+            // statusMsg.textContent = "Invalid credentials";
+            setStatus("Invalid credentials", true);
             return;
         }
-        errorMessage.textContent = err.message;
+        setStatus(err.message, true);
     }
 });
+
+function setStatus(msg, isError) {
+    statusMessage.textContent = msg;
+    if(isError) {
+        statusMessage.classList.remove("success-msg");
+        statusMessage.classList.add("error-msg");
+    }
+    else {
+        statusMessage.classList.remove("error-msg");
+        statusMessage.classList.add("success-msg");
+    }
+}
