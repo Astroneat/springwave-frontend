@@ -1,21 +1,63 @@
 import { register } from "../api/auth.js";
 
-const form = document.getElementById("registerForm");
-const errorMessage = document.getElementById("errorMessage");
+const form = document.getElementById("register-form");
+const statusMessage = document.getElementById("status-msg");
 
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+form.addEventListener("submit", handleSubmit);
 
-    const username = document.getElementById("username").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+async function handleSubmit(event) {
+    event.preventDefault();
 
-    errorMessage.textContent = "";
+    const username = document.getElementById("username").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const firstName = document.getElementById("first-name").value.trim();
+    const lastName = document.getElementById("last-name").value.trim();
+    const fullname = firstName + " " + lastName;
+    const password = document.getElementById("password").value.trim();
+    const confirmPassword = document.getElementById("confirm-password").value.trim();
+    const dob = document.getElementById("dob").value.trim();
+    const school = document.getElementById("school").value.trim();
+    const className = document.getElementById("class").value.trim();
+    const major = document.getElementById("major").value.trim();
+    const phoneNo = document.getElementById("tel").value.trim();
+
+    console.log(username, email, password, confirmPassword, dob, school, className, major);
+
+    if(password !== confirmPassword) {
+        setStatus("Passwords do not match.", true);
+        return;
+    }
+
+    setStatus("Registering...", false);
     try {
-        await register(username, email, password);
+        await register(
+            username, 
+            password, 
+            fullname, 
+            email, 
+            phoneNo, 
+            dob, 
+            school, 
+            className, 
+            major
+        );
+        setStatus("Registered successfully! Redirecting to login...", false);
         window.location.href = "/login.html";
     }
     catch (err) {
-        errorMessage.textContent = err.message;
+        // statusMessage.textContent = err.message;
+        setStatus(err.message, true);
     }
-});
+}
+
+function setStatus(msg, isError) {
+    statusMessage.textContent = msg;
+    if(isError) {
+        statusMessage.classList.remove("success-msg");
+        statusMessage.classList.add("error-msg");
+    }
+    else {
+        statusMessage.classList.remove("error-msg");
+        statusMessage.classList.add("success-msg");
+    }
+}
