@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activity Cards</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f5f3ef;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .cards-container {
+            width: 100%;
+            max-width: 1400px;
+
+            display: grid;
+
+            /* 5 CARDS PER ROW */
+            grid-template-columns: repeat(5, 1fr);
+
+            gap: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: 0.35s ease;
+            border: 1px solid #e6e6e6;
+            cursor: pointer;
+
+            /* IMPORTANT */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CARD HOVER EFFECT */
+        .card:hover {
+            /*when hover the position of Y will move up and the scale will be 1.02x*/
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 16px;
+
+            /* IMPORTANT */
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #111;
+
+            margin-bottom: 14px;
+            line-height: 1.3;
+
+            /* LIMIT TO 2 LINES */
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+        .info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: #444;
+            font-size: 0.95rem;
+        }
+
+        .info i {
+            color: #777;
+            width: 16px;
+        }
+
+        .card-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            /* PUSH BUTTONS TO BOTTOM */
+            margin-top: auto;
+
+            padding-top: 18px;
+        }
+
+        .details-btn {
+            padding: 10px 20px;
+            border-radius: 999px;
+            border: 2px solid #1c4fb6;
+            background: white;
+            color: #1c4fb6;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        /* BUTTON HOVER EFFECT */
+        .details-btn:hover {
+            background: #1c4fb6;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 6px 14px rgba(28, 79, 182, 0.3);
+        }
+
+        .star {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+
+            background: #f3f3f3;
+            border: 1px solid #d6d6d6;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .star i {
+            color: #9b9b9b;
+            font-size: 1.1rem;
+            transition: 0.3s ease;
+        }
+
+        /* HOVER */
+        .star:hover {
+            transform: rotate(15deg) scale(1.1);
+            background: #ffe08a;
+            border-color: #f0d58a;
+        }
+
+        .star:hover i {
+            color: #d4a017;
+        }
+
+        /* CLICKED / FAVORITED */
+        .star.active {
+            background: #ffe08a;
+            border-color: #f0d58a;
+        }
+
+        .star.active i {
+            color: #d4a017;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="cards-container">
+
+        <!-- CARD 1 -->
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop"
+                class="card-image">
+
+            <div class="card-content">
+
+                <h2 class="card-title">Clean Mỹ Khê Beach</h2>
+
+                <div class="info">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Mỹ Khê Beach</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span>15/05/2026</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Social Activity</span>
+                </div>
+
+                <div class="card-bottom">
+                    <button class="details-btn">View Details</button>
+
+                    <div class="star">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- CARD 2 -->
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop"
+                class="card-image">
+
+            <div class="card-content">
+
+                <h2 class="card-title">VKU BWD Competition</h2>
+
+                <div class="info">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>VKU</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span>17/05/2026</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Academic Competition</span>
+                </div>
+
+                <div class="card-bottom">
+                    <button class="details-btn">View Details</button>
+
+                    <div class="star">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- CARD 3 -->
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=1200&auto=format&fit=crop"
+                class="card-image">
+
+            <div class="card-content">
+
+                <h2 class="card-title">English Talent Competition in Vietnma-Korea University of ICT</h2>
+
+                <div class="info">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>VKU</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span>01/09/2026</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Academic Competition</span>
+                </div>
+
+                <div class="card-bottom">
+                    <button class="details-btn">View Details</button>
+
+                    <div class="star">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- CARD 4 -->
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=1200&auto=format&fit=crop"
+                class="card-image">
+
+            <div class="card-content">
+
+                <h2 class="card-title">Conference Event</h2>
+
+                <div class="info">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>VKU Hall</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span>10/10/2026</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Social Activity</span>
+                </div>
+
+                <div class="card-bottom">
+                    <button class="details-btn">View Details</button>
+
+                    <div class="star">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CARD 5 -->
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=1200&auto=format&fit=crop"
+                class="card-image">
+
+            <div class="card-content">
+
+                <h2 class="card-title">Conference Event</h2>
+
+                <div class="info">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>VKU Hall</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span>10/10/2026</span>
+                </div>
+
+                <div class="info">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Social Activity</span>
+                </div>
+
+                <div class="card-bottom">
+                    <button class="details-btn">View Details</button>
+
+                    <div class="star">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+<script>
+    // FAVORITE BUTTON
+    const stars = document.querySelectorAll(".star");
+
+    stars.forEach(star => {
+        star.addEventListener("click", (e) => {
+            e.stopPropagation(); // prevents card redirect to another page like view details button
+            star.classList.toggle("active");
+        });
+    });
+
+    // CARD REDIRECT
+    const cards = document.querySelectorAll(".card");
+
+    cards.forEach(card => {
+        card.addEventListener("click", () => {
+            window.location.href = "details.html"; //REDIRECT THE PAGE HERE, PUT THE HTML THAT OF THE DESCRIPTION HERE
+        });
+    });
+
+    // VIEW DETAILS BUTTON REDIRECT
+    const buttons = document.querySelectorAll(".details-btn");
+
+    buttons.forEach(button => {
+        button.addEventListener("click", (e) => {
+            e.stopPropagation();
+            window.location.href = "details.html"; ////REDIRECT THE PAGE HERE, PUT THE HTML THAT OF THE DESCRIPTION HERE
+        });
+    });
+</script>
+
+</html>
