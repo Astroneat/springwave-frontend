@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
     await loadHero();
     await loadExplore();
+    await loadFooter();
     initializePage();
 });
 
@@ -98,6 +99,11 @@ async function loadNavbar() {
             <a href="/login.html" class="login-btn">Login</a>
         `;
     }
+}
+
+async function loadFooter() {
+    const footerHTML = await fetchContent("./components/footer.html");
+    document.getElementById("footer-container").innerHTML = footerHTML;
 }
 
 function initializePage() {
