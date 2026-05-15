@@ -413,7 +413,7 @@ function toggleFavourite(event) {
 
 }
 
-
+//TRY TO CALL THE toggleParticipate() FUNCTION
 function initParticipateButton() {
 
     const participateBtn =
@@ -427,6 +427,7 @@ function initParticipateButton() {
     );
 }
 
+//CHANGE THE STATUS OF THE PARTICIPATE BUTTON 
 function toggleParticipate(event) {
 
     event.stopPropagation();
