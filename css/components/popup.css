@@ -1,0 +1,138 @@
+/* =========================
+   OVERLAY
+========================= */
+
+.popup-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 5000;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.35s ease;
+}
+
+/* active */
+
+.popup-overlay.active {
+
+    opacity: 1;
+
+    pointer-events: auto;
+}
+
+/* =========================
+   BACKDROP
+========================= */
+
+.popup-backdrop {
+
+    position: absolute;
+
+    inset: 0;
+
+    /*
+        start transparent
+    */
+
+    background:
+        rgba(10, 15, 30, 0);
+
+    /*
+        constant blur
+    */
+
+    backdrop-filter:
+        blur(0px);
+
+    -webkit-backdrop-filter:
+        blur(0px);
+
+    transition:
+        background 0.45s ease,
+        backdrop-filter 0.45s ease,
+        -webkit-backdrop-filter 0.45s ease;
+}
+
+/* active backdrop */
+
+.popup-overlay.active .popup-backdrop {
+
+    background:
+        rgba(10, 15, 30, 0.35);
+
+    backdrop-filter:
+        blur(12px);
+
+    -webkit-backdrop-filter:
+        blur(12px);
+}
+
+/* =========================
+   POPUP
+========================= */
+
+.popup-container {
+
+    position: relative;
+
+    width:
+        min(1000px, 92vw);
+
+    max-height:
+        90vh;
+
+    padding: 35px;
+
+    overflow-y: auto;
+
+    border-radius: 28px;
+
+    background:
+        rgba(255,255,255,0.92);
+
+    backdrop-filter:
+        blur(18px);
+
+    -webkit-backdrop-filter:
+        blur(18px);
+
+    box-shadow:
+        0 30px 80px rgba(0,0,0,0.25);
+
+    /*
+        initial state
+    */
+
+    opacity: 0;
+
+    transform:
+        translateY(40px)
+        scale(0.96);
+
+    transition:
+        opacity 0.35s ease,
+        transform 0.45s cubic-bezier(.22,1,.36,1);
+}
+
+/* active */
+
+.popup-overlay.active .popup-container {
+
+    opacity: 1;
+
+    transform:
+        translateY(0)
+        scale(1);
+}

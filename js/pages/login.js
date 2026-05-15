@@ -28,13 +28,13 @@ form.addEventListener("submit", async (e) => {
 });
 
 function setStatus(msg, isError) {
-    statusMessage.textContent = msg;
+    statusMsg.textContent = msg;
     if(isError) {
-        statusMessage.classList.remove("success-msg");
-        statusMessage.classList.add("error-msg");
+        statusMsg.classList.remove("success-msg");
+        statusMsg.classList.add("error-msg");
     }
     else {
-        statusMessage.classList.remove("error-msg");
-        statusMessage.classList.add("success-msg");
+        statusMsg.classList.remove("error-msg");
+        statusMsg.classList.add("success-msg");
     }
 }
