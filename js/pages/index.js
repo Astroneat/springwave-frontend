@@ -53,7 +53,7 @@ async function loadNavbar() {
         }
     });
 
-    localStorage.clear();
+    // localStorage.clear();
     // localStorage.setItem("token", "123");
     // localStorage.setItem(
     //     "user", 

@@ -17,7 +17,7 @@ export function register(username, password, fullname, email, phoneNo, dob, scho
             phoneNo, 
             dob, 
             school, 
-            className, 
+            class: className, 
             major
         }
     );
