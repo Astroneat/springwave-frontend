@@ -185,8 +185,20 @@ function initNavbarActiveLinks() {
             if (section) setActive(section);
         });
     });
+}
 
-    // Scroll-based: switch active based on which section is in view
+function initNavbarScrollActive() {
+    const navLinks = document.querySelectorAll(".nav-links a");
+
+    function setActive(section) {
+        navLinks.forEach(l => {
+            l.classList.remove("active");
+            if (l.dataset.section === section) {
+                l.classList.add("active");
+            }
+        });
+    }
+
     const hero = document.getElementById("hero");
     const explore = document.getElementById("explore");
 
@@ -318,6 +330,7 @@ function initializePage() {
     initCards();
     initDetailButtons();
     initCardReveal();
+    initNavbarScrollActive();
 }
 
 function initStars() {
