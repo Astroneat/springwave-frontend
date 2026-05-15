@@ -4,9 +4,12 @@ import { getToken } from "../lib/session.js";
 async function request(endpoint, options = {}) {
     const token = getToken();
     const headers = {
-        "Content-Type": "application/json",
         ...options.headers
     };
+
+    if (!(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
 
     if(token) {
         headers.Authorization = `Bearer ${token}`;
@@ -60,5 +63,18 @@ export function put(endpoint, body) {
 export function del(endpoint) {
     return request(endpoint, {
         method: "DELETE"
+    });
+}
+
+export function uploadFormData(endpoint, formData) {
+    const token = getToken();
+    const headers = {};
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+    return request(endpoint, {
+        method: "POST",
+        headers,
+        body: formData
     });
 }

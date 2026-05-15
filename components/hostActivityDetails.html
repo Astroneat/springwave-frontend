@@ -7,7 +7,7 @@
         </p>
     </div>
 
-    <form class="form-card">
+    <form id="activity-form" class="form-card" enctype="multipart/form-data">
 
         <!-- THUMBNAIL -->
         <section class="section">
@@ -21,7 +21,7 @@
 
             <label for="thumbnail-upload" class="upload-box">
 
-                <input id="thumbnail-upload" type="file" accept="image/*" class="hidden-input">
+                <input id="thumbnail-upload" name="thumbnail" type="file" accept="image/*" class="hidden-input">
 
                 <img id="thumbnail-preview" class="thumbnail-preview">
 
@@ -52,7 +52,7 @@
             <div style="margin-bottom: 25px;">
                 <label class="label">Activity Title</label>
 
-                <input type="text" class="input" placeholder="e.g., Sunset Yoga on the Beach">
+                <input id="title" name="title" type="text" class="input" placeholder="e.g., Sunset Yoga on the Beach" required>
             </div>
 
 
@@ -64,7 +64,7 @@
                 <div class="activity-type-grid">
 
                     <label class="activity-option">
-                        <input type="radio" name="activity-type" checked>
+                        <input type="radio" name="type" value="other" checked>
 
                         <div class="activity-card">
                             <span class="material-symbols-outlined">
@@ -79,7 +79,7 @@
                     </label>
 
                     <label class="activity-option">
-                        <input type="radio" name="activity-type">
+                        <input type="radio" name="type" value="competition">
 
                         <div class="activity-card">
                             <span class="material-symbols-outlined">
@@ -97,11 +97,17 @@
 
 
             <!-- DESCRIPTION -->
-            <div>
+            <div style="margin-bottom: 25px;">
                 <label class="label">Description</label>
 
-                <textarea class="textarea"
+                <textarea id="description" name="description" class="textarea" required
                     placeholder="Provide a detailed overview of what participants can expect..."></textarea>
+            </div>
+
+            <!-- LOCATION -->
+            <div>
+                <label class="label">Location</label>
+                <input id="location" name="location" type="text" class="input" placeholder="e.g., University Main Hall" required>
             </div>
         </section>
 
@@ -114,23 +120,15 @@
             <div class="date-grid">
 
                 <!-- START DATE -->
-                <div class="dp-field">
+                <div>
                     <label class="label">Activity Start Date</label>
 
-                    <div class="dpicker" id="startDP">
-                        <div class="dp-trigger">
-                            <span class="material-symbols-outlined">event</span>
-                            <span class="dp-value" id="startDPValue">Select date</span>
-                            <span class="dp-chevron">▾</span>
-                        </div>
-                        <div class="dp-dropdown" id="startDPDropdown">
-                            <div class="dp-cal-header">
-                                <button type="button" class="dp-nav" data-dp="startDP">‹</button>
-                                <span class="dp-month" id="startDPMonth">Month Year</span>
-                                <button type="button" class="dp-nav" data-dp="startDP">›</button>
-                            </div>
-                            <div class="dp-grid" id="startDPGrid"></div>
-                        </div>
+                    <div class="date-wrapper">
+                        <span class="material-symbols-outlined">
+                            event
+                        </span>
+
+                        <input id="heldDate" name="heldDate" type="date" class="date-input" required>
                     </div>
 
                     <p class="sub-text">
@@ -140,23 +138,15 @@
 
 
                 <!-- DEADLINE -->
-                <div class="dp-field">
+                <div>
                     <label class="label">Application Deadline</label>
 
-                    <div class="dpicker" id="deadlineDP">
-                        <div class="dp-trigger">
-                            <span class="material-symbols-outlined">calendar_today</span>
-                            <span class="dp-value" id="deadlineDPValue">Select date</span>
-                            <span class="dp-chevron">▾</span>
-                        </div>
-                        <div class="dp-dropdown" id="deadlineDPDropdown">
-                            <div class="dp-cal-header">
-                                <button type="button" class="dp-nav" data-dp="deadlineDP">‹</button>
-                                <span class="dp-month" id="deadlineDPMonth">Month Year</span>
-                                <button type="button" class="dp-nav" data-dp="deadlineDP">›</button>
-                            </div>
-                            <div class="dp-grid" id="deadlineDPGrid"></div>
-                        </div>
+                    <div class="date-wrapper">
+                        <span class="material-symbols-outlined">
+                            calendar_today
+                        </span>
+
+                        <input id="applicationDeadline" name="applicationDeadline" type="date" class="date-input" required>
                     </div>
                 </div>
             </div>
@@ -185,68 +175,6 @@
         </section>
 
 
-        <!-- LOCATION -->
-        <section class="section">
-
-            <h2 class="section-title">Location</h2>
-
-            <div class="location-picker" id="locationPicker">
-
-                <div class="location-trigger" id="locationTrigger">
-                    <span class="material-symbols-outlined loc-icon">
-                        location_on
-                    </span>
-
-                    <div class="loc-info">
-                        <div class="loc-label">Choose Place</div>
-
-                        <div class="loc-name" id="locName">
-                            Click to select a location on the map
-                        </div>
-
-                        <div class="loc-address" id="locAddress"></div>
-                    </div>
-
-                    <span class="material-symbols-outlined loc-arrow">
-                        chevron_right
-                    </span>
-                </div>
-
-                <input type="hidden" id="locLat">
-                <input type="hidden" id="locLng">
-            </div>
-        </section>
-
-        <!-- MAP MODAL -->
-        <div class="map-overlay" id="mapOverlay">
-            <div class="map-modal">
-                <div class="map-modal-header">
-                    <span class="map-modal-title">Select Location</span>
-
-                    <button class="map-close-btn" id="mapCloseBtn">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
-                </div>
-
-                <div class="map-search-wrapper">
-                    <span class="material-symbols-outlined map-search-icon">
-                        search
-                    </span>
-
-                    <input class="map-search-input" id="mapSearchInput" type="text"
-                        placeholder="Search for a place...">
-                </div>
-
-                <div class="map-container" id="mapContainer"></div>
-
-                <div class="map-modal-footer">
-                    <button type="button" class="btn btn-outline" id="mapCancelBtn">Cancel</button>
-
-                    <button type="button" class="btn btn-primary" id="mapConfirmBtn">Confirm Location</button>
-                </div>
-            </div>
-        </div>
-
         <!-- ATTACHMENTS -->
         <section class="section">
 
@@ -260,7 +188,7 @@
 
             <label for="attachment-upload" class="upload-box">
 
-                <input id="attachment-upload" type="file" multiple class="hidden-input"
+                <input id="attachment-upload" name="attachments" type="file" multiple class="hidden-input"
                     accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip">
 
                 <div class="upload-icon">
@@ -280,6 +208,11 @@
 
             <div id="file-list" class="file-list"></div>
         </section>
+
+
+        <!-- TAGS -->
+
+        <div id="status-msg" class="status-msg"></div>
 
 
         <!-- BUTTONS -->
