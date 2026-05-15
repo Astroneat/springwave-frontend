@@ -166,26 +166,48 @@ function initNavbarActiveLinks() {
             ".nav-links a"
         );
 
-    navLinks.forEach(link => {
-
-        link.addEventListener(
-            "click",
-            () => {
-
-                // REMOVE ACTIVE
-                navLinks.forEach(l =>
-                    l.classList.remove(
-                        "active"
-                    )
-                );
-
-                // ADD ACTIVE
-                link.classList.add(
-                    "active"
-                );
+    function setActive(section) {
+        navLinks.forEach(l => {
+            l.classList.remove("active");
+            if (l.dataset.section === section) {
+                l.classList.add("active");
             }
-        );
+        });
+    }
+
+    // Default: Home active
+    setActive("home");
+
+    // Click handler
+    navLinks.forEach(link => {
+        link.addEventListener("click", () => {
+            const section = link.dataset.section;
+            if (section) setActive(section);
+        });
     });
+
+    // Scroll-based: switch active based on which section is in view
+    const hero = document.getElementById("hero");
+    const explore = document.getElementById("explore");
+
+    if (hero && explore) {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.id === "hero") {
+                            setActive("home");
+                        } else if (entry.target.id === "explore") {
+                            setActive("explore");
+                        }
+                    }
+                });
+            },
+            { threshold: 0.3 }
+        );
+        observer.observe(hero);
+        observer.observe(explore);
+    }
 }
 
 /* =========================

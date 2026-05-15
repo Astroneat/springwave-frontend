@@ -99,6 +99,15 @@ async function loadNavbar() {
         }
     );
 
+    const hostLink =
+        document.querySelector(
+            '.nav-links a[data-section="host"]'
+        );
+
+    if (hostLink) {
+        hostLink.classList.add("active");
+    }
+
     const navbar =
         document.getElementById(
             "navbar"
