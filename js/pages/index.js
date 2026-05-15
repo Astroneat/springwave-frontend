@@ -1,4 +1,4 @@
-import { isAuthenticated, getUser } from "../lib/session.js";
+import { isAuthenticated, getUser, logout } from "../lib/session.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
@@ -29,7 +29,7 @@ async function loadExplore() {
     const floatingSearch = document.getElementById("floating-search");
     const cards = document.querySelectorAll(".card");
     window.addEventListener("scroll", () => {
-        if (window.scrollY > 800) {
+        if (window.scrollY > 750) {
             floatingSearch.classList.add("visible");
             cards.forEach(c => c.classList.add("revealed"));
         }
@@ -72,6 +72,10 @@ async function loadNavbar() {
     const authSection = document.getElementById("auth-section");
     if(isAuthenticated()) {
         const user = getUser();
+        const userChipHTML = await fetchContent("./components/userchip.html");
+        authSection.innerHTML = userChipHTML;
+        document.getElementById("user-name").textContent = user.username;
+        initUserDropdown();
 
         // authSection.innerHTML = `
         //     <a href="/profile.html"class="user-chip">
@@ -86,19 +90,118 @@ async function loadNavbar() {
         //         </span>
         //     </a>
         // `;
-        authSection.innerHTML = `
-            <a href="/profile.html"class="user-chip">
-                <span class="user-name">
-                    ${user.username}
-                </span>
-            </a>
-        `;
+        // authSection.innerHTML = `
+        //     <a href="/profile.html"class="user-chip">
+        //         <span class="user-name">
+        //             ${user.username}
+        //         </span>
+        //     </a>
+        // `;
+
     }
     else {
         authSection.innerHTML = `
             <a href="/login.html" class="login-btn">Login</a>
         `;
     }
+}
+
+/* =========================
+   USER DROPDOWN
+========================= */
+
+function initUserDropdown() {
+
+    const userMenu =
+        document.querySelector(
+            ".user-menu"
+        );
+
+    const userChip =
+        document.getElementById(
+            "user-chip"
+        );
+
+    const logoutBtn =
+        document.getElementById(
+            "logout-btn"
+        );
+
+    if (
+        !userMenu ||
+        !userChip
+    ) {
+        return;
+    }
+
+    /*
+        TOGGLE
+    */
+
+    userChip.addEventListener(
+        "click",
+        (e) => {
+
+            e.stopPropagation();
+
+            userMenu.classList.toggle(
+                "active"
+            );
+
+        }
+    );
+
+    /*
+        CLICK OUTSIDE
+    */
+
+    document.addEventListener(
+        "click",
+        () => {
+
+            userMenu.classList.remove(
+                "active"
+            );
+
+        }
+    );
+
+    /*
+        PREVENT CLOSE
+    */
+
+    userMenu.addEventListener(
+        "click",
+        (e) => {
+
+            e.stopPropagation();
+
+        }
+    );
+
+    /*
+        LOGOUT
+    */
+
+    logoutBtn?.addEventListener(
+        "click",
+        () => {
+
+            // localStorage.removeItem(
+            //     "user"
+            // );
+
+            // localStorage.removeItem(
+            //     "token"
+            // );
+
+            logout();
+            window.location.href =
+                "/login.html";
+
+        }
+    );
+
 }
 
 async function loadFooter() {
