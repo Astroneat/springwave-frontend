@@ -26,6 +26,7 @@ async function loadHero() {
 async function loadExplore() {
     const exploreHTML = await fetchContent("./components/explore.html");
     document.getElementById("explore-container").innerHTML = exploreHTML;
+    initSearchDatePicker();
     await loadCards();
 
     const floatingSearch = document.getElementById("floating-search");
@@ -509,6 +510,198 @@ function toggleParticipate(event) {
         text.textContent =
             "Join this activity";
     }
+}
+
+/* =========================
+   DATE RANGE PICKER (search bar)
+========================= */
+
+function initSearchDatePicker() {
+    const item = document.getElementById("searchDateItem");
+    const trigger = document.getElementById("drTrigger");
+    const placeholder = document.getElementById("drPlaceholder");
+    const value = document.getElementById("drValue");
+    const dropdown = document.getElementById("drDropdown");
+    const grid = document.getElementById("drCalGrid");
+    const monthLabel = document.getElementById("drMonthLabel");
+    const prevBtn = document.getElementById("drPrev");
+    const nextBtn = document.getElementById("drNext");
+    const clearBtn = document.getElementById("drClear");
+    const closeBtn = document.getElementById("drClose");
+
+    if (!trigger) return;
+
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let startDate = null;
+    let endDate = null;
+
+    function pad(n) {
+        return String(n).padStart(2, "0");
+    }
+
+    function formatDisplay() {
+        if (startDate && endDate) {
+            value.textContent =
+                `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} - ${pad(endDate.getDate())}/${pad(endDate.getMonth() + 1)}`;
+            value.classList.add("visible");
+            placeholder.classList.add("hidden");
+        } else if (startDate) {
+            value.textContent =
+                `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} - dd/mm`;
+            value.classList.add("visible");
+            placeholder.classList.add("hidden");
+        } else {
+            value.classList.remove("visible");
+            placeholder.classList.remove("hidden");
+        }
+    }
+
+    function renderCalendar() {
+        grid.innerHTML = "";
+        const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+        weekdays.forEach(d => {
+            const el = document.createElement("div");
+            el.className = "dr-weekday";
+            el.textContent = d;
+            grid.appendChild(el);
+        });
+
+        monthLabel.textContent =
+            new Date(currentYear, currentMonth).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+        const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+        for (let i = startOffset - 1; i >= 0; i--) {
+            const el = document.createElement("div");
+            el.className = "dr-day other-month";
+            el.textContent = daysInPrevMonth - i;
+            grid.appendChild(el);
+        }
+
+        const today = new Date();
+        for (let d = 1; d <= daysInMonth; d++) {
+            const el = document.createElement("div");
+            el.className = "dr-day";
+            el.textContent = d;
+
+            const date = new Date(currentYear, currentMonth, d);
+
+            if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                el.classList.add("today");
+            }
+
+            el.dataset.date = date.toISOString();
+
+            if (startDate && endDate && date > startDate && date < endDate) {
+                el.classList.add("in-range");
+            }
+            if (startDate && date.getTime() === startDate.getTime()) {
+                el.classList.add("range-start");
+                el.classList.add("in-range");
+            }
+            if (endDate && date.getTime() === endDate.getTime()) {
+                el.classList.add("range-end");
+                el.classList.add("in-range");
+            }
+            if (startDate && endDate && startDate.getTime() === endDate.getTime() && date.getTime() === startDate.getTime()) {
+                el.classList.add("selected");
+            }
+
+            el.addEventListener("click", () => {
+                const clicked = new Date(currentYear, currentMonth, d);
+                if (!startDate || (startDate && endDate)) {
+                    startDate = clicked;
+                    endDate = null;
+                } else if (clicked < startDate) {
+                    startDate = clicked;
+                } else {
+                    endDate = clicked;
+                }
+                renderCalendar();
+                formatDisplay();
+            });
+
+            grid.appendChild(el);
+        }
+
+        const totalCells = startOffset + daysInMonth;
+        const remaining = (7 - (totalCells % 7)) % 7;
+        for (let i = 1; i <= remaining; i++) {
+            const el = document.createElement("div");
+            el.className = "dr-day other-month";
+            el.textContent = i;
+            grid.appendChild(el);
+        }
+    }
+
+    function openDropdown() {
+        const today = new Date();
+        currentMonth = today.getMonth();
+        currentYear = today.getFullYear();
+        renderCalendar();
+        dropdown.classList.add("active");
+        item.classList.add("active");
+    }
+
+    function closeDropdown() {
+        dropdown.classList.remove("active");
+        item.classList.remove("active");
+    }
+
+    trigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (dropdown.classList.contains("active")) {
+            closeDropdown();
+        } else {
+            openDropdown();
+        }
+    });
+
+    prevBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        renderCalendar();
+    });
+
+    nextBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar();
+    });
+
+    clearBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        startDate = null;
+        endDate = null;
+        renderCalendar();
+        formatDisplay();
+    });
+
+    closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeDropdown();
+    });
+
+    document.addEventListener("click", (e) => {
+        if (dropdown.classList.contains("active")) {
+            if (!dropdown.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) {
+                closeDropdown();
+            }
+        }
+    });
+
+    dropdown.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+
+    formatDisplay();
 }
 
 /* =========================

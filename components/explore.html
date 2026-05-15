@@ -6,9 +6,25 @@
                 <input id="search-1" type="text" placeholder="Anywhere"/>
             </div>
 
-            <div class="search-item">
+            <div class="search-item search-item-date" id="searchDateItem">
                 <label for="search-2">When</label>
-                <input id="search-2" type="text" placeholder="Anytime"/>
+                <div class="dr-trigger" id="drTrigger">
+                    <span class="dr-placeholder" id="drPlaceholder">Anytime</span>
+                    <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
+                    <span class="dr-chevron">▾</span>
+                </div>
+                <div class="dr-dropdown" id="drDropdown">
+                    <div class="dr-cal-header">
+                        <button class="dr-nav" id="drPrev">‹</button>
+                        <span class="dr-month-label" id="drMonthLabel">Month Year</span>
+                        <button class="dr-nav" id="drNext">›</button>
+                    </div>
+                    <div class="dr-cal-grid" id="drCalGrid"></div>
+                    <div class="dr-cal-footer">
+                        <button class="dr-clear" id="drClear">Clear</button>
+                        <button class="dr-close" id="drClose">Close</button>
+                    </div>
+                </div>
             </div>
 
             <div class="search-item">
