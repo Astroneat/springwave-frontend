@@ -172,6 +172,27 @@
     width: 100%;
 }
 
+/* ACTIVE LINK */
+.nav-links a.active {
+    color: #ffffff;
+}
+
+/* UNDERLINE */
+.nav-links a.active::after {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+
+    width: 100%;
+    height: 3px;
+
+    background: #ffffff;
+
+    border-radius: 999px;
+} 
+
 #auth-section {
     margin-right: 50px;
     margin-left: 20px;
