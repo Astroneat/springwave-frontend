@@ -1,4 +1,5 @@
 import { isAuthenticated, getUser, logout } from "../lib/session.js";
+import { getActivities } from "../api/activities.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
@@ -6,6 +7,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadExplore();
     await loadFooter();
     initializePage();
+
+    // console.log(await getActivities());
 });
 
 
@@ -23,8 +26,7 @@ async function loadHero() {
 async function loadExplore() {
     const exploreHTML = await fetchContent("./components/explore.html");
     document.getElementById("explore-container").innerHTML = exploreHTML;
-    const cardsHTML = await fetchContent("./components/cards.html");
-    document.getElementById("cards-container").innerHTML = cardsHTML;
+    await loadCards();
 
     const floatingSearch = document.getElementById("floating-search");
     const cards = document.querySelectorAll(".card");
@@ -38,6 +40,51 @@ async function loadExplore() {
             cards.forEach(c => c.classList.remove("revealed"));
         }
     });
+}
+
+async function loadCards() {
+    const cardsContainer = document.getElementById("cards-container");
+    try {
+        const templateHTML = await fetchContent("./components/cards.html");
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(templateHTML, "text/html");
+
+        const templateCard = doc.querySelector(".card");
+        const activities = (await getActivities()).activities || [];
+        if(activities.length === 0) {
+            cardsContainer.innerHTML = 
+            `
+            <div class="empty-state">
+                No activities yet
+            </div>
+            `
+            return;
+        }
+
+        cardsContainer.innerHTML = "";
+        activities.forEach(activity => {
+            const card = templateCard.cloneNode(true);
+            const image = card.querySelector(".card-image");
+            image.src = activity.thumbnail;
+            image.alt = activity.title;
+            card.querySelector(".card-title").textContent = activity.title;
+            card.querySelectorAll(".info span")[0].textContent = activity.location || "Unknown Location";
+            card.querySelectorAll(".info span")[1].textContent = formatDate(activity.heldDate);
+            card.querySelectorAll(".info span")[2].textContent = capitalize(activity.type || "Activity");
+            card.dataset.id = activity.activityID;
+
+            cardsContainer.appendChild(card);
+        });
+    } catch(err) {
+        console.error(err);
+
+        cardsContainer.innerHTML =
+            `
+            <div class="empty-state">
+                Failed to load activities
+            </div>
+            `;
+    }
 }
 
 async function loadNavbar() {
@@ -363,5 +410,38 @@ function toggleFavourite(event) {
     const button = event.currentTarget;
 
     button.classList.toggle("active");
+
+}
+
+/* =========================
+   HELPERS
+========================= */
+
+function formatDate(dateString) {
+
+    if (!dateString) {
+        return "Unknown Date";
+    }
+
+    const date =
+        new Date(dateString);
+
+    return date.toLocaleDateString(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+        }
+    );
+
+}
+
+function capitalize(str) {
+
+    return (
+        str.charAt(0).toUpperCase() +
+        str.slice(1)
+    );
 
 }
