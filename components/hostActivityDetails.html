@@ -114,15 +114,23 @@
             <div class="date-grid">
 
                 <!-- START DATE -->
-                <div>
+                <div class="dp-field">
                     <label class="label">Activity Start Date</label>
 
-                    <div class="date-wrapper">
-                        <span class="material-symbols-outlined">
-                            event
-                        </span>
-
-                        <input type="date" class="date-input">
+                    <div class="dpicker" id="startDP">
+                        <div class="dp-trigger">
+                            <span class="material-symbols-outlined">event</span>
+                            <span class="dp-value" id="startDPValue">Select date</span>
+                            <span class="dp-chevron">▾</span>
+                        </div>
+                        <div class="dp-dropdown" id="startDPDropdown">
+                            <div class="dp-cal-header">
+                                <button type="button" class="dp-nav" data-dp="startDP">‹</button>
+                                <span class="dp-month" id="startDPMonth">Month Year</span>
+                                <button type="button" class="dp-nav" data-dp="startDP">›</button>
+                            </div>
+                            <div class="dp-grid" id="startDPGrid"></div>
+                        </div>
                     </div>
 
                     <p class="sub-text">
@@ -132,15 +140,23 @@
 
 
                 <!-- DEADLINE -->
-                <div>
+                <div class="dp-field">
                     <label class="label">Application Deadline</label>
 
-                    <div class="date-wrapper">
-                        <span class="material-symbols-outlined">
-                            calendar_today
-                        </span>
-
-                        <input type="date" class="date-input">
+                    <div class="dpicker" id="deadlineDP">
+                        <div class="dp-trigger">
+                            <span class="material-symbols-outlined">calendar_today</span>
+                            <span class="dp-value" id="deadlineDPValue">Select date</span>
+                            <span class="dp-chevron">▾</span>
+                        </div>
+                        <div class="dp-dropdown" id="deadlineDPDropdown">
+                            <div class="dp-cal-header">
+                                <button type="button" class="dp-nav" data-dp="deadlineDP">‹</button>
+                                <span class="dp-month" id="deadlineDPMonth">Month Year</span>
+                                <button type="button" class="dp-nav" data-dp="deadlineDP">›</button>
+                            </div>
+                            <div class="dp-grid" id="deadlineDPGrid"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -168,6 +184,68 @@
             </div>
         </section>
 
+
+        <!-- LOCATION -->
+        <section class="section">
+
+            <h2 class="section-title">Location</h2>
+
+            <div class="location-picker" id="locationPicker">
+
+                <div class="location-trigger" id="locationTrigger">
+                    <span class="material-symbols-outlined loc-icon">
+                        location_on
+                    </span>
+
+                    <div class="loc-info">
+                        <div class="loc-label">Choose Place</div>
+
+                        <div class="loc-name" id="locName">
+                            Click to select a location on the map
+                        </div>
+
+                        <div class="loc-address" id="locAddress"></div>
+                    </div>
+
+                    <span class="material-symbols-outlined loc-arrow">
+                        chevron_right
+                    </span>
+                </div>
+
+                <input type="hidden" id="locLat">
+                <input type="hidden" id="locLng">
+            </div>
+        </section>
+
+        <!-- MAP MODAL -->
+        <div class="map-overlay" id="mapOverlay">
+            <div class="map-modal">
+                <div class="map-modal-header">
+                    <span class="map-modal-title">Select Location</span>
+
+                    <button class="map-close-btn" id="mapCloseBtn">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <div class="map-search-wrapper">
+                    <span class="material-symbols-outlined map-search-icon">
+                        search
+                    </span>
+
+                    <input class="map-search-input" id="mapSearchInput" type="text"
+                        placeholder="Search for a place...">
+                </div>
+
+                <div class="map-container" id="mapContainer"></div>
+
+                <div class="map-modal-footer">
+                    <button type="button" class="btn btn-outline" id="mapCancelBtn">Cancel</button>
+
+                    <button type="button" class="btn btn-primary" id="mapConfirmBtn">Confirm Location</button>
+                </div>
+            </div>
+        </div>
 
         <!-- ATTACHMENTS -->
         <section class="section">
