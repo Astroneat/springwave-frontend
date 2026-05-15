@@ -128,10 +128,51 @@ function initStars() {
 
 function initCards() {
     const cards = document.querySelectorAll(".card");
+    const popupOverlay = document.getElementById("popup-overlay");
+    const popupContainer = document.getElementById("popup-container");
+
     cards.forEach(card => {
-        card.addEventListener("click", () => {
-            window.location.href = "details.html"; 
+        card.addEventListener("click", async () => {
+            // window.location.href = "details.html"; 
+            await openPopup();
         });
+    });
+
+    async function openPopup() {
+        const popupHTML = await fetchContent("./components/description.html");
+        popupContainer.innerHTML = popupHTML;
+
+        const backBtn = document.getElementById("back-btn");
+        backBtn.addEventListener("click", (e) => {
+            closePopup();
+        });
+
+        popupOverlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }   
+
+    function closePopup() {
+        const popupOverlay = document.getElementById("popup-overlay");
+        const popupContainer = document.getElementById("popup-container");
+
+        popupOverlay.classList.remove("active");
+
+        document.body.style.overflow = "";
+        setTimeout(() => {
+            popupContainer.innerHTML = "";
+        }, 300);
+    }
+
+    popupOverlay.addEventListener("click", (e) => {
+        if (e.target === popupOverlay || e.target.classList.contains("popup-backdrop")) {
+            closePopup();
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closePopup();
+        }
     });
 }
 
@@ -199,4 +240,14 @@ function initCardReveal() {
 
         }
     );
+}
+
+function toggleFavourite(event) {
+
+    event.stopPropagation();
+
+    const button = event.currentTarget;
+
+    button.classList.toggle("active");
+
 }
