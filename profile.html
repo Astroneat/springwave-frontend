@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - SpringWave</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <link rel="stylesheet" href="./css/variables.css">
+  <link rel="stylesheet" href="./css/global.css">
+
+  <link rel="stylesheet" href="./css/components/navbar.css">
+  <link rel="stylesheet" href="./css/components/footer.css">
+  <link rel="stylesheet" href="./css/components/popup.css">
+  <link rel="stylesheet" href="./css/components/description.css">
+  <link rel="stylesheet" href="./css/components/profile.css">
+  <link rel="stylesheet" href="./css/components/chatbot.css">
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <div class="profile-page">
+    <div class="profile-header">
+      <div class="profile-avatar" id="avatar-placeholder">?</div>
+      <div class="profile-info">
+        <div class="profile-name-row">
+          <h1 class="profile-name" id="profile-name">Loading...</h1>
+          <span class="profile-role" id="profile-role">Student</span>
+        </div>
+        <div class="profile-details" id="profile-details">
+          <div class="profile-detail-item"><i class="fa-regular fa-envelope"></i> <span id="profile-email">-</span></div>
+          <div class="profile-detail-item"><i class="fa-regular fa-phone"></i> <span id="profile-phone">-</span></div>
+          <div class="profile-detail-item"><i class="fa-regular fa-cake-candles"></i> <span id="profile-dob">-</span></div>
+          <div class="profile-detail-item"><i class="fa-solid fa-school"></i> <span id="profile-school">-</span></div>
+          <div class="profile-detail-item"><i class="fa-regular fa-user"></i> <span id="profile-username">-</span></div>
+        </div>
+      </div>
+      <button class="edit-profile-btn" id="edit-profile-btn">
+        <i class="fa-regular fa-pen-to-square"></i> Edit Profile
+      </button>
+    </div>
+
+    <div class="profile-layout">
+      <div class="profile-sidebar">
+        <div class="profile-card">
+          <h2>Stats Overview</h2>
+          <div class="stat-item">
+            <div class="stat-left">
+              <div class="stat-icon"><i class="fa-solid fa-hiking"></i></div>
+              <span class="stat-label">Participated</span>
+            </div>
+            <span class="stat-value" id="stats-count">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-card">
+        <h2>Participated Activities</h2>
+        <div class="activity-list" id="activity-list">
+          <div class="empty-state" id="loading-msg">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-container"></div>
+
+  <div class="popup-overlay" id="popup-overlay">
+    <div class="popup-backdrop"></div>
+    <div class="popup-container" id="popup-container"></div>
+  </div>
+
+  <div class="edit-modal-overlay" id="edit-modal">
+    <div class="edit-modal-backdrop"></div>
+    <div class="edit-modal">
+      <div class="edit-modal-header">
+        <h2>Edit Profile</h2>
+        <button class="edit-modal-close" id="edit-modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="edit-form">
+        <div class="edit-form-group">
+          <label>Full Name</label>
+          <input type="text" id="edit-fullname" required>
+        </div>
+        <div class="edit-form-row">
+          <div class="edit-form-group">
+            <label>Date of Birth</label>
+            <input type="date" id="edit-dob" required>
+          </div>
+          <div class="edit-form-group">
+            <label>Phone Number</label>
+            <input type="tel" id="edit-phone" required>
+          </div>
+        </div>
+        <div class="edit-form-row">
+          <div class="edit-form-group">
+            <label>School</label>
+            <input type="text" id="edit-school" required>
+          </div>
+          <div class="edit-form-group">
+            <label>Class</label>
+            <input type="text" id="edit-class" required>
+          </div>
+        </div>
+        <div class="edit-form-group">
+          <label>Major</label>
+          <input type="text" id="edit-major" required>
+        </div>
+        <div class="edit-form-actions">
+          <button type="button" class="edit-btn-cancel" id="edit-btn-cancel">Cancel</button>
+          <button type="submit" class="edit-btn-save">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="chatbot-container"></div>
+  <script type="module" src="js/pages/profile.js"></script>
+</body>
+</html>

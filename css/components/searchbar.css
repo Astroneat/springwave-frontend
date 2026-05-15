@@ -205,6 +205,29 @@
         0 14px 32px var(--accent-glow);
 }
 
+.refresh-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 6px;
+    transition: background 0.2s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.refresh-btn:hover {
+    background: #e8ecf4;
+    transform: rotate(180deg);
+}
+
 /* =========================
    DATE RANGE PICKER (search bar)
 ========================= */

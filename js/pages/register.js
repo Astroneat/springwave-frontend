@@ -1,4 +1,7 @@
 import { register } from "../api/auth.js";
+import { initChatbot } from "../components/chatbot.js";
+
+initChatbot();
 
 const form = document.getElementById("register-form");
 const statusMessage = document.getElementById("status-msg");

@@ -1,5 +1,8 @@
 import { login } from "../api/auth.js";
 import { createSession } from "../lib/session.js";
+import { initChatbot } from "../components/chatbot.js";
+
+initChatbot();
 
 const form = document.getElementById("login-form");
 const statusMsg = document.getElementById("status-msg");

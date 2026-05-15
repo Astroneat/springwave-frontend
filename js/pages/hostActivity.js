@@ -1,5 +1,8 @@
 import { isAuthenticated, getUser, logout } from "../lib/session.js";
 import { createActivity } from "../api/activities.js";
+import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
+import { CDN_DOMAIN } from "../config.js";
+import { initChatbot } from "../components/chatbot.js";
 
 
 
@@ -30,6 +33,7 @@ document.addEventListener(
         );
 
         await loadFooter();
+        await initChatbot();
 
         initializeHostActivityPage();
     }
@@ -40,10 +44,7 @@ document.addEventListener(
 ========================= */
 
 async function fetchContent(url) {
-
-    const response =
-        await fetch(url);
-
+    const response = await fetch(url);
     return await response.text();
 }
 
@@ -106,6 +107,9 @@ async function loadNavbar() {
             else if (section === "explore") {
 
                 link.href = "./index.html#explore";
+            }
+            else if (section === "host") {
+                link.classList.add("active");
             }
         }
     );
@@ -225,16 +229,16 @@ function initUserDropdown() {
         }
     );
 
-    logoutBtn?.addEventListener(
-        "click",
-        () => {
+    logoutBtn?.addEventListener("click", () => {
+        logout();
+        window.location.href = "/login.html";
+    });
 
-            logout();
-
-            window.location.href =
-                "/login.html";
-        }
-    );
+    document.getElementById("favourites-btn")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        userMenu.classList.remove("active");
+        showFavPopup();
+    });
 }
 
 /* =========================
@@ -539,4 +543,50 @@ function setStatus(msg, isError, el) {
     el.textContent = msg;
     el.classList.remove("error-msg", "success-msg");
     el.classList.add(isError ? "error-msg" : "success-msg");
+}
+
+/* =========================
+   FAVOURITES POPUP
+========================= */
+
+const popupOverlay = document.getElementById("popup-overlay");
+const popupContainer = document.getElementById("popup-container");
+
+async function showFavPopup() {
+    try {
+        const { activities } = await getFavourites();
+        const items = (activities || []).map(a => {
+            const held = a.heldDate ? new Date(a.heldDate).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
+            return `<div class="fav-item" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;">
+                <div style="width:100px;height:75px;border-radius:8px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">${a.thumbnail ? `<img src="${a.thumbnail}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="padding:24px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}</div>
+                <div style="flex:1"><div style="font-weight:600;margin-bottom:4px;">${a.title}</div><div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${a.location}</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${held}</div></div>
+            </div>`;
+        }).join("");
+
+        popupContainer.innerHTML = `
+            <div class="container">
+                <div class="top-bar">
+                    <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    <h2 style="font-size:22px;font-weight:700;">Favourite Activities</h2>
+                </div>
+                <div style="margin-top:20px;">${items || '<p style="text-align:center;color:var(--text-muted)">No favourites yet.</p>'}</div>
+            </div>`;
+
+        popupOverlay.classList.add("active");
+        document.getElementById("back-btn").addEventListener("click", () => {
+            popupOverlay.classList.remove("active");
+            popupContainer.innerHTML = "";
+        });
+        popupOverlay.addEventListener("click", (e) => {
+            if (e.target === popupOverlay) { popupOverlay.classList.remove("active"); popupContainer.innerHTML = ""; }
+        });
+
+        popupContainer.querySelectorAll(".fav-item").forEach(el => {
+            el.addEventListener("click", () => {
+                popupOverlay.classList.remove("active");
+                popupContainer.innerHTML = "";
+                window.location.href = `./index.html`;
+            });
+        });
+    } catch {}
 }
