@@ -51,9 +51,9 @@ async function loadCards() {
 
         const templateCard = doc.querySelector(".card");
         const activities = (await getActivities()).activities || [];
-        if(activities.length === 0) {
-            cardsContainer.innerHTML = 
-            `
+        if (activities.length === 0) {
+            cardsContainer.innerHTML =
+                `
             <div class="empty-state">
                 No activities yet
             </div>
@@ -75,7 +75,7 @@ async function loadCards() {
 
             cardsContainer.appendChild(card);
         });
-    } catch(err) {
+    } catch (err) {
         console.error(err);
 
         cardsContainer.innerHTML =
@@ -285,9 +285,7 @@ function initCards() {
     buttons.forEach(button => {
         button.addEventListener("click", (e) => {
             e.stopPropagation();
-            button.addEventListener("click", (e) => {
-                openPopup();
-            })
+            openPopup();
         });
     });
 
@@ -302,6 +300,8 @@ function initCards() {
     async function openPopup() {
         const popupHTML = await fetchContent("./components/description.html");
         popupContainer.innerHTML = popupHTML;
+
+        initParticipateButton();
 
         const backBtn = document.getElementById("back-btn");
         backBtn.addEventListener("click", (e) => {
@@ -411,6 +411,61 @@ function toggleFavourite(event) {
 
     button.classList.toggle("active");
 
+}
+
+
+function initParticipateButton() {
+
+    const participateBtn =
+        document.querySelector(".participate");
+
+    if (!participateBtn) return;
+
+    participateBtn.addEventListener(
+        "click",
+        toggleParticipate
+    );
+}
+
+function toggleParticipate(event) {
+
+    event.stopPropagation();
+
+    const button = event.currentTarget;
+
+    button.classList.toggle("active");
+
+    const header =
+        button.querySelector(
+            ".participate-header"
+        );
+
+    const text =
+        button.querySelector(
+            ".participate-text"
+        );
+
+    if (
+        button.classList.contains(
+            "active"
+        )
+    ) {
+
+        header.textContent =
+            "PARTICIPATED";
+
+        text.textContent =
+            "You have joined in this activity";
+
+    }
+    else {
+
+        header.textContent =
+            "PARTICIPATE";
+
+        text.textContent =
+            "Join this activity";
+    }
 }
 
 /* =========================
