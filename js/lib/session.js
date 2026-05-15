@@ -49,5 +49,5 @@ export function isAuthenticated() {
 
 export function logout() {
     clearSession();
-    window.location.href = "/login.html";
+    // window.location.href = "/login.html";
 }
