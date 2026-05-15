@@ -90,6 +90,7 @@ async function loadCards() {
 async function loadNavbar() {
     const data = await fetchContent("./components/navbar.html");;
     document.getElementById("navbar-container").innerHTML = data;
+    initNavbarActiveLinks();
 
     const navbar = document.getElementById("navbar");
     window.addEventListener("scroll", () => {
@@ -151,6 +152,39 @@ async function loadNavbar() {
             <a href="/login.html" class="login-btn">Login</a>
         `;
     }
+}
+
+/* =========================
+   NAVBAR ACTIVE LINKS
+========================= */
+
+function initNavbarActiveLinks() {
+
+    const navLinks =
+        document.querySelectorAll(
+            ".nav-links a"
+        );
+
+    navLinks.forEach(link => {
+
+        link.addEventListener(
+            "click",
+            () => {
+
+                // REMOVE ACTIVE
+                navLinks.forEach(l =>
+                    l.classList.remove(
+                        "active"
+                    )
+                );
+
+                // ADD ACTIVE
+                link.classList.add(
+                    "active"
+                );
+            }
+        );
+    });
 }
 
 /* =========================
