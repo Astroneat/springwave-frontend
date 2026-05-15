@@ -494,7 +494,21 @@
 }
 
 .participate {
-    background: #20b15a;
+    /* background: #20b15a;
+            color: white; */
+    background: white;
+    color: #1a8746;
+    border: 2px solid #16a34a;
+    transition:
+        background 0.3s ease,
+        color 0.3s ease,
+        transform 0.3s ease
+}
+
+/* ACTIVE */
+
+.participate.active {
+    background: #16a34a;
     color: white;
 }
 
