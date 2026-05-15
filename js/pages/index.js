@@ -70,7 +70,7 @@ async function loadNavbar() {
     const username = localStorage.getItem("username");
 
     const authSection = document.getElementById("auth-section");
-    if(isAuthenticated()) {
+    if (isAuthenticated()) {
         const user = getUser();
 
         // authSection.innerHTML = `
@@ -119,7 +119,7 @@ function initStars() {
     stars.forEach(star => {
         // console.log("hey");
         star.addEventListener("click", (e) => {
-            e.stopPropagation(); 
+            e.stopPropagation();
             // console.log("click!");
             star.classList.toggle("active");
         });
@@ -130,6 +130,17 @@ function initCards() {
     const cards = document.querySelectorAll(".card");
     const popupOverlay = document.getElementById("popup-overlay");
     const popupContainer = document.getElementById("popup-container");
+
+    const buttons = document.querySelectorAll(".details-btn");
+    buttons.forEach(button => {
+        button.addEventListener("click", (e) => {
+            e.stopPropagation();
+            button.addEventListener("click", (e) => {
+                openPopup();
+            })
+        });
+    });
+
 
     cards.forEach(card => {
         card.addEventListener("click", async () => {
@@ -149,7 +160,8 @@ function initCards() {
 
         popupOverlay.classList.add("active");
         document.body.style.overflow = "hidden";
-    }   
+    }
+
 
     function closePopup() {
         const popupOverlay = document.getElementById("popup-overlay");
@@ -181,13 +193,12 @@ function initDetailButtons() {
     buttons.forEach(button => {
         button.addEventListener("click", (e) => {
             e.stopPropagation();
-            window.location.href = "details.html"; 
         });
     });
 }
 
 function initCardReveal() {
-        const cards =
+    const cards =
         document.querySelectorAll(
             ".card"
         );

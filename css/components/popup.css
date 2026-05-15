@@ -88,7 +88,7 @@
     position: relative;
 
     width:
-        min(1000px, 92vw);
+        min(1350px, 92vw);
 
     max-height:
         90vh;
@@ -100,7 +100,7 @@
     border-radius: 28px;
 
     background:
-        rgba(255,255,255,0.92);
+        rgba(255, 255, 255, 0.92);
 
     backdrop-filter:
         blur(18px);
@@ -109,7 +109,7 @@
         blur(18px);
 
     box-shadow:
-        0 30px 80px rgba(0,0,0,0.25);
+        0 30px 80px rgba(0, 0, 0, 0.25);
 
     /*
         initial state
@@ -118,12 +118,11 @@
     opacity: 0;
 
     transform:
-        translateY(40px)
-        scale(0.96);
+        translateY(40px) scale(0.96);
 
     transition:
         opacity 0.35s ease,
-        transform 0.45s cubic-bezier(.22,1,.36,1);
+        transform 0.45s cubic-bezier(.22, 1, .36, 1);
 }
 
 /* active */
@@ -133,6 +132,5 @@
     opacity: 1;
 
     transform:
-        translateY(0)
-        scale(1);
+        translateY(0) scale(1);
 }
