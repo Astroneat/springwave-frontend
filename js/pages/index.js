@@ -310,6 +310,14 @@ function initCards() {
 
         popupOverlay.classList.add("active");
         document.body.style.overflow = "hidden";
+
+        //making favorite button in description works
+        const favoriteBtn = popupContainer.querySelector(".favorite-btn")
+
+        favoriteBtn?.addEventListener("click", (event) => {
+            event.stopPropagation();
+            favoriteBtn.classList.toggle("active");
+        });
     }
 
 
