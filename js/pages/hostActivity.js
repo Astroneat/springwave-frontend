@@ -1,6 +1,8 @@
 import { isAuthenticated, getUser, logout } from "../lib/session.js";
 import { getActivities } from "../api/activities.js";
 
+
+
 /* =========================
    PAGE LOAD
 ========================= */
@@ -72,6 +74,30 @@ async function loadNavbar() {
     document.getElementById(
         "navbar-container"
     ).innerHTML = data;
+
+    const navLinks =
+        document.querySelectorAll(
+            ".nav-links a"
+        );
+
+    navLinks.forEach(
+        link => {
+
+            const section =
+                link.getAttribute(
+                    "data-section"
+                );
+
+            if (section === "home") {
+
+                link.href = "./index.html";
+            }
+            else if (section === "explore") {
+
+                link.href = "./index.html#explore";
+            }
+        }
+    );
 
     const navbar =
         document.getElementById(
