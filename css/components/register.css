@@ -153,6 +153,29 @@ select:focus {
     }
 }
 
+@media (max-width: 480px) {
+    body {
+        padding: 20px 12px;
+    }
+    .frame-1 {
+        width: 100%;
+        padding: 24px 16px;
+        border-radius: 16px;
+    }
+    .join-title {
+        font-size: 24px;
+        margin-bottom: 24px;
+    }
+    input {
+        padding: 10px 12px;
+        font-size: 15px;
+    }
+    .register-btn {
+        padding: 14px;
+        font-size: 17px;
+    }
+}
+
 .status-msg {
     font-size: 14px;
     margin: 8px 0;

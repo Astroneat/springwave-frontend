@@ -180,6 +180,8 @@ async function loadNavbar() {
         }
     });
 
+    initHamburger();
+
     // localStorage.clear();
     // localStorage.setItem("token", "123");
     // localStorage.setItem(
@@ -231,6 +233,28 @@ async function loadNavbar() {
             <a href="/login.html" class="login-btn">Login</a>
         `;
     }
+}
+
+/* =========================
+   HAMBURGER TOGGLE
+========================= */
+
+function initHamburger() {
+    const hamburger = document.getElementById("hamburgerBtn");
+    const navLinks = document.getElementById("navLinks");
+    if (!hamburger || !navLinks) return;
+
+    hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("active");
+        navLinks.classList.toggle("open");
+    });
+
+    navLinks.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => {
+            hamburger.classList.remove("active");
+            navLinks.classList.remove("open");
+        });
+    });
 }
 
 /* =========================

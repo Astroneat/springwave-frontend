@@ -134,3 +134,30 @@
     transform:
         translateY(0) scale(1);
 }
+
+/* ===== RESPONSIVE POPUP ===== */
+@media (max-width: 768px) {
+    .popup-container {
+        width: 96vw;
+        padding: 24px 18px;
+        max-height: 95vh;
+        border-radius: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .popup-container {
+        width: 100vw;
+        padding: 18px 14px;
+        border-radius: 16px 16px 0 0;
+        max-height: 92vh;
+        margin-top: auto;
+        transform: translateY(40px);
+    }
+    .popup-overlay {
+        align-items: flex-end;
+    }
+    .popup-overlay.active .popup-container {
+        transform: translateY(0);
+    }
+}

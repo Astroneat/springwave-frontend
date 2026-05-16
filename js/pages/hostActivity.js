@@ -172,6 +172,23 @@ async function loadNavbar() {
             </a>
         `;
     }
+    initHamburger();
+}
+
+function initHamburger() {
+    const hamburger = document.getElementById("hamburgerBtn");
+    const navLinks = document.getElementById("navLinks");
+    if (!hamburger || !navLinks) return;
+    hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("active");
+        navLinks.classList.toggle("open");
+    });
+    navLinks.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => {
+            hamburger.classList.remove("active");
+            navLinks.classList.remove("open");
+        });
+    });
 }
 
 /* =========================
