@@ -469,27 +469,24 @@ const popupContainer2 = document.getElementById("popup-container-2");
 async function openPopup(activityID) {
     if (!activityID) return;
 
+    popupContainer.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    popupOverlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+
     const { activity } = await getActivityById(activityID);
 
     popupContainer.innerHTML = buildPopupHTML(activity);
-
-    if (isAuthenticated()) {
-        try {
-            const [{ participated }, { favourited }] = await Promise.all([
-                checkParticipation(activityID),
-                checkFavourite(activityID)
-            ]);
-            if (participated) setParticipated();
-            if (favourited) setFavourited(activityID);
-        } catch {}
-    }
 
     initParticipateButton(activityID);
 
     popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
 
-    popupOverlay.classList.add("active");
-    document.body.style.overflow = "hidden";
+    if (isAuthenticated()) {
+        Promise.all([
+            checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(); }),
+            checkFavourite(activityID).then(({ favourited }) => { if (favourited) setFavourited(activityID); })
+        ]).catch(() => {});
+    }
 
     const favoriteBtn = popupContainer.querySelector(".favorite-btn");
     favoriteBtn?.addEventListener("click", async (event) => {
@@ -530,23 +527,23 @@ function closePopup2() {
 
 async function openPopup2(activityID, activityData) {
     if (!activityID) return;
+
+    popupContainer2.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    popupOverlay2.classList.add("active");
+
     const activity = activityData || (await getActivityById(activityID)).activity;
     if (!activity) return;
     popupContainer2.innerHTML = buildPopupHTML(activity, "Back");
 
-    if (isAuthenticated()) {
-        try {
-            const [{ participated }, { favourited }] = await Promise.all([
-                checkParticipation(activityID), checkFavourite(activityID)
-            ]);
-            if (participated) setParticipated();
-            if (favourited) setFavourited(activityID);
-        } catch {}
-    }
-
     initParticipateButton(activityID);
     popupContainer2.querySelector("#back-btn")?.addEventListener("click", closePopup2);
-    popupOverlay2.classList.add("active");
+
+    if (isAuthenticated()) {
+        Promise.all([
+            checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(); }),
+            checkFavourite(activityID).then(({ favourited }) => { if (favourited) setFavourited(activityID); })
+        ]).catch(() => {});
+    }
 
     const favBtn = popupContainer2.querySelector(".favorite-btn");
     favBtn?.addEventListener("click", async (e) => {

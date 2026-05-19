@@ -186,25 +186,23 @@ const popupContainer = document.getElementById("popup-container");
 async function openPopup(activityID) {
     if (!activityID || !popupOverlay || !popupContainer) return;
 
+    popupContainer.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    popupOverlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+
     const { activity } = await getActivityById(activityID);
     popupContainer.innerHTML = buildPopupHTML(activity);
-
-    if (isAuthenticated()) {
-        try {
-            const [{ participated }, { favourited }] = await Promise.all([
-                checkParticipation(activityID), checkFavourite(activityID)
-            ]);
-            if (participated) setParticipated();
-            if (favourited) setFavourited();
-        } catch {}
-    }
 
     initParticipateButton(activityID);
 
     document.getElementById("back-btn").addEventListener("click", closePopup);
 
-    popupOverlay.classList.add("active");
-    document.body.style.overflow = "hidden";
+    if (isAuthenticated()) {
+        Promise.all([
+            checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(); }),
+            checkFavourite(activityID).then(({ favourited }) => { if (favourited) setFavourited(); })
+        ]).catch(() => {});
+    }
 
     const favoriteBtn = popupContainer.querySelector(".favorite-btn");
     favoriteBtn?.addEventListener("click", async (e) => {
