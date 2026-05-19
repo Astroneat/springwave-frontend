@@ -285,6 +285,8 @@ function initializeHostActivityPage() {
 
     initFileUpload();
 
+    initMapPicker();
+
     initDateValidation();
 
     initFormSubmit();
@@ -347,6 +349,8 @@ function initThumbnailPreview() {
    FILE UPLOAD
 ========================= */
 
+const MAX_FILES = 10;
+
 function initFileUpload() {
 
     const attachmentInput =
@@ -361,60 +365,326 @@ function initFileUpload() {
 
     if (!attachmentInput) return;
 
+    let selectedFiles = [];
+
+    function renderFileList() {
+
+        fileList.innerHTML = "";
+
+        if (selectedFiles.length === 0) return;
+
+        selectedFiles.forEach(
+            (file, index) => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+                item.className =
+                    "file-item";
+
+                item.innerHTML = `
+                    <span class="material-symbols-outlined">
+                        description
+                    </span>
+
+                    <div style="flex:1;min-width:0">
+                        <div class="file-name">
+                            ${file.name}
+                        </div>
+
+                        <div class="file-size">
+                            ${(file.size / 1024).toFixed(1)} KB
+                        </div>
+                    </div>
+
+                    <button type="button" class="file-remove" data-index="${index}" title="Remove file">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                `;
+
+                item.querySelector(
+                    ".file-remove"
+                ).addEventListener(
+                    "click",
+                    (e) => {
+                        e.stopPropagation();
+                        selectedFiles.splice(index, 1);
+                        renderFileList();
+                        updateFileInput();
+                    }
+                );
+
+                fileList.appendChild(
+                    item
+                );
+            }
+        );
+    }
+
+    function updateFileInput() {
+
+        const dt =
+            new DataTransfer();
+
+        selectedFiles.forEach(
+            f => dt.items.add(f)
+        );
+
+        attachmentInput.files =
+            dt.files;
+    }
+
     attachmentInput.addEventListener(
         "change",
         function () {
 
-            // LIMIT TO 10 FILES
-            if (this.files.length > 10) {
+            const newFiles =
+                Array.from(this.files);
+
+            if (newFiles.length === 0) return;
+
+            if (
+                selectedFiles.length + newFiles.length >
+                MAX_FILES
+            ) {
 
                 alert(
-                    "You can only upload up to 10 files."
+                    `You can upload up to ${MAX_FILES} files total.`
                 );
 
                 this.value = "";
 
-                fileList.innerHTML = "";
-
                 return;
             }
 
-            fileList.innerHTML = "";
+            selectedFiles = [
+                ...selectedFiles,
+                ...newFiles
+            ];
 
-            Array.from(this.files).forEach(
-                file => {
-
-                    const item =
-                        document.createElement(
-                            "div"
-                        );
-
-                    item.className =
-                        "file-item";
-
-                    item.innerHTML = `
-                        <span class="material-symbols-outlined">
-                            description
-                        </span>
-
-                        <div>
-                            <div class="file-name">
-                                ${file.name}
-                            </div>
-
-                            <div class="file-size">
-                                ${(file.size / 1024).toFixed(1)} KB
-                            </div>
-                        </div>
-                    `;
-
-                    fileList.appendChild(
-                        item
-                    );
-                }
-            );
+            renderFileList();
+            updateFileInput();
         }
     );
+}
+
+/* =========================
+   MAP PICKER
+========================= */
+
+function initMapPicker() {
+    const mapContainer = document.getElementById("map");
+    const locationInput = document.getElementById("location");
+    const locationRow = document.querySelector(".location-input-row");
+    const markerLabel = document.getElementById("mapMarkerLabel");
+    const latInput = document.getElementById("locationLat");
+    const lngInput = document.getElementById("locationLng");
+    const locateBtn = document.getElementById("locateBtn");
+
+    if (!mapContainer || !locationInput) return;
+
+    const defaultCenter = [105.85, 21.03];
+    let marker = null;
+    let geocodeTimer = null;
+    let searchTimer = null;
+    let selectedViaSearch = false;
+
+    const map = new maplibregl.Map({
+        container: "map",
+        style: {
+            version: 8,
+            sources: {
+                osm: {
+                    type: "raster",
+                    tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+                    tileSize: 256,
+                    attribution: "&copy; OpenStreetMap contributors"
+                }
+            },
+            layers: [{ id: "osm", type: "raster", source: "osm" }]
+        },
+        center: defaultCenter,
+        zoom: 12,
+        attributionControl: false
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), "top-right");
+    map.addControl(new maplibregl.AttributionControl({ compact: true }));
+
+    /* ---------- autocomplete dropdown ---------- */
+
+    const dropdown = document.createElement("div");
+    dropdown.className = "location-autocomplete";
+    locationRow.style.position = "relative";
+    locationRow.appendChild(dropdown);
+
+    function hideDropdown() {
+        dropdown.classList.remove("active");
+    }
+
+    function selectPlace(name, lng, lat) {
+        selectedViaSearch = true;
+        locationInput.value = name;
+        hideDropdown();
+        setMarker(lng, lat);
+        map.flyTo({ center: [lng, lat], zoom: 15 });
+        markerLabel.textContent = name;
+        markerLabel.classList.add("filled");
+    }
+
+    function searchPlaces(query) {
+        if (searchTimer) clearTimeout(searchTimer);
+
+        if (!query.trim() || query.length < 2) {
+            hideDropdown();
+            return;
+        }
+
+        searchTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
+                    { headers: { "Accept-Language": "en", "User-Agent": "SpringWave/1.0" } }
+                );
+                const data = await res.json();
+                if (!data || data.length === 0) { hideDropdown(); return; }
+
+                dropdown.innerHTML = data.map((place, i) => {
+                    const name = place.display_name;
+                    const type = place.type || "";
+                    const shortName = name.split(",")[0];
+                    return `<div class="ac-item" data-index="${i}">
+                        <span class="material-symbols-outlined ac-icon">place</span>
+                        <div class="ac-text">
+                            <div class="ac-title">${shortName}</div>
+                            <div class="ac-desc">${name}</div>
+                        </div>
+                    </div>`;
+                }).join("");
+                dropdown.classList.add("active");
+
+                dropdown.querySelectorAll(".ac-item").forEach((el) => {
+                    el.addEventListener("click", () => {
+                        const idx = parseInt(el.dataset.index);
+                        const place = data[idx];
+                        selectPlace(place.display_name, parseFloat(place.lon), parseFloat(place.lat));
+                    });
+                });
+            } catch { hideDropdown(); }
+        }, 300);
+    }
+
+    /* ---------- marker ---------- */
+
+    function setMarker(lng, lat) {
+        if (marker) marker.remove();
+
+        const el = document.createElement("div");
+        el.className = "map-pin";
+        el.innerHTML = `<span class="material-symbols-outlined" style="font-size:36px;color:#2563EB;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));">location_on</span>`;
+        el.style.transform = "translate(-50%, -100%)";
+
+        marker = new maplibregl.Marker({ element: el })
+            .setLngLat([lng, lat])
+            .addTo(map);
+
+        latInput.value = lat;
+        lngInput.value = lng;
+    }
+
+    /* ---------- reverse geocode ---------- */
+
+    function reverseGeocode(lng, lat) {
+        if (geocodeTimer) clearTimeout(geocodeTimer);
+
+        geocodeTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`,
+                    { headers: { "Accept-Language": "en", "User-Agent": "SpringWave/1.0" } }
+                );
+                const data = await res.json();
+                const displayName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                locationInput.value = displayName;
+                markerLabel.textContent = displayName;
+                markerLabel.classList.add("filled");
+            } catch {
+                const fallback = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                locationInput.value = fallback;
+                markerLabel.textContent = fallback;
+                markerLabel.classList.add("filled");
+            }
+        }, 300);
+    }
+
+    /* ---------- map click ---------- */
+
+    map.on("click", (e) => {
+        const { lng, lat } = e.lngLat;
+        selectedViaSearch = false;
+        setMarker(lng, lat);
+        map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 14) });
+        reverseGeocode(lng, lat);
+        hideDropdown();
+    });
+
+    /* ---------- input events ---------- */
+
+    locationInput.addEventListener("input", () => {
+        if (!locationInput.value.trim()) {
+            markerLabel.textContent = "Click on map to set location";
+            markerLabel.classList.remove("filled");
+            if (marker) { marker.remove(); marker = null; }
+            latInput.value = "";
+            lngInput.value = "";
+            hideDropdown();
+            return;
+        }
+        if (!selectedViaSearch) {
+            searchPlaces(locationInput.value);
+        }
+        selectedViaSearch = false;
+    });
+
+    locationInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") hideDropdown();
+    });
+
+    locationInput.addEventListener("blur", () => {
+        setTimeout(hideDropdown, 200);
+    });
+
+    locationInput.addEventListener("focus", () => {
+        const val = locationInput.value.trim();
+        if (val.length >= 2) searchPlaces(val);
+    });
+
+    /* ---------- locate button ---------- */
+
+    locateBtn?.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                selectedViaSearch = false;
+                map.flyTo({ center: [longitude, latitude], zoom: 15 });
+                setMarker(longitude, latitude);
+                reverseGeocode(longitude, latitude);
+            },
+            () => alert("Could not get your location. Please enable location access.")
+        );
+    });
+
+    /* ---------- map resize ---------- */
+
+    map.on("load", () => {
+        map.resize();
+    });
 }
 
 /* =========================
@@ -486,6 +756,8 @@ function createDatePicker(config) {
     let currentYear = new Date().getFullYear();
     let selectedDate = null;
     let onSelect = null;
+
+    document.body.appendChild(dropdown);
 
     const api = {
         clear() {
@@ -588,8 +860,22 @@ function createDatePicker(config) {
             currentYear = selectedDate.getFullYear();
         }
         renderCalendar();
+
+        const rect = trigger.getBoundingClientRect();
+        const dropdownWidth = 320;
+        let left = rect.left + rect.width / 2;
+        if (left - dropdownWidth / 2 < 10) left = 10 + dropdownWidth / 2;
+        if (left + dropdownWidth / 2 > window.innerWidth - 10) left = window.innerWidth - 10 - dropdownWidth / 2;
+
+        dropdown.style.left = left + "px";
+        dropdown.style.top = (rect.bottom + 8) + "px";
+        dropdown.style.transform = "translateX(-50%) translateY(8px) scale(0.96)";
         dropdown.classList.add("active");
         trigger.parentElement.classList.add("active");
+
+        requestAnimationFrame(() => {
+            dropdown.style.transform = "translateX(-50%) translateY(0) scale(1)";
+        });
     }
 
     function closeDropdown() {

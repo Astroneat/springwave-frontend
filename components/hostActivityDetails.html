@@ -107,7 +107,19 @@
             <!-- LOCATION -->
             <div>
                 <label class="label">Location</label>
-                <input id="location" name="location" type="text" class="input" placeholder="e.g., University Main Hall" required>
+                <div class="location-input-row">
+                    <input id="location" name="location" type="text" class="input" placeholder="Type address or click on map" required>
+                    <button type="button" class="btn btn-locate" id="locateBtn" title="Use my location">
+                        <span class="material-symbols-outlined">my_location</span>
+                    </button>
+                </div>
+                <p class="sub-text">Click on the map below to select a location, or type it manually.</p>
+                <div id="map-container" class="map-container">
+                    <div id="map" class="map"></div>
+                    <div class="map-marker-label" id="mapMarkerLabel">Click on map to set location</div>
+                </div>
+                <input id="locationLat" name="locationLat" type="hidden">
+                <input id="locationLng" name="locationLng" type="hidden">
             </div>
         </section>
 
