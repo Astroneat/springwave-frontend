@@ -284,15 +284,16 @@ function buildPopupHTML(a) {
     const deadline = formatDate(a.applicationDeadline);
     const type = capitalize(a.type);
     const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
-    const filesHTML = (a.attachments || []).map(f =>
-        `<div class="file-item">
+    const filesHTML = (a.attachments || []).map(f => {
+        const fileName = decodeURIComponent(f.link.split('/').pop());
+        return `<div class="file-item">
             <div class="file-left">
                 <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-                <div><h4>${f.link.split('/').pop()}</h4></div>
+                <div><h4>${fileName}</h4></div>
             </div>
             <a class="download-btn" href="${CDN_DOMAIN}/${f.link}" target="_blank"><i class="fa-solid fa-download"></i></a>
-        </div>`
-    ).join("");
+        </div>`;
+    }).join("");
 
     return `
     <div class="container">

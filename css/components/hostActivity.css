@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     background: #F8FAFC;
     color: #0F172A;
     min-height: 100vh;
@@ -37,7 +37,7 @@ textarea {
 }
 
 .page-title h1 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif;
     font-size: 42px;
     font-weight: 800;
     margin-bottom: 12px;
@@ -64,7 +64,7 @@ textarea {
 }
 
 .section-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif;
     font-size: 30px;
     font-weight: 700;
     margin-bottom: 25px;
