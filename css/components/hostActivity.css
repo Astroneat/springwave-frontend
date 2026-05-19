@@ -84,8 +84,7 @@ textarea {
 }
 
 .input,
-.textarea,
-.date-input {
+.textarea {
     width: 100%;
     border: 1px solid #CBD5E1;
     border-radius: 16px;
@@ -102,8 +101,7 @@ textarea {
 }
 
 .input:focus,
-.textarea:focus,
-.date-input:focus {
+.textarea:focus {
     border-color: #2563EB;
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
@@ -220,23 +218,231 @@ textarea {
 .date-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 16px;
 }
 
-.date-wrapper {
+.date-card {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid #E2E8F0;
+    border-radius: 20px;
+    padding: 20px 22px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
     position: relative;
 }
 
-.date-wrapper span {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
+.date-card .label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.date-card .sub-text {
+    margin-top: 8px;
+    margin-bottom: 0;
+    font-size: 12px;
     color: #94A3B8;
 }
 
-.date-input {
-    padding-left: 50px;
+/* =========================
+   DATE PICKER TRIGGER
+========================= */
+
+.dp-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    width: 100%;
+    padding: 6px 0;
+    user-select: none;
+}
+
+.dp-trigger > span:first-child {
+    color: #2563EB;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.dp-placeholder {
+    font-size: 0.96rem;
+    color: #94A3B8;
+}
+
+.dp-value {
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: #222;
+    display: none;
+    font-variant-numeric: tabular-nums;
+}
+
+.dp-value.visible {
+    display: inline;
+}
+
+.dp-placeholder.hidden {
+    display: none;
+}
+
+.dp-chevron {
+    font-size: 10px;
+    color: #94A3B8;
+    margin-left: auto;
+    transition: transform 0.25s ease;
+}
+
+.date-card.active .dp-chevron {
+    transform: rotate(180deg);
+}
+
+/* =========================
+   DATE PICKER DROPDOWN
+========================= */
+
+.dp-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(8px) scale(0.96);
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+    padding: 24px;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(.22, 1, .36, 1);
+    width: 320px;
+    color: #222;
+}
+
+.dp-dropdown.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.dp-cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.dp-nav {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #2563EB;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.dp-nav:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.dp-month-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #222;
+}
+
+.dp-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    text-align: center;
+}
+
+.dp-weekday {
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    padding: 8px 0;
+    text-transform: uppercase;
+}
+
+.dp-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dp-day:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.dp-day.other-month {
+    color: #ccc;
+}
+
+.dp-day.today {
+    font-weight: 700;
+    color: #2563EB;
+}
+
+.dp-day.selected {
+    background: #2563EB;
+    color: #fff;
+    border-radius: 50%;
+}
+
+.dp-cal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+}
+
+.dp-clear,
+.dp-close {
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease;
+}
+
+.dp-clear {
+    background: transparent;
+    color: #888;
+}
+
+.dp-clear:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #d11a2a;
+}
+
+.dp-close {
+    background: #2563EB;
+    color: #fff;
+}
+
+.dp-close:hover {
+    opacity: 0.85;
 }
 
 .info-box {
@@ -341,6 +547,10 @@ textarea {
         grid-template-columns: 1fr;
     }
 
+    .date-card {
+        padding: 16px 18px;
+    }
+
     .form-card {
         padding: 30px 22px;
     }
@@ -367,6 +577,10 @@ textarea {
 
     .section-title {
         font-size: 24px;
+    }
+
+    .date-card {
+        padding: 14px 14px;
     }
 
     .button-group {

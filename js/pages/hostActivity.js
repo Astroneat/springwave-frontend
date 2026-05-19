@@ -418,78 +418,236 @@ function initFileUpload() {
 }
 
 /* =========================
-   DATE VALIDATION
+   DATE PICKER
 ========================= */
 
 function initDateValidation() {
+    const heldDate = createDatePicker({
+        triggerId: "heldDateTrigger",
+        dropdownId: "heldDateDropdown",
+        placeholderId: "heldDatePlaceholder",
+        valueId: "heldDateValue",
+        gridId: "heldDateCalGrid",
+        monthLabelId: "heldDateMonthLabel",
+        prevBtnId: "heldDatePrev",
+        nextBtnId: "heldDateNext",
+        clearBtnId: "heldDateClear",
+        closeBtnId: "heldDateClose",
+        hiddenInputId: "heldDate"
+    });
 
-    const startDateInput =
-        document.querySelectorAll(
-            ".date-input"
-        )[0];
+    const deadline = createDatePicker({
+        triggerId: "deadlineTrigger",
+        dropdownId: "deadlineDropdown",
+        placeholderId: "deadlinePlaceholder",
+        valueId: "deadlineValue",
+        gridId: "deadlineCalGrid",
+        monthLabelId: "deadlineMonthLabel",
+        prevBtnId: "deadlinePrev",
+        nextBtnId: "deadlineNext",
+        clearBtnId: "deadlineClear",
+        closeBtnId: "deadlineClose",
+        hiddenInputId: "applicationDeadline"
+    });
 
-    const deadlineInput =
-        document.querySelectorAll(
-            ".date-input"
-        )[1];
-
-    if (
-        !startDateInput ||
-        !deadlineInput
-    ) {
-        return;
-    }
-
-    deadlineInput.addEventListener(
-        "change",
-        () => {
-
-            validateDates(
-                startDateInput,
-                deadlineInput
-            );
+    heldDate.onSelect = (date) => {
+        const dVal = document.getElementById("applicationDeadline")?.value;
+        if (dVal && new Date(dVal) >= date) {
+            alert("Application deadline must be earlier than the activity start date.");
+            deadline.clear();
         }
-    );
+    };
 
-    startDateInput.addEventListener(
-        "change",
-        () => {
-
-            validateDates(
-                startDateInput,
-                deadlineInput
-            );
+    deadline.onSelect = (date) => {
+        const hVal = document.getElementById("heldDate")?.value;
+        if (hVal && date >= new Date(hVal)) {
+            alert("Application deadline must be earlier than the activity start date.");
+            deadline.clear();
         }
-    );
+    };
 }
 
-function validateDates(
-    startDateInput,
-    deadlineInput
-) {
+function createDatePicker(config) {
+    const trigger = document.getElementById(config.triggerId);
+    const dropdown = document.getElementById(config.dropdownId);
+    const placeholder = document.getElementById(config.placeholderId);
+    const valueEl = document.getElementById(config.valueId);
+    const grid = document.getElementById(config.gridId);
+    const monthLabel = document.getElementById(config.monthLabelId);
+    const prevBtn = document.getElementById(config.prevBtnId);
+    const nextBtn = document.getElementById(config.nextBtnId);
+    const clearBtn = document.getElementById(config.clearBtnId);
+    const closeBtn = document.getElementById(config.closeBtnId);
+    const hiddenInput = document.getElementById(config.hiddenInputId);
 
-    const startDate =
-        new Date(
-            startDateInput.value
-        );
+    if (!trigger) return null;
 
-    const deadlineDate =
-        new Date(
-            deadlineInput.value
-        );
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let selectedDate = null;
+    let onSelect = null;
 
-    if (
-        startDateInput.value &&
-        deadlineInput.value &&
-        deadlineDate >= startDate
-    ) {
+    const api = {
+        clear() {
+            selectedDate = null;
+            hiddenInput.value = "";
+            updateDisplay();
+        },
+        get onSelect() { return onSelect; },
+        set onSelect(fn) { onSelect = fn; },
+        get selectedDate() { return selectedDate; }
+    };
 
-        alert(
-            "Application deadline must be earlier than the activity start date."
-        );
-
-        deadlineInput.value = "";
+    function pad(n) {
+        return String(n).padStart(2, "0");
     }
+
+    function updateDisplay() {
+        if (selectedDate) {
+            valueEl.textContent = `${pad(selectedDate.getDate())}/${pad(selectedDate.getMonth() + 1)}/${selectedDate.getFullYear()}`;
+            valueEl.classList.add("visible");
+            placeholder.classList.add("hidden");
+            hiddenInput.value = selectedDate.toISOString().split("T")[0];
+        } else {
+            valueEl.classList.remove("visible");
+            placeholder.classList.remove("hidden");
+            hiddenInput.value = "";
+        }
+    }
+
+    function renderCalendar() {
+        grid.innerHTML = "";
+
+        const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+        weekdays.forEach(d => {
+            const el = document.createElement("div");
+            el.className = "dp-weekday";
+            el.textContent = d;
+            grid.appendChild(el);
+        });
+
+        monthLabel.textContent =
+            new Date(currentYear, currentMonth).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+        const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+        for (let i = startOffset - 1; i >= 0; i--) {
+            const el = document.createElement("div");
+            el.className = "dp-day other-month";
+            el.textContent = daysInPrevMonth - i;
+            grid.appendChild(el);
+        }
+
+        const today = new Date();
+        for (let d = 1; d <= daysInMonth; d++) {
+            const el = document.createElement("div");
+            el.className = "dp-day";
+            el.textContent = d;
+
+            const date = new Date(currentYear, currentMonth, d);
+
+            if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                el.classList.add("today");
+            }
+
+            if (selectedDate && date.getTime() === selectedDate.getTime()) {
+                el.classList.add("selected");
+            }
+
+            el.addEventListener("click", () => {
+                selectedDate = date;
+                updateDisplay();
+                renderCalendar();
+                closeDropdown();
+                if (onSelect) onSelect(date);
+            });
+
+            grid.appendChild(el);
+        }
+
+        const totalCells = startOffset + daysInMonth;
+        const remaining = (7 - (totalCells % 7)) % 7;
+        for (let i = 1; i <= remaining; i++) {
+            const el = document.createElement("div");
+            el.className = "dp-day other-month";
+            el.textContent = i;
+            grid.appendChild(el);
+        }
+    }
+
+    function openDropdown() {
+        const today = new Date();
+        if (!selectedDate) {
+            currentMonth = today.getMonth();
+            currentYear = today.getFullYear();
+        } else {
+            currentMonth = selectedDate.getMonth();
+            currentYear = selectedDate.getFullYear();
+        }
+        renderCalendar();
+        dropdown.classList.add("active");
+        trigger.parentElement.classList.add("active");
+    }
+
+    function closeDropdown() {
+        dropdown.classList.remove("active");
+        trigger.parentElement.classList.remove("active");
+    }
+
+    trigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (dropdown.classList.contains("active")) {
+            closeDropdown();
+        } else {
+            openDropdown();
+        }
+    });
+
+    prevBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        renderCalendar();
+    });
+
+    nextBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar();
+    });
+
+    clearBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectedDate = null;
+        hiddenInput.value = "";
+        updateDisplay();
+        renderCalendar();
+    });
+
+    closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeDropdown();
+    });
+
+    document.addEventListener("click", (e) => {
+        if (dropdown.classList.contains("active")) {
+            if (!dropdown.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) {
+                closeDropdown();
+            }
+        }
+    });
+
+    dropdown.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+
+    updateDisplay();
+
+    return api;
 }
 
 /* =========================

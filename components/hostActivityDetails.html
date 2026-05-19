@@ -64,7 +64,7 @@
                 <div class="activity-type-grid">
 
                     <label class="activity-option">
-                        <input type="radio" name="type" value="other" checked>
+                        <input type="radio" name="type" value="social" checked>
 
                         <div class="activity-card">
                             <span class="material-symbols-outlined">
@@ -120,16 +120,32 @@
             <div class="date-grid">
 
                 <!-- START DATE -->
-                <div>
+                <div class="date-card">
                     <label class="label">Activity Start Date</label>
 
-                    <div class="date-wrapper">
+                    <div class="dp-trigger" id="heldDateTrigger">
                         <span class="material-symbols-outlined">
                             event
                         </span>
-
-                        <input id="heldDate" name="heldDate" type="date" class="date-input" required>
+                        <span class="dp-placeholder" id="heldDatePlaceholder">Select date</span>
+                        <span class="dp-value" id="heldDateValue"></span>
+                        <span class="dp-chevron">▾</span>
                     </div>
+
+                    <div class="dp-dropdown" id="heldDateDropdown">
+                        <div class="dp-cal-header">
+                            <button class="dp-nav" id="heldDatePrev" type="button">‹</button>
+                            <span class="dp-month-label" id="heldDateMonthLabel">Month Year</span>
+                            <button class="dp-nav" id="heldDateNext" type="button">›</button>
+                        </div>
+                        <div class="dp-cal-grid" id="heldDateCalGrid"></div>
+                        <div class="dp-cal-footer">
+                            <button class="dp-clear" id="heldDateClear" type="button">Clear</button>
+                            <button class="dp-close" id="heldDateClose" type="button">Close</button>
+                        </div>
+                    </div>
+
+                    <input id="heldDate" name="heldDate" type="hidden" required>
 
                     <p class="sub-text">
                         Example: Activity starts on 18/05.
@@ -138,16 +154,32 @@
 
 
                 <!-- DEADLINE -->
-                <div>
+                <div class="date-card">
                     <label class="label">Application Deadline</label>
 
-                    <div class="date-wrapper">
+                    <div class="dp-trigger" id="deadlineTrigger">
                         <span class="material-symbols-outlined">
                             calendar_today
                         </span>
-
-                        <input id="applicationDeadline" name="applicationDeadline" type="date" class="date-input" required>
+                        <span class="dp-placeholder" id="deadlinePlaceholder">Select date</span>
+                        <span class="dp-value" id="deadlineValue"></span>
+                        <span class="dp-chevron">▾</span>
                     </div>
+
+                    <div class="dp-dropdown" id="deadlineDropdown">
+                        <div class="dp-cal-header">
+                            <button class="dp-nav" id="deadlinePrev" type="button">‹</button>
+                            <span class="dp-month-label" id="deadlineMonthLabel">Month Year</span>
+                            <button class="dp-nav" id="deadlineNext" type="button">›</button>
+                        </div>
+                        <div class="dp-cal-grid" id="deadlineCalGrid"></div>
+                        <div class="dp-cal-footer">
+                            <button class="dp-clear" id="deadlineClear" type="button">Clear</button>
+                            <button class="dp-close" id="deadlineClose" type="button">Close</button>
+                        </div>
+                    </div>
+
+                    <input id="applicationDeadline" name="applicationDeadline" type="hidden" required>
                 </div>
             </div>
 
