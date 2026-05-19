@@ -38,15 +38,12 @@ async function loadExplore() {
     initSearchButton();
 
     const floatingSearch = document.getElementById("floating-search");
-    const cards = document.querySelectorAll(".card");
     window.addEventListener("scroll", () => {
-        if (window.scrollY > 750) {
+        if (window.scrollY > 350) {
             floatingSearch.classList.add("visible");
-            cards.forEach(c => c.classList.add("revealed"));
         }
         else {
             floatingSearch.classList.remove("visible");
-            cards.forEach(c => c.classList.remove("revealed"));
         }
     });
 }
@@ -67,10 +64,6 @@ function initSearchButton() {
         if (placeholder) placeholder.classList.remove("hidden");
         if (value) value.classList.remove("visible");
         await loadCards();
-        const cards = document.querySelectorAll(".card");
-        if (window.scrollY > 750) {
-            cards.forEach(c => c.classList.add("revealed"));
-        }
     });
 
     btn.addEventListener("click", async () => {
@@ -757,7 +750,8 @@ function initCardReveal() {
 
             },
             {
-                threshold: 0.5
+                threshold: 0,
+                rootMargin: "0px 0px -40px 0px"
             }
         );
 
