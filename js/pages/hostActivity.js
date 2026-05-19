@@ -850,6 +850,36 @@ function createDatePicker(config) {
         }
     }
 
+    const NAVBAR_SAFE = 80;
+
+    function positionDropdown() {
+        const rect = trigger.getBoundingClientRect();
+        const dropdownWidth = 320;
+        const dropdownHeight = dropdown.offsetHeight || 380;
+
+        let left = rect.left + rect.width / 2;
+        if (left - dropdownWidth / 2 < 10) left = 10 + dropdownWidth / 2;
+        if (left + dropdownWidth / 2 > window.innerWidth - 10) left = window.innerWidth - 10 - dropdownWidth / 2;
+
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        let top;
+        if (spaceBelow < dropdownHeight + 16 && spaceAbove > dropdownHeight + 16) {
+            top = rect.top - dropdownHeight - 8;
+        } else {
+            top = rect.bottom + 8;
+        }
+
+        if (top < NAVBAR_SAFE) top = NAVBAR_SAFE;
+        if (top + dropdownHeight > window.innerHeight - 10) {
+            top = window.innerHeight - dropdownHeight - 10;
+        }
+
+        dropdown.style.left = left + "px";
+        dropdown.style.top = top + "px";
+    }
+
     function openDropdown() {
         const today = new Date();
         if (!selectedDate) {
@@ -860,15 +890,7 @@ function createDatePicker(config) {
             currentYear = selectedDate.getFullYear();
         }
         renderCalendar();
-
-        const rect = trigger.getBoundingClientRect();
-        const dropdownWidth = 320;
-        let left = rect.left + rect.width / 2;
-        if (left - dropdownWidth / 2 < 10) left = 10 + dropdownWidth / 2;
-        if (left + dropdownWidth / 2 > window.innerWidth - 10) left = window.innerWidth - 10 - dropdownWidth / 2;
-
-        dropdown.style.left = left + "px";
-        dropdown.style.top = (rect.bottom + 8) + "px";
+        positionDropdown();
         dropdown.style.transform = "translateX(-50%) translateY(8px) scale(0.96)";
         dropdown.classList.add("active");
         trigger.parentElement.classList.add("active");
@@ -876,11 +898,28 @@ function createDatePicker(config) {
         requestAnimationFrame(() => {
             dropdown.style.transform = "translateX(-50%) translateY(0) scale(1)";
         });
+
+        window.addEventListener("scroll", followOnScroll, { passive: true });
+        window.addEventListener("resize", followOnScroll, { passive: true });
+    }
+
+    function followOnScroll() {
+        const rect = trigger.getBoundingClientRect();
+        const navbarH = 80;
+
+        if (rect.bottom < navbarH || rect.top > window.innerHeight) {
+            closeDropdown();
+            return;
+        }
+
+        positionDropdown();
     }
 
     function closeDropdown() {
         dropdown.classList.remove("active");
         trigger.parentElement.classList.remove("active");
+        window.removeEventListener("scroll", followOnScroll);
+        window.removeEventListener("resize", followOnScroll);
     }
 
     trigger.addEventListener("click", (e) => {
