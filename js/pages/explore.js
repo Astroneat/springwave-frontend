@@ -665,11 +665,20 @@ function initSearchDatePicker() {
     }
 
     function openDropdown() {
+        const rect = trigger.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 8) + "px";
+        dropdown.style.left = (rect.left + rect.width / 2) + "px";
+        dropdown.style.transform = "translateX(-50%) scale(1)";
+        document.body.appendChild(dropdown);
         const today = new Date(); currentMonth = today.getMonth(); currentYear = today.getFullYear();
         renderCalendar(); dropdown.classList.add("active"); item.classList.add("active");
     }
 
-    function closeDropdown() { dropdown.classList.remove("active"); item.classList.remove("active"); }
+    function closeDropdown() {
+        dropdown.classList.remove("active"); item.classList.remove("active");
+        dropdown.style.top = ""; dropdown.style.left = ""; dropdown.style.transform = "";
+        document.getElementById("searchDateItem")?.appendChild(dropdown);
+    }
 
     trigger.addEventListener("click", (e) => { e.stopPropagation(); dropdown.classList.contains("active") ? closeDropdown() : openDropdown(); });
     prevBtn.addEventListener("click", (e) => { e.stopPropagation(); currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar(); });
