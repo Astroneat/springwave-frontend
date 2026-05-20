@@ -1,16 +1,11 @@
 .cards-container {
     width: 100%;
-    max-width: 1400px;
-    padding-top: 180px;
-    padding-left: 12px;
-    padding-right: 12px;
-    margin: 0 auto;
 
     display: grid;
 
-    /* 5 CARDS PER ROW */
-    grid-template-columns: repeat(5, 1fr);
-    gap: 24px;
+    /* 4 CARDS PER ROW */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
 }
 
 .card {
@@ -60,12 +55,12 @@
 
 .card-image {
     width: 100%;
-    height: 170px;
+    height: 200px;
     object-fit: cover;
 }
 
 .card-content {
-    padding: 16px;
+    padding: 20px;
 
     /* IMPORTANT */
     display: flex;
@@ -74,12 +69,12 @@
 }
 
 .card-title {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #111;
 
-    margin-bottom: 14px;
-    line-height: 1.3;
+    margin-bottom: 16px;
+    line-height: 1.35;
 
     /* LIMIT TO 2 LINES */
     display: -webkit-box;
@@ -95,10 +90,10 @@
 .info {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 10px;
+    margin-bottom: 12px;
     color: #444;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
 }
 
 .info i {
@@ -118,12 +113,13 @@
 }
 
 .details-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border-radius: 999px;
     border: 2px solid #1c4fb6;
     background: white;
     color: #1c4fb6;
     font-weight: 600;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: 0.3s ease;
 }
@@ -137,8 +133,8 @@
 }
 
 .star {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
 
     background: #f3f3f3;
@@ -182,16 +178,7 @@
 /* ===== RESPONSIVE CARDS ===== */
 @media (max-width: 1200px) {
     .cards-container {
-        grid-template-columns: repeat(4, 1fr);
-        padding-top: 160px;
-    }
-}
-
-@media (max-width: 992px) {
-    .cards-container {
         grid-template-columns: repeat(3, 1fr);
-        gap: 18px;
-        padding-top: 140px;
     }
 }
 
@@ -199,18 +186,15 @@
     .cards-container {
         grid-template-columns: repeat(2, 1fr);
         gap: 16px;
-        padding-top: 120px;
-        padding-left: 8px;
-        padding-right: 8px;
     }
     .card-image {
-        height: 130px;
+        height: 160px;
     }
     .card-title {
-        font-size: 0.95rem;
+        font-size: 1.05rem;
     }
     .card-content {
-        padding: 12px;
+        padding: 16px;
     }
 }
 
@@ -218,9 +202,6 @@
     .cards-container {
         grid-template-columns: 1fr;
         gap: 14px;
-        padding-top: 100px;
-        padding-left: 6px;
-        padding-right: 6px;
     }
     .card-image {
         height: 180px;

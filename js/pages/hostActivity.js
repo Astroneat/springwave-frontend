@@ -77,117 +77,63 @@ async function loadComponent(id, file) {
 ========================= */
 
 async function loadNavbar() {
+    const data = await fetchContent("./components/navbar.html");
+    document.getElementById("navbar-container").innerHTML = data;
 
-    const data =
-        await fetchContent(
-            "./components/navbar.html"
-        );
-
-    document.getElementById(
-        "navbar-container"
-    ).innerHTML = data;
-
-    const navLinks =
-        document.querySelectorAll(
-            ".nav-links a"
-        );
-
-    navLinks.forEach(
-        link => {
-
-            const section =
-                link.getAttribute(
-                    "data-section"
-                );
-
-            if (section === "home") {
-
-                link.href = "./index.html";
-            }
-            else if (section === "explore") {
-
-                link.href = "./index.html#explore";
-            }
-            else if (section === "host") {
-                link.classList.add("active");
-            }
+    const navLinks = document.querySelectorAll(".nav-links a");
+    navLinks.forEach(link => {
+        const section = link.getAttribute("data-section");
+        if (section === "home") {
+            link.href = "./index.html";
         }
-    );
-
-    const navbar =
-        document.getElementById(
-            "navbar"
-        );
-
-    window.addEventListener(
-        "scroll",
-        () => {
-
-            if (window.scrollY > 60) {
-
-                navbar?.classList.add(
-                    "collapsed"
-                );
-
-            }
-            else {
-
-                navbar?.classList.remove(
-                    "collapsed"
-                );
-            }
+        else if (section === "explore") {
+            link.href = "./index.html#explore";
         }
-    );
+        else if (section === "host") {
+            link.classList.add("active");
+        }
+    });
 
-    const authSection =
-        document.getElementById(
-            "auth-section"
-        );
+    initMobileMenu();
+    initNavbarScroll();
 
+    const authSection = document.getElementById("auth-section");
     if (isAuthenticated()) {
-
-        const user =
-            getUser();
-
-        const userChipHTML =
-            await fetchContent(
-                "./components/userchip.html"
-            );
-
-        authSection.innerHTML =
-            userChipHTML;
-
-        document.getElementById(
-            "user-name"
-        ).textContent =
-            user.username;
-
+        const user = getUser();
+        const userChipHTML = await fetchContent("./components/userchip.html");
+        authSection.innerHTML = userChipHTML;
+        document.getElementById("user-name").textContent = user.username;
         initUserDropdown();
     }
     else {
-
-        authSection.innerHTML = `
-            <a href="/login.html" class="login-btn">
-                Login
-            </a>
-        `;
+        authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
     }
-    initHamburger();
 }
 
-function initHamburger() {
+function initMobileMenu() {
     const hamburger = document.getElementById("hamburgerBtn");
-    const navLinks = document.getElementById("navLinks");
-    if (!hamburger || !navLinks) return;
+    const mobileMenu = document.getElementById("mobileMenu");
+    const mobileOverlay = document.getElementById("mobileOverlay");
+    if (!hamburger || !mobileMenu) return;
     hamburger.addEventListener("click", () => {
-        hamburger.classList.toggle("active");
-        navLinks.classList.toggle("open");
+        mobileMenu.classList.toggle("open");
     });
-    navLinks.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => {
-            hamburger.classList.remove("active");
-            navLinks.classList.remove("open");
-        });
+    mobileOverlay?.addEventListener("click", () => {
+        mobileMenu.classList.remove("open");
+    });
+    mobileMenu.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => mobileMenu.classList.remove("open"));
+    });
+}
+
+function initNavbarScroll() {
+    const navbar = document.getElementById("navbar");
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 60) {
+            navbar?.classList.add("collapsed");
+        } else {
+            navbar?.classList.remove("collapsed");
+        }
     });
 }
 
