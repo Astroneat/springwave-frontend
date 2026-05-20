@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explore - SpringWave</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet" href="./css/variables.css" />
+    <link rel="stylesheet" href="./css/global.css" />
+
+    <link rel="stylesheet" href="./css/components/navbar.css" />
+    <link rel="stylesheet" href="./css/components/explore.css" />
+    <link rel="stylesheet" href="./css/components/explore-page.css" />
+    <link rel="stylesheet" href="./css/components/searchbar.css" />
+    <link rel="stylesheet" href="./css/components/cards.css" />
+    <link rel="stylesheet" href="./css/components/popup.css" />
+    <link rel="stylesheet" href="./css/components/description.css" />
+    <link rel="stylesheet" href="./css/components/footer.css" />
+    <link rel="stylesheet" href="./css/components/chatbot.css" />
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="explore-page-layout">
+        <aside class="explore-sidebar" id="exploreSidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Sort By</h3>
+                <div class="sidebar-radio-group">
+                    <label class="sidebar-radio">
+                        <input type="radio" name="sortBy" value="heldDate_desc" checked />
+                        <span class="radio-label">Newest First</span>
+                    </label>
+                    <label class="sidebar-radio">
+                        <input type="radio" name="sortBy" value="heldDate_asc" />
+                        <span class="radio-label">Oldest First</span>
+                    </label>
+                    <label class="sidebar-radio">
+                        <input type="radio" name="sortBy" value="title_asc" />
+                        <span class="radio-label">Title A-Z</span>
+                    </label>
+                    <label class="sidebar-radio">
+                        <input type="radio" name="sortBy" value="title_desc" />
+                        <span class="radio-label">Title Z-A</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Activity Type</h3>
+                <div class="sidebar-checkbox-group" id="typeFilters">
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="Social Activity" />
+                        <span class="check-label">Social Activity</span>
+                    </label>
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="Workshop" />
+                        <span class="check-label">Workshop</span>
+                    </label>
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="Sport" />
+                        <span class="check-label">Sport</span>
+                    </label>
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="Cultural" />
+                        <span class="check-label">Cultural</span>
+                    </label>
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="Educational" />
+                        <span class="check-label">Educational</span>
+                    </label>
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="Entertainment" />
+                        <span class="check-label">Entertainment</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Status</h3>
+                <div class="sidebar-checkbox-group" id="statusFilters">
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="upcoming" />
+                        <span class="check-label">Upcoming</span>
+                    </label>
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="ongoing" />
+                        <span class="check-label">Ongoing</span>
+                    </label>
+                    <label class="sidebar-checkbox">
+                        <input type="checkbox" value="completed" />
+                        <span class="check-label">Completed</span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="sidebar-apply-btn" id="sidebarApplyBtn">Apply Filters</button>
+            <button class="sidebar-reset-btn" id="sidebarResetBtn">Reset</button>
+        </aside>
+
+        <main class="explore-main">
+            <div id="explore-container"></div>
+        </main>
+    </div>
+
+    <div class="popup-overlay" id="popup-overlay">
+        <div class="popup-backdrop"></div>
+        <div class="popup-container" id="popup-container"></div>
+    </div>
+    <div class="popup-overlay" id="popup-overlay-2">
+        <div class="popup-backdrop"></div>
+        <div class="popup-container" id="popup-container-2"></div>
+    </div>
+
+    <div id="footer-container"></div>
+    <div id="chatbot-container"></div>
+
+    <script type="module" src="js/pages/explore.js"></script>
+</body>
+
+</html>
