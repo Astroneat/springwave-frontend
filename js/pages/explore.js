@@ -2,7 +2,7 @@ import { isAuthenticated, getUser, logout } from "../lib/session.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { initChatbot } from "../components/chatbot.js";
+import { initChatbot } from "../components/chatBot.js";
 
 let allActivities = [];
 let currentCategory = "all";
@@ -22,7 +22,7 @@ async function fetchContent(url) {
 }
 
 async function loadNavbar() {
-    const html = await fetchContent("./components/navbar.html");
+    const html = await fetchContent("./components/navBar.html");
     document.getElementById("navbar-container").innerHTML = html;
     initNavbarActiveLinks();
 
@@ -41,7 +41,7 @@ async function loadNavbar() {
     if (authSection) {
         if (isAuthenticated()) {
             const user = getUser();
-            const userChipHTML = await fetchContent("./components/userchip.html");
+            const userChipHTML = await fetchContent("./components/userChip.html");
             authSection.innerHTML = userChipHTML;
             document.getElementById("user-name").textContent = user.username;
             initUserDropdown();

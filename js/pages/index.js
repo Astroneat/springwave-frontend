@@ -2,7 +2,7 @@ import { isAuthenticated, getUser, logout } from "../lib/session.js";
 import { getActivityById, participateActivity, unparticipateActivity, checkParticipation } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { initChatbot } from "../components/chatbot.js";
+import { initChatbot } from "../components/chatBot.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
@@ -21,7 +21,7 @@ async function fetchContent(url) {
 
 
 async function loadNavbar() {
-    const data = await fetchContent("./components/navbar.html");
+    const data = await fetchContent("./components/navBar.html");
     document.getElementById("navbar-container").innerHTML = data;
     initNavbarActiveLinks();
     initMobileMenu();
@@ -30,7 +30,7 @@ async function loadNavbar() {
     const authSection = document.getElementById("auth-section");
     if (isAuthenticated()) {
         const user = getUser();
-        const userChipHTML = await fetchContent("./components/userchip.html");
+        const userChipHTML = await fetchContent("./components/userChip.html");
         authSection.innerHTML = userChipHTML;
         document.getElementById("user-name").textContent = user.username;
         initUserDropdown();

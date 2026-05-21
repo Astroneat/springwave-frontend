@@ -1,6 +1,6 @@
 import { login } from "../api/auth.js";
 import { createSession, isAuthenticated, getUser, logout } from "../lib/session.js";
-import { initChatbot } from "../components/chatbot.js";
+import { initChatbot } from "../components/chatBot.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
@@ -14,7 +14,7 @@ async function fetchContent(url) {
 }
 
 async function loadNavbar() {
-    const html = await fetchContent("./components/navbar.html");
+    const html = await fetchContent("./components/navBar.html");
     document.getElementById("navbar-container").innerHTML = html;
 
     const hamburger = document.getElementById("hamburgerBtn");
@@ -37,7 +37,7 @@ async function loadNavbar() {
     if (authSection) {
         if (isAuthenticated()) {
             const user = getUser();
-            const userChipHTML = await fetchContent("./components/userchip.html");
+            const userChipHTML = await fetchContent("./components/userChip.html");
             authSection.innerHTML = userChipHTML;
             document.getElementById("user-name").textContent = user.username;
             initUserDropdown();
