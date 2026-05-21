@@ -1,8 +1,10 @@
-import { isAuthenticated, getUser, logout } from "../lib/session.js";
+import { isAuthenticated } from "../lib/session.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatBot.js";
+import { loadNavbar as loadSharedNavbar } from "../components/navBar.js";
+import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 
 let allActivities = [];
 let currentCategory = "all";
@@ -16,39 +18,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     initializePage();
 });
 
-async function fetchContent(url) {
-    const resp = await fetch(url);
-    return resp.text();
-}
-
 async function loadNavbar() {
-    const html = await fetchContent("./components/navBar.html");
-    document.getElementById("navbar-container").innerHTML = html;
-    initNavbarActiveLinks();
-
+    await loadSharedNavbar({ activeSection: "explore", onFavouritesClick: showFavourites });
     initNavbarScroll();
-
-    const hamburger = document.getElementById("hamburgerBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const mobileOverlay = document.getElementById("mobileOverlay");
-    if (hamburger && mobileMenu) {
-        hamburger.addEventListener("click", () => mobileMenu.classList.toggle("open"));
-        mobileOverlay?.addEventListener("click", () => mobileMenu.classList.remove("open"));
-        mobileMenu.querySelectorAll("a").forEach(link => link.addEventListener("click", () => mobileMenu.classList.remove("open")));
-    }
-
-    const authSection = document.getElementById("auth-section");
-    if (authSection) {
-        if (isAuthenticated()) {
-            const user = getUser();
-            const userChipHTML = await fetchContent("./components/userChip.html");
-            authSection.innerHTML = userChipHTML;
-            document.getElementById("user-name").textContent = user.username;
-            initUserDropdown();
-        } else {
-            authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
-        }
-    }
 }
 
 function initNavbarScroll() {
@@ -902,11 +874,4 @@ function initSearchDatePicker() {
     formatDisplay();
 }
 
-function formatDate(dateString) {
-    if (!dateString) return "Unknown Date";
-    return new Date(dateString).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
 
-function capitalize(str) {
-    return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
-}

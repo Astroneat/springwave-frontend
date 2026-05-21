@@ -64,8 +64,8 @@ body {
     gap: 15px;
 }
 
-input,
-select {
+#login-form input,
+#login-form select {
     width: 100%;
 
     padding: 11px 14px;
@@ -83,12 +83,12 @@ select {
     transition: 0.25s;
 }
 
-input::placeholder {
+#login-form input::placeholder {
     color: #777;
 }
 
-input:focus,
-select:focus {
+#login-form input:focus,
+#login-form select:focus {
     border-color: #183a82;
 
     box-shadow: 0 0 0 5px rgba(35, 73, 155, 0.12);
@@ -101,6 +101,7 @@ select:focus {
 
     background: #ffde42;
 
+    border: 2px solid #23499b;
     border-radius: 14px;
 
     font-size: 20px;

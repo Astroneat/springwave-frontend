@@ -1,8 +1,10 @@
-import { isAuthenticated, getUser, logout } from "../lib/session.js";
+import { isAuthenticated, getUser } from "../lib/session.js";
 import { getActivityById, participateActivity, unparticipateActivity, checkParticipation } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatBot.js";
+import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navBar.js";
+import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
@@ -11,102 +13,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-async function fetchContent(url) {
-    const response = await fetch(url);
-    const data = await response.text();
-    return data;
-}
-
-
-
-
 async function loadNavbar() {
-    const data = await fetchContent("./components/navBar.html");
-    document.getElementById("navbar-container").innerHTML = data;
-    initNavbarActiveLinks();
-    initMobileMenu();
-    initNavbarScroll();
-
-    const authSection = document.getElementById("auth-section");
-    if (isAuthenticated()) {
-        const user = getUser();
-        const userChipHTML = await fetchContent("./components/userChip.html");
-        authSection.innerHTML = userChipHTML;
-        document.getElementById("user-name").textContent = user.username;
-        initUserDropdown();
-    }
-    else {
-        authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
-    }
-}
-
-/* =========================
-   MOBILE MENU
-========================= */
-
-function initMobileMenu() {
-    const hamburger = document.getElementById("hamburgerBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const mobileOverlay = document.getElementById("mobileOverlay");
-    if (!hamburger || !mobileMenu) return;
-
-    hamburger.addEventListener("click", () => {
-        mobileMenu.classList.toggle("open");
-    });
-    mobileOverlay?.addEventListener("click", () => {
-        mobileMenu.classList.remove("open");
-    });
-    mobileMenu.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => mobileMenu.classList.remove("open"));
-    });
-}
-
-function initNavbarScroll() {
-    const navbar = document.getElementById("navbar");
-    window.addEventListener("scroll", () => {
-        if (window.scrollY > 60) {
-            navbar.classList.add("collapsed");
-        } else {
-            navbar.classList.remove("collapsed");
-        }
-    });
-}
-
-/* =========================
-   NAVBAR ACTIVE LINKS
-========================= */
-
-function initNavbarActiveLinks() {
-
-    const navLinks =
-        document.querySelectorAll(
-            ".nav-links a"
-        );
-
-    function setActive(section) {
-        navLinks.forEach(l => {
-            l.classList.remove("active");
-            if (l.dataset.section === section) {
-                l.classList.add("active");
-            }
-        });
-    }
-
-    // Default: Home active
-    setActive("home");
-
-    // Click handler
-    navLinks.forEach(link => {
-        link.addEventListener("click", (e) => {
-            const section = link.dataset.section;
-            if (section) setActive(section);
-
-            if (section === "home") {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            }
-        });
-    });
+    await loadSharedNavbar({ activeSection: "home", onFavouritesClick: showFavourites });
+    initBasicScroll();
 }
 
 function initNavbarScrollActive() {
@@ -142,96 +51,6 @@ function initNavbarScrollActive() {
         observer.observe(hero);
         observer.observe(explore);
     }
-}
-
-/* =========================
-   USER DROPDOWN
-========================= */
-
-function initUserDropdown() {
-
-    const userMenu =
-        document.querySelector(
-            ".user-menu"
-        );
-
-    const userChip =
-        document.getElementById(
-            "user-chip"
-        );
-
-    const logoutBtn =
-        document.getElementById(
-            "logout-btn"
-        );
-
-    if (
-        !userMenu ||
-        !userChip
-    ) {
-        return;
-    }
-
-    /*
-        TOGGLE
-    */
-
-    userChip.addEventListener(
-        "click",
-        (e) => {
-
-            e.stopPropagation();
-
-            userMenu.classList.toggle(
-                "active"
-            );
-
-        }
-    );
-
-    /*
-        CLICK OUTSIDE
-    */
-
-    document.addEventListener(
-        "click",
-        () => {
-
-            userMenu.classList.remove(
-                "active"
-            );
-
-        }
-    );
-
-    /*
-        PREVENT CLOSE
-    */
-
-    userMenu.addEventListener(
-        "click",
-        (e) => {
-
-            e.stopPropagation();
-
-        }
-    );
-
-    /*
-        LOGOUT
-    */
-
-    logoutBtn?.addEventListener("click", () => {
-        logout();
-        window.location.href = "/login.html";
-    });
-
-    const favBtn = document.getElementById("favourites-btn");
-    favBtn?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        userMenu.classList.remove("active");
-        showFavourites();
-    });
 }
 
 function initializePage() {
@@ -490,7 +309,7 @@ async function showFavourites() {
         popupOverlay.classList.add("active");
         document.body.style.overflow = "hidden";
         popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
-        const cards = popupContainer.querySelectorAll(".activity-card");
+        const cards = popupContainer.querySelectorAll(".activity-card-fav");
         activities.forEach((a, i) => {
             cards[i]?.addEventListener("click", () => {
                 openPopup2(a.activityID, a);
@@ -501,24 +320,24 @@ async function showFavourites() {
 
 function buildFavouritesHTML(activities) {
     if (activities.length === 0) {
-        return `<div class="container" style="padding:40px;text-align:center;color:var(--text-muted)"><p>No favourites yet.</p></div>`;
+        return `<div class="container fav-empty-container"><p class="fav-empty">No favourites yet.</p></div>`;
     }
 
     const items = activities.map(a => {
         const held = formatDate(a.heldDate);
         const type = capitalize(a.type);
         return `
-        <div class="activity-card" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;transition:background 0.2s">
-            <div style="width:120px;height:90px;border-radius:10px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">
-                ${a.thumbnail ? `<img src="${a.thumbnail}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="padding:30px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}
+        <div class="activity-card-fav" data-id="${a.activityID}">
+            <div class="card-thumb">
+                ${a.thumbnail ? `<img src="${a.thumbnail}" alt="${a.title}">` : '<div class="card-thumb-placeholder"><i class="fa-regular fa-image"></i></div>'}
             </div>
-            <div style="flex:1">
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:12px;padding:2px 10px;border-radius:999px;background:#dce9ff;color:var(--accent);font-weight:600;">${type}</span>
-                    <span style="font-size:12px;color:var(--text-muted)">${held}</span>
+            <div class="card-body">
+                <div class="card-meta">
+                    <span class="card-type-badge">${type}</span>
+                    <span class="card-date">${held}</span>
                 </div>
-                <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">${a.title}</h3>
-                <div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${a.location}</div>
+                <h3 class="card-title">${a.title}</h3>
+                <div class="card-location"><i class="fa-solid fa-location-dot"></i> ${a.location}</div>
             </div>
         </div>`;
     }).join('');
@@ -527,9 +346,9 @@ function buildFavouritesHTML(activities) {
     <div class="container">
         <div class="top-bar">
             <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
-            <h2 style="font-size:22px;font-weight:700;">Favourite Activities</h2>
+            <h2 class="fav-popup-title">Favourite Activities</h2>
         </div>
-        <div style="margin-top:20px;">${items}</div>
+        <div class="fav-list">${items}</div>
     </div>`;
 }
 
@@ -762,39 +581,5 @@ function initSearchDatePicker() {
     dropdown.addEventListener("click", (e) => {
         e.stopPropagation();
     });
-
     formatDisplay();
-}
-
-/* =========================
-   HELPERS
-========================= */
-
-function formatDate(dateString) {
-
-    if (!dateString) {
-        return "Unknown Date";
-    }
-
-    const date =
-        new Date(dateString);
-
-    return date.toLocaleDateString(
-        "en-GB",
-        {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric"
-        }
-    );
-
-}
-
-function capitalize(str) {
-
-    return (
-        str.charAt(0).toUpperCase() +
-        str.slice(1)
-    );
-
 }

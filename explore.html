@@ -2,364 +2,174 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-    <title>Explore Activities - SpringWave</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="./js/tailwind-config.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
+    rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet">
+  <title>Explore Activities - SpringWave</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
-    <link rel="stylesheet" href="./css/variables.css">
-    <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/variables.css">
+  <link rel="stylesheet" href="./css/global.css">
 
-    <link rel="stylesheet" href="./css/components/navBar.css">
-    <link rel="stylesheet" href="./css/components/explore.css">
-    <link rel="stylesheet" href="./css/components/searchBar.css">
-    <link rel="stylesheet" href="./css/components/cards.css">
-    <link rel="stylesheet" href="./css/components/popup.css">
-    <link rel="stylesheet" href="./css/components/description.css">
-    <link rel="stylesheet" href="./css/components/chatBot.css">
+  <link rel="stylesheet" href="./css/components/navBar.css">
+  <link rel="stylesheet" href="./css/components/explore.css">
+  <link rel="stylesheet" href="./css/components/searchBar.css">
+  <link rel="stylesheet" href="./css/components/cards.css">
+  <link rel="stylesheet" href="./css/components/popup.css">
+  <link rel="stylesheet" href="./css/components/description.css">
+  <link rel="stylesheet" href="./css/components/chatBot.css">
 
-    <script id="tailwind-config">
-        tailwind.config = {"darkMode":"class","theme":{"extend":{"colors":{"surface-container-low":"#f3f3fc","secondary-container":"#ceee93","on-secondary-fixed":"#131f00","on-error-container":"#93000a","secondary-fixed":"#ceee93","on-secondary-fixed-variant":"#364e03","secondary":"#4d661c","on-tertiary-container":"#fff8f6","surface-container-lowest":"#ffffff","inverse-primary":"#b0c6ff","on-primary-container":"#faf9ff","tertiary-fixed-dim":"#ffb784","slate-600":"#475569","on-primary-fixed":"#001944","surface-container-highest":"#e2e2eb","primary-container":"#3b6fd4","primary":"#1755ba","surface-bright":"#faf8ff","tertiary":"#8e4700","surface-tint":"#1f5abe","slate-100":"#f1f5f9","outline-variant":"#c3c6d5","on-secondary-container":"#536d22","glass-white":"rgba(255, 255, 255, 0.7)","background":"#faf8ff","electric-yellow":"#ffde42","error":"#ba1a1a","surface":"#faf8ff","on-tertiary-fixed-variant":"#713700","on-surface-variant":"#434653","primary-fixed-dim":"#b0c6ff","vibrant-lime":"#bef264","on-error":"#ffffff","on-tertiary-fixed":"#301400","secondary-fixed-dim":"#b3d17a","on-surface":"#191b22","tertiary-fixed":"#ffdcc5","surface-variant":"#e2e2eb","surface-container-high":"#e7e7f0","surface-dim":"#d9d9e2","outline":"#737784","tertiary-container":"#b35b00","on-primary-fixed-variant":"#00429b","on-primary":"#ffffff","inverse-on-surface":"#f0f0f9","inverse-surface":"#2e3037","surface-container":"#ededf6","error-container":"#ffdad6","primary-fixed":"#d9e2ff","on-secondary":"#ffffff","on-background":"#191b22","slate-900":"#0f172a","on-tertiary":"#ffffff"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"stack-lg":"2rem","section-gap":"5rem","gutter":"2rem","container-max":"1280px","stack-sm":"0.5rem","stack-md":"1rem"},"fontFamily":{"label-md":["Inter"],"caption":["Inter"],"headline-md":["Plus Jakarta Sans"],"body-lg":["Inter"],"headline-lg":["Plus Jakarta Sans"],"body-md":["Inter"],"display-lg-mobile":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"]},"fontSize":{"label-md":["14px",{"lineHeight":"1.0","letterSpacing":"0.05em","fontWeight":"600"}],"caption":["12px",{"lineHeight":"1.4","fontWeight":"500"}],"headline-md":["24px",{"lineHeight":"1.4","fontWeight":"700"}],"body-lg":["18px",{"lineHeight":"1.6","fontWeight":"400"}],"headline-lg":["32px",{"lineHeight":"1.3","fontWeight":"700"}],"body-md":["16px",{"lineHeight":"1.6","fontWeight":"400"}],"display-lg-mobile":["40px",{"lineHeight":"1.2","letterSpacing":"-0.02em","fontWeight":"800"}],"display-lg":["64px",{"lineHeight":"1.1","letterSpacing":"-0.04em","fontWeight":"800"}]}}}}
-    </script>
 
-    <style>
-        #navLinks {
-            transition: transform 0.45s cubic-bezier(.22,1,.36,1), opacity 0.35s ease, visibility 0.35s ease;
-        }
-        body.explore-merged #navLinks {
-            transform: translateY(-120%);
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        body.explore-merged #navbar .floating-search-wrapper {
-            position: static;
-            padding: 0;
-            margin: 0;
-            width: auto;
-            flex: 1;
-            opacity: 1;
-            pointer-events: auto;
-            transform: none;
-            left: auto;
-            transition: none;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-bar {
-            max-width: none;
-            margin: 0;
-            height: 44px;
-            border-radius: 12px;
-            padding: 0 4px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.45), rgba(255,255,255,0.30));
-            backdrop-filter: blur(20px) saturate(200%);
-            -webkit-backdrop-filter: blur(20px) saturate(200%);
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            border: 1px solid rgba(255,255,255,0.65);
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-item {
-            padding: 0 10px;
-            border-right: 1px solid rgba(0,0,0,0.06);
-            border-radius: 0;
-            cursor: pointer;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-item:hover {
-            background: rgba(0,0,0,0.03);
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-item:first-child {
-            border-top-left-radius: 12px;
-            border-bottom-left-radius: 12px;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-item label {
-            display: none;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-item input {
-            font-size: 0.8rem;
-            height: 32px;
-            padding: 0 4px;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #222;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-item input::placeholder {
-            color: #888;
-            font-weight: 400;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-item-date {
-            min-width: 100px;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .dr-trigger {
-            font-size: 0.8rem;
-            color: #444;
-            font-weight: 500;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .dr-placeholder {
-            color: #888;
-            font-weight: 400;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .dr-value {
-            color: #222;
-            font-weight: 600;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .dr-chevron {
-            font-size: 8px;
-            color: #999;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-btn {
-            height: 34px;
-            padding: 0 16px;
-            font-size: 0.8rem;
-            min-width: auto;
-            margin: 0 4px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--accent, #1755ba), var(--accent-dim, #3b6fd4));
-            color: white;
-            border: none;
-            gap: 4px;
-            box-shadow: 0 2px 8px rgba(23,85,186,0.2);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-btn:hover {
-            transform: scale(1.04);
-            box-shadow: 0 4px 14px rgba(23,85,186,0.3);
-        }
-        body.explore-merged #navbar .floating-search-wrapper .search-btn:active {
-            transform: scale(0.96);
-        }
-        body.explore-merged #navbar .floating-search-wrapper .refresh-btn {
-            width: 34px;
-            height: 34px;
-            font-size: 12px;
-        }
-
-        .explore .floating-search-wrapper {
-            position: sticky;
-            top: 80px;
-            z-index: 40;
-            width: 100%;
-            padding: 0 2rem;
-            margin-bottom: 2rem;
-            opacity: 1;
-            pointer-events: auto;
-            transform: none;
-            left: auto;
-        }
-        .explore .search-bar {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-        .dr-dropdown {
-            position: fixed !important;
-            z-index: 99999 !important;
-            width: 360px !important;
-            border-radius: 20px !important;
-        }
-
-        #navExpandArea {
-            width: 100%;
-            overflow: hidden;
-            max-height: 0;
-            transition: max-height 0.45s cubic-bezier(.22,1,.36,1);
-        }
-        body.explore-expanded #navExpandArea {
-            max-height: 120px;
-        }
-        #navExpandArea .floating-search-wrapper {
-            position: static;
-            transform: none;
-            width: 100%;
-            margin: 0;
-            padding: 8px 16px 4px;
-            opacity: 1;
-            pointer-events: auto;
-        }
-        #navExpandArea .search-bar {
-            height: 56px;
-            border-radius: 16px;
-            max-width: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.50), rgba(255,255,255,0.35));
-            backdrop-filter: blur(24px) saturate(200%);
-            -webkit-backdrop-filter: blur(24px) saturate(200%);
-        }
-        #navExpandArea .search-item label {
-            font-size: 0.7rem;
-            margin-bottom: 2px;
-        }
-        #navExpandArea .search-item input {
-            font-size: 0.88rem;
-        }
-        #navExpandArea .search-btn {
-            height: calc(56px - 16px);
-            padding: 0 20px;
-            font-size: 0.9rem;
-        }
-        #navExpandArea .refresh-btn {
-            width: 38px;
-            height: 38px;
-            font-size: 14px;
-        }
-
-        body.explore-expanded #navLinks {
-            transform: translateY(0);
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
-        body.explore-expanded #navbar .nav-blur {
-            padding-bottom: 8px;
-        }
-        body.explore-expanded #navbar .floating-search-wrapper .search-btn span {
-            display: inline;
-        }
-    </style>
 </head>
 
 <body class="bg-background text-on-surface font-body-md">
 
-    <div id="navbar-container"></div>
+  <div id="navbar-container"></div>
 
-    <!-- ===== EXPLORE SECTION ===== -->
-    <section class="explore min-h-screen pt-24" id="explore">
+  <!-- ===== EXPLORE SECTION ===== -->
+  <section class="explore min-h-screen pt-24" id="explore">
 
-      <!-- INTRO -->
-      <div class="max-w-container-max mx-auto px-gutter">
-        <div class="text-center mb-8 space-y-4 pt-8">
-          <span class="inline-flex items-center gap-2 py-1.5 px-4 bg-primary-fixed text-on-primary-fixed-variant rounded-full font-label-md text-label-md">
-            <span class="material-symbols-outlined text-lg">search</span>
-            Discover Events
-          </span>
-          <h1 class="font-headline-lg text-headline-lg">Find Your Next Adventure</h1>
-          <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto">Search through hundreds of activities and events happening around you.</p>
+    <!-- INTRO -->
+    <div class="max-w-container-max mx-auto px-gutter">
+      <div class="text-center mb-8 space-y-4 pt-8">
+        <span
+          class="inline-flex items-center gap-2 py-1.5 px-4 bg-primary-fixed text-on-primary-fixed-variant rounded-full font-label-md text-label-md">
+          <span class="material-symbols-outlined text-lg">search</span>
+          Discover Events
+        </span>
+        <h1 class="font-headline-lg text-headline-lg">Find Your Next Adventure</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto">Search through hundreds of
+          activities and events happening around you.</p>
+      </div>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <div id="searchBarPlaceholder">
+      <div class="floating-search-wrapper" id="floating-search">
+        <div class="search-bar glass-search">
+          <div class="search-item">
+            <label for="search-1">Where</label>
+            <input id="search-1" type="text" placeholder="Anywhere" />
+          </div>
+          <div class="search-item search-item-date" id="searchDateItem">
+            <label for="search-2">When</label>
+            <div class="dr-trigger" id="drTrigger">
+              <span class="dr-placeholder" id="drPlaceholder">Anytime</span>
+              <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
+              <span class="dr-chevron">▾</span>
+            </div>
+            <div class="dr-dropdown" id="drDropdown">
+              <div class="dr-cal-header">
+                <button class="dr-nav" id="drPrev">‹</button>
+                <span class="dr-month-label" id="drMonthLabel">Month Year</span>
+                <button class="dr-nav" id="drNext">›</button>
+              </div>
+              <div class="dr-cal-grid" id="drCalGrid"></div>
+              <div class="dr-cal-footer">
+                <button class="dr-clear" id="drClear">Clear</button>
+                <button class="dr-close" id="drClose">Close</button>
+              </div>
+            </div>
+          </div>
+          <div class="search-item">
+            <label for="search-3">Preferences</label>
+            <input id="search-3" type="text" placeholder="Anything you'd like" />
+          </div>
+          <button class="search-btn">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Search</span>
+          </button>
+          <button class="refresh-btn" id="refresh-btn">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
         </div>
       </div>
+    </div>
 
-      <!-- SEARCH BAR -->
-      <div id="searchBarPlaceholder">
-        <div class="floating-search-wrapper" id="floating-search">
-          <div class="search-bar glass-search">
-            <div class="search-item">
-              <label for="search-1">Where</label>
-              <input id="search-1" type="text" placeholder="Anywhere"/>
-            </div>
-            <div class="search-item search-item-date" id="searchDateItem">
-              <label for="search-2">When</label>
-              <div class="dr-trigger" id="drTrigger">
-                <span class="dr-placeholder" id="drPlaceholder">Anytime</span>
-                <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
-                <span class="dr-chevron">▾</span>
-              </div>
-              <div class="dr-dropdown" id="drDropdown">
-                <div class="dr-cal-header">
-                  <button class="dr-nav" id="drPrev">‹</button>
-                  <span class="dr-month-label" id="drMonthLabel">Month Year</span>
-                  <button class="dr-nav" id="drNext">›</button>
-                </div>
-                <div class="dr-cal-grid" id="drCalGrid"></div>
-                <div class="dr-cal-footer">
-                  <button class="dr-clear" id="drClear">Clear</button>
-                  <button class="dr-close" id="drClose">Close</button>
-                </div>
+    <!-- SIDEBAR + CARDS -->
+    <div class="mx-auto px-gutter mt-8" style="max-width:1480px;">
+      <div class="explore-layout">
+
+        <!-- LEFT SIDEBAR -->
+        <aside class="explore-sidebar" id="exploreSidebar">
+          <div class="sidebar-inner">
+            <div class="sidebar-section">
+              <h3 class="sidebar-title">Categories</h3>
+              <div class="category-list" id="categoryList">
+                <button class="category-chip active" data-category="all">All</button>
+                <button class="category-chip" data-category="sports">Sports</button>
+                <button class="category-chip" data-category="music">Music</button>
+                <button class="category-chip" data-category="education">Education</button>
+                <button class="category-chip" data-category="technology">Technology</button>
+                <button class="category-chip" data-category="volunteering">Volunteering</button>
+                <button class="category-chip" data-category="social">Social</button>
+                <button class="category-chip" data-category="arts">Arts</button>
               </div>
             </div>
-            <div class="search-item">
-              <label for="search-3">Preferences</label>
-              <input id="search-3" type="text" placeholder="Anything you'd like"/>
+
+            <div class="sidebar-section">
+              <h3 class="sidebar-title">Sort By</h3>
+              <div class="sort-list" id="sortList">
+                <label class="sort-option active" data-sort="newest">
+                  <span class="sort-radio"></span>
+                  <span>Newest</span>
+                </label>
+                <label class="sort-option" data-sort="popular">
+                  <span class="sort-radio"></span>
+                  <span>Most Popular</span>
+                </label>
+                <label class="sort-option" data-sort="ending">
+                  <span class="sort-radio"></span>
+                  <span>Ending Soon</span>
+                </label>
+              </div>
             </div>
-            <button class="search-btn">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <span>Search</span>
-            </button>
-            <button class="refresh-btn" id="refresh-btn">
-              <i class="fa-solid fa-rotate"></i>
+
+            <button class="clear-filters-btn" id="clearFilters">
+              <span class="material-symbols-outlined text-lg">close</span>
+              Clear Filters
             </button>
           </div>
-        </div>
-      </div>
+        </aside>
 
-      <!-- SIDEBAR + CARDS -->
-      <div class="mx-auto px-gutter mt-8" style="max-width:1480px;">
-        <div class="explore-layout">
-
-          <!-- LEFT SIDEBAR -->
-          <aside class="explore-sidebar" id="exploreSidebar">
-            <div class="sidebar-inner">
-              <div class="sidebar-section">
-                <h3 class="sidebar-title">Categories</h3>
-                <div class="category-list" id="categoryList">
-                  <button class="category-chip active" data-category="all">All</button>
-                  <button class="category-chip" data-category="sports">Sports</button>
-                  <button class="category-chip" data-category="music">Music</button>
-                  <button class="category-chip" data-category="education">Education</button>
-                  <button class="category-chip" data-category="technology">Technology</button>
-                  <button class="category-chip" data-category="volunteering">Volunteering</button>
-                  <button class="category-chip" data-category="social">Social</button>
-                  <button class="category-chip" data-category="arts">Arts</button>
-                </div>
-              </div>
-
-              <div class="sidebar-section">
-                <h3 class="sidebar-title">Sort By</h3>
-                <div class="sort-list" id="sortList">
-                  <label class="sort-option active" data-sort="newest">
-                    <span class="sort-radio"></span>
-                    <span>Newest</span>
-                  </label>
-                  <label class="sort-option" data-sort="popular">
-                    <span class="sort-radio"></span>
-                    <span>Most Popular</span>
-                  </label>
-                  <label class="sort-option" data-sort="ending">
-                    <span class="sort-radio"></span>
-                    <span>Ending Soon</span>
-                  </label>
-                </div>
-              </div>
-
-              <button class="clear-filters-btn" id="clearFilters">
-                <span class="material-symbols-outlined text-lg">close</span>
-                Clear Filters
-              </button>
+        <!-- MAIN CONTENT -->
+        <main class="explore-main">
+          <div class="results-header">
+            <span class="results-count" id="resultsCount">0 activities</span>
+            <div class="sidebar-toggle" id="sidebarToggle">
+              <span class="material-symbols-outlined">filter_list</span>
+              Filters
             </div>
-          </aside>
+          </div>
+          <div id="cards-container" class="cards-container"></div>
+        </main>
 
-          <!-- MAIN CONTENT -->
-          <main class="explore-main">
-            <div class="results-header">
-              <span class="results-count" id="resultsCount">0 activities</span>
-              <div class="sidebar-toggle" id="sidebarToggle">
-                <span class="material-symbols-outlined">filter_list</span>
-                Filters
-              </div>
-            </div>
-            <div id="cards-container" class="cards-container"></div>
-          </main>
-
-        </div>
       </div>
-    </section>
-
-    <!-- POPUPS -->
-    <div class="popup-overlay" id="popup-overlay">
-        <div class="popup-backdrop"></div>
-        <div class="popup-container" id="popup-container"></div>
     </div>
+  </section>
 
-    <div class="popup-overlay" id="popup-overlay-2">
-        <div class="popup-backdrop"></div>
-        <div class="popup-container" id="popup-container-2"></div>
-    </div>
+  <!-- POPUPS -->
+  <div class="popup-overlay" id="popup-overlay">
+    <div class="popup-backdrop"></div>
+    <div class="popup-container" id="popup-container"></div>
+  </div>
 
-    <div id="chatbot-container"></div>
+  <div class="popup-overlay" id="popup-overlay-2">
+    <div class="popup-backdrop"></div>
+    <div class="popup-container" id="popup-container-2"></div>
+  </div>
 
-    <script type="module" src="js/pages/explore.js"></script>
+  <div id="chatbot-container"></div>
+
+  <script type="module" src="js/pages/explore.js"></script>
 </body>
 
 </html>

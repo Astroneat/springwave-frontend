@@ -1,66 +1,11 @@
 import { login } from "../api/auth.js";
-import { createSession, isAuthenticated, getUser, logout } from "../lib/session.js";
+import { createSession, isAuthenticated } from "../lib/session.js";
 import { initChatbot } from "../components/chatBot.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await loadNavbar();
     initChatbot();
     initLoginForm();
 });
-
-async function fetchContent(url) {
-    const resp = await fetch(url);
-    return resp.text();
-}
-
-async function loadNavbar() {
-    const html = await fetchContent("./components/navBar.html");
-    document.getElementById("navbar-container").innerHTML = html;
-
-    const hamburger = document.getElementById("hamburgerBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const mobileOverlay = document.getElementById("mobileOverlay");
-
-    if (hamburger && mobileMenu) {
-        hamburger.addEventListener("click", () => {
-            mobileMenu.classList.toggle("open");
-        });
-        mobileOverlay?.addEventListener("click", () => {
-            mobileMenu.classList.remove("open");
-        });
-        mobileMenu.querySelectorAll("a").forEach(link => {
-            link.addEventListener("click", () => mobileMenu.classList.remove("open"));
-        });
-    }
-
-    const authSection = document.getElementById("auth-section");
-    if (authSection) {
-        if (isAuthenticated()) {
-            const user = getUser();
-            const userChipHTML = await fetchContent("./components/userChip.html");
-            authSection.innerHTML = userChipHTML;
-            document.getElementById("user-name").textContent = user.username;
-            initUserDropdown();
-        } else {
-            authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
-        }
-    }
-}
-
-function initUserDropdown() {
-    const userMenu = document.querySelector(".user-menu");
-    const userChip = document.getElementById("user-chip");
-    const logoutBtn = document.getElementById("logout-btn");
-    if (!userMenu || !userChip) return;
-    userChip.addEventListener("click", (e) => { e.stopPropagation(); userMenu.classList.toggle("active"); });
-    document.addEventListener("click", () => userMenu.classList.remove("active"));
-    userMenu.addEventListener("click", (e) => e.stopPropagation());
-    logoutBtn?.addEventListener("click", () => { logout(); window.location.href = "/login.html"; });
-    document.getElementById("favourites-btn")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        userMenu.classList.remove("active");
-    });
-}
 
 function initLoginForm() {
     const form = document.getElementById("login-form");

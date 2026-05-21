@@ -38,7 +38,6 @@ springwave/
 │   ├── hero.html              # Hero section
 │   ├── explore.html           # Explore/search section
 │   ├── cards.html             # Activity card template
-│   ├── cardsDemo.html        # Demo card instances
 │   ├── description.html       # Activity detail popup
 │   ├── hostActivityDetails.html # Create-activity form
 │   ├── userChip.html          # Logged-in user menu
