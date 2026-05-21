@@ -162,28 +162,31 @@ function initNavbarScroll() {
         const expandArea = getExpandArea();
         if (!expandArea) { busy = false; return; }
 
-        searchWrapper.style.transition = 'opacity 0.12s ease';
+        searchWrapper.style.transition = 'transform 0.4s cubic-bezier(.22,1,.36,1), opacity 0.3s ease';
+        searchWrapper.style.transform = 'translateY(85px)';
         searchWrapper.style.opacity = '0';
 
         setTimeout(() => {
             if (token !== animToken) { busy = false; return; }
             expandArea.appendChild(searchWrapper);
-            document.body.classList.add("explore-expanded");
             searchWrapper.style.transition = '';
             searchWrapper.style.transform = '';
+            searchWrapper.style.opacity = '0';
+
+            document.body.classList.add("explore-expanded");
 
             requestAnimationFrame(() => {
                 if (token !== animToken) return;
-                searchWrapper.style.transition = 'opacity 0.3s ease';
+                searchWrapper.style.transition = 'opacity 0.35s ease';
                 searchWrapper.style.opacity = '1';
                 setTimeout(() => {
                     if (token !== animToken) return;
                     searchWrapper.style.transition = '';
                     searchWrapper.style.opacity = '';
                     busy = false;
-                }, 340);
+                }, 380);
             });
-        }, 120);
+        }, 400);
     }
 
     function collapseExpand() {
@@ -194,27 +197,29 @@ function initNavbarScroll() {
         const authWrap = document.querySelector("#navbar .flex.items-center.gap-3");
         if (!flexRow || !authWrap) return;
 
-        searchWrapper.style.transition = 'opacity 0.1s ease';
+        searchWrapper.style.transition = 'opacity 0.15s ease';
         searchWrapper.style.opacity = '0';
+
+        document.body.classList.remove("explore-expanded");
 
         setTimeout(() => {
             if (token !== animToken) return;
             flexRow.insertBefore(searchWrapper, authWrap);
-            document.body.classList.remove("explore-expanded");
-            searchWrapper.style.transition = '';
+            searchWrapper.style.transition = 'none';
             searchWrapper.style.transform = '';
+            searchWrapper.style.opacity = '0';
 
             requestAnimationFrame(() => {
                 if (token !== animToken) return;
-                searchWrapper.style.transition = 'opacity 0.2s ease';
+                searchWrapper.style.transition = 'opacity 0.25s ease';
                 searchWrapper.style.opacity = '1';
                 setTimeout(() => {
                     if (token !== animToken) return;
                     searchWrapper.style.transition = '';
                     searchWrapper.style.opacity = '';
-                }, 240);
+                }, 280);
             });
-        }, 100);
+        }, 450);
     }
 
     navbar.addEventListener("click", (e) => {

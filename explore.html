@@ -165,7 +165,12 @@
 
         #navExpandArea {
             width: 100%;
-            display: none;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.45s cubic-bezier(.22,1,.36,1);
+        }
+        body.explore-expanded #navExpandArea {
+            max-height: 120px;
         }
         #navExpandArea .floating-search-wrapper {
             position: static;
@@ -202,9 +207,6 @@
             font-size: 14px;
         }
 
-        body.explore-expanded #navExpandArea {
-            display: block;
-        }
         body.explore-expanded #navLinks {
             transform: translateY(0);
             opacity: 1;
