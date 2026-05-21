@@ -4,62 +4,270 @@ import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "..
 import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatbot.js";
 
+let allActivities = [];
+let currentCategory = "all";
+let currentSort = "newest";
+let cachedTemplate = null;
+
 document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
-    await loadExploreSection();
-    await loadFooter();
+    await initExplore();
     await initChatbot();
-    initSidebar();
+    initializePage();
 });
 
 async function fetchContent(url) {
-    const response = await fetch(url);
-    return response.text();
+    const resp = await fetch(url);
+    return resp.text();
 }
 
 async function loadNavbar() {
-    const data = await fetchContent("./components/navbar.html");
-    document.getElementById("navbar-container").innerHTML = data;
+    const html = await fetchContent("./components/navbar.html");
+    document.getElementById("navbar-container").innerHTML = html;
     initNavbarActiveLinks();
-    initHamburger();
 
-    const navbar = document.getElementById("navbar");
-    window.addEventListener("scroll", () => {
-        navbar.classList.toggle("collapsed", window.scrollY > 60);
-    });
+    initNavbarScroll();
+
+    const hamburger = document.getElementById("hamburgerBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+    const mobileOverlay = document.getElementById("mobileOverlay");
+    if (hamburger && mobileMenu) {
+        hamburger.addEventListener("click", () => mobileMenu.classList.toggle("open"));
+        mobileOverlay?.addEventListener("click", () => mobileMenu.classList.remove("open"));
+        mobileMenu.querySelectorAll("a").forEach(link => link.addEventListener("click", () => mobileMenu.classList.remove("open")));
+    }
 
     const authSection = document.getElementById("auth-section");
-    if (isAuthenticated()) {
-        const user = getUser();
-        const userChipHTML = await fetchContent("./components/userchip.html");
-        authSection.innerHTML = userChipHTML;
-        document.getElementById("user-name").textContent = user.username;
-        initUserDropdown();
-    } else {
-        authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
+    if (authSection) {
+        if (isAuthenticated()) {
+            const user = getUser();
+            const userChipHTML = await fetchContent("./components/userchip.html");
+            authSection.innerHTML = userChipHTML;
+            document.getElementById("user-name").textContent = user.username;
+            initUserDropdown();
+        } else {
+            authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
+        }
     }
+}
+
+function initNavbarScroll() {
+    const navbar = document.getElementById("navbar");
+    const searchWrapper = document.getElementById("floating-search");
+    const placeholder = document.getElementById("searchBarPlaceholder");
+    if (!searchWrapper || !placeholder) return;
+
+    let threshold = 0;
+    let busy = false;
+    let animToken = 0;
+
+    function calcThreshold() {
+        const rect = searchWrapper.getBoundingClientRect();
+        threshold = rect.top + window.scrollY - navbar.offsetHeight;
+    }
+
+    function getExpandArea() {
+        let area = document.getElementById("navExpandArea");
+        if (!area) {
+            area = document.createElement("div");
+            area.id = "navExpandArea";
+            const navBlur = document.querySelector("#navbar .nav-blur");
+            if (navBlur) navBlur.appendChild(area);
+        }
+        return area;
+    }
+
+    function cleanInline() {
+        searchWrapper.style.transition = '';
+        searchWrapper.style.transform = '';
+        searchWrapper.style.opacity = '';
+    }
+
+    function merge() {
+        if (busy) return;
+        busy = true;
+        const token = ++animToken;
+
+        const flexRow = document.querySelector("#navbar .flex.items-center.justify-between");
+        const authWrap = document.querySelector("#navbar .flex.items-center.gap-3");
+        if (!flexRow || !authWrap) { busy = false; return; }
+
+        searchWrapper.style.transition = 'transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.2s ease';
+        searchWrapper.style.transform = 'translateY(-80px)';
+        searchWrapper.style.opacity = '0';
+
+        setTimeout(() => {
+            if (token !== animToken) { busy = false; return; }
+            flexRow.insertBefore(searchWrapper, authWrap);
+            document.body.classList.add("explore-merged");
+            document.body.classList.remove("explore-expanded");
+            navbar.classList.remove("collapsed");
+            searchWrapper.style.transition = '';
+            searchWrapper.style.transform = '';
+
+            requestAnimationFrame(() => {
+                if (token !== animToken) return;
+                searchWrapper.style.transition = 'opacity 0.3s ease';
+                searchWrapper.style.opacity = '1';
+                setTimeout(() => {
+                    if (token !== animToken) return;
+                    searchWrapper.style.transition = '';
+                    searchWrapper.style.opacity = '';
+                    busy = false;
+                }, 340);
+            });
+        }, 350);
+    }
+
+    function unmerge() {
+        if (busy) return;
+        busy = true;
+        const token = ++animToken;
+
+        searchWrapper.style.transition = 'opacity 0.12s ease';
+        searchWrapper.style.opacity = '0';
+
+        setTimeout(() => {
+            if (token !== animToken) { busy = false; return; }
+            document.body.classList.remove("explore-merged");
+            document.body.classList.remove("explore-expanded");
+            placeholder.appendChild(searchWrapper);
+
+            searchWrapper.style.transition = 'none';
+            searchWrapper.style.transform = 'translateY(-80px)';
+            searchWrapper.style.opacity = '0';
+
+            requestAnimationFrame(() => {
+                if (token !== animToken) return;
+                searchWrapper.style.transition = 'transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.25s ease';
+                searchWrapper.style.transform = 'translateY(0)';
+                searchWrapper.style.opacity = '1';
+
+                setTimeout(() => {
+                    if (token !== animToken) return;
+                    cleanInline();
+                    busy = false;
+                }, 380);
+            });
+        }, 120);
+    }
+
+    function expand() {
+        if (busy) return;
+        if (!document.body.classList.contains("explore-merged")) return;
+        if (document.body.classList.contains("explore-expanded")) return;
+        busy = true;
+        const token = ++animToken;
+
+        const expandArea = getExpandArea();
+        if (!expandArea) { busy = false; return; }
+
+        searchWrapper.style.transition = 'transform 0.4s cubic-bezier(.22,1,.36,1), opacity 0.3s ease';
+        searchWrapper.style.transform = 'translateY(85px)';
+        searchWrapper.style.opacity = '0';
+
+        setTimeout(() => {
+            if (token !== animToken) { busy = false; return; }
+            expandArea.appendChild(searchWrapper);
+            searchWrapper.style.transition = '';
+            searchWrapper.style.transform = '';
+            searchWrapper.style.opacity = '0';
+
+            document.body.classList.add("explore-expanded");
+
+            requestAnimationFrame(() => {
+                if (token !== animToken) return;
+                searchWrapper.style.transition = 'opacity 0.35s ease';
+                searchWrapper.style.opacity = '1';
+                setTimeout(() => {
+                    if (token !== animToken) return;
+                    searchWrapper.style.transition = '';
+                    searchWrapper.style.opacity = '';
+                    busy = false;
+                }, 380);
+            });
+        }, 400);
+    }
+
+    function collapseExpand() {
+        if (!document.body.classList.contains("explore-expanded")) return;
+        const token = ++animToken;
+
+        const flexRow = document.querySelector("#navbar .flex.items-center.justify-between");
+        const authWrap = document.querySelector("#navbar .flex.items-center.gap-3");
+        if (!flexRow || !authWrap) return;
+
+        searchWrapper.style.transition = 'opacity 0.15s ease';
+        searchWrapper.style.opacity = '0';
+
+        document.body.classList.remove("explore-expanded");
+
+        setTimeout(() => {
+            if (token !== animToken) return;
+            flexRow.insertBefore(searchWrapper, authWrap);
+            searchWrapper.style.transition = 'none';
+            searchWrapper.style.transform = '';
+            searchWrapper.style.opacity = '0';
+
+            requestAnimationFrame(() => {
+                if (token !== animToken) return;
+                searchWrapper.style.transition = 'opacity 0.25s ease';
+                searchWrapper.style.opacity = '1';
+                setTimeout(() => {
+                    if (token !== animToken) return;
+                    searchWrapper.style.transition = '';
+                    searchWrapper.style.opacity = '';
+                }, 280);
+            });
+        }, 450);
+    }
+
+    navbar.addEventListener("click", (e) => {
+        if (!document.body.classList.contains("explore-merged")) return;
+        if (e.target.closest("a, button, input, .user-menu, #auth-section, .dr-trigger")) return;
+        if (document.body.classList.contains("explore-expanded")) {
+            collapseExpand();
+        } else {
+            expand();
+        }
+    });
+
+    function updateOnScroll() {
+        const scrolled = window.scrollY;
+        const isMerged = document.body.classList.contains("explore-merged");
+
+        if (scrolled > threshold && !isMerged) {
+            merge();
+        } else if (scrolled <= threshold - 20 && isMerged) {
+            unmerge();
+        }
+
+        if (!document.body.classList.contains("explore-merged")) {
+            navbar.classList.toggle("collapsed", scrolled > 60);
+        }
+    }
+
+    requestAnimationFrame(() => {
+        calcThreshold();
+        updateOnScroll();
+    });
+
+    window.addEventListener("scroll", updateOnScroll, { passive: true });
+
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(calcThreshold, 100);
+    });
 }
 
 function initNavbarActiveLinks() {
     const navLinks = document.querySelectorAll(".nav-links a");
-    navLinks.forEach(l => l.classList.remove("active"));
-    const exploreLink = document.querySelector('.nav-links a[data-section="explore"]');
-    if (exploreLink) exploreLink.classList.add("active");
-}
-
-function initHamburger() {
-    const hamburger = document.getElementById("hamburgerBtn");
-    const navLinks = document.getElementById("navLinks");
-    if (!hamburger || !navLinks) return;
-    hamburger.addEventListener("click", () => {
-        hamburger.classList.toggle("active");
-        navLinks.classList.toggle("open");
-    });
-    navLinks.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => {
-            hamburger.classList.remove("active");
-            navLinks.classList.remove("open");
-        });
+    navLinks.forEach(link => {
+        link.classList.remove("active");
+        if (link.dataset.section === "explore") {
+            link.classList.add("active");
+        }
     });
 }
 
@@ -68,50 +276,22 @@ function initUserDropdown() {
     const userChip = document.getElementById("user-chip");
     const logoutBtn = document.getElementById("logout-btn");
     if (!userMenu || !userChip) return;
-    userChip.addEventListener("click", (e) => {
-        e.stopPropagation();
-        userMenu.classList.toggle("active");
-    });
+    userChip.addEventListener("click", (e) => { e.stopPropagation(); userMenu.classList.toggle("active"); });
     document.addEventListener("click", () => userMenu.classList.remove("active"));
     userMenu.addEventListener("click", (e) => e.stopPropagation());
-    logoutBtn?.addEventListener("click", () => {
-        logout();
-        window.location.href = "/login.html";
-    });
-    const favBtn = document.getElementById("favourites-btn");
-    favBtn?.addEventListener("click", (e) => {
+    logoutBtn?.addEventListener("click", () => { logout(); window.location.href = "/login.html"; });
+    document.getElementById("favourites-btn")?.addEventListener("click", (e) => {
         e.stopPropagation();
         userMenu.classList.remove("active");
         showFavourites();
     });
 }
 
-async function loadExploreSection() {
-    const exploreHTML = await fetchContent("./components/explore.html");
-    document.getElementById("explore-container").innerHTML = exploreHTML;
+async function initExplore() {
     initSearchDatePicker();
+    initSidebar();
     await loadCards();
     initSearchButton();
-}
-
-async function loadCards() {
-    const cardsContainer = document.getElementById("cards-container");
-    try {
-        const data = await getActivities();
-        let activities = data?.activities || [];
-
-        if (activities.length === 0) {
-            cardsContainer.innerHTML = `<div class="empty-state">No activities found</div>`;
-            return;
-        }
-
-        activities = sortActivities(activities, getSelectedSort());
-        activities = filterByTypeAndStatus(activities, getSelectedTypes(), getSelectedStatuses());
-        await renderCards(activities);
-    } catch (err) {
-        console.error(err);
-        cardsContainer.innerHTML = `<div class="empty-state">Failed to load activities</div>`;
-    }
 }
 
 function initSearchButton() {
@@ -133,65 +313,111 @@ function initSearchButton() {
     });
 
     btn.addEventListener("click", async () => {
-        await fetchAndRenderFiltered();
+        const location = document.getElementById("search-1")?.value.trim();
+        const keyword = document.getElementById("search-3")?.value.trim();
+        const dates = window.__searchDates || {};
+
+        document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
+        document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
+        currentCategory = "all";
+        document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
+        document.querySelector(".sort-option[data-sort='newest']")?.classList.add("active");
+        currentSort = "newest";
+
+        const cardsContainer = document.getElementById("cards-container");
+        cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Searching...</div>`;
+
+        try {
+            const data = await searchActivities({
+                keyword,
+                location,
+                heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
+                heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
+            });
+            const activities = data?.activities || [];
+            if (activities.length === 0) {
+                cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">No results found</div>`;
+                document.getElementById("resultsCount").textContent = "0 activities";
+                return;
+            }
+            await renderCards(activities);
+        } catch (e) {
+            cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Search error</div>`;
+        }
     });
 }
 
-async function fetchAndRenderFiltered() {
-    const sortValue = getSelectedSort();
-    const types = getSelectedTypes();
-    const statuses = getSelectedStatuses();
-    const location = document.getElementById("search-1")?.value.trim();
-    const keyword = document.getElementById("search-3")?.value.trim();
-    const dates = window.__searchDates || {};
-
+async function loadCards() {
     const cardsContainer = document.getElementById("cards-container");
-    cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Searching...</div>`;
-
     try {
-        const params = {
-            keyword,
-            location,
-            heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
-            heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined,
-            sortBy: sortValue.sortBy,
-            sortOrder: sortValue.sortOrder,
-        };
-
-        const data = await searchActivities(params);
-        let activities = data?.activities || [];
-
-        activities = sortActivities(activities, sortValue);
-        activities = filterByTypeAndStatus(activities, types, statuses);
-
-        if (activities.length === 0) {
-            cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">No results found</div>`;
-            return;
+        if (!cachedTemplate) {
+            const templateHTML = await fetchContent("./components/cards.html");
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(templateHTML, "text/html");
+            cachedTemplate = doc.querySelector(".card");
         }
-        await renderCards(activities);
-    } catch (e) {
-        cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Search error</div>`;
+        const activities = (await getActivities()).activities || [];
+        allActivities = activities;
+        applyFiltersAndSort();
+    } catch (err) {
+        console.error(err);
+        cardsContainer.innerHTML = `<div class="empty-state">Failed to load activities</div>`;
     }
 }
 
 async function renderCards(activities) {
+    if (!cachedTemplate) {
+        const templateHTML = await fetchContent("./components/cards.html");
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(templateHTML, "text/html");
+        cachedTemplate = doc.querySelector(".card");
+    }
+
+    allActivities = activities;
+    applyFiltersAndSort();
+}
+
+function applyFiltersAndSort() {
+    let filtered = [...allActivities];
+
+    if (currentCategory !== "all") {
+        filtered = filtered.filter(a => (a.type || "").toLowerCase() === currentCategory);
+    }
+
+    switch (currentSort) {
+        case "newest":
+            filtered.sort((a, b) => new Date(b.heldDate || 0) - new Date(a.heldDate || 0));
+            break;
+        case "popular":
+            filtered.sort((a, b) => (b.participants || 0) - (a.participants || 0));
+            break;
+        case "ending":
+            filtered.sort((a, b) => new Date(a.applicationDeadline || a.heldDate || 0) - new Date(b.applicationDeadline || b.heldDate || 0));
+            break;
+    }
+
+    renderCardsDirect(filtered);
+}
+
+function renderCardsDirect(activities) {
     const cardsContainer = document.getElementById("cards-container");
-    const templateHTML = await fetchContent("./components/cards.html");
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(templateHTML, "text/html");
-    const templateCard = doc.querySelector(".card");
+    if (!cachedTemplate) return;
 
     if (activities.length === 0) {
-        cardsContainer.innerHTML = `<div class="empty-state">No results found</div>`;
+        cardsContainer.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#94a3b8"><span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px">search_off</span><p style="font-size:16px;font-weight:600">No activities match your filters</p><p style="font-size:13px;margin-top:4px">Try adjusting the category or search term</p></div>`;
+        document.getElementById("resultsCount").textContent = "0 activities";
         return;
     }
 
     cardsContainer.innerHTML = "";
     activities.forEach(activity => {
-        const card = templateCard.cloneNode(true);
+        const card = cachedTemplate.cloneNode(true);
+        card.classList.add("revealed");
         const image = card.querySelector(".card-image");
-        image.src = activity.thumbnail;
-        image.alt = activity.title;
+        if (image) {
+            image.src = activity.thumbnail;
+            image.alt = activity.title;
+        }
         card.querySelector(".card-title").textContent = activity.title;
         card.querySelectorAll(".info span")[0].textContent = activity.location || "Unknown Location";
         card.querySelectorAll(".info span")[1].textContent = formatDate(activity.heldDate);
@@ -200,226 +426,58 @@ async function renderCards(activities) {
         cardsContainer.appendChild(card);
     });
 
+    document.getElementById("resultsCount").textContent = `${activities.length} ${activities.length === 1 ? "activity" : "activities"}`;
+
     syncCardFavourites();
     initCardClickHandlers();
     initStars();
-    staggerRevealCards();
 }
 
 function initSidebar() {
-    document.getElementById("sidebarApplyBtn")?.addEventListener("click", applySidebarFilters);
-    document.getElementById("sidebarResetBtn")?.addEventListener("click", resetSidebarFilters);
-}
-
-function getSelectedSort() {
-    const checked = document.querySelector('input[name="sortBy"]:checked');
-    if (!checked) return { sortBy: "heldDate", sortOrder: "desc" };
-    const [sortBy, sortOrder] = checked.value.split("_");
-    return { sortBy, sortOrder };
-}
-
-function getSelectedTypes() {
-    const checked = document.querySelectorAll("#typeFilters input[type='checkbox']:checked");
-    return Array.from(checked).map(cb => cb.value);
-}
-
-function getSelectedStatuses() {
-    const checked = document.querySelectorAll("#statusFilters input[type='checkbox']:checked");
-    return Array.from(checked).map(cb => cb.value);
-}
-
-function sortActivities(activities, sortValue) {
-    const sorted = [...activities];
-    const { sortBy, sortOrder } = sortValue;
-    const desc = sortOrder === "desc";
-
-    if (sortBy === "heldDate" || sortBy === "createdAt") {
-        sorted.sort((a, b) => {
-            const da = new Date(a[sortBy] || 0).getTime();
-            const db = new Date(b[sortBy] || 0).getTime();
-            return desc ? db - da : da - db;
+    document.querySelectorAll(".category-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+            document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+            currentCategory = chip.dataset.category;
+            applyFiltersAndSort();
         });
-    } else if (sortBy === "title") {
-        sorted.sort((a, b) => {
-            const ta = (a.title || "").toLowerCase();
-            const tb = (b.title || "").toLowerCase();
-            return desc ? tb.localeCompare(ta) : ta.localeCompare(tb);
-        });
-    }
-    return sorted;
-}
-
-function filterByTypeAndStatus(activities, types, statuses) {
-    let filtered = activities;
-    if (types.length > 0) {
-        filtered = filtered.filter(a => types.includes(a.type));
-    }
-    if (statuses.length > 0) {
-        filtered = filtered.filter(a => statuses.includes(a.status));
-    }
-    return filtered;
-}
-
-async function applySidebarFilters() {
-    await fetchAndRenderFiltered();
-}
-
-async function resetSidebarFilters() {
-    document.querySelectorAll('input[name="sortBy"]').forEach(r => { if (r.value === "heldDate_desc") r.checked = true; });
-    document.querySelectorAll("#typeFilters input[type='checkbox']").forEach(cb => cb.checked = false);
-    document.querySelectorAll("#statusFilters input[type='checkbox']").forEach(cb => cb.checked = false);
-    await loadCards();
-}
-
-/* =========================
-   DATE RANGE PICKER
-========================= */
-
-function initSearchDatePicker() {
-    const item = document.getElementById("searchDateItem");
-    const trigger = document.getElementById("drTrigger");
-    const placeholder = document.getElementById("drPlaceholder");
-    const value = document.getElementById("drValue");
-    const dropdown = document.getElementById("drDropdown");
-    const grid = document.getElementById("drCalGrid");
-    const monthLabel = document.getElementById("drMonthLabel");
-    const prevBtn = document.getElementById("drPrev");
-    const nextBtn = document.getElementById("drNext");
-    const clearBtn = document.getElementById("drClear");
-    const closeBtn = document.getElementById("drClose");
-
-    if (!trigger) return;
-
-    let currentMonth = new Date().getMonth();
-    let currentYear = new Date().getFullYear();
-    let startDate = null;
-    let endDate = null;
-    window.__searchDates = { startDate: null, endDate: null };
-
-    function syncSearchDates() {
-        window.__searchDates.startDate = startDate;
-        window.__searchDates.endDate = endDate;
-    }
-
-    function pad(n) { return String(n).padStart(2, "0"); }
-
-    function formatDisplay() {
-        if (startDate && endDate) {
-            value.textContent = `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} - ${pad(endDate.getDate())}/${pad(endDate.getMonth() + 1)}`;
-            value.classList.add("visible");
-            placeholder.classList.add("hidden");
-        } else if (startDate) {
-            value.textContent = `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} - dd/mm`;
-            value.classList.add("visible");
-            placeholder.classList.add("hidden");
-        } else {
-            value.classList.remove("visible");
-            placeholder.classList.remove("hidden");
-        }
-    }
-
-    function renderCalendar() {
-        grid.innerHTML = "";
-        const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-        weekdays.forEach(d => {
-            const el = document.createElement("div");
-            el.className = "dr-weekday";
-            el.textContent = d;
-            grid.appendChild(el);
-        });
-
-        monthLabel.textContent = new Date(currentYear, currentMonth).toLocaleDateString("en-US", { month: "long", year: "numeric" });
-
-        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-        const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
-        const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-
-        for (let i = startOffset - 1; i >= 0; i--) {
-            const el = document.createElement("div");
-            el.className = "dr-day other-month";
-            el.textContent = daysInPrevMonth - i;
-            grid.appendChild(el);
-        }
-
-        const today = new Date();
-        for (let d = 1; d <= daysInMonth; d++) {
-            const el = document.createElement("div");
-            el.className = "dr-day";
-            el.textContent = d;
-            const date = new Date(currentYear, currentMonth, d);
-
-            if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
-                el.classList.add("today");
-            }
-
-            el.dataset.date = date.toISOString();
-
-            if (startDate && endDate && date > startDate && date < endDate) el.classList.add("in-range");
-            if (startDate && date.getTime() === startDate.getTime()) { el.classList.add("range-start"); el.classList.add("in-range"); }
-            if (endDate && date.getTime() === endDate.getTime()) { el.classList.add("range-end"); el.classList.add("in-range"); }
-            if (startDate && endDate && startDate.getTime() === endDate.getTime() && date.getTime() === startDate.getTime()) el.classList.add("selected");
-
-            el.addEventListener("click", () => {
-                const clicked = new Date(currentYear, currentMonth, d);
-                if (!startDate || (startDate && endDate)) { startDate = clicked; endDate = null; }
-                else if (clicked < startDate) { startDate = clicked; }
-                else { endDate = clicked; }
-                syncSearchDates();
-                renderCalendar();
-                formatDisplay();
-            });
-
-            grid.appendChild(el);
-        }
-
-        const totalCells = startOffset + daysInMonth;
-        const remaining = (7 - (totalCells % 7)) % 7;
-        for (let i = 1; i <= remaining; i++) {
-            const el = document.createElement("div");
-            el.className = "dr-day other-month";
-            el.textContent = i;
-            grid.appendChild(el);
-        }
-    }
-
-    function openDropdown() {
-        const today = new Date();
-        currentMonth = today.getMonth();
-        currentYear = today.getFullYear();
-        renderCalendar();
-        dropdown.classList.add("active");
-        item.classList.add("active");
-    }
-
-    function closeDropdown() {
-        dropdown.classList.remove("active");
-        item.classList.remove("active");
-    }
-
-    trigger.addEventListener("click", (e) => {
-        e.stopPropagation();
-        dropdown.classList.contains("active") ? closeDropdown() : openDropdown();
     });
 
-    prevBtn.addEventListener("click", (e) => { e.stopPropagation(); currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar(); });
-    nextBtn.addEventListener("click", (e) => { e.stopPropagation(); currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCalendar(); });
-    clearBtn.addEventListener("click", (e) => { e.stopPropagation(); startDate = null; endDate = null; syncSearchDates(); renderCalendar(); formatDisplay(); });
-    closeBtn.addEventListener("click", (e) => { e.stopPropagation(); closeDropdown(); });
-
-    document.addEventListener("click", (e) => {
-        if (dropdown.classList.contains("active") && !dropdown.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) {
-            closeDropdown();
-        }
+    document.querySelectorAll(".sort-option").forEach(option => {
+        option.addEventListener("click", () => {
+            document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
+            option.classList.add("active");
+            currentSort = option.dataset.sort;
+            applyFiltersAndSort();
+        });
     });
 
-    dropdown.addEventListener("click", (e) => e.stopPropagation());
-    formatDisplay();
+    document.getElementById("clearFilters")?.addEventListener("click", () => {
+        document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
+        document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
+        currentCategory = "all";
+        document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
+        document.querySelector(".sort-option[data-sort='newest']")?.classList.add("active");
+        currentSort = "newest";
+        applyFiltersAndSort();
+    });
+
+    document.getElementById("sidebarToggle")?.addEventListener("click", () => {
+        document.getElementById("exploreSidebar")?.classList.toggle("open");
+    });
+
+    const sidebar = document.getElementById("exploreSidebar");
+    sidebar?.addEventListener("click", (e) => {
+        if (e.target === sidebar) sidebar.classList.remove("open");
+    });
 }
 
-/* =========================
-   FAVOURITES / POPUPS / STARS
-========================= */
+function initializePage() {
+    initStars();
+    initCards();
+    initDetailButtons();
+    initCardReveal();
+}
 
 function initStars() {
     document.querySelectorAll(".star").forEach(star => {
@@ -430,61 +488,21 @@ function initStars() {
             if (!id || !isAuthenticated()) return;
             const active = star.classList.contains("active");
             try {
-                if (active) { await removeFavourite(id); star.classList.remove("active"); }
-                else { await addFavourite(id); star.classList.add("active"); }
+                if (active) {
+                    await removeFavourite(id);
+                    star.classList.remove("active");
+                } else {
+                    await addFavourite(id);
+                    star.classList.add("active");
+                }
             } catch {}
         });
     });
 }
 
-function initCardClickHandlers() {
-    document.querySelectorAll(".details-btn").forEach(button => {
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const card = button.closest(".card");
-            if (card) openPopup(card.dataset.id);
-        });
-    });
-    document.querySelectorAll(".card").forEach(card => {
-        card.addEventListener("click", async () => { await openPopup(card.dataset.id); });
-    });
+function initCards() {
+    initCardClickHandlers();
 }
-
-function staggerRevealCards() {
-    const cards = document.querySelectorAll(".card");
-    cards.forEach((card, index) => {
-        card.style.transitionDelay = `${index * 80}ms`;
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                card.classList.add("revealed");
-            });
-        });
-    });
-}
-
-async function syncCardFavourites() {
-    if (!isAuthenticated()) return;
-    try {
-        const { activities } = await getFavourites();
-        (activities || []).forEach(a => toggleCardStar(a.activityID, true));
-    } catch {}
-}
-
-function toggleCardStar(activityID, active) {
-    const card = document.querySelector(`.card[data-id="${activityID}"]`);
-    if (!card) return;
-    const star = card.querySelector(".star");
-    if (star) star.classList.toggle("active", active);
-}
-
-async function loadFooter() {
-    const footerHTML = await fetchContent("./components/footer.html");
-    document.getElementById("footer-container").innerHTML = footerHTML;
-}
-
-/* =========================
-   POPUP
-========================= */
 
 const popupOverlay = document.getElementById("popup-overlay");
 const popupContainer = document.getElementById("popup-container");
@@ -515,10 +533,24 @@ async function openPopup(activityID) {
         event.stopPropagation();
         const isActive = favoriteBtn.classList.contains("active");
         try {
-            if (isActive) { await removeFavourite(activityID); favoriteBtn.classList.remove("active"); toggleCardStar(activityID, false); }
-            else { await addFavourite(activityID); favoriteBtn.classList.add("active"); toggleCardStar(activityID, true); }
+            if (isActive) {
+                await removeFavourite(activityID);
+                favoriteBtn.classList.remove("active");
+                toggleCardStar(activityID, false);
+            } else {
+                await addFavourite(activityID);
+                favoriteBtn.classList.add("active");
+                toggleCardStar(activityID, true);
+            }
         } catch {}
     });
+}
+
+function toggleCardStar(activityID, active) {
+    const card = document.querySelector(`.card[data-id="${activityID}"]`);
+    if (!card) return;
+    const star = card.querySelector(".star");
+    if (star) star.classList.toggle("active", active);
 }
 
 function closePopup() {
@@ -540,7 +572,6 @@ async function openPopup2(activityID, activityData) {
     const activity = activityData || (await getActivityById(activityID)).activity;
     if (!activity) return;
     popupContainer2.innerHTML = buildPopupHTML(activity, "Back");
-
     initParticipateButton(activityID);
     popupContainer2.querySelector("#back-btn")?.addEventListener("click", closePopup2);
 
@@ -566,12 +597,126 @@ async function openPopup2(activityID, activityData) {
 popupOverlay?.addEventListener("click", (e) => {
     if (e.target === popupOverlay || e.target.classList.contains("popup-backdrop")) closePopup();
 });
+
 popupOverlay2?.addEventListener("click", (e) => {
     if (e.target === popupOverlay2 || e.target.classList.contains("popup-backdrop")) closePopup2();
 });
+
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closePopup(); closePopup2(); }
 });
+
+function initCardClickHandlers() {
+    const buttons = document.querySelectorAll(".details-btn");
+    buttons.forEach(button => {
+        button.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const card = button.closest(".card");
+            if (card) openPopup(card.dataset.id);
+        });
+    });
+
+    const cards = document.querySelectorAll(".card");
+    cards.forEach(card => {
+        card.addEventListener("click", async () => {
+            await openPopup(card.dataset.id);
+        });
+    });
+}
+
+async function syncCardFavourites() {
+    if (!isAuthenticated()) return;
+    try {
+        const { activities } = await getFavourites();
+        (activities || []).forEach(a => toggleCardStar(a.activityID, true));
+    } catch {}
+}
+
+function buildPopupHTML(a, backText) {
+    const heldDate = formatDate(a.heldDate);
+    const deadline = formatDate(a.applicationDeadline);
+    const type = capitalize(a.type);
+    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
+    backText = backText || "Back";
+    const filesHTML = (a.attachments || []).map(f => {
+        const fileName = decodeURIComponent(f.link.split('/').pop());
+        return `<div class="file-item">
+            <div class="file-left">
+                <div class="file-icon"><i class="fa-solid fa-file"></i></div>
+                <div><h4>${fileName}</h4></div>
+            </div>
+            <a class="download-btn" href="${CDN_DOMAIN}/${f.link}" target="_blank"><i class="fa-solid fa-download"></i></a>
+        </div>`;
+    }).join("");
+
+    return `
+    <div class="container">
+        <div class="top-bar">
+            <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${backText}</button>
+            <div class="top-actions">
+                <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">Favourite</span></button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="left-panel">
+                <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
+                <div class="tag"><i class="fa-solid fa-tag"></i> ${type}</div>
+                <div class="details-card">
+                    <h2>Details</h2>
+                    <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>Location</span><p>${a.location}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>Host</span><p>${a.hostName || "Unknown"}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-clock"></i><div><span>Apply deadline</span><p>${deadline}</p></div></div>
+                    <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>Type</span><p>${type}</p></div></div>
+                </div>
+            </div>
+            <div class="right-panel">
+                <h1 class="title">${a.title}</h1>
+                <a class="location-link" href="${googleMapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
+                <div class="info-boxes">
+                    <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
+                    <div class="info-box"><i class="fa-regular fa-clock"></i><div><span>Apply deadline</span><p>${deadline}</p></div></div>
+                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>Hosted by</span><p>${a.hostName || "Unknown"}</p></div></div>
+                </div>
+                <div class="description-panel">
+                    ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+                </div>
+                ${filesHTML ? `<div class="files-box"><h3>Attached Files (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button class="action-btn discuss" type="button"><i class="fa-solid fa-comments"></i><div><h4>DISCUSS</h4><p>0 Comments</p></div></button>
+            <button class="action-btn participate" type="button"><i class="fa-solid fa-users"></i><div><h4 class="participate-header">PARTICIPATE</h4><p class="participate-text">Join this activity</p></div></button>
+            <button class="action-btn report" type="button"><i class="fa-solid fa-flag"></i><div><h4>REPORT</h4><p>Report this activity</p></div></button>
+        </div>
+    </div>`;
+}
+
+function initDetailButtons() {
+    document.querySelectorAll(".details-btn").forEach(button => {
+        button.addEventListener("click", (e) => e.stopPropagation());
+    });
+}
+
+function initCardReveal() {
+    const cards = document.querySelectorAll(".card");
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("revealed");
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0, rootMargin: "0px 0px -40px 0px" }
+    );
+    cards.forEach((card, index) => {
+        card.style.transitionDelay = `${index * 70}ms`;
+        observer.observe(card);
+    });
+}
 
 function setParticipated() {
     const btn = document.querySelector(".participate");
@@ -585,6 +730,48 @@ function setFavourited(activityID) {
     const btn = document.querySelector(".favorite-btn");
     if (btn) btn.classList.add("active");
     toggleCardStar(activityID, true);
+}
+
+async function showFavourites() {
+    if (!isAuthenticated()) {
+        window.location.href = "/login.html";
+        return;
+    }
+    try {
+        const { activities } = await getFavourites();
+        popupContainer.innerHTML = buildFavouritesHTML(activities || []);
+        popupOverlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+        popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
+        const cards = popupContainer.querySelectorAll(".activity-card");
+        activities.forEach((a, i) => {
+            cards[i]?.addEventListener("click", () => openPopup2(a.activityID, a));
+        });
+    } catch {}
+}
+
+function buildFavouritesHTML(activities) {
+    if (activities.length === 0) {
+        return `<div class="container" style="padding:40px;text-align:center;color:var(--text-muted)"><p>No favourites yet.</p></div>`;
+    }
+    const items = activities.map(a => {
+        const held = formatDate(a.heldDate);
+        const type = capitalize(a.type);
+        return `<div class="activity-card" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;transition:background 0.2s">
+            <div style="width:120px;height:90px;border-radius:10px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">
+                ${a.thumbnail ? `<img src="${a.thumbnail}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="padding:30px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}
+            </div>
+            <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-size:12px;padding:2px 10px;border-radius:999px;background:#dce9ff;color:var(--accent);font-weight:600;">${type}</span>
+                    <span style="font-size:12px;color:var(--text-muted)">${held}</span>
+                </div>
+                <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">${a.title}</h3>
+                <div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${a.location}</div>
+            </div>
+        </div>`;
+    }).join('');
+    return `<div class="container"><div class="top-bar"><button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button><h2 style="font-size:22px;font-weight:700;">Favourite Activities</h2></div><div style="margin-top:20px;">${items}</div></div>`;
 }
 
 function initParticipateButton(activityID) {
@@ -617,118 +804,103 @@ function initParticipateButton(activityID) {
     });
 }
 
-async function showFavourites() {
-    if (!isAuthenticated()) { window.location.href = "/login.html"; return; }
-    try {
-        const { activities } = await getFavourites();
-        popupContainer.innerHTML = buildFavouritesHTML(activities || []);
-        popupOverlay.classList.add("active");
-        document.body.style.overflow = "hidden";
-        popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
-        const cards = popupContainer.querySelectorAll(".activity-card");
-        activities.forEach((a, i) => {
-            cards[i]?.addEventListener("click", () => openPopup2(a.activityID, a));
-        });
-    } catch {}
-}
+function initSearchDatePicker() {
+    const item = document.getElementById("searchDateItem");
+    const trigger = document.getElementById("drTrigger");
+    const placeholder = document.getElementById("drPlaceholder");
+    const value = document.getElementById("drValue");
+    const dropdown = document.getElementById("drDropdown");
+    const grid = document.getElementById("drCalGrid");
+    const monthLabel = document.getElementById("drMonthLabel");
+    const prevBtn = document.getElementById("drPrev");
+    const nextBtn = document.getElementById("drNext");
+    const clearBtn = document.getElementById("drClear");
+    const closeBtn = document.getElementById("drClose");
+    if (!trigger) return;
 
-function buildPopupHTML(a, backText) {
-    const heldDate = formatDate(a.heldDate);
-    const deadline = formatDate(a.applicationDeadline);
-    const type = capitalize(a.type);
-    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
-    backText = backText || "Back";
-    const filesHTML = (a.attachments || []).map(f => {
-        const fileName = decodeURIComponent(f.link.split('/').pop());
-        return `<div class="file-item">
-            <div class="file-left">
-                <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-                <div><h4>${fileName}</h4></div>
-            </div>
-            <a class="download-btn" href="${CDN_DOMAIN}/${f.link}" target="_blank"><i class="fa-solid fa-download"></i></a>
-        </div>`;
-    }).join("");
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let startDate = null;
+    let endDate = null;
+    window.__searchDates = { startDate: null, endDate: null };
 
-    return `
-    <div class="container">
-        <div class="top-bar">
-            <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${backText}</button>
-            <div class="top-actions">
-                <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
-                <button type="button" class="favorite-btn">
-                    <div class="star"><i class="fa-solid fa-star"></i></div>
-                    <span class="favorite-text">Favourite</span>
-                </button>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="left-panel">
-                <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
-                <div class="tag"><i class="fa-solid fa-tag"></i> ${type}</div>
-                <div class="details-card">
-                    <h2>Details</h2>
-                    <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>Location</span><p>${a.location}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>Host</span><p>${a.hostName || "Unknown"}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-clock"></i><div><span>Apply deadline</span><p>${deadline}</p></div></div>
-                    <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>Type</span><p>${type}</p></div></div>
-                </div>
-            </div>
-            <div class="right-panel">
-                <h1 class="title">${a.title}</h1>
-                <a class="location-link" href="${googleMapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
-                <div class="info-boxes">
-                    <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-clock"></i><div><span>Apply deadline</span><p>${deadline}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>Hosted by</span><p>${a.hostName || "Unknown"}</p></div></div>
-                </div>
-                <div class="description-panel">${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}</div>
-                ${filesHTML ? `<div class="files-box"><h3>Attached Files (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
-            </div>
-        </div>
-        <div class="action-buttons">
-            <button class="action-btn discuss" type="button"><i class="fa-solid fa-comments"></i><div><h4>DISCUSS</h4><p>0 Comments</p></div></button>
-            <button class="action-btn participate" type="button"><i class="fa-solid fa-users"></i><div><h4 class="participate-header">PARTICIPATE</h4><p class="participate-text">Join this activity</p></div></button>
-            <button class="action-btn report" type="button"><i class="fa-solid fa-flag"></i><div><h4>REPORT</h4><p>Report this activity</p></div></button>
-        </div>
-    </div>`;
-}
+    function syncSearchDates() { window.__searchDates.startDate = startDate; window.__searchDates.endDate = endDate; }
+    function pad(n) { return String(n).padStart(2, "0"); }
 
-function buildFavouritesHTML(activities) {
-    if (activities.length === 0) {
-        return `<div class="container" style="padding:40px;text-align:center;color:var(--text-muted)"><p>No favourites yet.</p></div>`;
+    function formatDisplay() {
+        if (startDate && endDate) {
+            value.textContent = `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} - ${pad(endDate.getDate())}/${pad(endDate.getMonth() + 1)}`;
+            value.classList.add("visible");
+            placeholder.classList.add("hidden");
+        } else if (startDate) {
+            value.textContent = `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} - dd/mm`;
+            value.classList.add("visible");
+            placeholder.classList.add("hidden");
+        } else {
+            value.classList.remove("visible");
+            placeholder.classList.remove("hidden");
+        }
     }
-    const items = activities.map(a => {
-        const held = formatDate(a.heldDate);
-        const type = capitalize(a.type);
-        return `
-        <div class="activity-card" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;transition:background 0.2s">
-            <div style="width:120px;height:90px;border-radius:10px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">
-                ${a.thumbnail ? `<img src="${a.thumbnail}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="padding:30px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}
-            </div>
-            <div style="flex:1">
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:12px;padding:2px 10px;border-radius:999px;background:#dce9ff;color:var(--accent);font-weight:600;">${type}</span>
-                    <span style="font-size:12px;color:var(--text-muted)">${held}</span>
-                </div>
-                <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">${a.title}</h3>
-                <div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${a.location}</div>
-            </div>
-        </div>`;
-    }).join('');
-    return `
-    <div class="container">
-        <div class="top-bar">
-            <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
-            <h2 style="font-size:22px;font-weight:700;">Favourite Activities</h2>
-        </div>
-        <div style="margin-top:20px;">${items}</div>
-    </div>`;
-}
 
-/* =========================
-   HELPERS
-========================= */
+    function renderCalendar() {
+        grid.innerHTML = "";
+        const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+        weekdays.forEach(d => { const el = document.createElement("div"); el.className = "dr-weekday"; el.textContent = d; grid.appendChild(el); });
+        monthLabel.textContent = new Date(currentYear, currentMonth).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+        const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+        for (let i = startOffset - 1; i >= 0; i--) { const el = document.createElement("div"); el.className = "dr-day other-month"; el.textContent = daysInPrevMonth - i; grid.appendChild(el); }
+        const today = new Date();
+        for (let d = 1; d <= daysInMonth; d++) {
+            const el = document.createElement("div"); el.className = "dr-day"; el.textContent = d;
+            const date = new Date(currentYear, currentMonth, d);
+            if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) el.classList.add("today");
+            el.dataset.date = date.toISOString();
+            if (startDate && endDate && date > startDate && date < endDate) el.classList.add("in-range");
+            if (startDate && date.getTime() === startDate.getTime()) { el.classList.add("range-start"); el.classList.add("in-range"); }
+            if (endDate && date.getTime() === endDate.getTime()) { el.classList.add("range-end"); el.classList.add("in-range"); }
+            if (startDate && endDate && startDate.getTime() === endDate.getTime() && date.getTime() === startDate.getTime()) el.classList.add("selected");
+            el.addEventListener("click", () => {
+                const clicked = new Date(currentYear, currentMonth, d);
+                if (!startDate || (startDate && endDate)) { startDate = clicked; endDate = null; }
+                else if (clicked < startDate) { startDate = clicked; }
+                else { endDate = clicked; }
+                syncSearchDates(); renderCalendar(); formatDisplay();
+            });
+            grid.appendChild(el);
+        }
+        const totalCells = startOffset + daysInMonth;
+        const remaining = (7 - (totalCells % 7)) % 7;
+        for (let i = 1; i <= remaining; i++) { const el = document.createElement("div"); el.className = "dr-day other-month"; el.textContent = i; grid.appendChild(el); }
+    }
+
+    function openDropdown() {
+        const rect = trigger.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 8) + "px";
+        dropdown.style.left = (rect.left + rect.width / 2) + "px";
+        dropdown.style.transform = "translateX(-50%) scale(1)";
+        document.body.appendChild(dropdown);
+        const today = new Date(); currentMonth = today.getMonth(); currentYear = today.getFullYear();
+        renderCalendar(); dropdown.classList.add("active"); item.classList.add("active");
+    }
+
+    function closeDropdown() {
+        dropdown.classList.remove("active"); item.classList.remove("active");
+        dropdown.style.top = ""; dropdown.style.left = ""; dropdown.style.transform = "";
+        document.getElementById("searchDateItem")?.appendChild(dropdown);
+    }
+
+    trigger.addEventListener("click", (e) => { e.stopPropagation(); dropdown.classList.contains("active") ? closeDropdown() : openDropdown(); });
+    prevBtn.addEventListener("click", (e) => { e.stopPropagation(); currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar(); });
+    nextBtn.addEventListener("click", (e) => { e.stopPropagation(); currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCalendar(); });
+    clearBtn.addEventListener("click", (e) => { e.stopPropagation(); startDate = null; endDate = null; syncSearchDates(); renderCalendar(); formatDisplay(); });
+    closeBtn.addEventListener("click", (e) => { e.stopPropagation(); closeDropdown(); });
+    document.addEventListener("click", (e) => { if (dropdown.classList.contains("active") && !dropdown.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) closeDropdown(); });
+    dropdown.addEventListener("click", (e) => e.stopPropagation());
+    formatDisplay();
+}
 
 function formatDate(dateString) {
     if (!dateString) return "Unknown Date";
@@ -736,5 +908,5 @@ function formatDate(dateString) {
 }
 
 function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 }

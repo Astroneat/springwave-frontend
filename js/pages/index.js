@@ -1,21 +1,13 @@
 import { isAuthenticated, getUser, logout } from "../lib/session.js";
-import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities } from "../api/activities.js";
+import { getActivityById, participateActivity, unparticipateActivity, checkParticipation } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatbot.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
-    await loadHero();
-    await loadExplore();
-    await loadFooter();
     await initChatbot();
     initializePage();
-
-    if (window.location.hash === "#explore") {
-        const el = document.getElementById("explore");
-        if (el) el.scrollIntoView();
-    }
 });
 
 
@@ -25,171 +17,15 @@ async function fetchContent(url) {
     return data;
 }
 
-async function loadHero() {
-    const data = await fetchContent("./components/hero.html");
-    document.getElementById("hero-container").innerHTML = data;
-}
 
-async function loadExplore() {
-    const exploreHTML = await fetchContent("./components/explore.html");
-    document.getElementById("explore-container").innerHTML = exploreHTML;
-    initSearchDatePicker();
-    await loadCards();
-    initSearchButton();
 
-    const floatingSearch = document.getElementById("floating-search");
-    window.addEventListener("scroll", () => {
-        if (window.scrollY > 350) {
-            floatingSearch.classList.add("visible");
-        }
-        else {
-            floatingSearch.classList.remove("visible");
-        }
-    });
-}
-
-function initSearchButton() {
-    const btn = document.querySelector(".search-btn");
-    if (!btn) return;
-
-    document.getElementById("refresh-btn")?.addEventListener("click", async () => {
-        document.getElementById("search-1").value = "";
-        document.getElementById("search-3").value = "";
-        if (window.__searchDates) {
-            window.__searchDates.startDate = null;
-            window.__searchDates.endDate = null;
-        }
-        const placeholder = document.getElementById("drPlaceholder");
-        const value = document.getElementById("drValue");
-        if (placeholder) placeholder.classList.remove("hidden");
-        if (value) value.classList.remove("visible");
-        await loadCards();
-    });
-
-    btn.addEventListener("click", async () => {
-        const location = document.getElementById("search-1")?.value.trim();
-        const keyword = document.getElementById("search-3")?.value.trim();
-        const dates = window.__searchDates || {};
-
-        const cardsContainer = document.getElementById("cards-container");
-        cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Searching...</div>`;
-
-        try {
-            const data = await searchActivities({
-                keyword,
-                location,
-                heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
-                heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
-            });
-            const activities = data?.activities || [];
-
-            if (activities.length === 0) {
-                cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">No results found</div>`;
-                return;
-            }
-            await renderCards(activities);
-        } catch (e) {
-            cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Search error</div>`;
-        }
-    });
-}
-
-async function loadCards() {
-    const cardsContainer = document.getElementById("cards-container");
-    try {
-        const templateHTML = await fetchContent("./components/cards.html");
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(templateHTML, "text/html");
-        const templateCard = doc.querySelector(".card");
-        const activities = (await getActivities()).activities || [];
-
-        if (activities.length === 0) {
-            cardsContainer.innerHTML = `<div class="empty-state">No activities yet</div>`;
-            return;
-        }
-
-        cardsContainer.innerHTML = "";
-        activities.forEach(activity => {
-            const card = templateCard.cloneNode(true);
-            const image = card.querySelector(".card-image");
-            image.src = activity.thumbnail;
-            image.alt = activity.title;
-            card.querySelector(".card-title").textContent = activity.title;
-            card.querySelectorAll(".info span")[0].textContent = activity.location || "Unknown Location";
-            card.querySelectorAll(".info span")[1].textContent = formatDate(activity.heldDate);
-            card.querySelectorAll(".info span")[2].textContent = capitalize(activity.type || "Activity");
-            card.dataset.id = activity.activityID;
-            cardsContainer.appendChild(card);
-        });
-        syncCardFavourites();
-    } catch (err) {
-        console.error(err);
-        cardsContainer.innerHTML = `<div class="empty-state">Failed to load activities</div>`;
-    }
-}
-
-async function renderCards(activities) {
-    const cardsContainer = document.getElementById("cards-container");
-    const templateHTML = await fetchContent("./components/cards.html");
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(templateHTML, "text/html");
-    const templateCard = doc.querySelector(".card");
-
-    if (activities.length === 0) {
-        cardsContainer.innerHTML = `<div class="empty-state">No results found</div>`;
-        return;
-    }
-
-    cardsContainer.innerHTML = "";
-    activities.forEach(activity => {
-        const card = templateCard.cloneNode(true);
-        card.classList.add("revealed");
-        const image = card.querySelector(".card-image");
-        image.src = activity.thumbnail;
-        image.alt = activity.title;
-        card.querySelector(".card-title").textContent = activity.title;
-        card.querySelectorAll(".info span")[0].textContent = activity.location || "Unknown Location";
-        card.querySelectorAll(".info span")[1].textContent = formatDate(activity.heldDate);
-        card.querySelectorAll(".info span")[2].textContent = capitalize(activity.type || "Activity");
-        card.dataset.id = activity.activityID;
-        cardsContainer.appendChild(card);
-    });
-
-    syncCardFavourites();
-    initCardClickHandlers();
-}
 
 async function loadNavbar() {
-    const data = await fetchContent("./components/navbar.html");;
+    const data = await fetchContent("./components/navbar.html");
     document.getElementById("navbar-container").innerHTML = data;
     initNavbarActiveLinks();
-
-    const navbar = document.getElementById("navbar");
-    window.addEventListener("scroll", () => {
-        if (window.scrollY > 60) {
-            navbar.classList.add("collapsed");
-        } else {
-            navbar.classList.remove("collapsed");
-        }
-    });
-
-    initHamburger();
-
-    // localStorage.clear();
-    // localStorage.setItem("token", "123");
-    // localStorage.setItem(
-    //     "user", 
-    //     JSON.stringify({
-    //         userID: "uuid",
-    //         fullname: "John Doe",
-    //         username: "johndoe",
-    //         email: "john@example.com",
-    //         role: "user"
-    //     })
-    // );
-
-    const token = localStorage.getItem("token");
-    const username = localStorage.getItem("username");
+    initMobileMenu();
+    initNavbarScroll();
 
     const authSection = document.getElementById("auth-section");
     if (isAuthenticated()) {
@@ -198,55 +34,41 @@ async function loadNavbar() {
         authSection.innerHTML = userChipHTML;
         document.getElementById("user-name").textContent = user.username;
         initUserDropdown();
-
-        // authSection.innerHTML = `
-        //     <a href="/profile.html"class="user-chip">
-        //         <div class="user-avatar">
-        //             ${user.username
-        //                 .charAt(0)
-        //                 .toUpperCase()}
-        //         </div>
-
-        //         <span class="user-name">
-        //             ${user.username}
-        //         </span>
-        //     </a>
-        // `;
-        // authSection.innerHTML = `
-        //     <a href="/profile.html"class="user-chip">
-        //         <span class="user-name">
-        //             ${user.username}
-        //         </span>
-        //     </a>
-        // `;
-
     }
     else {
-        authSection.innerHTML = `
-            <a href="/login.html" class="login-btn">Login</a>
-        `;
+        authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
     }
 }
 
 /* =========================
-   HAMBURGER TOGGLE
+   MOBILE MENU
 ========================= */
 
-function initHamburger() {
+function initMobileMenu() {
     const hamburger = document.getElementById("hamburgerBtn");
-    const navLinks = document.getElementById("navLinks");
-    if (!hamburger || !navLinks) return;
+    const mobileMenu = document.getElementById("mobileMenu");
+    const mobileOverlay = document.getElementById("mobileOverlay");
+    if (!hamburger || !mobileMenu) return;
 
     hamburger.addEventListener("click", () => {
-        hamburger.classList.toggle("active");
-        navLinks.classList.toggle("open");
+        mobileMenu.classList.toggle("open");
     });
+    mobileOverlay?.addEventListener("click", () => {
+        mobileMenu.classList.remove("open");
+    });
+    mobileMenu.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => mobileMenu.classList.remove("open"));
+    });
+}
 
-    navLinks.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => {
-            hamburger.classList.remove("active");
-            navLinks.classList.remove("open");
-        });
+function initNavbarScroll() {
+    const navbar = document.getElementById("navbar");
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 60) {
+            navbar.classList.add("collapsed");
+        } else {
+            navbar.classList.remove("collapsed");
+        }
     });
 }
 
@@ -282,10 +104,6 @@ function initNavbarActiveLinks() {
             if (section === "home") {
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: "smooth" });
-            } else if (section === "explore") {
-                e.preventDefault();
-                const explore = document.getElementById("explore");
-                if (explore) explore.scrollIntoView({ behavior: "smooth" });
             }
         });
     });
@@ -416,42 +234,8 @@ function initUserDropdown() {
     });
 }
 
-async function loadFooter() {
-    const footerHTML = await fetchContent("./components/footer.html");
-    document.getElementById("footer-container").innerHTML = footerHTML;
-}
-
 function initializePage() {
-    initStars();
-    initCards();
-    initDetailButtons();
-    initCardReveal();
     initNavbarScrollActive();
-}
-
-function initStars() {
-    document.querySelectorAll(".star").forEach(star => {
-        star.addEventListener("click", async (e) => {
-            e.stopPropagation();
-            const card = star.closest(".card");
-            const id = card?.dataset.id;
-            if (!id || !isAuthenticated()) return;
-            const active = star.classList.contains("active");
-            try {
-                if (active) {
-                    await removeFavourite(id);
-                    star.classList.remove("active");
-                } else {
-                    await addFavourite(id);
-                    star.classList.add("active");
-                }
-            } catch {}
-        });
-    });
-}
-
-function initCards() {
-    initCardClickHandlers();
 }
 
 const popupOverlay = document.getElementById("popup-overlay");
@@ -566,32 +350,6 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closePopup(); closePopup2(); }
 });
 
-function initCardClickHandlers() {
-    const buttons = document.querySelectorAll(".details-btn");
-    buttons.forEach(button => {
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const card = button.closest(".card");
-            if (card) openPopup(card.dataset.id);
-        });
-    });
-
-    const cards = document.querySelectorAll(".card");
-    cards.forEach(card => {
-        card.addEventListener("click", async () => {
-            await openPopup(card.dataset.id);
-        });
-    });
-}
-
-async function syncCardFavourites() {
-    if (!isAuthenticated()) return;
-    try {
-        const { activities } = await getFavourites();
-        (activities || []).forEach(a => toggleCardStar(a.activityID, true));
-    } catch {}
-}
-
 function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
     const deadline = formatDate(a.applicationDeadline);
@@ -704,72 +462,6 @@ function buildPopupHTML(a, backText) {
             </button>
         </div>
     </div>`;
-}
-
-function initDetailButtons() {
-    const buttons = document.querySelectorAll(".details-btn");
-    buttons.forEach(button => {
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-    });
-}
-
-function initCardReveal() {
-    const cards =
-        document.querySelectorAll(
-            ".card"
-        );
-
-    const observer =
-        new IntersectionObserver(
-            (entries) => {
-
-                entries.forEach(
-                    (entry) => {
-
-                        if (
-                            entry.isIntersecting
-                        ) {
-
-                            entry.target.classList.add(
-                                "revealed"
-                            );
-
-                            /*
-                                animate once only
-                            */
-
-                            observer.unobserve(
-                                entry.target
-                            );
-
-                        }
-
-                    }
-                );
-
-            },
-            {
-                threshold: 0,
-                rootMargin: "0px 0px -40px 0px"
-            }
-        );
-
-    cards.forEach(
-        (card, index) => {
-
-            /*
-                stagger animation
-            */
-
-            card.style.transitionDelay =
-                `${index * 70}ms`;
-
-            observer.observe(card);
-
-        }
-    );
 }
 
 function setParticipated() {
