@@ -32,26 +32,27 @@
 .search-bar {
     width: 100%;
     height: var(--search-bar-height);
-    background: rgba(255,255,255,0.80);
-    backdrop-filter: blur(18px) saturate(180%);
-    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.60), rgba(255,255,255,0.40));
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
     border-radius: 999px;
     display: flex;
     align-items: center;
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.75);
     box-shadow:
         0 4px 6px -1px rgba(0,0,0,0.03),
-        0 8px 24px rgba(0,0,0,0.06),
-        0 0 0 1px rgba(255,255,255,0.6) inset;
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        0 8px 24px rgba(0,0,0,0.05),
+        0 0 0 1px rgba(255,255,255,0.7) inset;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
 .search-bar:focus-within {
+    background: linear-gradient(135deg, rgba(255,255,255,0.70), rgba(255,255,255,0.50));
     box-shadow:
         0 4px 6px -1px rgba(0,0,0,0.03),
-        0 12px 32px rgba(0,0,0,0.08),
-        0 0 0 1px rgba(255,255,255,0.8) inset;
-    border-color: rgba(255,255,255,0.8);
+        0 12px 32px rgba(0,0,0,0.07),
+        0 0 0 1px rgba(255,255,255,0.85) inset;
+    border-color: rgba(255,255,255,0.85);
 }
 
 /* =========================
