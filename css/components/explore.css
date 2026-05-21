@@ -260,25 +260,13 @@
     .sidebar-toggle {
         display: inline-flex;
     }
-
-    .cards-container {
-        grid-template-columns: repeat(3, 1fr);
-    }
 }
 
 @media (max-width: 768px) {
-    .cards-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 14px;
-    }
-
     .explore-layout {
         gap: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .cards-container {
-        grid-template-columns: 1fr;
-    }
 }

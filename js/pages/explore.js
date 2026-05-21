@@ -26,6 +26,8 @@ async function loadNavbar() {
     document.getElementById("navbar-container").innerHTML = html;
     initNavbarActiveLinks();
 
+    initNavbarScroll();
+
     const hamburger = document.getElementById("hamburgerBtn");
     const mobileMenu = document.getElementById("mobileMenu");
     const mobileOverlay = document.getElementById("mobileOverlay");
@@ -47,6 +49,54 @@ async function loadNavbar() {
             authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
         }
     }
+}
+
+function initNavbarScroll() {
+    const navbar = document.getElementById("navbar");
+    const searchWrapper = document.getElementById("floating-search");
+    const placeholder = document.getElementById("searchBarPlaceholder");
+    if (!searchWrapper || !placeholder) return;
+
+    let threshold = 0;
+    function calcThreshold() {
+        const rect = searchWrapper.getBoundingClientRect();
+        threshold = rect.top + window.scrollY - navbar.offsetHeight;
+    }
+
+    function updateOnScroll() {
+        const scrolled = window.scrollY;
+        const isMerged = document.body.classList.contains("explore-merged");
+
+        if (scrolled > threshold && !isMerged) {
+            document.body.classList.add("explore-merged");
+            const flexRow = document.querySelector("#navbar .flex.items-center.justify-between");
+            const authWrap = document.querySelector("#navbar .flex.items-center.gap-3");
+            if (flexRow && authWrap) {
+                flexRow.insertBefore(searchWrapper, authWrap);
+            }
+            navbar.classList.remove("collapsed");
+        } else if (scrolled <= threshold && isMerged) {
+            document.body.classList.remove("explore-merged");
+            placeholder.appendChild(searchWrapper);
+        }
+
+        if (!document.body.classList.contains("explore-merged")) {
+            navbar.classList.toggle("collapsed", scrolled > 60);
+        }
+    }
+
+    requestAnimationFrame(() => {
+        calcThreshold();
+        updateOnScroll();
+    });
+
+    window.addEventListener("scroll", updateOnScroll, { passive: true });
+
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(calcThreshold, 100);
+    });
 }
 
 function initNavbarActiveLinks() {

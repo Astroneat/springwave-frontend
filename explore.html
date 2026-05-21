@@ -27,14 +27,130 @@
     </script>
 
     <style>
+        #navLinks {
+            transition: transform 0.45s cubic-bezier(.22,1,.36,1), opacity 0.35s ease, visibility 0.35s ease;
+        }
+        body.explore-merged #navLinks {
+            transform: translateY(-120%);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        body.explore-merged #navbar .floating-search-wrapper {
+            position: static;
+            padding: 0;
+            margin: 0;
+            width: auto;
+            flex: 1;
+            opacity: 1;
+            pointer-events: auto;
+            transform: none;
+            left: auto;
+            transition: none;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-bar {
+            max-width: none;
+            margin: 0;
+            height: 44px;
+            border-radius: 12px;
+            padding: 0 4px;
+            background: rgba(255,255,255,0.82);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-item {
+            padding: 0 10px;
+            border-right: 1px solid rgba(0,0,0,0.06);
+            border-radius: 0;
+            cursor: pointer;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-item:hover {
+            background: rgba(0,0,0,0.03);
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-item:first-child {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-item label {
+            display: none;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-item input {
+            font-size: 0.8rem;
+            height: 32px;
+            padding: 0 4px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #222;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-item input::placeholder {
+            color: #888;
+            font-weight: 400;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-item-date {
+            min-width: 100px;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .dr-trigger {
+            font-size: 0.8rem;
+            color: #444;
+            font-weight: 500;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .dr-placeholder {
+            color: #888;
+            font-weight: 400;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .dr-value {
+            color: #222;
+            font-weight: 600;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .dr-chevron {
+            font-size: 8px;
+            color: #999;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-btn {
+            height: 34px;
+            padding: 0 16px;
+            font-size: 0.8rem;
+            min-width: auto;
+            margin: 0 4px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent, #1755ba), var(--accent-dim, #3b6fd4));
+            color: white;
+            border: none;
+            gap: 4px;
+            box-shadow: 0 2px 8px rgba(23,85,186,0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 4px 14px rgba(23,85,186,0.3);
+        }
+        body.explore-merged #navbar .floating-search-wrapper .search-btn:active {
+            transform: scale(0.96);
+        }
+        body.explore-merged #navbar .floating-search-wrapper .refresh-btn {
+            width: 34px;
+            height: 34px;
+            font-size: 12px;
+        }
+
         .explore .floating-search-wrapper {
-            position: static !important;
-            transform: none !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            width: 100% !important;
+            position: sticky;
+            top: 80px;
+            z-index: 40;
+            width: 100%;
             padding: 0 2rem;
             margin-bottom: 2rem;
+            opacity: 1;
+            pointer-events: auto;
+            transform: none;
+            left: auto;
         }
         .explore .search-bar {
             max-width: 1100px;
@@ -69,48 +185,50 @@
       </div>
 
       <!-- SEARCH BAR -->
-      <div class="floating-search-wrapper" id="floating-search">
-        <div class="search-bar glass-search">
-          <div class="search-item">
-            <label for="search-1">Where</label>
-            <input id="search-1" type="text" placeholder="Anywhere"/>
-          </div>
-          <div class="search-item search-item-date" id="searchDateItem">
-            <label for="search-2">When</label>
-            <div class="dr-trigger" id="drTrigger">
-              <span class="dr-placeholder" id="drPlaceholder">Anytime</span>
-              <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
-              <span class="dr-chevron">▾</span>
+      <div id="searchBarPlaceholder">
+        <div class="floating-search-wrapper" id="floating-search">
+          <div class="search-bar glass-search">
+            <div class="search-item">
+              <label for="search-1">Where</label>
+              <input id="search-1" type="text" placeholder="Anywhere"/>
             </div>
-            <div class="dr-dropdown" id="drDropdown">
-              <div class="dr-cal-header">
-                <button class="dr-nav" id="drPrev">‹</button>
-                <span class="dr-month-label" id="drMonthLabel">Month Year</span>
-                <button class="dr-nav" id="drNext">›</button>
+            <div class="search-item search-item-date" id="searchDateItem">
+              <label for="search-2">When</label>
+              <div class="dr-trigger" id="drTrigger">
+                <span class="dr-placeholder" id="drPlaceholder">Anytime</span>
+                <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
+                <span class="dr-chevron">▾</span>
               </div>
-              <div class="dr-cal-grid" id="drCalGrid"></div>
-              <div class="dr-cal-footer">
-                <button class="dr-clear" id="drClear">Clear</button>
-                <button class="dr-close" id="drClose">Close</button>
+              <div class="dr-dropdown" id="drDropdown">
+                <div class="dr-cal-header">
+                  <button class="dr-nav" id="drPrev">‹</button>
+                  <span class="dr-month-label" id="drMonthLabel">Month Year</span>
+                  <button class="dr-nav" id="drNext">›</button>
+                </div>
+                <div class="dr-cal-grid" id="drCalGrid"></div>
+                <div class="dr-cal-footer">
+                  <button class="dr-clear" id="drClear">Clear</button>
+                  <button class="dr-close" id="drClose">Close</button>
+                </div>
               </div>
             </div>
+            <div class="search-item">
+              <label for="search-3">Preferences</label>
+              <input id="search-3" type="text" placeholder="Anything you'd like"/>
+            </div>
+            <button class="search-btn">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>Search</span>
+            </button>
+            <button class="refresh-btn" id="refresh-btn">
+              <i class="fa-solid fa-rotate"></i>
+            </button>
           </div>
-          <div class="search-item">
-            <label for="search-3">Preferences</label>
-            <input id="search-3" type="text" placeholder="Anything you'd like"/>
-          </div>
-          <button class="search-btn">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Search</span>
-          </button>
-          <button class="refresh-btn" id="refresh-btn">
-            <i class="fa-solid fa-rotate"></i>
-          </button>
         </div>
       </div>
 
       <!-- SIDEBAR + CARDS -->
-      <div class="max-w-container-max mx-auto px-gutter mt-8">
+      <div class="mx-auto px-gutter mt-8" style="max-width:1480px;">
         <div class="explore-layout">
 
           <!-- LEFT SIDEBAR -->
