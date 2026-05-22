@@ -34,23 +34,22 @@ springwave/
 ├── hostActivity.html          # Host-an-activity page
 ├── assets/images/             # Static images
 ├── components/                # Reusable HTML fragments
-│   ├── navbar.html            # Navigation bar
+│   ├── navBar.html            # Navigation bar
 │   ├── hero.html              # Hero section
 │   ├── explore.html           # Explore/search section
 │   ├── cards.html             # Activity card template
-│   ├── cards-demo.html        # Demo card instances
 │   ├── description.html       # Activity detail popup
 │   ├── hostActivityDetails.html # Create-activity form
-│   ├── userchip.html          # Logged-in user menu
+│   ├── userChip.html          # Logged-in user menu
 │   └── footer.html            # Footer
 ├── css/
 │   ├── variables.css           # CSS custom properties (colors)
 │   ├── global.css              # Reset & base styles
 │   └── components/             # Per-component stylesheets
-│       ├── navbar.css
+│       ├── navBar.css
 │       ├── hero.css
 │       ├── explore.css
-│       ├── searchbar.css
+│       ├── searchBar.css
 │       ├── cards.css
 │       ├── popup.css
 │       ├── description.css

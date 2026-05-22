@@ -98,6 +98,14 @@
 .info i {
     color: #777;
     width: 18px;
+    flex-shrink: 0;
+}
+
+.info span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .card-bottom {

@@ -1,10 +1,10 @@
-import { isAuthenticated, getUser, logout } from "../lib/session.js";
+import { isAuthenticated, getUser} from "../lib/session.js";
 import { createActivity } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { initChatbot } from "../components/chatbot.js";
-
-
+import { initChatbot } from "../components/chatBot.js";
+import { fetchContent } from "../lib/utils.js";
+import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navBar.js";
 
 /* =========================
    PAGE LOAD
@@ -40,15 +40,6 @@ document.addEventListener(
 );
 
 /* =========================
-   FETCH HTML
-========================= */
-
-async function fetchContent(url) {
-    const response = await fetch(url);
-    return await response.text();
-}
-
-/* =========================
    LOAD COMPONENT
 ========================= */
 
@@ -77,8 +68,7 @@ async function loadComponent(id, file) {
 ========================= */
 
 async function loadNavbar() {
-    const data = await fetchContent("./components/navbar.html");
-    document.getElementById("navbar-container").innerHTML = data;
+    await loadSharedNavbar({ activeSection: "host", onFavouritesClick: showFavPopup });
 
     const navLinks = document.querySelectorAll(".nav-links a");
     navLinks.forEach(link => {
@@ -89,119 +79,9 @@ async function loadNavbar() {
         else if (section === "explore") {
             link.href = "./index.html#explore";
         }
-        else if (section === "host") {
-            link.classList.add("active");
-        }
     });
 
-    initMobileMenu();
-    initNavbarScroll();
-
-    const authSection = document.getElementById("auth-section");
-    if (isAuthenticated()) {
-        const user = getUser();
-        const userChipHTML = await fetchContent("./components/userchip.html");
-        authSection.innerHTML = userChipHTML;
-        document.getElementById("user-name").textContent = user.username;
-        initUserDropdown();
-    }
-    else {
-        authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
-    }
-}
-
-function initMobileMenu() {
-    const hamburger = document.getElementById("hamburgerBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const mobileOverlay = document.getElementById("mobileOverlay");
-    if (!hamburger || !mobileMenu) return;
-    hamburger.addEventListener("click", () => {
-        mobileMenu.classList.toggle("open");
-    });
-    mobileOverlay?.addEventListener("click", () => {
-        mobileMenu.classList.remove("open");
-    });
-    mobileMenu.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => mobileMenu.classList.remove("open"));
-    });
-}
-
-function initNavbarScroll() {
-    const navbar = document.getElementById("navbar");
-    window.addEventListener("scroll", () => {
-        if (window.scrollY > 60) {
-            navbar?.classList.add("collapsed");
-        } else {
-            navbar?.classList.remove("collapsed");
-        }
-    });
-}
-
-/* =========================
-   USER DROPDOWN
-========================= */
-
-function initUserDropdown() {
-
-    const userMenu =
-        document.querySelector(
-            ".user-menu"
-        );
-
-    const userChip =
-        document.getElementById(
-            "user-chip"
-        );
-
-    const logoutBtn =
-        document.getElementById(
-            "logout-btn"
-        );
-
-    if (!userMenu || !userChip) {
-        return;
-    }
-
-    userChip.addEventListener(
-        "click",
-        (e) => {
-
-            e.stopPropagation();
-
-            userMenu.classList.toggle(
-                "active"
-            );
-        }
-    );
-
-    document.addEventListener(
-        "click",
-        () => {
-
-            userMenu.classList.remove(
-                "active"
-            );
-        }
-    );
-
-    userMenu.addEventListener(
-        "click",
-        (e) => {
-
-            e.stopPropagation();
-        }
-    );
-
-    logoutBtn?.addEventListener("click", () => {
-        logout();
-        window.location.href = "/login.html";
-    });
-
-    document.getElementById("favourites-btn")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        userMenu.classList.remove("active");
-        showFavPopup();
-    });
+    initBasicScroll();
 }
 
 /* =========================
@@ -1003,9 +883,9 @@ async function showFavPopup() {
         const { activities } = await getFavourites();
         const items = (activities || []).map(a => {
             const held = a.heldDate ? new Date(a.heldDate).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
-            return `<div class="fav-item" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;">
-                <div style="width:100px;height:75px;border-radius:8px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">${a.thumbnail ? `<img src="${a.thumbnail}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="padding:24px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}</div>
-                <div style="flex:1"><div style="font-weight:600;margin-bottom:4px;">${a.title}</div><div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${a.location}</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${held}</div></div>
+            return `<div class="fav-item" data-id="${a.activityID}">
+                <div class="fav-thumb">${a.thumbnail ? `<img src="${a.thumbnail}" alt="${a.title}">` : '<div class="fav-thumb-placeholder"><i class="fa-regular fa-image"></i></div>'}</div>
+                <div class="fav-body"><div class="fav-title">${a.title}</div><div class="fav-location"><i class="fa-solid fa-location-dot"></i> ${a.location}</div><div class="fav-date">${held}</div></div>
             </div>`;
         }).join("");
 
@@ -1013,9 +893,9 @@ async function showFavPopup() {
             <div class="container">
                 <div class="top-bar">
                     <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                    <h2 style="font-size:22px;font-weight:700;">Favourite Activities</h2>
+                    <h2 class="fav-popup-title">Favourite Activities</h2>
                 </div>
-                <div style="margin-top:20px;">${items || '<p style="text-align:center;color:var(--text-muted)">No favourites yet.</p>'}</div>
+                <div class="fav-list">${items || '<p class="fav-empty">No favourites yet.</p>'}</div>
             </div>`;
 
         popupOverlay.classList.add("active");

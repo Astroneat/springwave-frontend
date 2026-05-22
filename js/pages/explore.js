@@ -1,8 +1,10 @@
-import { isAuthenticated, getUser, logout } from "../lib/session.js";
+import { isAuthenticated } from "../lib/session.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { initChatbot } from "../components/chatbot.js";
+import { initChatbot } from "../components/chatBot.js";
+import { loadNavbar as loadSharedNavbar } from "../components/navBar.js";
+import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 
 let allActivities = [];
 let currentCategory = "all";
@@ -16,249 +18,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     initializePage();
 });
 
-async function fetchContent(url) {
-    const resp = await fetch(url);
-    return resp.text();
-}
-
 async function loadNavbar() {
-    const html = await fetchContent("./components/navbar.html");
-    document.getElementById("navbar-container").innerHTML = html;
-    initNavbarActiveLinks();
-
-    initNavbarScroll();
-
-    const hamburger = document.getElementById("hamburgerBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const mobileOverlay = document.getElementById("mobileOverlay");
-    if (hamburger && mobileMenu) {
-        hamburger.addEventListener("click", () => mobileMenu.classList.toggle("open"));
-        mobileOverlay?.addEventListener("click", () => mobileMenu.classList.remove("open"));
-        mobileMenu.querySelectorAll("a").forEach(link => link.addEventListener("click", () => mobileMenu.classList.remove("open")));
-    }
-
-    const authSection = document.getElementById("auth-section");
-    if (authSection) {
-        if (isAuthenticated()) {
-            const user = getUser();
-            const userChipHTML = await fetchContent("./components/userchip.html");
-            authSection.innerHTML = userChipHTML;
-            document.getElementById("user-name").textContent = user.username;
-            initUserDropdown();
-        } else {
-            authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
-        }
-    }
+    await loadSharedNavbar({ activeSection: "explore", onFavouritesClick: showFavourites });
+    initScrollMerge();
 }
 
-function initNavbarScroll() {
+function initScrollMerge() {
+    const searchBar = document.getElementById("floating-search");
     const navbar = document.getElementById("navbar");
-    const searchWrapper = document.getElementById("floating-search");
-    const placeholder = document.getElementById("searchBarPlaceholder");
-    if (!searchWrapper || !placeholder) return;
+    if (!searchBar || !navbar) return;
 
-    let threshold = 0;
-    let busy = false;
-    let animToken = 0;
-
-    function calcThreshold() {
-        const rect = searchWrapper.getBoundingClientRect();
-        threshold = rect.top + window.scrollY - navbar.offsetHeight;
-    }
-
-    function getExpandArea() {
-        let area = document.getElementById("navExpandArea");
-        if (!area) {
-            area = document.createElement("div");
-            area.id = "navExpandArea";
-            const navBlur = document.querySelector("#navbar .nav-blur");
-            if (navBlur) navBlur.appendChild(area);
-        }
-        return area;
-    }
-
-    function cleanInline() {
-        searchWrapper.style.transition = '';
-        searchWrapper.style.transform = '';
-        searchWrapper.style.opacity = '';
-    }
-
-    function merge() {
-        if (busy) return;
-        busy = true;
-        const token = ++animToken;
-
-        const flexRow = document.querySelector("#navbar .flex.items-center.justify-between");
-        const authWrap = document.querySelector("#navbar .flex.items-center.gap-3");
-        if (!flexRow || !authWrap) { busy = false; return; }
-
-        searchWrapper.style.transition = 'transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.2s ease';
-        searchWrapper.style.transform = 'translateY(-80px)';
-        searchWrapper.style.opacity = '0';
-
-        setTimeout(() => {
-            if (token !== animToken) { busy = false; return; }
-            flexRow.insertBefore(searchWrapper, authWrap);
-            document.body.classList.add("explore-merged");
-            document.body.classList.remove("explore-expanded");
-            navbar.classList.remove("collapsed");
-            searchWrapper.style.transition = '';
-            searchWrapper.style.transform = '';
-
-            requestAnimationFrame(() => {
-                if (token !== animToken) return;
-                searchWrapper.style.transition = 'opacity 0.3s ease';
-                searchWrapper.style.opacity = '1';
-                setTimeout(() => {
-                    if (token !== animToken) return;
-                    searchWrapper.style.transition = '';
-                    searchWrapper.style.opacity = '';
-                    busy = false;
-                }, 340);
-            });
-        }, 350);
-    }
-
-    function unmerge() {
-        if (busy) return;
-        busy = true;
-        const token = ++animToken;
-
-        searchWrapper.style.transition = 'opacity 0.12s ease';
-        searchWrapper.style.opacity = '0';
-
-        setTimeout(() => {
-            if (token !== animToken) { busy = false; return; }
-            document.body.classList.remove("explore-merged");
-            document.body.classList.remove("explore-expanded");
-            placeholder.appendChild(searchWrapper);
-
-            searchWrapper.style.transition = 'none';
-            searchWrapper.style.transform = 'translateY(-80px)';
-            searchWrapper.style.opacity = '0';
-
-            requestAnimationFrame(() => {
-                if (token !== animToken) return;
-                searchWrapper.style.transition = 'transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.25s ease';
-                searchWrapper.style.transform = 'translateY(0)';
-                searchWrapper.style.opacity = '1';
-
-                setTimeout(() => {
-                    if (token !== animToken) return;
-                    cleanInline();
-                    busy = false;
-                }, 380);
-            });
-        }, 120);
-    }
-
-    function expand() {
-        if (busy) return;
-        if (!document.body.classList.contains("explore-merged")) return;
-        if (document.body.classList.contains("explore-expanded")) return;
-        busy = true;
-        const token = ++animToken;
-
-        const expandArea = getExpandArea();
-        if (!expandArea) { busy = false; return; }
-
-        searchWrapper.style.transition = 'transform 0.4s cubic-bezier(.22,1,.36,1), opacity 0.3s ease';
-        searchWrapper.style.transform = 'translateY(85px)';
-        searchWrapper.style.opacity = '0';
-
-        setTimeout(() => {
-            if (token !== animToken) { busy = false; return; }
-            expandArea.appendChild(searchWrapper);
-            searchWrapper.style.transition = '';
-            searchWrapper.style.transform = '';
-            searchWrapper.style.opacity = '0';
-
-            document.body.classList.add("explore-expanded");
-
-            requestAnimationFrame(() => {
-                if (token !== animToken) return;
-                searchWrapper.style.transition = 'opacity 0.35s ease';
-                searchWrapper.style.opacity = '1';
-                setTimeout(() => {
-                    if (token !== animToken) return;
-                    searchWrapper.style.transition = '';
-                    searchWrapper.style.opacity = '';
-                    busy = false;
-                }, 380);
-            });
-        }, 400);
-    }
-
-    function collapseExpand() {
-        if (!document.body.classList.contains("explore-expanded")) return;
-        const token = ++animToken;
-
-        const flexRow = document.querySelector("#navbar .flex.items-center.justify-between");
-        const authWrap = document.querySelector("#navbar .flex.items-center.gap-3");
-        if (!flexRow || !authWrap) return;
-
-        searchWrapper.style.transition = 'opacity 0.15s ease';
-        searchWrapper.style.opacity = '0';
-
-        document.body.classList.remove("explore-expanded");
-
-        setTimeout(() => {
-            if (token !== animToken) return;
-            flexRow.insertBefore(searchWrapper, authWrap);
-            searchWrapper.style.transition = 'none';
-            searchWrapper.style.transform = '';
-            searchWrapper.style.opacity = '0';
-
-            requestAnimationFrame(() => {
-                if (token !== animToken) return;
-                searchWrapper.style.transition = 'opacity 0.25s ease';
-                searchWrapper.style.opacity = '1';
-                setTimeout(() => {
-                    if (token !== animToken) return;
-                    searchWrapper.style.transition = '';
-                    searchWrapper.style.opacity = '';
-                }, 280);
-            });
-        }, 450);
-    }
-
-    navbar.addEventListener("click", (e) => {
-        if (!document.body.classList.contains("explore-merged")) return;
-        if (e.target.closest("a, button, input, .user-menu, #auth-section, .dr-trigger")) return;
-        if (document.body.classList.contains("explore-expanded")) {
-            collapseExpand();
-        } else {
-            expand();
-        }
-    });
-
-    function updateOnScroll() {
-        const scrolled = window.scrollY;
-        const isMerged = document.body.classList.contains("explore-merged");
-
-        if (scrolled > threshold && !isMerged) {
-            merge();
-        } else if (scrolled <= threshold - 20 && isMerged) {
-            unmerge();
-        }
-
-        if (!document.body.classList.contains("explore-merged")) {
-            navbar.classList.toggle("collapsed", scrolled > 60);
-        }
-    }
-
-    requestAnimationFrame(() => {
-        calcThreshold();
-        updateOnScroll();
-    });
-
-    window.addEventListener("scroll", updateOnScroll, { passive: true });
-
-    let resizeTimer;
-    window.addEventListener("resize", () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(calcThreshold, 100);
-    });
+    window.addEventListener("scroll", () => {
+        const rect = searchBar.getBoundingClientRect();
+        const m = rect.top < navbar.offsetHeight;
+        searchBar.classList.toggle("merged", m);
+        navbar.classList.toggle("merged", m);
+    }, { passive: true });
 }
 
 function initNavbarActiveLinks() {
@@ -902,11 +677,4 @@ function initSearchDatePicker() {
     formatDisplay();
 }
 
-function formatDate(dateString) {
-    if (!dateString) return "Unknown Date";
-    return new Date(dateString).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
 
-function capitalize(str) {
-    return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
-}
