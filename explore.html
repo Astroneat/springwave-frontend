@@ -53,7 +53,7 @@
 
     <!-- SEARCH BAR -->
     <div id="searchBarPlaceholder">
-      <div class="floating-search-wrapper" id="floating-search">
+      <div id="floating-search">
         <div class="search-bar glass-search">
           <div class="search-item">
             <label for="search-1">Where</label>
@@ -92,66 +92,66 @@
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- SIDEBAR + CARDS -->
-    <div class="mx-auto px-gutter mt-8" style="max-width:1480px;">
-      <div class="explore-layout">
+      <!-- SIDEBAR + CARDS -->
+      <div class="mx-auto px-gutter mt-8" style="max-width:1480px;">
+        <div class="explore-layout">
 
-        <!-- LEFT SIDEBAR -->
-        <aside class="explore-sidebar" id="exploreSidebar">
-          <div class="sidebar-inner">
-            <div class="sidebar-section">
-              <h3 class="sidebar-title">Categories</h3>
-              <div class="category-list" id="categoryList">
-                <button class="category-chip active" data-category="all">All</button>
-                <button class="category-chip" data-category="sports">Sports</button>
-                <button class="category-chip" data-category="music">Music</button>
-                <button class="category-chip" data-category="education">Education</button>
-                <button class="category-chip" data-category="technology">Technology</button>
-                <button class="category-chip" data-category="volunteering">Volunteering</button>
-                <button class="category-chip" data-category="social">Social</button>
-                <button class="category-chip" data-category="arts">Arts</button>
+          <!-- LEFT SIDEBAR -->
+          <aside class="explore-sidebar" id="exploreSidebar">
+            <div class="sidebar-inner">
+              <div class="sidebar-section">
+                <h3 class="sidebar-title">Categories</h3>
+                <div class="category-list" id="categoryList">
+                  <button class="category-chip active" data-category="all">All</button>
+                  <button class="category-chip" data-category="sports">Sports</button>
+                  <button class="category-chip" data-category="music">Music</button>
+                  <button class="category-chip" data-category="education">Education</button>
+                  <button class="category-chip" data-category="technology">Technology</button>
+                  <button class="category-chip" data-category="volunteering">Volunteering</button>
+                  <button class="category-chip" data-category="social">Social</button>
+                  <button class="category-chip" data-category="arts">Arts</button>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <h3 class="sidebar-title">Sort By</h3>
+                <div class="sort-list" id="sortList">
+                  <label class="sort-option active" data-sort="newest">
+                    <span class="sort-radio"></span>
+                    <span>Newest</span>
+                  </label>
+                  <label class="sort-option" data-sort="popular">
+                    <span class="sort-radio"></span>
+                    <span>Most Popular</span>
+                  </label>
+                  <label class="sort-option" data-sort="ending">
+                    <span class="sort-radio"></span>
+                    <span>Ending Soon</span>
+                  </label>
+                </div>
+              </div>
+
+              <button class="clear-filters-btn" id="clearFilters">
+                <span class="material-symbols-outlined text-lg">close</span>
+                Clear Filters
+              </button>
+            </div>
+          </aside>
+
+          <!-- MAIN CONTENT -->
+          <main class="explore-main">
+            <div class="results-header">
+              <span class="results-count" id="resultsCount">0 activities</span>
+              <div class="sidebar-toggle" id="sidebarToggle">
+                <span class="material-symbols-outlined">filter_list</span>
+                Filters
               </div>
             </div>
+            <div id="cards-container" class="cards-container"></div>
+          </main>
 
-            <div class="sidebar-section">
-              <h3 class="sidebar-title">Sort By</h3>
-              <div class="sort-list" id="sortList">
-                <label class="sort-option active" data-sort="newest">
-                  <span class="sort-radio"></span>
-                  <span>Newest</span>
-                </label>
-                <label class="sort-option" data-sort="popular">
-                  <span class="sort-radio"></span>
-                  <span>Most Popular</span>
-                </label>
-                <label class="sort-option" data-sort="ending">
-                  <span class="sort-radio"></span>
-                  <span>Ending Soon</span>
-                </label>
-              </div>
-            </div>
-
-            <button class="clear-filters-btn" id="clearFilters">
-              <span class="material-symbols-outlined text-lg">close</span>
-              Clear Filters
-            </button>
-          </div>
-        </aside>
-
-        <!-- MAIN CONTENT -->
-        <main class="explore-main">
-          <div class="results-header">
-            <span class="results-count" id="resultsCount">0 activities</span>
-            <div class="sidebar-toggle" id="sidebarToggle">
-              <span class="material-symbols-outlined">filter_list</span>
-              Filters
-            </div>
-          </div>
-          <div id="cards-container" class="cards-container"></div>
-        </main>
-
+        </div>
       </div>
     </div>
   </section>
