@@ -1,5 +1,5 @@
 import { isAuthenticated } from "../lib/session.js";
-import { sendChatMessage } from "../api/chatBot.js";
+import { sendChatMessage } from "../api/chatbot.js";
 
 let isOpen = false;
 let conversationHistory = [];
@@ -8,7 +8,7 @@ export async function initChatbot() {
   const container = document.getElementById("chatbot-container");
   if (!container) return;
 
-  const resp = await fetch("./components/chatBot.html");
+  const resp = await fetch("./components/chatbot.html");
   const html = await resp.text();
   container.innerHTML = html;
 

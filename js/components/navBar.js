@@ -2,7 +2,7 @@ import { isAuthenticated, getUser, logout } from "../lib/session.js";
 import { fetchContent } from "../lib/utils.js";
 
 export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
-    const html = await fetchContent("./components/navBar.html");
+    const html = await fetchContent("./components/navbar.html");
     document.getElementById("navbar-container").innerHTML = html;
 
     setActiveLink(activeSection);
@@ -12,7 +12,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
     if (authSection) {
         if (isAuthenticated()) {
             const user = getUser();
-            const userChipHTML = await fetchContent("./components/userChip.html");
+            const userChipHTML = await fetchContent("./components/userchip.html");
             authSection.innerHTML = userChipHTML;
             document.getElementById("user-name").textContent = user.username;
             initUserDropdown(onFavouritesClick);
