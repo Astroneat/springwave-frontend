@@ -1,6 +1,6 @@
 import { login } from "../api/auth.js";
 import { createSession, isAuthenticated } from "../lib/session.js";
-import { initChatbot } from "../components/chatBot.js";
+import { initChatbot } from "../components/chatbot.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     initChatbot();

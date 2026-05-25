@@ -2,9 +2,9 @@ import { isAuthenticated, getUser} from "../lib/session.js";
 import { createActivity } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { initChatbot } from "../components/chatBot.js";
+import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
-import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navBar.js";
+import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 
 /* =========================
    PAGE LOAD

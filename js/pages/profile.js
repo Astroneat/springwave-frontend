@@ -7,8 +7,8 @@ import {
 } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { initChatbot } from "../components/chatBot.js";
-import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navBar.js";
+import { initChatbot } from "../components/chatbot.js";
+import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
