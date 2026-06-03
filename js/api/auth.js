@@ -8,17 +8,17 @@ export function login(username, password) {
     );
 }
 
-export function register(username, password, fullname, email, phoneNo, dob, school, className, major) {
+export function register(username, password, fullname, email) {
     return post("/auth/register", {
             username, 
             password, 
             fullname, 
             email, 
-            phoneNo, 
-            dob, 
-            school, 
-            class: className, 
-            major
+            phoneNo: "", 
+            dob: "", 
+            school: "", 
+            class: "", 
+            major: ""
         }
     );
 }
