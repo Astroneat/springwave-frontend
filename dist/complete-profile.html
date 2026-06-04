@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpringWave - Complete Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script type="module" crossorigin src="/assets/completeProfile-Ck6iRItG.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/client-BwaAczyl.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-BQ_RMGoG.js">
+  <link rel="stylesheet" crossorigin href="/assets/client.css">
+</head>
+
+<body class="min-h-screen overflow-y-auto bg-cover flex justify-center items-center p-10 max-sm:p-5"
+      style="background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url('/assets/danang-17042710410701744932512.jpeg'); backdrop-filter: blur(3px);">
+
+    <div class="w-[70%] max-w-[600px] bg-white/90 backdrop-blur-sm rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.12)] p-9 max-sm:w-full max-sm:p-6 max-sm:rounded-2xl my-5">
+
+        <a href="index.html" class="inline-block mb-6 transition duration-200 hover:-translate-y-1">
+            <div class="inline-flex items-center gap-2 text-[17px] font-semibold text-[#23499b] transition duration-200 hover:text-[#183a82]">
+                <i class="bi bi-house-door text-[24px]"></i>
+                Home
+            </div>
+        </a>
+
+        <h1 class="text-[42px] max-sm:text-[30px] font-bold text-[#23499b] text-center mb-2">Choose a Username</h1>
+        <p class="text-center text-gray-500 mb-8 text-sm">Pick a username to complete your account setup</p>
+
+        <form id="complete-profile-form">
+            <div class="mb-5">
+                <label class="block mb-2.5 font-semibold text-[#222] text-base">
+                    Username <span class="text-red-500">*</span>
+                </label>
+                <input id="username" type="text" placeholder="Choose a username" required
+                       class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
+            </div>
+
+            <div id="status-msg" class="text-sm my-2"></div>
+
+            <button type="submit"
+                    class="w-full p-4 bg-[#ffde42] border-2 border-[#23499b] rounded-2xl text-xl font-bold cursor-pointer mt-2.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(255,222,66,0.4)]">
+                COMPLETE PROFILE
+            </button>
+        </form>
+    </div>
+
+</body>
+
+</html>

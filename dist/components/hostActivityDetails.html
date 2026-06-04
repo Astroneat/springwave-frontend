@@ -1,0 +1,273 @@
+<main class="container" id="hostActivity">
+
+    <div class="page-title">
+        <h1>Create New Activity</h1>
+        <p>
+            Fill in the details below to publish your activity to the SpringWave community.
+        </p>
+    </div>
+
+    <form id="activity-form" class="form-card" enctype="multipart/form-data">
+
+        <!-- THUMBNAIL -->
+        <section class="section">
+
+            <label class="label">Activity Thumbnail</label>
+            <p class="sub-text">
+                Upload an image for your activity banner.
+            </p>
+
+            <br>
+
+            <label for="thumbnail-upload" class="upload-box">
+
+                <input id="thumbnail-upload" name="thumbnail" type="file" accept="image/*" class="hidden-input">
+
+                <img id="thumbnail-preview" class="thumbnail-preview">
+
+                <div id="thumbnail-placeholder">
+                    <div class="upload-icon">
+                        <span class="material-symbols-outlined">
+                            add_photo_alternate
+                        </span>
+                    </div>
+
+                    <div class="upload-title">
+                        Click to upload image
+                    </div>
+
+                    <div class="upload-subtitle">
+                        PNG, JPG, SVG or GIF
+                    </div>
+                </div>
+            </label>
+        </section>
+
+
+        <!-- DETAILS -->
+        <section class="section">
+
+            <h2 class="section-title">Activity Details</h2>
+
+            <div style="margin-bottom: 25px;">
+                <label class="label">Activity Title</label>
+
+                <input id="title" name="title" type="text" class="input" placeholder="e.g., Sunset Yoga on the Beach" required>
+            </div>
+
+
+            <!-- TYPE -->
+            <div style="margin-bottom: 25px;">
+
+                <label class="label">Activity Type</label>
+
+                <div class="activity-type-grid">
+
+                    <label class="activity-option">
+                        <input type="radio" name="type" value="social" checked>
+
+                        <div class="activity-card">
+                            <span class="material-symbols-outlined">
+                                groups
+                            </span>
+
+                            <div>
+                                <h4>Social Activity</h4>
+                                <p>Meetups, volunteering, workshops.</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="activity-option">
+                        <input type="radio" name="type" value="competition">
+
+                        <div class="activity-card">
+                            <span class="material-symbols-outlined">
+                                school
+                            </span>
+
+                            <div>
+                                <h4>Academic Competition</h4>
+                                <p>Olympiads, contests, hackathons.</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+
+            <!-- DESCRIPTION -->
+            <div style="margin-bottom: 25px;">
+                <label class="label">Description</label>
+
+                <textarea id="description" name="description" class="textarea" required
+                    placeholder="Provide a detailed overview of what participants can expect..."></textarea>
+            </div>
+
+            <!-- LOCATION -->
+            <div>
+                <label class="label">Location</label>
+                <div class="location-input-row">
+                    <input id="location" name="location" type="text" class="input" placeholder="Type address or click on map" required>
+                    <button type="button" class="btn btn-locate" id="locateBtn" title="Use my location">
+                        <span class="material-symbols-outlined">my_location</span>
+                    </button>
+                </div>
+                <p class="sub-text">Click on the map below to select a location, or type it manually.</p>
+                <div id="map-container" class="map-container">
+                    <div id="map" class="map"></div>
+                    <div class="map-marker-label" id="mapMarkerLabel">Click on map to set location</div>
+                </div>
+                <input id="locationLat" name="locationLat" type="hidden">
+                <input id="locationLng" name="locationLng" type="hidden">
+            </div>
+        </section>
+
+
+        <!-- LOGISTICS -->
+        <section class="section">
+
+            <h2 class="section-title">Logistics</h2>
+
+            <div class="date-grid">
+
+                <!-- START DATE -->
+                <div class="date-card">
+                    <label class="label">Activity Start Date</label>
+
+                    <div class="dp-trigger" id="heldDateTrigger">
+                        <span class="material-symbols-outlined">
+                            event
+                        </span>
+                        <span class="dp-placeholder" id="heldDatePlaceholder">Select date</span>
+                        <span class="dp-value" id="heldDateValue"></span>
+                        <span class="dp-chevron">▾</span>
+                    </div>
+
+                    <div class="dp-dropdown" id="heldDateDropdown">
+                        <div class="dp-cal-header">
+                            <button class="dp-nav" id="heldDatePrev" type="button">‹</button>
+                            <span class="dp-month-label" id="heldDateMonthLabel">Month Year</span>
+                            <button class="dp-nav" id="heldDateNext" type="button">›</button>
+                        </div>
+                        <div class="dp-cal-grid" id="heldDateCalGrid"></div>
+                        <div class="dp-cal-footer">
+                            <button class="dp-clear" id="heldDateClear" type="button">Clear</button>
+                            <button class="dp-close" id="heldDateClose" type="button">Close</button>
+                        </div>
+                    </div>
+
+                    <input id="heldDate" name="heldDate" type="hidden" required>
+
+                    <p class="sub-text">
+                        Example: Activity starts on 18/05.
+                    </p>
+                </div>
+
+
+                <!-- DEADLINE -->
+                <div class="date-card">
+                    <label class="label">Application Deadline</label>
+
+                    <div class="dp-trigger" id="deadlineTrigger">
+                        <span class="material-symbols-outlined">
+                            calendar_today
+                        </span>
+                        <span class="dp-placeholder" id="deadlinePlaceholder">Select date</span>
+                        <span class="dp-value" id="deadlineValue"></span>
+                        <span class="dp-chevron">▾</span>
+                    </div>
+
+                    <div class="dp-dropdown" id="deadlineDropdown">
+                        <div class="dp-cal-header">
+                            <button class="dp-nav" id="deadlinePrev" type="button">‹</button>
+                            <span class="dp-month-label" id="deadlineMonthLabel">Month Year</span>
+                            <button class="dp-nav" id="deadlineNext" type="button">›</button>
+                        </div>
+                        <div class="dp-cal-grid" id="deadlineCalGrid"></div>
+                        <div class="dp-cal-footer">
+                            <button class="dp-clear" id="deadlineClear" type="button">Clear</button>
+                            <button class="dp-close" id="deadlineClose" type="button">Close</button>
+                        </div>
+                    </div>
+
+                    <input id="applicationDeadline" name="applicationDeadline" type="hidden" required>
+                </div>
+            </div>
+
+
+            <!-- INFO -->
+            <div class="info-box">
+
+                <span class="material-symbols-outlined">
+                    info
+                </span>
+
+                <div>
+                    <h4>Important Notice</h4>
+
+                    <p>
+                        The application deadline should be earlier than the activity start date.
+                        <br><br>
+                        Example:
+                        <strong>Apply Deadline: 16/05</strong>
+                        →
+                        <strong>Start Date: 18/05</strong>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ATTACHMENTS -->
+        <section class="section">
+
+            <label class="label">Attachments</label>
+
+            <p class="sub-text">
+                Upload images, PDFs, Word documents, PowerPoints, or ZIP files.
+            </p>
+
+            <br>
+
+            <label for="attachment-upload" class="upload-box">
+
+                <input id="attachment-upload" name="attachments" type="file" multiple class="hidden-input"
+                    accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip">
+
+                <div class="upload-icon">
+                    <span class="material-symbols-outlined">
+                        upload_file
+                    </span>
+                </div>
+
+                <div class="upload-title">
+                    Upload Files
+                </div>
+
+                <div class="upload-subtitle">
+                    Click or drag files here
+                </div>
+            </label>
+
+            <div id="file-list" class="file-list"></div>
+        </section>
+
+
+        <!-- TAGS -->
+
+        <div id="status-msg" class="status-msg"></div>
+
+
+        <!-- BUTTONS -->
+        <div class="button-group">
+            <button type="button" class="btn btn-outline">
+                Save as Draft
+            </button>
+
+            <button type="submit" class="btn btn-primary">
+                Publish Activity
+            </button>
+        </div>
+    </form>
+</main>
