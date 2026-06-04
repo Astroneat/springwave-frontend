@@ -228,17 +228,14 @@
 }
 
 /* ===== AUTH LOGIN BUTTON ===== */
-.login-btn {
-    background: linear-gradient(135deg, #1755ba, #3b6fd4);
-    @apply text-white font-body-md text-sm font-semibold py-2.5 px-6 rounded-full no-underline tracking-wider inline-flex items-center gap-2;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 4px 15px rgba(23, 85, 186, 0.2);
+#login-btn {
+    @apply w-full p-4 bg-[#ffde42] border-2 border-[#23499b] rounded-2xl text-xl font-bold cursor-pointer mt-2.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(255,222,66,0.4)] max-sm:p-3.5 max-sm:text-lg
 }
-.login-btn:hover {
-    @apply -translate-y-px;
+#login-btn:hover {
+    @apply -translate-y-px border-[#23499b];
     box-shadow: 0 8px 25px rgba(23, 85, 186, 0.3);
 }
-.login-btn:active {
+#login-btn:active {
     @apply scale-95;
 }
 
@@ -1511,9 +1508,9 @@
     @apply outline-none w-full text-left;
 }
 
-button {
+/* button {
     @apply border-none bg-transparent;
-}
+} */
 
 /* ================= RESPONSIVE ================= */
 
