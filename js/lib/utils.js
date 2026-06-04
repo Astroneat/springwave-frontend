@@ -1,6 +1,12 @@
 export async function fetchContent(url) {
-    const resp = await fetch(url);
-    return resp.text();
+    try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return resp.text();
+    } catch (e) {
+        console.error("fetchContent error:", url, e);
+        return "";
+    }
 }
 
 export function formatDate(dateString) {
