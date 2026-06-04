@@ -1,3 +1,4 @@
+import "../../src/style.css";
 import { isAuthenticated, getUser, setUser } from "../lib/session.js";
 import { getParticipatedActivities, changeInfo, getFavourites } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
@@ -134,6 +135,7 @@ async function openPopup(activityID) {
     if (!activityID || !popupOverlay || !popupContainer) return;
 
     popupContainer.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    popupOverlay.removeAttribute("hidden");
     popupOverlay.classList.add("active");
     document.body.style.overflow = "hidden";
 
@@ -166,7 +168,7 @@ function closePopup() {
     if (!popupOverlay || !popupContainer) return;
     popupOverlay.classList.remove("active");
     document.body.style.overflow = "";
-    setTimeout(() => { popupContainer.innerHTML = ""; }, 300);
+    setTimeout(() => { popupContainer.innerHTML = ""; popupOverlay.setAttribute("hidden", ""); }, 300);
 }
 
 popupOverlay?.addEventListener("click", (e) => {
@@ -322,6 +324,7 @@ async function showFavPopup() {
                 <div class="fav-list">${items || '<p class="fav-empty">No favourites yet.</p>'}</div>
             </div>`;
 
+        popupOverlay.removeAttribute("hidden");
         popupOverlay.classList.add("active");
         document.getElementById("back-btn").addEventListener("click", closePopup);
 

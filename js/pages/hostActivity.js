@@ -1,3 +1,4 @@
+import "../../src/style.css";
 import { isAuthenticated, getUser} from "../lib/session.js";
 import { createActivity } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
@@ -898,19 +899,22 @@ async function showFavPopup() {
                 <div class="fav-list">${items || '<p class="fav-empty">No favourites yet.</p>'}</div>
             </div>`;
 
+        popupOverlay.removeAttribute("hidden");
         popupOverlay.classList.add("active");
         document.getElementById("back-btn").addEventListener("click", () => {
             popupOverlay.classList.remove("active");
             popupContainer.innerHTML = "";
+            popupOverlay.setAttribute("hidden", "");
         });
         popupOverlay.addEventListener("click", (e) => {
-            if (e.target === popupOverlay) { popupOverlay.classList.remove("active"); popupContainer.innerHTML = ""; }
+            if (e.target === popupOverlay) { popupOverlay.classList.remove("active"); popupContainer.innerHTML = ""; popupOverlay.setAttribute("hidden", ""); }
         });
 
         popupContainer.querySelectorAll(".fav-item").forEach(el => {
             el.addEventListener("click", () => {
                 popupOverlay.classList.remove("active");
                 popupContainer.innerHTML = "";
+                popupOverlay.setAttribute("hidden", "");
                 window.location.href = `./index.html`;
             });
         });

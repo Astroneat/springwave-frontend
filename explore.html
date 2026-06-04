@@ -1,33 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script src="./js/tailwind-config.js"></script>
+  <link rel="stylesheet" href="./assets/client.css">
   <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
   <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
     rel="stylesheet">
   <title>Explore Activities - SpringWave</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-
-  <link rel="stylesheet" href="./css/variables.css">
-  <link rel="stylesheet" href="./css/global.css">
-
-  <link rel="stylesheet" href="./css/components/navbar.css">
-  <link rel="stylesheet" href="./css/components/explore.css">
-  <link rel="stylesheet" href="./css/components/searchbar.css">
-  <link rel="stylesheet" href="./css/components/cards.css">
-  <link rel="stylesheet" href="./css/components/popup.css">
-  <link rel="stylesheet" href="./css/components/description.css">
-  <link rel="stylesheet" href="./css/components/chatbot.css">
-
-
 </head>
 
 <body class="bg-background text-on-surface font-body-md">
@@ -66,7 +52,7 @@
               <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
               <span class="dr-chevron">▾</span>
             </div>
-            <div class="dr-dropdown" id="drDropdown">
+            <div class="dr-dropdown" id="drDropdown" hidden>
               <div class="dr-cal-header">
                 <button class="dr-nav" id="drPrev">‹</button>
                 <span class="dr-month-label" id="drMonthLabel">Month Year</span>
@@ -157,12 +143,12 @@
   </section>
 
   <!-- POPUPS -->
-  <div class="popup-overlay" id="popup-overlay">
+  <div class="popup-overlay" id="popup-overlay" hidden>
     <div class="popup-backdrop"></div>
     <div class="popup-container" id="popup-container"></div>
   </div>
 
-  <div class="popup-overlay" id="popup-overlay-2">
+  <div class="popup-overlay" id="popup-overlay-2" hidden>
     <div class="popup-backdrop"></div>
     <div class="popup-container" id="popup-container-2"></div>
   </div>

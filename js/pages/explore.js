@@ -1,3 +1,4 @@
+import "../../src/style.css";
 import { isAuthenticated } from "../lib/session.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
@@ -287,6 +288,7 @@ const popupContainer2 = document.getElementById("popup-container-2");
 async function openPopup(activityID) {
     if (!activityID) return;
     popupContainer.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    popupOverlay.removeAttribute("hidden");
     popupOverlay.classList.add("active");
     document.body.style.overflow = "hidden";
 
@@ -331,17 +333,18 @@ function toggleCardStar(activityID, active) {
 function closePopup() {
     popupOverlay.classList.remove("active");
     document.body.style.overflow = "";
-    setTimeout(() => { popupContainer.innerHTML = ""; }, 300);
+    setTimeout(() => { popupContainer.innerHTML = ""; popupOverlay.setAttribute("hidden", ""); }, 300);
 }
 
 function closePopup2() {
     popupOverlay2.classList.remove("active");
-    setTimeout(() => { popupContainer2.innerHTML = ""; }, 300);
+    setTimeout(() => { popupContainer2.innerHTML = ""; popupOverlay2.setAttribute("hidden", ""); }, 300);
 }
 
 async function openPopup2(activityID, activityData) {
     if (!activityID) return;
     popupContainer2.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    popupOverlay2.removeAttribute("hidden");
     popupOverlay2.classList.add("active");
 
     const activity = activityData || (await getActivityById(activityID)).activity;
@@ -515,6 +518,7 @@ async function showFavourites() {
     try {
         const { activities } = await getFavourites();
         popupContainer.innerHTML = buildFavouritesHTML(activities || []);
+        popupOverlay.removeAttribute("hidden");
         popupOverlay.classList.add("active");
         document.body.style.overflow = "hidden";
         popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
@@ -656,6 +660,7 @@ function initSearchDatePicker() {
         dropdown.style.top = (rect.bottom + 8) + "px";
         dropdown.style.left = (rect.left + rect.width / 2) + "px";
         dropdown.style.transform = "translateX(-50%) scale(1)";
+        dropdown.removeAttribute("hidden");
         document.body.appendChild(dropdown);
         const today = new Date(); currentMonth = today.getMonth(); currentYear = today.getFullYear();
         renderCalendar(); dropdown.classList.add("active"); item.classList.add("active");
@@ -664,6 +669,7 @@ function initSearchDatePicker() {
     function closeDropdown() {
         dropdown.classList.remove("active"); item.classList.remove("active");
         dropdown.style.top = ""; dropdown.style.left = ""; dropdown.style.transform = "";
+        dropdown.setAttribute("hidden", "");
         document.getElementById("searchDateItem")?.appendChild(dropdown);
     }
 

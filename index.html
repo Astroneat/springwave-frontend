@@ -1,87 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script src="./js/tailwind-config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/client.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <title>SpringWave | Empower Your Student Journey</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-
-    <link rel="stylesheet" href="./css/variables.css">
-    <link rel="stylesheet" href="./css/global.css">
-
-    <link rel="stylesheet" href="./css/components/navbar.css">
-
-    <link rel="stylesheet" href="./css/components/chatbot.css">
-
-
-    <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 30px rgba(15, 23, 42, 0.05);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .glass-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.1);
-        }
-        .spring-ease {
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .text-gradient {
-            background: linear-gradient(135deg, #1755ba 0%, #3b6fd4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .text-gradient-fire {
-            background: linear-gradient(135deg, #1755ba 0%, #bef264 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .bounce-in {
-            animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .float-anim {
-            animation: float 6s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-16px); }
-        }
-        .pulse-glow {
-            animation: pulseGlow 3s ease-in-out infinite;
-        }
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(23, 85, 186, 0.15); }
-            50% { box-shadow: 0 0 40px rgba(23, 85, 186, 0.3); }
-        }
-        .shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            background-size: 200% 100%;
-            animation: shimmer 3s infinite;
-        }
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        .hero-grid {
-            background-image:
-                radial-gradient(circle at 20% 50%, rgba(59, 111, 212, 0.06) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(190, 242, 100, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 50% 80%, rgba(255, 222, 66, 0.06) 0%, transparent 50%);
-        }
-    </style>
 </head>
 
 <body class="bg-background text-on-surface font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed-variant">
@@ -500,12 +428,12 @@
     </footer>
 
     <!-- POPUPS -->
-    <div class="popup-overlay" id="popup-overlay">
+    <div class="popup-overlay" id="popup-overlay" hidden>
         <div class="popup-backdrop"></div>
         <div class="popup-container" id="popup-container"></div>
     </div>
 
-    <div class="popup-overlay" id="popup-overlay-2">
+    <div class="popup-overlay" id="popup-overlay-2" hidden>
         <div class="popup-backdrop"></div>
         <div class="popup-container" id="popup-container-2"></div>
     </div>

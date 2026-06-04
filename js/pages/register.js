@@ -1,3 +1,4 @@
+import "../../src/style.css";
 import { register } from "../api/auth.js";
 import { isAuthenticated } from "../lib/session.js";
 
