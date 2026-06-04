@@ -1,9 +1,11 @@
 import "../../src/style.css";
-import { login } from "../api/auth.js";
+import { login, googleLogin } from "../api/auth.js";
 import { createSession, isAuthenticated } from "../lib/session.js";
+import { GOOGLE_CLIENT_ID } from "../config.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     initLoginForm();
+    initGoogleLogin();
 });
 
 function initLoginForm() {
@@ -40,4 +42,56 @@ function initLoginForm() {
             statusMsg.classList.add("success-msg");
         }
     }
+}
+
+function initGoogleLogin() {
+    window.handleGoogleCredential = async (response) => {
+        const statusMsg = document.getElementById("status-msg");
+        try {
+            statusMsg.textContent = "Signing in with Google...";
+            statusMsg.classList.remove("error-msg");
+            statusMsg.classList.add("success-msg");
+
+            console.log("Google credential received, calling API...");
+            const data = await googleLogin(response.credential);
+            console.log("Google login API response:", data);
+
+            createSession(data.token, data.user);
+
+            if (data.needsProfile) {
+                window.location.href = "/complete-profile.html";
+            } else {
+                window.location.href = "/index.html";
+            }
+        } catch (err) {
+            console.error("Google login failed:", err);
+            statusMsg.textContent = err.message || "Google sign-in failed";
+            statusMsg.classList.remove("success-msg");
+            statusMsg.classList.add("error-msg");
+        }
+    };
+
+    const container = document.getElementById("google-signin-container");
+    if (!container) return;
+
+    const tryInit = () => {
+        if (window.google?.accounts?.id) {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: window.handleGoogleCredential,
+                cancel_on_tap_outside: false,
+            });
+            google.accounts.id.renderButton(container, {
+                type: "standard",
+                shape: "pill",
+                theme: "outline",
+                text: "sign_in_with",
+                size: "large",
+                logo_alignment: "left",
+            });
+        } else {
+            setTimeout(tryInit, 200);
+        }
+    };
+    tryInit();
 }

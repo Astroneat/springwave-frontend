@@ -69,19 +69,7 @@ async function loadComponent(id, file) {
 ========================= */
 
 async function loadNavbar() {
-    await loadSharedNavbar({ activeSection: "host", onFavouritesClick: showFavPopup });
-
-    const navLinks = document.querySelectorAll(".nav-links a");
-    navLinks.forEach(link => {
-        const section = link.getAttribute("data-section");
-        if (section === "home") {
-            link.href = "./index.html";
-        }
-        else if (section === "explore") {
-            link.href = "./index.html#explore";
-        }
-    });
-
+    await loadSharedNavbar({ onFavouritesClick: showFavPopup });
     initBasicScroll();
 }
 

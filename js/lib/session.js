@@ -49,5 +49,7 @@ export function isAuthenticated() {
 
 export function logout() {
     clearSession();
-    // window.location.href = "/login.html";
+    if (window.google?.accounts?.id) {
+        google.accounts.id.disableAutoSelect();
+    }
 }

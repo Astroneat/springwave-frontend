@@ -27,14 +27,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadNavbar() {
-    await loadSharedNavbar({ activeSection: "home", onFavouritesClick: showFavPopup });
+    await loadSharedNavbar({ onFavouritesClick: showFavPopup });
     initBasicScroll();
-    const navLinks = document.querySelectorAll(".nav-links a");
-    navLinks.forEach(link => {
-        const section = link.dataset.section;
-        if (section === "home") link.href = "./index.html";
-        else if (section === "explore") link.href = "./index.html#explore";
-    });
 }
 
 async function loadFooter() {
@@ -55,10 +49,10 @@ async function loadUserProfile() {
 
     currentUser = user;
 
-    document.getElementById("profile-name").textContent = user.fullname || user.username;
+    document.getElementById("profile-name").textContent = user.username || user.fullname;
     document.getElementById("profile-email").textContent = user.email || "-";
     document.getElementById("profile-phone").textContent = user.phoneNo || "-";
-    document.getElementById("profile-username").textContent = "@" + user.username;
+    document.getElementById("profile-username").textContent = user.fullname || "-";
 
     if (user.dob) {
         const d = new Date(user.dob);
@@ -74,8 +68,24 @@ async function loadUserProfile() {
     const roleMap = { student: "Student", host: "Host", admin: "Admin" };
     document.getElementById("profile-role").textContent = roleMap[user.role] || "Student";
 
-    const initial = (user.fullname || user.username || "?").charAt(0).toUpperCase();
+    const initial = (user.username || user.fullname || "?").charAt(0).toUpperCase();
     document.getElementById("avatar-placeholder").textContent = initial;
+
+    updateEditButton(user);
+}
+
+function updateEditButton(user) {
+    const btn = document.getElementById("edit-profile-btn");
+    if (!btn) return;
+
+    const isComplete = user.dob && user.school && user.class && user.major && user.phoneNo;
+    if (isComplete) {
+        btn.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> Edit Profile';
+        btn.classList.remove("complete");
+    } else {
+        btn.innerHTML = '<i class="fa-regular fa-circle-check"></i> Complete Profile';
+        btn.classList.add("complete");
+    }
 }
 
 async function loadParticipatedActivities() {
@@ -368,12 +378,16 @@ function openEditModal() {
     document.getElementById("edit-class").value = user.class || "";
     document.getElementById("edit-major").value = user.major || "";
 
-    document.getElementById("edit-modal").classList.add("active");
+    const modal = document.getElementById("edit-modal");
+    modal.style.display = "flex";
+    modal.classList.add("active");
     document.body.style.overflow = "hidden";
 }
 
 function closeEditModal() {
-    document.getElementById("edit-modal").classList.remove("active");
+    const modal = document.getElementById("edit-modal");
+    modal.classList.remove("active");
+    modal.style.display = "none";
     document.body.style.overflow = "";
     const status = document.querySelector(".edit-form-status");
     if (status) status.remove();
@@ -414,7 +428,7 @@ async function handleEditSubmit(e) {
         const result = await changeInfo(data);
         currentUser = result.user;
         setUser(result.user);
-        loadUserProfile();
+        await loadUserProfile();
         statusEl.className = "edit-form-status success";
         statusEl.textContent = "Profile updated successfully!";
         setTimeout(closeEditModal, 1200);

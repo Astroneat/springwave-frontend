@@ -368,7 +368,8 @@
         @apply top-14;
     }
 
-    .user-chip {
+
+.user-chip {
         @apply py-1.5 px-3.5 gap-2;
     }
 
@@ -1140,6 +1141,14 @@
 
 .edit-profile-btn:hover {
     background: #2A55B0;
+}
+
+.edit-profile-btn.complete {
+    background: #16a34a;
+}
+
+.edit-profile-btn.complete:hover {
+    background: #15803d;
 }
 
 /* =========================

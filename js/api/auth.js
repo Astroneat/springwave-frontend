@@ -1,4 +1,4 @@
-import { post, get } from "./client.js";
+import { post, get, put } from "./client.js";
 
 export function login(username, password) {
     return post("/auth/login", {
@@ -13,16 +13,19 @@ export function register(username, password, fullname, email) {
             username, 
             password, 
             fullname, 
-            email, 
-            phoneNo: "", 
-            dob: "", 
-            school: "", 
-            class: "", 
-            major: ""
+            email
         }
     );
 }
 
 export function getCurrentUser() {
     return get("/auth/me");
+}
+
+export function googleLogin(credential) {
+    return post("/auth/google", { credential });
+}
+
+export function completeProfile(data) {
+    return put("/auth/complete-profile", data);
 }

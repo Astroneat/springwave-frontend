@@ -13,6 +13,7 @@ export default defineConfig({
         explore: resolve(__dirname, 'explore.html'),
         profile: resolve(__dirname, 'profile.html'),
         hostActivity: resolve(__dirname, 'hostActivity.html'),
+        completeProfile: resolve(__dirname, 'complete-profile.html'),
       },
       output: {
         assetFileNames: 'assets/[name][extname]'

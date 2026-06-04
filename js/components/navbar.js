@@ -9,6 +9,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
     initMobileMenu();
 
     const authSection = document.getElementById("auth-section");
+    const bellIcon = document.getElementById("bell-icon");
     if (authSection) {
         if (isAuthenticated()) {
             const user = getUser();
@@ -16,8 +17,10 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
             authSection.innerHTML = userChipHTML;
             document.getElementById("user-name").textContent = user.username;
             initUserDropdown(onFavouritesClick);
+            if (bellIcon) { bellIcon.classList.remove("hidden"); bellIcon.classList.add("flex"); }
         } else {
             authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
+            if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }
         }
     }
 
