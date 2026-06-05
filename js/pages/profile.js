@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await initChatbot();
     await loadUserProfile();
     await loadParticipatedActivities();
+    renderExpPanel();
     initEditProfile();
 });
 
@@ -436,4 +437,79 @@ async function handleEditSubmit(e) {
         statusEl.className = "edit-form-status error";
         statusEl.textContent = err.message || "Failed to update profile.";
     }
+}
+
+/* =========================
+   EXP PANEL
+   ========================= */
+
+const EXP_LEVELS = [
+  { level: 1, min: 0, max: 99 },
+  { level: 2, min: 100, max: 249 },
+  { level: 3, min: 250, max: 499 },
+  { level: 4, min: 500, max: 999 },
+  { level: 5, min: 1000, max: 1999 },
+  { level: 6, min: 2000, max: Infinity },
+];
+
+function calcLevel(exp) {
+  for (const l of EXP_LEVELS) {
+    if (exp >= l.min && exp <= l.max) {
+      const range = l.max === Infinity ? l.min : l.max - l.min + 1;
+      const progress = l.max === Infinity ? 1 : (exp - l.min) / range;
+      return { level: l.level, current: exp - l.min, next: l.max === Infinity ? null : range, progress: Math.min(progress, 1) };
+    }
+  }
+  return { level: 1, current: 0, next: 100, progress: 0 };
+}
+
+function renderExpPanel() {
+  const container = document.getElementById("exp-list");
+  if (!container) return;
+
+  const expData = [
+    { key: "communication", name: "Communication", exp: 420, color: "communication" },
+    { key: "technical", name: "Technical", exp: 180, color: "technical" },
+    { key: "creativity", name: "Creativity", exp: 680, color: "creativity" },
+    { key: "social", name: "Social Impact", exp: 45, color: "social" },
+  ];
+
+  const dotColors = {
+    communication: "#3b82f6", technical: "#ef4444",
+    creativity: "#f97316", social: "#22c55e",
+  };
+
+  container.innerHTML = expData.map((cat) => {
+    const { level, current, next, progress } = calcLevel(cat.exp);
+    const nextLabel = next !== null ? `${current} / ${next} EXP` : `${cat.exp} EXP (Max)`;
+    const pct = Math.round(progress * 100);
+    const dotColor = dotColors[cat.color] || "#3b82f6";
+
+    return `
+      <div class="exp-category">
+        <div class="exp-header">
+          <span class="exp-label">
+            <span class="exp-dot" style="background: ${dotColor};"></span>
+            ${cat.name}
+          </span>
+          <span class="exp-level ${cat.color}">Lv.${level}</span>
+        </div>
+        <div class="exp-track">
+          <div class="exp-fill ${cat.color} animated" data-pct="${pct}"></div>
+        </div>
+        <div class="exp-info">
+          <span class="exp-numbers">${cat.exp} EXP</span>
+          <span class="exp-next">${nextLabel}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Animate bars after DOM insert
+  requestAnimationFrame(() => {
+    container.querySelectorAll(".exp-fill").forEach((bar) => {
+      const pct = bar.dataset.pct;
+      if (pct) bar.style.width = pct + "%";
+    });
+  });
 }

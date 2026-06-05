@@ -1,14 +1,22 @@
 import "../../src/style.css";
 import { loadNavbar } from "../components/navbar.js";
+import { fetchContent } from "../lib/utils.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const nav = await loadNavbar({ activeSection: "home" });
+  await loadFooter();
   initNavbarScroll();
   initScrollReveal();
   initMatchBars();
   initSkillBars();
   initSmoothScroll();
 });
+
+async function loadFooter() {
+  const html = await fetchContent("./components/footer.html");
+  const container = document.getElementById("footer-container");
+  if (container) container.innerHTML = html;
+}
 
 function initNavbarScroll() {
   const nav = document.getElementById("navbar");
