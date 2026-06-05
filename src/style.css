@@ -369,7 +369,7 @@
     }
 
 
-.user-chip {
+    .user-chip {
         @apply py-1.5 px-3.5 gap-2;
     }
 
@@ -3092,10 +3092,21 @@
     transform: translateY(0);
 }
 
-.reveal-delay-1 { transition-delay: 0.1s; }
-.reveal-delay-2 { transition-delay: 0.2s; }
-.reveal-delay-3 { transition-delay: 0.3s; }
-.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-1 {
+    transition-delay: 0.1s;
+}
+
+.reveal-delay-2 {
+    transition-delay: 0.2s;
+}
+
+.reveal-delay-3 {
+    transition-delay: 0.3s;
+}
+
+.reveal-delay-4 {
+    transition-delay: 0.4s;
+}
 
 /* =========================
    HERO BACKGROUND
@@ -3122,12 +3133,24 @@
     pointer-events: none;
 }
 
-.floating-card:nth-child(2) { animation-delay: -1.5s; }
-.floating-card:nth-child(3) { animation-delay: -3s; }
+.floating-card:nth-child(2) {
+    animation-delay: -1.5s;
+}
+
+.floating-card:nth-child(3) {
+    animation-delay: -3s;
+}
 
 @keyframes floatCard {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-12px); }
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-12px);
+    }
 }
 
 .ai-match-badge {
@@ -3181,8 +3204,13 @@
     width: 0;
 }
 
-.match-bar-fill.high { background: linear-gradient(90deg, #059669, #10b981); }
-.match-bar-fill.medium { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.match-bar-fill.high {
+    background: linear-gradient(90deg, #059669, #10b981);
+}
+
+.match-bar-fill.medium {
+    background: linear-gradient(90deg, #d97706, #f59e0b);
+}
 
 /* =========================
    HOW IT WORKS
@@ -3281,9 +3309,20 @@
     @apply shrink-0 px-3 py-1 rounded-full text-sm font-bold;
 }
 
-.rec-card-badge.perfect { background: rgba(16, 185, 129, 0.1); color: #059669; }
-.rec-card-badge.great { background: rgba(35, 73, 155, 0.1); color: var(--brand); }
-.rec-card-badge.good { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+.rec-card-badge.perfect {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.rec-card-badge.great {
+    background: rgba(35, 73, 155, 0.1);
+    color: var(--brand);
+}
+
+.rec-card-badge.good {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
 
 .checklist {
     @apply space-y-2;
@@ -3409,9 +3448,17 @@
     transition: stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.growth-circle-fill.high { stroke: #059669; }
-.growth-circle-fill.medium { stroke: #d97706; }
-.growth-circle-fill.low { stroke: #ef4444; }
+.growth-circle-fill.high {
+    stroke: #059669;
+}
+
+.growth-circle-fill.medium {
+    stroke: #d97706;
+}
+
+.growth-circle-fill.low {
+    stroke: #ef4444;
+}
 
 .growth-circle-label {
     @apply text-xs font-bold;
@@ -3612,9 +3659,6 @@
    FOOTER
    ========================= */
 
-.footer-brand {
-    @apply flex items-center gap-2.5;
-}
 
 .footer-brand-icon {
     @apply w-9 h-9 rounded-xl flex items-center justify-center;
@@ -3712,10 +3756,25 @@
     @apply text-xs font-bold px-2.5 py-0.5 rounded-full;
 }
 
-.exp-level.communication { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
-.exp-level.technical { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
-.exp-level.creativity { background: rgba(249, 115, 22, 0.1); color: #ea580c; }
-.exp-level.social { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+.exp-level.communication {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}
+
+.exp-level.technical {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.exp-level.creativity {
+    background: rgba(249, 115, 22, 0.1);
+    color: #ea580c;
+}
+
+.exp-level.social {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+}
 
 .exp-track {
     @apply w-full h-2 rounded-full overflow-hidden;
@@ -3729,10 +3788,21 @@
     transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.exp-fill.communication { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-.exp-fill.technical { background: linear-gradient(90deg, #ef4444, #f87171); }
-.exp-fill.creativity { background: linear-gradient(90deg, #f97316, #fb923c); }
-.exp-fill.social { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.exp-fill.communication {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.exp-fill.technical {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.exp-fill.creativity {
+    background: linear-gradient(90deg, #f97316, #fb923c);
+}
+
+.exp-fill.social {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+}
 
 .exp-info {
     @apply flex items-center justify-between mt-1;
