@@ -200,6 +200,17 @@
                 <button class="back-btn !py-2.5 !px-4 !text-sm" id="popup-back">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
+                <div class="flex items-center gap-2" id="popup-actions">
+                    <button class="back-btn !py-2.5 !px-4 !text-sm !text-primary !border-primary/30 hover:!bg-primary/5" hidden id="edit-btn">
+                        <i class="fa-regular fa-pen-to-square"></i> Edit
+                    </button>
+                    <button class="back-btn !py-2.5 !px-4 !text-sm" hidden id="save-btn">
+                        <i class="fa-regular fa-floppy-disk"></i> Save
+                    </button>
+                    <button class="back-btn !py-2.5 !px-4 !text-sm !text-red-500 !border-red-200 hover:!bg-red-50" hidden id="cancel-btn">
+                        Cancel
+                    </button>
+                </div>
             </div>
             <div id="popup-body" class="min-h-[200px] flex items-center justify-center text-[#94a3b8]">
                 <div class="spinner"></div>

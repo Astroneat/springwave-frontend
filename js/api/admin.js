@@ -31,3 +31,7 @@ export function getScrapePages() {
 export function scrapeEvents(pages) {
     return post("/admin/scrape", pages ? { pages } : {});
 }
+
+export function updateEvent(id, data) {
+    return put(`/events/${id}`, data);
+}
