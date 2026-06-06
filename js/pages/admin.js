@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser } from "../lib/session.js";
-import { getEvents, getPendingEvents, approveEvent, rejectEvent, deleteEvent, scrapeEvents } from "../api/admin.js";
+import { getEvents, getPendingEvents, approveEvent, rejectEvent, deleteEvent, scrapeEvents, updateEvent } from "../api/admin.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
@@ -231,12 +231,21 @@ function openViewPopup(id) {
     overlay.classList.add("active");
     document.body.style.overflow = "hidden";
 
-    const ev = [...pendingEvents, ...publishedEvents].find(e => e._id === id);
+    const ev = [...pendingEvents, ...publishedEvents].find(e => e._id === id) || null;
     if (ev) {
         body.innerHTML = buildViewHTML(ev);
+        body.dataset.eventId = id;
+        if (ev.status === "published") {
+            document.getElementById("edit-btn")?.removeAttribute("hidden");
+        } else {
+            document.getElementById("edit-btn")?.setAttribute("hidden", "");
+        }
     } else {
         body.innerHTML = `<p class="text-center text-[#94a3b8] py-10">Event not found</p>`;
+        document.getElementById("edit-btn")?.setAttribute("hidden", "");
     }
+    document.getElementById("save-btn")?.setAttribute("hidden", "");
+    document.getElementById("cancel-btn")?.setAttribute("hidden", "");
 }
 
 function buildViewHTML(e) {
@@ -279,6 +288,100 @@ function buildViewHTML(e) {
         </div>
     </div>`;
 }
+
+function buildEditHTML(e) {
+    let heldDate = "";
+    if (e.heldDate) {
+        const d = new Date(e.heldDate);
+        if (!isNaN(d)) heldDate = d.toISOString().split("T")[0];
+    }
+    const classificationHTML = e.classificationReason
+        ? `<div class="mt-4">
+            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Classification Reason</label>
+            <textarea id="edit-classification" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22] resize-none" rows="2">${e.classificationReason}</textarea>
+           </div>`
+        : "";
+    const sourceHTML = e.source?.url
+        ? `<div class="mt-4 p-4 rounded-xl bg-[#f8f9fc] text-sm text-[#64748b]">Original: <a href="${e.source.url}" target="_blank" class="text-primary underline">${e.source.url}</a></div>`
+        : "";
+    return `
+    <div class="space-y-5">
+        <div>
+            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Title</label>
+            <input id="edit-title" value="${e.title.replace(/"/g, '&quot;')}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+        </div>
+        <div class="flex gap-4">
+            <div class="flex-1">
+                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Location</label>
+                <input id="edit-location" value="${(e.location || "").replace(/"/g, '&quot;')}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+            </div>
+            <div>
+                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Type</label>
+                <input id="edit-type" value="${(e.type || "").replace(/"/g, '&quot;')}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+            </div>
+            <div>
+                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Date</label>
+                <input id="edit-heldDate" type="date" value="${heldDate}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+            </div>
+        </div>
+        <div>
+            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Description</label>
+            <textarea id="edit-description" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22] resize-y" rows="8">${(e.description || "").replace(/"/g, '&quot;')}</textarea>
+        </div>
+        <div>
+            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Thumbnail URL</label>
+            <input id="edit-thumbnail" value="${(e.thumbnail || "").replace(/"/g, '&quot;')}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+        </div>
+        ${classificationHTML}
+        ${sourceHTML}
+    </div>`;
+}
+
+document.getElementById("popup-actions")?.addEventListener("click", async e => {
+    const id = document.getElementById("popup-body")?.dataset?.eventId;
+    if (!id) return;
+
+    if (e.target.id === "edit-btn" || e.target.closest("#edit-btn")) {
+        const ev = [...pendingEvents, ...publishedEvents].find(ev => ev._id === id);
+        if (!ev) return;
+        document.getElementById("edit-btn")?.setAttribute("hidden", "");
+        document.getElementById("save-btn")?.removeAttribute("hidden");
+        document.getElementById("cancel-btn")?.removeAttribute("hidden");
+        document.getElementById("popup-body").innerHTML = buildEditHTML(ev);
+    }
+    else if (e.target.id === "cancel-btn" || e.target.closest("#cancel-btn")) {
+        const ev = [...pendingEvents, ...publishedEvents].find(ev => ev._id === id);
+        document.getElementById("save-btn")?.setAttribute("hidden", "");
+        document.getElementById("cancel-btn")?.setAttribute("hidden", "");
+        document.getElementById("edit-btn")?.removeAttribute("hidden");
+        if (ev) document.getElementById("popup-body").innerHTML = buildViewHTML(ev);
+    }
+    else if (e.target.id === "save-btn" || e.target.closest("#save-btn")) {
+        const orig = [...pendingEvents, ...publishedEvents].find(ev => ev._id === id);
+        const data = {
+            title: document.getElementById("edit-title")?.value.trim(),
+            location: document.getElementById("edit-location")?.value.trim(),
+            type: document.getElementById("edit-type")?.value.trim(),
+            heldDate: document.getElementById("edit-heldDate")?.value || null,
+            description: document.getElementById("edit-description")?.value.trim(),
+            thumbnail: document.getElementById("edit-thumbnail")?.value.trim(),
+        };
+        const classification = document.getElementById("edit-classification");
+        if (classification) data.classificationReason = classification.value.trim();
+        if (!data.title || !data.description) return;
+        try {
+            await updateEvent(id, data);
+            document.getElementById("save-btn")?.setAttribute("hidden", "");
+            document.getElementById("cancel-btn")?.setAttribute("hidden", "");
+            document.getElementById("edit-btn")?.removeAttribute("hidden");
+            const updated = { ...(orig || {}), ...data, _id: id };
+            document.getElementById("popup-body").innerHTML = buildViewHTML(updated);
+            await loadData();
+        } catch (err) {
+            alert(err.message || "Failed to update event");
+        }
+    }
+});
 
 function initRowActions() {
     document.querySelectorAll("#admin-table-body tr").forEach(tr => {
@@ -494,6 +597,10 @@ function initSharedPopup() {
     function close() {
         overlay.classList.remove("active");
         document.body.style.overflow = "";
+        document.getElementById("edit-btn")?.setAttribute("hidden", "");
+        document.getElementById("save-btn")?.setAttribute("hidden", "");
+        document.getElementById("cancel-btn")?.setAttribute("hidden", "");
+        delete document.getElementById("popup-body")?.dataset?.eventId;
         setTimeout(() => overlay.setAttribute("hidden", ""), 300);
     }
 
