@@ -249,8 +249,6 @@ function initSidebar() {
 }
 
 function initializePage() {
-    initStars();
-    initCards();
     initDetailButtons();
     initCardReveal();
 }
@@ -276,10 +274,6 @@ function initStars() {
     });
 }
 
-function initCards() {
-    initCardClickHandlers();
-}
-
 const popupOverlay = document.getElementById("popup-overlay");
 const popupContainer = document.getElementById("popup-container");
 const popupOverlay2 = document.getElementById("popup-overlay-2");
@@ -295,6 +289,7 @@ async function openPopup(activityID) {
     const activity = allActivities.find(a => a.activityID === activityID || a._id === activityID) || null;
     if (activity) {
         popupContainer.innerHTML = buildPopupHTML(activity);
+        getActivityById(activityID).catch(() => {});
     } else {
         const { activity: fetched } = await getActivityById(activityID);
         popupContainer.innerHTML = buildPopupHTML(fetched);
@@ -353,6 +348,7 @@ async function openPopup2(activityID, activityData) {
     popupOverlay2.classList.add("active");
 
     const activity = activityData || (await getActivityById(activityID)).activity;
+
     if (!activity) return;
     popupContainer2.innerHTML = buildPopupHTML(activity, "Back");
     initParticipateButton(activityID);
