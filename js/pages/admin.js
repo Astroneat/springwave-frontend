@@ -1,0 +1,563 @@
+import "../../src/style.css";
+import { isAuthenticated, getUser } from "../lib/session.js";
+import { getEvents, getPendingEvents, approveEvent, rejectEvent, deleteEvent, scrapeEvents } from "../api/admin.js";
+import { loadNavbar } from "../components/navbar.js";
+import { initChatbot } from "../components/chatbot.js";
+import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+
+let currentTab = "pending";
+let pendingEvents = [];
+let publishedEvents = [];
+let actionTarget = null;
+let selectedIds = new Set();
+
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!isAuthenticated()) {
+        window.location.href = "/login.html";
+        return;
+    }
+
+    const user = getUser();
+    if (user?.role !== "admin") {
+        window.location.href = "/";
+        return;
+    }
+
+    document.getElementById("admin-main").classList.remove("hidden");
+
+    await loadNavbar({ activeSection: "admin" });
+    await fetchContent("./components/footer.html").then(html => {
+        document.getElementById("footer-container").innerHTML = html;
+    });
+    await initChatbot();
+
+    initTabs();
+    initSearch();
+    initRefresh();
+    initScrape();
+    initPopups();
+    initBulkActions();
+    await loadData();
+    startAutoRefresh();
+});
+
+function startAutoRefresh() {
+    setInterval(async () => {
+        if (document.hidden) return;
+        try {
+            const [pubData, pendData] = await Promise.all([
+                getEvents().catch(() => null),
+                getPendingEvents().catch(() => null)
+            ]);
+            if (pubData) publishedEvents = pubData.events || [];
+            if (pendData) pendingEvents = pendData.events || [];
+            renderStats();
+            if (!document.querySelector(".tab-btn.active")) return;
+            renderTable();
+        } catch {}
+    }, 10000);
+}
+
+async function loadData() {
+    try {
+        const [pubData, pendData] = await Promise.all([
+            getEvents().catch(() => ({ events: [] })),
+            getPendingEvents().catch(() => ({ events: [], total: 0 }))
+        ]);
+        publishedEvents = pubData?.events || [];
+        pendingEvents = pendData?.events || [];
+        renderStats();
+        renderTable();
+    } catch {
+        showEmpty();
+    }
+}
+
+function renderStats() {
+    const total = publishedEvents.length + pendingEvents.length;
+    document.getElementById("stat-total").textContent = total;
+    document.getElementById("stat-published").textContent = publishedEvents.length;
+    document.getElementById("stat-pending").textContent = pendingEvents.length;
+    const views = publishedEvents.reduce((sum, e) => sum + (e.viewCount || 0), 0);
+    document.getElementById("stat-views").textContent = views;
+}
+
+function getActiveEvents() {
+    return currentTab === "pending" ? pendingEvents : publishedEvents;
+}
+
+function renderTable() {
+    const tbody = document.getElementById("admin-table-body");
+    const empty = document.getElementById("table-empty");
+    const count = document.getElementById("table-count");
+    const title = document.getElementById("table-title");
+
+    const events = getActiveEvents();
+    title.textContent = currentTab === "pending" ? "Pending Review" : "Published Events";
+
+    if (events.length === 0) {
+        tbody.innerHTML = "";
+        empty.classList.remove("hidden");
+        count.textContent = "0 events";
+        return;
+    }
+
+    empty.classList.add("hidden");
+    count.textContent = `${events.length} ${events.length === 1 ? "event" : "events"}`;
+
+    tbody.innerHTML = events.map((e, i) => {
+        const sourceSchool = e.source?.school || e.createdByName || "—";
+        const checked = selectedIds.has(e._id) ? "checked" : "";
+        const statusBadge = e.status === "draft"
+            ? `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#fef3c7] text-[#d97706]">Draft</span>`
+            : `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#d1fae5] text-[#059669]">Published</span>`;
+
+        let actionsHTML;
+        if (currentTab === "pending") {
+            actionsHTML = `
+                <button class="approve-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#059669] hover:bg-green-50 hover:border-green-200 transition-all spring-ease" title="Approve">
+                    <i class="fa-solid fa-check text-sm"></i>
+                </button>
+                <button class="reject-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Reject">
+                    <i class="fa-solid fa-ban text-sm"></i>
+                </button>
+            `;
+        } else {
+            actionsHTML = `
+                <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="View">
+                    <i class="fa-regular fa-eye text-sm"></i>
+                </button>
+                <button class="delete-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Delete">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
+            `;
+        }
+
+        return `
+            <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] transition-colors ${checked ? 'bg-blue-50/40' : ''}" data-id="${e._id}">
+                <td class="py-3.5 px-4">
+                    <input type="checkbox" class="row-checkbox w-4 h-4 rounded border-[#c3c6d5] text-primary cursor-pointer accent-primary" ${checked} />
+                </td>
+                <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-[#ecedfa] overflow-hidden shrink-0">
+                            ${e.thumbnail
+                                ? `<img src="${e.thumbnail}" class="w-full h-full object-cover" />`
+                                : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-sm"></i></div>`
+                            }
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-[#191b22] truncate max-w-[220px]">${e.title}</p>
+                            <p class="text-[12px] text-[#64748b] mt-0.5">${statusBadge}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3.5 px-4 hidden md:table-cell">
+                    <span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#dae1ff] text-primary">${capitalize(e.type || "Event")}</span>
+                </td>
+                <td class="py-3.5 px-4 text-[#64748b] hidden lg:table-cell">${sourceSchool}</td>
+                <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${formatDate(e.heldDate)}</td>
+                <td class="py-3.5 px-4 text-center hidden md:table-cell">
+                    <span class="font-semibold text-[#191b22]">${e.viewCount || 0}</span>
+                </td>
+                <td class="py-3.5 px-4 text-right">
+                    <div class="flex items-center justify-end gap-1.5">${actionsHTML}</div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+
+    initRowActions();
+    initCheckboxes();
+    updateBulkBar();
+}
+
+function initCheckboxes() {
+    document.querySelectorAll(".row-checkbox").forEach(cb => {
+        cb.addEventListener("change", () => {
+            const id = cb.closest("tr").dataset.id;
+            if (cb.checked) selectedIds.add(id);
+            else selectedIds.delete(id);
+            updateBulkBar();
+        });
+    });
+
+    const selectAll = document.getElementById("select-all");
+    selectAll.addEventListener("change", () => {
+        const rows = document.querySelectorAll("#admin-table-body tr");
+        rows.forEach(tr => {
+            const cb = tr.querySelector(".row-checkbox");
+            if (cb) {
+                cb.checked = selectAll.checked;
+                const id = tr.dataset.id;
+                if (selectAll.checked) selectedIds.add(id);
+                else selectedIds.delete(id);
+            }
+        });
+        updateBulkBar();
+    });
+}
+
+function updateBulkBar() {
+    const bar = document.getElementById("bulk-bar");
+    const count = document.getElementById("bulk-count");
+    const approveBtn = document.getElementById("bulk-approve");
+    const deleteBtn = document.getElementById("bulk-delete");
+
+    selectedIds.forEach(id => {
+        const exists = currentTab === "pending"
+            ? pendingEvents.some(e => e._id === id)
+            : publishedEvents.some(e => e._id === id);
+        if (!exists) selectedIds.delete(id);
+    });
+
+    const n = selectedIds.size;
+    if (n === 0) {
+        bar.classList.add("hidden");
+        return;
+    }
+
+    bar.classList.remove("hidden");
+    count.textContent = `${n} selected`;
+
+    approveBtn.classList.toggle("hidden", currentTab !== "pending");
+    deleteBtn.classList.toggle("hidden", currentTab !== "published");
+}
+
+function openViewPopup(id) {
+    const overlay = document.getElementById("popup-overlay");
+    const body = document.getElementById("popup-body");
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    const ev = [...pendingEvents, ...publishedEvents].find(e => e._id === id);
+    if (ev) {
+        body.innerHTML = buildViewHTML(ev);
+    } else {
+        body.innerHTML = `<p class="text-center text-[#94a3b8] py-10">Event not found</p>`;
+    }
+}
+
+function buildViewHTML(e) {
+    const heldDate = formatDate(e.heldDate);
+    const type = capitalize(e.type || "Event");
+    const source = e.createdByName || "—";
+    return `
+    <div class="flex flex-col md:flex-row gap-8">
+        <div class="md:w-[380px] shrink-0">
+            ${e.thumbnail
+                ? `<img src="${e.thumbnail}" class="w-full h-[260px] object-cover rounded-2xl" />`
+                : `<div class="w-full h-[260px] rounded-2xl bg-[#ecedfa] flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-4xl"></i></div>`
+            }
+            <div class="mt-5 space-y-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-regular fa-calendar"></i></div>
+                    <div><p class="text-[13px] text-[#64748b]">Date</p><p class="font-semibold text-[#191b22]">${heldDate}</p></div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-regular fa-user"></i></div>
+                    <div><p class="text-[13px] text-[#64748b]">Host</p><p class="font-semibold text-[#191b22]">${source}</p></div>
+                </div>
+            </div>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h2 class="font-headline-md text-2xl font-bold text-[#191b22] mb-2">${e.title}</h2>
+            ${e.location ? `<p class="text-sm text-primary mb-4"><i class="fa-solid fa-location-dot mr-1.5"></i>${e.location}</p>` : ""}
+            <div class="bg-[#f8f9fc] rounded-2xl p-5 max-h-[400px] overflow-y-auto text-sm leading-relaxed text-[#475569] whitespace-pre-wrap">
+                ${e.description || "No description"}
+            </div>
+            ${e.classificationReason ? `
+            <div class="mt-4 p-4 rounded-xl bg-[#fef3c7] border border-[#fde68a]">
+                <p class="text-[13px] font-semibold text-[#d97706] mb-1">Phân loại</p>
+                <p class="text-sm text-[#92400e]">${e.classificationReason}</p>
+            </div>` : ""}
+            ${e.source?.url ? `
+            <div class="mt-4">
+                <a href="${e.source.url}" target="_blank" class="text-sm text-primary underline">Xem bài gốc</a>
+            </div>` : ""}
+        </div>
+    </div>`;
+}
+
+function initRowActions() {
+    document.querySelectorAll("#admin-table-body tr").forEach(tr => {
+        tr.addEventListener("click", e => {
+            if (e.target.closest("button") || e.target.closest("input[type=checkbox]") || e.target.closest("a")) return;
+            openViewPopup(tr.dataset.id);
+        });
+    });
+
+    document.querySelectorAll(".view-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const id = btn.closest("tr").dataset.id;
+            openViewPopup(id);
+        });
+    });
+
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const id = btn.closest("tr").dataset.id;
+            const ev = publishedEvents.find(e => e._id === id);
+            openDeletePopup(id, ev?.title || "this event");
+        });
+    });
+
+    document.querySelectorAll(".approve-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const id = btn.closest("tr").dataset.id;
+            const ev = pendingEvents.find(e => e._id === id);
+            openApprovePopup(id, ev?.title || "this event");
+        });
+    });
+
+    document.querySelectorAll(".reject-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const id = btn.closest("tr").dataset.id;
+            const ev = pendingEvents.find(e => e._id === id);
+            openRejectPopup(id, ev?.title || "this event");
+        });
+    });
+}
+
+function initBulkActions() {
+    document.getElementById("bulk-approve").addEventListener("click", async () => {
+        const ids = [...selectedIds];
+        for (const id of ids) {
+            try { await approveEvent(id); } catch {}
+        }
+        selectedIds.clear();
+        await loadData();
+    });
+
+    document.getElementById("bulk-delete").addEventListener("click", async () => {
+        const ids = [...selectedIds];
+        for (const id of ids) {
+            try { await deleteEvent(id); } catch {}
+        }
+        selectedIds.clear();
+        await loadData();
+    });
+
+    document.getElementById("bulk-clear").addEventListener("click", () => {
+        selectedIds.clear();
+        renderTable();
+    });
+}
+
+function initTabs() {
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentTab = btn.dataset.tab;
+            selectedIds.clear();
+            renderTable();
+            renderSearch();
+        });
+    });
+}
+
+let searchTimer;
+
+function initSearch() {
+    const input = document.getElementById("admin-search");
+    input.addEventListener("input", () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(renderSearch, 250);
+    });
+}
+
+function renderSearch() {
+    const q = document.getElementById("admin-search").value.trim().toLowerCase();
+    if (!q) {
+        document.querySelectorAll("#admin-table-body tr").forEach(tr => tr.style.display = "");
+        return;
+    }
+    document.querySelectorAll("#admin-table-body tr").forEach(tr => {
+        const text = tr.textContent.toLowerCase();
+        tr.style.display = text.includes(q) ? "" : "none";
+    });
+}
+
+function initRefresh() {
+    document.getElementById("refresh-admin-btn").addEventListener("click", async () => {
+        document.getElementById("admin-search").value = "";
+        await loadData();
+    });
+}
+
+function showEmpty() {
+    document.getElementById("admin-table-body").innerHTML = "";
+    document.getElementById("table-empty").classList.remove("hidden");
+    document.getElementById("table-count").textContent = "0 events";
+}
+
+function initScrape() {
+    const btn = document.getElementById("scrape-btn");
+    const overlay = document.getElementById("scrape-overlay");
+    const backdrop = document.getElementById("scrape-backdrop");
+
+    btn.addEventListener("click", async () => {
+        overlay.removeAttribute("hidden");
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+
+        document.getElementById("scrape-loading").classList.remove("hidden");
+        document.getElementById("scrape-result").classList.add("hidden");
+
+        try {
+            console.log("Scraping...");
+            const data = await scrapeEvents();
+            console.log("Scrape result:", data);
+            document.getElementById("scrape-loading").classList.add("hidden");
+            document.getElementById("scrape-result").classList.remove("hidden");
+            document.getElementById("scrape-total").textContent = (data?.total ?? 0).toString();
+            document.getElementById("scrape-inserted").textContent = (data?.inserted ?? 0).toString();
+            document.getElementById("scrape-errors").textContent = (data?.errors?.length ?? 0).toString();
+        } catch (err) {
+            console.error("Scrape error:", err);
+            document.getElementById("scrape-loading").classList.add("hidden");
+            document.getElementById("scrape-result").classList.remove("hidden");
+            const status = err?.status ? `HTTP ${err.status}: ` : "";
+            document.getElementById("scrape-stats").innerHTML = `
+                <div class="text-center">
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
+                        <i class="fa-solid fa-circle-exclamation text-red-500 text-xl"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-red-600">${status}${err?.message || "Request failed"}</p>
+                </div>
+            `;
+        }
+    });
+
+    function close() {
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        setTimeout(() => {
+            overlay.setAttribute("hidden", "");
+            document.getElementById("scrape-stats").innerHTML = `
+                <div class="flex justify-center gap-6 my-6" id="scrape-stats">
+                    <div class="text-center">
+                        <p class="text-[32px] font-extrabold text-[#191b22]" id="scrape-total">0</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">Found</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[32px] font-extrabold text-[#059669]" id="scrape-inserted">0</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">New</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[32px] font-extrabold text-[#db2777]" id="scrape-errors">0</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">Errors</p>
+                    </div>
+                </div>
+            `;
+        }, 300);
+        loadData();
+    }
+
+    backdrop.addEventListener("click", close);
+    document.getElementById("scrape-done").addEventListener("click", close);
+}
+
+function initPopups() {
+    initPopup("approve", async id => {
+        await approveEvent(id);
+        pendingEvents = pendingEvents.filter(e => e._id !== id);
+        renderStats();
+        renderTable();
+    });
+    initPopup("reject", async id => {
+        await rejectEvent(id);
+        pendingEvents = pendingEvents.filter(e => e._id !== id);
+        renderStats();
+        renderTable();
+    });
+    initPopup("delete", async id => {
+        await deleteEvent(id);
+        publishedEvents = publishedEvents.filter(e => e._id !== id);
+        renderStats();
+        renderTable();
+    });
+    initSharedPopup();
+}
+
+function initSharedPopup() {
+    const overlay = document.getElementById("popup-overlay");
+    const backdrop = document.getElementById("popup-backdrop");
+    const back = document.getElementById("popup-back");
+
+    function close() {
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        setTimeout(() => overlay.setAttribute("hidden", ""), 300);
+    }
+
+    backdrop?.addEventListener("click", close);
+    back?.addEventListener("click", close);
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && !overlay.hasAttribute("hidden")) close();
+    });
+}
+
+function initPopup(name, onConfirm) {
+    const overlay = document.getElementById(`${name}-overlay`);
+    const backdrop = document.getElementById(`${name}-backdrop`);
+    const cancel = document.getElementById(`${name}-cancel`);
+    const confirm = document.getElementById(`${name}-confirm`);
+
+    function close() {
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        setTimeout(() => {
+            overlay.setAttribute("hidden", "");
+            actionTarget = null;
+        }, 300);
+    }
+
+    backdrop?.addEventListener("click", close);
+    cancel?.addEventListener("click", close);
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") close();
+    });
+    confirm?.addEventListener("click", async () => {
+        if (!actionTarget) return;
+        try {
+            await onConfirm(actionTarget);
+            close();
+        } catch {
+            close();
+        }
+    });
+}
+
+function openApprovePopup(id, title) {
+    actionTarget = id;
+    document.getElementById("approve-title").textContent = `"${title}"`;
+    const overlay = document.getElementById("approve-overlay");
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+}
+
+function openRejectPopup(id, title) {
+    actionTarget = id;
+    document.getElementById("reject-title").textContent = `"${title}"`;
+    const overlay = document.getElementById("reject-overlay");
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+}
+
+function openDeletePopup(id, title) {
+    actionTarget = id;
+    document.getElementById("delete-title").textContent = `"${title}"`;
+    const overlay = document.getElementById("delete-overlay");
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+}

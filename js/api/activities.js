@@ -1,27 +1,45 @@
 import { post, get, del, uploadFormData } from "./client.js";
 
+function normalizeEvent(e) {
+    return { ...e, activityID: e._id };
+}
+
+function normalizeEvents(response) {
+    if (response.event) {
+        return { activity: normalizeEvent(response.event) };
+    }
+    if (response.events) {
+        return { activities: response.events.map(normalizeEvent) };
+    }
+    return response;
+}
+
 export function getActivities() {
-    return get("/activities");
+    return get("/events").then(normalizeEvents);
 }
 
 export function getActivityById(id) {
-    return get(`/activities/${id}`);
+    return get(`/events/${id}`).then(normalizeEvents);
 }
 
 export function createActivity(formData) {
-    return uploadFormData("/activities", formData);
+    return uploadFormData("/events", formData);
+}
+
+export function deleteActivity(id) {
+    return del(`/events/${id}`);
 }
 
 export function participateActivity(id) {
-    return post(`/activities/${id}/participate`);
+    return post(`/events/${id}/participate`);
 }
 
 export function unparticipateActivity(id) {
-    return del(`/activities/${id}/participate`);
+    return del(`/events/${id}/participate`);
 }
 
 export function checkParticipation(id) {
-    return get(`/activities/${id}/participate`);
+    return get(`/events/${id}/participate`);
 }
 
 export function searchActivities(params) {
@@ -37,5 +55,5 @@ export function searchActivities(params) {
     if (params.sortOrder) q.set("sortOrder", params.sortOrder);
     if (params.page) q.set("page", params.page);
     if (params.limit) q.set("limit", params.limit);
-    return get(`/activities/search/all?${q.toString()}`);
+    return get(`/events/search/all?${q.toString()}`).then(normalizeEvents);
 }

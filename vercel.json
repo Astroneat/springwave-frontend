@@ -8,7 +8,8 @@
     { "source": "/explore", "destination": "/explore.html" },
     { "source": "/profile", "destination": "/profile.html" },
     { "source": "/hostActivity", "destination": "/hostActivity.html" },
-    { "source": "/complete-profile", "destination": "/complete-profile.html" }
+    { "source": "/complete-profile", "destination": "/complete-profile.html" },
+    { "source": "/admin", "destination": "/admin.html" }
   ],
   "headers": [
     {

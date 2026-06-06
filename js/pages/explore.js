@@ -292,8 +292,13 @@ async function openPopup(activityID) {
     popupOverlay.classList.add("active");
     document.body.style.overflow = "hidden";
 
-    const { activity } = await getActivityById(activityID);
-    popupContainer.innerHTML = buildPopupHTML(activity);
+    const activity = allActivities.find(a => a.activityID === activityID || a._id === activityID) || null;
+    if (activity) {
+        popupContainer.innerHTML = buildPopupHTML(activity);
+    } else {
+        const { activity: fetched } = await getActivityById(activityID);
+        popupContainer.innerHTML = buildPopupHTML(fetched);
+    }
     initParticipateButton(activityID);
     popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
 
@@ -412,18 +417,18 @@ async function syncCardFavourites() {
 
 function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
-    const deadline = formatDate(a.applicationDeadline);
     const type = capitalize(a.type);
     const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
     backText = backText || "Back";
     const filesHTML = (a.attachments || []).map(f => {
-        const fileName = decodeURIComponent(f.link.split('/').pop());
+        const link = f.link || f.activityAttachLink || "";
+        const fileName = decodeURIComponent(link.split('/').pop());
         return `<div class="file-item">
             <div class="file-left">
                 <div class="file-icon"><i class="fa-solid fa-file"></i></div>
                 <div><h4>${fileName}</h4></div>
             </div>
-            <a class="download-btn" href="${CDN_DOMAIN}/${f.link}" target="_blank"><i class="fa-solid fa-download"></i></a>
+            <a class="download-btn" href="${CDN_DOMAIN}/${link}" target="_blank"><i class="fa-solid fa-download"></i></a>
         </div>`;
     }).join("");
 
@@ -444,8 +449,7 @@ function buildPopupHTML(a, backText) {
                     <h2>Details</h2>
                     <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>Location</span><p>${a.location}</p></div></div>
                     <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>Host</span><p>${a.hostName || "Unknown"}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-clock"></i><div><span>Apply deadline</span><p>${deadline}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>Host</span><p>${a.hostName || a.createdByName || "Unknown"}</p></div></div>
                     <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>Type</span><p>${type}</p></div></div>
                 </div>
             </div>
@@ -454,8 +458,7 @@ function buildPopupHTML(a, backText) {
                 <a class="location-link" href="${googleMapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
                 <div class="info-boxes">
                     <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-clock"></i><div><span>Apply deadline</span><p>${deadline}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>Hosted by</span><p>${a.hostName || "Unknown"}</p></div></div>
+                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>Hosted by</span><p>${a.hostName || a.createdByName || "Unknown"}</p></div></div>
                 </div>
                 <div class="description-panel">
                     ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}

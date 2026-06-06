@@ -16,6 +16,10 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
             const userChipHTML = await fetchContent("/components/userchip.html");
             authSection.innerHTML = userChipHTML;
             document.getElementById("user-name").textContent = user.username;
+            const adminBtn = document.getElementById("admin-btn");
+            if (adminBtn) {
+                adminBtn.style.display = user?.role === "admin" ? "" : "none";
+            }
             initUserDropdown(onFavouritesClick);
             if (bellIcon) { bellIcon.classList.remove("hidden"); bellIcon.classList.add("flex"); }
         } else {
