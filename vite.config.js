@@ -15,6 +15,7 @@ export default defineConfig({
         hostActivity: resolve(__dirname, "hostActivity.html"),
         completeProfile: resolve(__dirname, "complete-profile.html"),
         admin: resolve(__dirname, "admin.html"),
+        community: resolve(__dirname, "community.html"),
       },
       output: {
         assetFileNames: "assets/[name][extname]",
