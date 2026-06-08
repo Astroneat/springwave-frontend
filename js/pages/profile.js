@@ -168,10 +168,14 @@ async function openPopup(activityID) {
     favoriteBtn?.addEventListener("click", async (e) => {
         e.stopPropagation();
         const active = favoriteBtn.classList.contains("active");
+        favoriteBtn.classList.toggle("active");
         try {
-            if (active) { await removeFavourite(activityID); favoriteBtn.classList.remove("active"); }
-            else { await addFavourite(activityID); favoriteBtn.classList.add("active"); }
-        } catch {}
+            if (active) { await removeFavourite(activityID); }
+            else { await addFavourite(activityID); }
+        } catch (err) {
+            favoriteBtn.classList.toggle("active");
+            console.error("Failed to toggle favourite:", err);
+        }
     });
 }
 

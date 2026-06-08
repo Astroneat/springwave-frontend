@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../config.js";
-import { getToken } from "../lib/session.js";
+import { getToken, clearSession } from "../lib/session.js";
 
 async function request(endpoint, options = {}) {
     const token = getToken();
@@ -32,6 +32,15 @@ async function request(endpoint, options = {}) {
     }
 
     if (!response.ok) {
+        if (response.status === 401) {
+            clearSession();
+            window.location.href = "/login.html";
+            return;
+        }
+        if (response.status === 403 && data?.message?.includes("complete your profile")) {
+            window.location.href = "/complete-profile.html";
+            return;
+        }
         throw {
             status: response.status,
             message:

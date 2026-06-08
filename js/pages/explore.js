@@ -134,7 +134,7 @@ async function loadCards() {
         }
         const activities = (await getActivities()).activities || [];
         allActivities = activities;
-        applyFiltersAndSort();
+        await applyFiltersAndSort();
     } catch (err) {
         console.error(err);
         cardsContainer.innerHTML = `<div class="empty-state">Failed to load activities</div>`;
@@ -150,10 +150,10 @@ async function renderCards(activities) {
     }
 
     allActivities = activities;
-    applyFiltersAndSort();
+    await applyFiltersAndSort();
 }
 
-function applyFiltersAndSort() {
+async function applyFiltersAndSort() {
     let filtered = [...allActivities];
 
     if (currentCategory !== "all") {
@@ -172,10 +172,10 @@ function applyFiltersAndSort() {
             break;
     }
 
-    renderCardsDirect(filtered);
+    await renderCardsDirect(filtered);
 }
 
-function renderCardsDirect(activities) {
+async function renderCardsDirect(activities) {
     const cardsContainer = document.getElementById("cards-container");
     if (!cachedTemplate) return;
 
@@ -204,38 +204,38 @@ function renderCardsDirect(activities) {
 
     document.getElementById("resultsCount").textContent = `${activities.length} ${activities.length === 1 ? "activity" : "activities"}`;
 
-    syncCardFavourites();
+    await syncCardFavourites();
     initCardClickHandlers();
     initStars();
 }
 
 function initSidebar() {
     document.querySelectorAll(".category-chip").forEach(chip => {
-        chip.addEventListener("click", () => {
+        chip.addEventListener("click", async () => {
             document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
             chip.classList.add("active");
             currentCategory = chip.dataset.category;
-            applyFiltersAndSort();
+            await applyFiltersAndSort();
         });
     });
 
     document.querySelectorAll(".sort-option").forEach(option => {
-        option.addEventListener("click", () => {
+        option.addEventListener("click", async () => {
             document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
             option.classList.add("active");
             currentSort = option.dataset.sort;
-            applyFiltersAndSort();
+            await applyFiltersAndSort();
         });
     });
 
-    document.getElementById("clearFilters")?.addEventListener("click", () => {
+    document.getElementById("clearFilters")?.addEventListener("click", async () => {
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";
         document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
         document.querySelector(".sort-option[data-sort='newest']")?.classList.add("active");
         currentSort = "newest";
-        applyFiltersAndSort();
+        await applyFiltersAndSort();
     });
 
     document.getElementById("sidebarToggle")?.addEventListener("click", () => {
@@ -254,22 +254,24 @@ function initializePage() {
 }
 
 function initStars() {
-    document.querySelectorAll(".star").forEach(star => {
+    document.querySelectorAll(".card .star").forEach(star => {
         star.addEventListener("click", async (e) => {
-            e.stopPropagation();
             const card = star.closest(".card");
             const id = card?.dataset.id;
             if (!id || !isAuthenticated()) return;
+            e.stopPropagation();
             const active = star.classList.contains("active");
+            star.classList.toggle("active");
             try {
                 if (active) {
                     await removeFavourite(id);
-                    star.classList.remove("active");
                 } else {
                     await addFavourite(id);
-                    star.classList.add("active");
                 }
-            } catch {}
+            } catch (err) {
+                star.classList.toggle("active");
+                console.error("Failed to toggle favourite:", err);
+            }
         });
     });
 }
@@ -309,17 +311,19 @@ async function openPopup(activityID) {
         event.preventDefault();
         event.stopPropagation();
         const isActive = favoriteBtn.classList.contains("active");
+        favoriteBtn.classList.toggle("active");
+        toggleCardStar(activityID, !isActive);
         try {
             if (isActive) {
                 await removeFavourite(activityID);
-                favoriteBtn.classList.remove("active");
-                toggleCardStar(activityID, false);
             } else {
                 await addFavourite(activityID);
-                favoriteBtn.classList.add("active");
-                toggleCardStar(activityID, true);
             }
-        } catch {}
+        } catch (err) {
+            favoriteBtn.classList.toggle("active");
+            toggleCardStar(activityID, isActive);
+            console.error("Failed to toggle favourite:", err);
+        }
     });
 }
 
@@ -366,10 +370,16 @@ async function openPopup2(activityID, activityData) {
         e.preventDefault();
         e.stopPropagation();
         const active = favBtn.classList.contains("active");
+        favBtn.classList.toggle("active");
+        toggleCardStar(activityID, !active);
         try {
-            if (active) { await removeFavourite(activityID); favBtn.classList.remove("active"); toggleCardStar(activityID, false); }
-            else { await addFavourite(activityID); favBtn.classList.add("active"); toggleCardStar(activityID, true); }
-        } catch {}
+            if (active) { await removeFavourite(activityID); }
+            else { await addFavourite(activityID); }
+        } catch (err) {
+            favBtn.classList.toggle("active");
+            toggleCardStar(activityID, active);
+            console.error("Failed to toggle favourite:", err);
+        }
     });
 }
 
@@ -408,7 +418,9 @@ async function syncCardFavourites() {
     try {
         const { activities } = await getFavourites();
         (activities || []).forEach(a => toggleCardStar(a.activityID, true));
-    } catch {}
+    } catch (err) {
+        console.error("Failed to sync favourites:", err);
+    }
 }
 
 function buildPopupHTML(a, backText) {
@@ -521,7 +533,9 @@ async function showFavourites() {
         activities.forEach((a, i) => {
             cards[i]?.addEventListener("click", () => openPopup2(a.activityID, a));
         });
-    } catch {}
+    } catch (err) {
+        console.error("Failed to show favourites:", err);
+    }
 }
 
 function buildFavouritesHTML(activities) {
