@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser, setUser } from "../lib/session.js";
-import { getParticipatedActivities, changeInfo, getFavourites } from "../api/user.js";
+import { changeInfo, getFavourites, getUserContribution } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
 import {
     getActivityById, participateActivity,
@@ -22,8 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadFooter();
     await initChatbot();
     await loadUserProfile();
-    await loadParticipatedActivities();
-    renderExpPanel();
+    await renderContribPanel();
     initEditProfile();
 });
 
@@ -89,51 +88,7 @@ function updateEditButton(user) {
     }
 }
 
-async function loadParticipatedActivities() {
-    const list = document.getElementById("activity-list");
-    const countEl = document.getElementById("stats-count");
 
-    try {
-        const { activities } = await getParticipatedActivities();
-        list.innerHTML = "";
-
-        if (!activities || activities.length === 0) {
-            list.innerHTML = `<div class="empty-state">No participated activities yet.</div>`;
-            countEl.textContent = "0";
-            return;
-        }
-
-        countEl.textContent = activities.length;
-
-        activities.forEach(a => {
-            const held = a.heldDate ? new Date(a.heldDate).toLocaleDateString("en-US", {
-                year: "numeric", month: "short", day: "numeric"
-            }) : "TBD";
-
-            const card = document.createElement("div");
-            card.className = "activity-card";
-            card.dataset.id = a.activityID;
-            card.innerHTML = `
-                <div class="activity-thumb">
-                    ${a.thumbnail ? `<img src="${a.thumbnail}" alt="${a.title}">` : `<i class="fa-regular fa-image"></i>`}
-                </div>
-                <div class="activity-body">
-                    <div class="activity-meta">
-                        <span class="activity-type">${capitalize(a.type)}</span>
-                        <span class="activity-date">${held}</span>
-                    </div>
-                    <div class="activity-title">${a.title}</div>
-                    <div class="activity-location"><i class="fa-solid fa-location-dot"></i> ${a.location}</div>
-                </div>
-            `;
-            card.addEventListener("click", () => openPopup(a.activityID));
-            list.appendChild(card);
-        });
-    } catch (err) {
-        console.error("Load participated activities error:", err);
-        list.innerHTML = `<div class="empty-state">Failed to load activities.</div>`;
-    }
-}
 
 /* =========================
    POPUP
@@ -225,7 +180,6 @@ function initParticipateButton(activityID) {
                 button.classList.remove("active");
                 button.querySelector(".participate-header").textContent = "PARTICIPATE";
                 button.querySelector(".participate-text").textContent = "Join this activity";
-                removeActivityCard(activityID);
             } else {
                 await participateActivity(activityID);
                 button.classList.add("active");
@@ -303,21 +257,9 @@ function buildPopupHTML(a) {
     </div>`;
 }
 
-function removeActivityCard(activityID) {
-    const card = document.querySelector(`.activity-card[data-id="${activityID}"]`);
-    if (card) {
-        card.remove();
-        const remaining = document.querySelectorAll(".activity-card").length;
-        document.getElementById("stats-count").textContent = remaining;
-        if (remaining === 0) {
-            document.getElementById("activity-list").innerHTML = `<div class="empty-state">No participated activities yet.</div>`;
-        }
-    }
-}
-
 /* =========================
    FAVOURITES POPUP
-========================= */
+   ========================= */
 
 async function showFavPopup() {
     try {
@@ -444,10 +386,10 @@ async function handleEditSubmit(e) {
 }
 
 /* =========================
-   EXP PANEL
+   CONTRIBUTION PANEL
    ========================= */
 
-const EXP_LEVELS = [
+const CONTRIB_LEVELS = [
   { level: 1, min: 0, max: 99 },
   { level: 2, min: 100, max: 249 },
   { level: 3, min: 250, max: 499 },
@@ -456,66 +398,193 @@ const EXP_LEVELS = [
   { level: 6, min: 2000, max: Infinity },
 ];
 
-function calcLevel(exp) {
-  for (const l of EXP_LEVELS) {
-    if (exp >= l.min && exp <= l.max) {
+function calcContribLevel(score) {
+  for (const l of CONTRIB_LEVELS) {
+    if (score >= l.min && score <= l.max) {
       const range = l.max === Infinity ? l.min : l.max - l.min + 1;
-      const progress = l.max === Infinity ? 1 : (exp - l.min) / range;
-      return { level: l.level, current: exp - l.min, next: l.max === Infinity ? null : range, progress: Math.min(progress, 1) };
+      const progress = l.max === Infinity ? 1 : (score - l.min) / range;
+      return { level: l.level, current: score - l.min, next: l.max === Infinity ? null : range, progress: Math.min(progress, 1) };
     }
   }
   return { level: 1, current: 0, next: 100, progress: 0 };
 }
 
-function renderExpPanel() {
+function computeLocalBadges(user, c) {
+  const badges = [];
+  if (user && user.dob && user.school) badges.push("hello_world");
+  if (c.repliesGiven >= 1) badges.push("talk_is_silver");
+  if (c.discussionsStarted >= 1) badges.push("so_it_begins");
+  if (c.discussionsStarted >= 5) badges.push("conversation_starter");
+  if (c.repliesGiven >= 10) badges.push("helper");
+  if (c.repliesGiven >= 50) badges.push("chatterbox");
+  if (c.likesReceived >= 20) badges.push("respected");
+  if (c.likesReceived >= 50) badges.push("the_oracle");
+  if (c.discussionsStarted >= 20) badges.push("trendsetter");
+  if (c.score >= 100) badges.push("community_star");
+  if (c.repliesGiven >= 100) badges.push("keyboard_warrior");
+  if (c.score >= 1000) badges.push("mentor");
+  if (c.score >= 2000) badges.push("the_sage");
+  if (c.repliesGiven > c.discussionsStarted * 10 && c.discussionsStarted > 0) badges.push("one_man_show");
+  if (c.discussionsStarted <= 3 && c.discussionsStarted > 0 && c.likesReceived >= c.discussionsStarted * 5) badges.push("quality_over_quantity");
+  return badges;
+}
+
+const ALL_BADGES = [
+  // ── Newbie Tier ──
+  { key: "hello_world",        label: "Hello World",        icon: "gesture",         desc: "Created your account — \"You exist. That's the first step.\"" },
+  { key: "talk_is_silver",     label: "Talk is Silver",     icon: "comment",         desc: "Wrote your first reply — \"You said something. The internet is proud.\"" },
+  { key: "so_it_begins",       label: "So It Begins",       icon: "rocket_launch",   desc: "Started your first discussion — \"Another thread joins the infinite void.\"" },
+  { key: "self_discovery",     label: "Self-Discovery",     icon: "psychology",      desc: "Completed the personality quiz — \"You stared into the quiz, and the quiz stared back.\"" },
+
+  // ── Community Contributor ──
+  { key: "conversation_starter", label: "Conversation Starter", icon: "chat",       desc: "Started 5 discussions — \"You're basically a talk show host now.\"" },
+  { key: "helper",               label: "Helper",                icon: "forum",      desc: "Wrote 10 replies — \"Your keyboard should be a registered charity.\"" },
+  { key: "chatterbox",           label: "Chatterbox",            icon: "speaker_notes", desc: "Wrote 50 replies — \"Do you ever sleep? Do you ever stop typing?\"" },
+  { key: "respected",            label: "Respected",             icon: "thumb_up",   desc: "Received 20 likes — \"People approve of your existence. Digitally, at least.\"" },
+
+  // ── Community Leader ──
+  { key: "the_oracle",         label: "The Oracle",          icon: "auto_awesome",   desc: "Received 50 likes — \"You don't give advice. You drop prophecies.\"" },
+  { key: "trendsetter",        label: "Trendsetter",         icon: "waves",          desc: "Started 20 discussions — \"You're not following trends. You're creating them.\"" },
+  { key: "community_star",     label: "Community Star",      icon: "stars",          desc: "Reached 100 contribution score — \"You're basically the main character now.\"" },
+  { key: "keyboard_warrior",   label: "Keyboard Warrior",    icon: "keyboard",       desc: "Wrote 100 replies — \"Your keyboard has seen things. Horrible, wonderful things.\"" },
+
+  // ── Legendary ──
+  { key: "mentor",             label: "Mentor",              icon: "school",         desc: "Reached Level 5 — \"You have ascended. Use your power wisely.\"" },
+  { key: "the_sage",           label: "The Sage",            icon: "emoji_objects",  desc: "Reached Level 6 — \"You are the final boss of this community.\"" },
+  { key: "one_man_show",       label: "One-Man Show",        icon: "theater_comedy", desc: "10x more replies than discussions started — \"Ever considered podcasting?\"" },
+  { key: "quality_over_quantity", label: "Quality > Quantity", icon: "target",       desc: "Started ≤ 3 discussions yet each got 5+ likes — \"You barely speak, but when you do, people listen.\"" },
+];
+
+async function renderContribPanel() {
   const container = document.getElementById("exp-list");
   if (!container) return;
 
-  const expData = [
-    { key: "communication", name: "Communication", exp: 420, color: "communication", icon: "forum" },
-    { key: "technical", name: "Technical", exp: 180, color: "technical", icon: "code" },
-    { key: "creativity", name: "Creativity", exp: 680, color: "creativity", icon: "palette" },
-    { key: "social", name: "Social Impact", exp: 45, color: "social", icon: "volunteer_activism" },
-  ];
+  let data;
+  try {
+    data = await getUserContribution();
+  } catch {
+    data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, badges: [] } };
+  }
 
-  const dotColors = {
-    communication: "#3B82F6", technical: "#8B5CF6",
-    creativity: "#F59E0B", social: "#10B981",
-  };
+  const c = data.contribution;
+  const user = getUser();
+  const serverBadges = c.badges || [];
+  const localBadges = computeLocalBadges(user, c);
+  const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
+  const earnedKeys = new Set(mergedBadges);
 
-  container.innerHTML = expData.map((cat) => {
-    const { level, current, next, progress } = calcLevel(cat.exp);
-    const nextLabel = next !== null ? `${current} / ${next} EXP` : `${cat.exp} EXP (Max)`;
-    const pct = Math.round(progress * 100);
-    const dotColor = dotColors[cat.color] || "#3B82F6";
+  const stored = localStorage.getItem("springwave_badges");
+  const prevBadges = stored ? JSON.parse(stored) : [];
+  const newBadges = mergedBadges.filter(k => !prevBadges.includes(k));
+  localStorage.setItem("springwave_badges", JSON.stringify(mergedBadges));
 
-    return `
-      <div class="exp-category">
-        <div class="exp-header">
-          <span class="exp-label">
-            <span class="exp-icon-wrap" style="color: ${dotColor};">
-              <span class="material-symbols-outlined" style="font-size:20px">${cat.icon}</span>
-            </span>
-            ${cat.name}
+  if (newBadges.length > 0) {
+    setTimeout(() => {
+      newBadges.forEach(key => {
+        const meta = ALL_BADGES.find(b => b.key === key);
+        if (meta) showBadgeToast(meta);
+      });
+    }, 800);
+  }
+
+  const { level, current, next, progress } = calcContribLevel(c.score);
+  const pct = Math.round(progress * 100);
+  const nextLabel = next !== null ? `${current} / ${next} pts` : `${c.score} pts (Max)`;
+
+  container.innerHTML = `
+    <div class="exp-category">
+      <div class="exp-header">
+        <span class="exp-label">
+          <span class="exp-icon-wrap" style="color:#23499b;">
+            <span class="material-symbols-outlined" style="font-size:20px">diversity_3</span>
           </span>
-          <span class="exp-level ${cat.color}">Lv.${level}</span>
-        </div>
-        <div class="exp-track">
-          <div class="exp-fill ${cat.color} animated" data-pct="${pct}"></div>
-        </div>
-        <div class="exp-info">
-          <span class="exp-numbers">${cat.exp} EXP</span>
-          <span class="exp-next">${nextLabel}</span>
-        </div>
+          Contribution Score
+        </span>
+        <span class="exp-level communication" style="background:rgba(35,73,155,0.1);color:#23499b;">Lv.${level}</span>
       </div>
-    `;
-  }).join("");
+      <div class="exp-track">
+        <div class="exp-fill communication animated" data-pct="${pct}" style="background:linear-gradient(90deg,#23499b,#5b8def);"></div>
+      </div>
+      <div class="exp-info">
+        <span class="exp-numbers">${c.score} pts</span>
+        <span class="exp-next">${nextLabel}</span>
+      </div>
+    </div>
 
-  // Animate bars after DOM insert
+    <div class="contrib-stats">
+      <div class="contrib-stat">
+        <span class="contrib-stat-icon material-symbols-outlined">chat</span>
+        <span class="contrib-stat-value">${c.discussionsStarted}</span>
+        <span class="contrib-stat-label">Discussions</span>
+      </div>
+      <div class="contrib-stat">
+        <span class="contrib-stat-icon material-symbols-outlined">forum</span>
+        <span class="contrib-stat-value">${c.repliesGiven}</span>
+        <span class="contrib-stat-label">Replies</span>
+      </div>
+      <div class="contrib-stat">
+        <span class="contrib-stat-icon material-symbols-outlined">thumb_up</span>
+        <span class="contrib-stat-value">${c.likesReceived}</span>
+        <span class="contrib-stat-label">Likes</span>
+      </div>
+    </div>
+  `;
+
   requestAnimationFrame(() => {
-    container.querySelectorAll(".exp-fill").forEach((bar) => {
-      const pct = bar.dataset.pct;
-      if (pct) bar.style.width = pct + "%";
-    });
+    const bar = container.querySelector(".exp-fill");
+    if (bar) bar.style.width = bar.dataset.pct + "%";
   });
+
+  renderBadgesPanel(earnedKeys);
+}
+
+function renderBadgesPanel(earnedKeys) {
+  const grid = document.getElementById("badges-grid");
+  if (!grid) return;
+
+  grid.innerHTML = `
+    <div class="badges-all">
+      ${ALL_BADGES.map(b => {
+        const earned = earnedKeys.has(b.key);
+        return `
+          <div class="badge-card ${earned ? "earned" : "locked"}">
+            <div class="badge-icon-wrap ${earned ? "earned" : "locked"}">
+              <span class="material-symbols-outlined badge-icon">${b.icon}</span>
+            </div>
+            <div class="badge-info">
+              <span class="badge-label">${b.label}</span>
+              <span class="badge-desc">${b.desc}</span>
+            </div>
+            ${earned ? '<span class="badge-check material-symbols-outlined">check_circle</span>' : '<span class="badge-lock material-symbols-outlined">lock</span>'}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function showBadgeToast(badge) {
+  const existing = document.querySelectorAll(".badge-toast");
+  const offset = existing.length * 80;
+
+  const toast = document.createElement("div");
+  toast.className = "badge-toast";
+  toast.style.bottom = `${24 + offset}px`;
+  toast.innerHTML = `
+    <div class="badge-toast-icon">
+      <span class="material-symbols-outlined">${badge.icon}</span>
+    </div>
+    <div class="badge-toast-body">
+      <span class="badge-toast-heading">New Badge Earned!</span>
+      <span class="badge-toast-label">${badge.label}</span>
+    </div>
+  `;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add("show"));
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 4500);
 }

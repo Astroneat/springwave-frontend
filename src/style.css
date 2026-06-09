@@ -3683,6 +3683,124 @@
 }
 
 /* =========================
+   CONTRIBUTION STATS
+   ========================= */
+
+.contrib-stats {
+    @apply flex gap-3 mt-4;
+}
+
+.contrib-stat {
+    @apply flex-1 flex flex-col items-center gap-0.5 p-2.5 rounded-xl;
+    background: rgba(0,0,0,0.03);
+}
+
+.contrib-stat-icon {
+    font-size: 20px;
+    color: #23499b;
+}
+
+.contrib-stat-value {
+    @apply text-lg font-bold;
+    color: #1e293b;
+}
+
+.contrib-stat-label {
+    @apply text-xs;
+    color: #64748b;
+}
+
+.contrib-badges {
+    @apply flex flex-wrap gap-2 mt-4;
+}
+
+.contrib-badge {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full;
+    background: rgba(35, 73, 155, 0.08);
+    color: #23499b;
+}
+
+.contrib-badge-icon {
+    font-size: 14px;
+}
+
+.contrib-empty-hint {
+    @apply text-xs text-center mt-4;
+    color: #94a3b8;
+}
+
+/* =========================
+   BADGES PANEL
+   ========================= */
+
+.badges-all {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
+}
+
+.badge-card {
+    @apply flex items-center gap-3 p-4 rounded-xl transition-all duration-200;
+    background: rgba(0,0,0,0.03);
+}
+
+.badge-card.earned {
+    background: rgba(35, 73, 155, 0.06);
+    border: 1px solid rgba(35, 73, 155, 0.15);
+}
+
+.badge-card.locked {
+    opacity: 0.55;
+}
+
+.badge-icon-wrap {
+    @apply w-11 h-11 rounded-xl flex items-center justify-center shrink-0;
+    background: rgba(35, 73, 155, 0.1);
+    color: #23499b;
+}
+
+.badge-icon-wrap.locked {
+    background: rgba(0,0,0,0.06);
+    color: #94a3b8;
+}
+
+.badge-icon {
+    font-size: 22px;
+}
+
+.badge-info {
+    @apply flex flex-col flex-1 min-w-0;
+}
+
+.badge-label {
+    @apply text-sm font-semibold;
+    color: #1e293b;
+}
+
+.badge-card.locked .badge-label {
+    color: #94a3b8;
+}
+
+.badge-desc {
+    @apply text-xs;
+    color: #64748b;
+}
+
+.badge-check {
+    font-size: 20px;
+    color: #16a34a;
+}
+
+.badge-lock {
+    font-size: 18px;
+    color: #94a3b8;
+}
+
+.badges-subtitle {
+    @apply text-sm mb-5;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* =========================
    COMMUNITY FORUM
    ========================= */
 
@@ -5052,4 +5170,167 @@
 
 .quiz-container .hidden {
     display: none !important;
+}
+
+/* =========================
+   BADGE TOAST
+   ========================= */
+
+.badge-toast {
+    position: fixed;
+    right: 24px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 9999;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+    border-left: 4px solid #23499b;
+    min-width: 260px;
+}
+
+.badge-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.badge-toast-icon {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center shrink-0;
+    background: rgba(35, 73, 155, 0.1);
+    color: #23499b;
+}
+
+.badge-toast-icon .material-symbols-outlined {
+    font-size: 22px;
+}
+
+.badge-toast-body {
+    @apply flex flex-col;
+}
+
+.badge-toast-heading {
+    @apply text-xs font-bold uppercase tracking-wide;
+    color: #23499b;
+}
+
+.badge-toast-label {
+    @apply text-sm font-semibold;
+    color: #1e293b;
+}
+
+/* =========================
+   NOTIFICATION DROPDOWN
+   ========================= */
+
+#notif-dropdown {
+    @apply hidden;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 80px;
+    z-index: 9999;
+}
+
+#notif-dropdown.active {
+    @apply block;
+}
+
+.notif-dropdown-menu {
+    @apply bg-white rounded-2xl overflow-hidden;
+    width: 360px;
+    max-height: 420px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.notif-header {
+    @apply flex items-center justify-between px-5 py-3;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.notif-header-title {
+    @apply text-sm font-bold;
+    color: #1e293b;
+}
+
+.notif-mark-all {
+    @apply text-xs font-semibold bg-transparent border-none cursor-pointer;
+    color: #23499b;
+}
+
+.notif-mark-all:hover {
+    text-decoration: underline;
+}
+
+.notif-list {
+    @apply overflow-y-auto;
+    max-height: 360px;
+}
+
+.notif-item {
+    @apply flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors duration-150;
+}
+
+.notif-item:hover {
+    background: rgba(0,0,0,0.02);
+}
+
+.notif-item.unread {
+    background: rgba(35, 73, 155, 0.04);
+}
+
+.notif-item-icon {
+    @apply w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5;
+    background: rgba(35, 73, 155, 0.1);
+    color: #23499b;
+}
+
+.notif-item-icon .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.notif-item-body {
+    @apply flex flex-col flex-1 min-w-0;
+}
+
+.notif-item-msg {
+    @apply text-sm leading-snug;
+    color: #1e293b;
+}
+
+.notif-item.unread .notif-item-msg {
+    font-weight: 600;
+}
+
+.notif-item-time {
+    @apply text-xs mt-0.5;
+    color: #94a3b8;
+}
+
+.notif-unread-dot {
+    @apply w-2 h-2 rounded-full shrink-0 mt-2;
+    background: #23499b;
+}
+
+.notif-empty {
+    @apply flex flex-col items-center gap-2 py-10 text-sm;
+    color: #94a3b8;
+}
+
+.notif-empty-icon {
+    font-size: 36px;
+    color: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+    #notif-dropdown {
+        right: 12px;
+    }
+    .notif-dropdown-menu {
+        width: 300px;
+    }
 }

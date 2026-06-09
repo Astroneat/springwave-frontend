@@ -18,6 +18,8 @@ import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { getActivityById, getActivities } from "../api/activities.js";
+import { grantContribution } from "../api/user.js";
+import { addBadgeNotification } from "../lib/notifications.js";
 import { CDN_DOMAIN } from "../config.js";
 
 const CATEGORIES = {
@@ -484,6 +486,11 @@ function submitDiscussionComment(id, container) {
   const text = input.value.trim();
   if (!text) return;
   addComment(id, text);
+  grantContribution("reply").then((res) => {
+    if (res && res.newBadges && Array.isArray(res.newBadges)) {
+      res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+    }
+  }).catch(() => {});
   input.value = "";
   const comments = getComments(id);
   const list = container.querySelector(".discussion-detail-comments");
@@ -696,6 +703,11 @@ function initPostModal() {
         document.getElementById("postTitle")?.focus();
         return;
       }
+      grantContribution("discussion").then((res) => {
+        if (res && res.newBadges && Array.isArray(res.newBadges)) {
+          res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+        }
+      }).catch(() => {});
       close();
       document.getElementById("postTitle").value = "";
       document.getElementById("postContent").value = "";

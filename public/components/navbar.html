@@ -22,9 +22,11 @@
 
       <!-- AUTH RIGHT -->
       <div class="flex items-center gap-3">
-        <div class="hidden flex items-center justify-center w-[52px] h-[52px] rounded-full mr-4 hover:bg-[#23499b]/10 hover:scale-110 transition-all duration-200 cursor-pointer" id="bell-icon">
+        <div class="hidden relative flex items-center justify-center w-[52px] h-[52px] rounded-full mr-4 hover:bg-[#23499b]/10 hover:scale-110 transition-all duration-200 cursor-pointer" id="bell-icon">
             <i class="fa-solid fa-bell text-[#23499b] text-[30px]"></i>
+            <span class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center hidden" id="bell-count">0</span>
         </div>
+        <div class="hidden" id="notif-dropdown"></div>
         <div id="auth-section" class="flex items-center gap-3">
           <!-- Populated dynamically by JS -->
         </div>

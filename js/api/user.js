@@ -30,3 +30,11 @@ export function checkFavourite(id) {
 export function getFavourites() {
     return get("/user/favorites").then(normalizeFavEvents);
 }
+
+export function getUserContribution() {
+    return get("/user/contribution");
+}
+
+export function grantContribution(action) {
+    return post("/user/contribution/grant", { action });
+}
