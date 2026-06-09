@@ -6,12 +6,11 @@ const discussions = [
     avatar: "M",
     title: "Anyone joining AI Hackathon 2026?",
     preview: "Looking for teammates interested in NLP and computer vision. Let's form a team and build something amazing together!",
-    category: "event",
+    category: "general",
     tags: ["AI", "Hackathon", "Team Building"],
     replies: 12,
     views: 234,
     lastActivity: "2h ago",
-    relatedEvent: 1,
   },
   {
     id: 2,
@@ -46,12 +45,11 @@ const discussions = [
     avatar: "L",
     title: "Volunteer Program at Green City Project",
     preview: "Anyone participated in the Green City volunteering program? Would love to hear about your experience!",
-    category: "event",
+    category: "general",
     tags: ["Volunteer", "Environment", "Community"],
     replies: 6,
     views: 89,
     lastActivity: "3h ago",
-    relatedEvent: 3,
   },
   {
     id: 5,
@@ -191,12 +189,12 @@ export function getAISuggestions() {
 
 export function getDiscussionsByCategory(category) {
   if (category === "all") return [...discussions];
-  if (category === "uni" || category === "mine" || category === "saved") return [];
+  if (category === "event" || category === "uni" || category === "mine" || category === "saved") return [];
   return discussions.filter((d) => d.category === category);
 }
 
 export function getEventById(id) {
-  return upcomingEvents.find((e) => e.id === id) || null;
+  return upcomingEvents.find((e) => String(e.id) === String(id)) || null;
 }
 
 export function getEvents() {

@@ -14,7 +14,7 @@ import {
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
-import { getActivityById } from "../api/activities.js";
+import { getActivityById, getActivities } from "../api/activities.js";
 import { CDN_DOMAIN } from "../config.js";
 
 const CATEGORIES = {
@@ -32,6 +32,52 @@ function getCategoryFromURL() {
   return cat && CATEGORIES[cat] ? cat : "all";
 }
 
+const MAX_EVENT_DISCUSSIONS = 20;
+
+async function getEventDiscussions() {
+  try {
+    const { activities } = await getActivities();
+    if (!activities || activities.length === 0) return [];
+    return activities.slice(0, MAX_EVENT_DISCUSSIONS).map(eventToDiscussion);
+  } catch {
+    const events = getEvents();
+    if (events.length === 0) return [];
+    return events.map((e) => ({
+      id: e.id,
+      author: "SpringWave",
+      university: "",
+      avatar: "S",
+      title: e.title,
+      preview: `Join the discussion about ${e.title}! Share your thoughts and connect with other attendees.`,
+      category: "event",
+      tags: ["event"],
+      replies: 0,
+      views: 0,
+      lastActivity: e.date,
+      relatedEvent: e.id,
+      _event: { title: e.title, date: e.date, attendees: e.attendees },
+    }));
+  }
+}
+
+function eventToDiscussion(event) {
+  return {
+    id: event.activityID || event._id,
+    author: event.hostName || "SpringWave",
+    university: event.location || "",
+    avatar: (event.hostName || "S")[0],
+    title: event.title,
+    preview: (event.description || "").slice(0, 120) + ((event.description || "").length > 120 ? "..." : ""),
+    category: "event",
+    tags: [event.type || "event"],
+    replies: event.participants || 0,
+    views: 0,
+    lastActivity: event.heldDate ? formatDate(event.heldDate) : "Upcoming",
+    relatedEvent: event.activityID || event._id,
+    _event: { title: event.title, date: event.heldDate, attendees: event.participants || 0 },
+  };
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar();
   initBasicScroll();
@@ -43,7 +89,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateHero(category);
   showSections(category);
 
-  const discussions = getDiscussionsByCategory(category);
+  let discussions;
+  if (category === "event") {
+    discussions = await getEventDiscussions();
+  } else {
+    discussions = getDiscussionsByCategory(category);
+  }
   renderDiscussions(discussions, category);
 
   if (category === "all" || category === "uni") {
@@ -266,7 +317,7 @@ function renderDiscussions(discussions, category) {
   container.innerHTML = discussions
     .map(
       (d) => {
-        const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent) : "";
+        const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
         return `
     <div class="forum-discussion-card">
       <div class="forum-discussion-card-header">
@@ -314,11 +365,11 @@ function renderDiscussions(discussions, category) {
     .join("");
 }
 
-function renderEventRef(eventId) {
-  const event = getEventById(eventId);
+function renderEventRef(eventId, eventData) {
+  const event = eventData || getEventById(eventId);
   if (!event) return "";
   return `
-    <div class="forum-event-ref" data-event-id="${event.id}">
+    <div class="forum-event-ref" data-event-id="${eventId}">
       <div class="forum-event-ref-icon">
         <span class="material-symbols-outlined">event</span>
       </div>
@@ -534,7 +585,7 @@ function initEventDetailPopup() {
   document.addEventListener("click", (e) => {
     const ref = e.target.closest(".forum-event-ref");
     if (!ref) return;
-    const eventId = parseInt(ref.dataset.eventId);
+    const eventId = ref.dataset.eventId;
     if (eventId) open(eventId);
   });
 }
