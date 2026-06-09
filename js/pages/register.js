@@ -15,22 +15,34 @@ function initRegisterForm() {
 
     async function handleSubmit(event) {
         event.preventDefault();
-        const username = document.getElementById("username").value.trim();
-        const email = document.getElementById("email").value.trim();
         const firstName = document.getElementById("first-name").value.trim();
         const lastName = document.getElementById("last-name").value.trim();
-        const fullname = firstName + " " + lastName;
-        const password = document.getElementById("password").value.trim();
+        const data = {
+            username: document.getElementById("username").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            fullname: firstName + " " + lastName,
+            password: document.getElementById("password").value.trim(),
+        };
         const confirmPassword = document.getElementById("confirm-password").value.trim();
+        const dob = document.getElementById("dob")?.value;
+        const school = document.getElementById("school")?.value.trim();
+        const className = document.getElementById("class")?.value.trim();
+        const major = document.getElementById("major")?.value.trim();
+        const phoneNo = document.getElementById("phoneNo")?.value.trim();
+        if (dob) data.dob = dob;
+        if (school) data.school = school;
+        if (className) data.class = className;
+        if (major) data.major = major;
+        if (phoneNo) data.phoneNo = phoneNo;
 
-        if(password !== confirmPassword) {
+        if(data.password !== confirmPassword) {
             setStatus("Passwords do not match.", true);
             return;
         }
 
         setStatus("Registering...", false);
         try {
-            await register(username, password, fullname, email);
+            await register(data);
             setStatus("Registered successfully! Redirecting to login...", false);
             window.location.href = "/login.html";
         } catch (err) {

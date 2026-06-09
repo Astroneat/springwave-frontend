@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpringWave - AI Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body class="bg-[#f8fafc] text-on-surface font-body-md min-h-screen">
+
+  <div id="navbar-container"></div>
+
+  <main class="quiz-page">
+    <div class="quiz-container" id="quizContainer">
+      <div class="quiz-card" id="quizStart">
+        <div class="quiz-start-icon">
+          <span class="material-symbols-outlined">psychology</span>
+        </div>
+        <h1 class="quiz-start-title">Discover Your Perfect Activities</h1>
+        <p class="quiz-start-desc">
+          Answer 10 quick questions to get AI-powered activity recommendations tailored to you.
+        </p>
+        <div class="quiz-start-features">
+          <div class="quiz-start-feature">
+            <span class="material-symbols-outlined">quiz</span>
+            <span>10 questions</span>
+          </div>
+          <div class="quiz-start-feature">
+            <span class="material-symbols-outlined">timer</span>
+            <span>2-3 min</span>
+          </div>
+          <div class="quiz-start-feature">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <span>AI results</span>
+          </div>
+        </div>
+        <button class="quiz-btn-primary" id="quizStartBtn">
+          <span class="material-symbols-outlined">play_arrow</span>
+          Start Quiz
+        </button>
+      </div>
+
+      <div class="quiz-card hidden" id="quizQuestion">
+        <div class="quiz-progress">
+          <div class="quiz-progress-bar" id="quizProgressBar"></div>
+          <span class="quiz-progress-text" id="quizProgressText">1 / 10</span>
+        </div>
+        <div class="quiz-question-header">
+          <span class="quiz-question-number" id="questionNumber">Question 1</span>
+          <span class="quiz-category-badge" id="questionCategory">Preferences</span>
+        </div>
+        <h2 class="quiz-question-title" id="questionTitle">Loading...</h2>
+        <div class="quiz-answers" id="quizAnswers"></div>
+        <div class="quiz-nav">
+          <button class="quiz-btn-nav hidden" id="quizPrevBtn">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Previous
+          </button>
+          <div></div>
+          <button class="quiz-btn-nav quiz-btn-next" id="quizNextBtn" disabled>
+            Next
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="quiz-card hidden" id="quizResult">
+        <div class="quiz-result-icon">
+          <span class="material-symbols-outlined">auto_awesome</span>
+        </div>
+        <h1 class="quiz-result-title">Your Personality Profile</h1>
+        <p class="quiz-result-desc">Based on your responses, here's how you score across four key areas.</p>
+
+        <div class="quiz-scores" id="quizScores"></div>
+
+        <div class="quiz-suggestions" id="quizSuggestions"></div>
+
+        <div class="quiz-result-actions">
+          <button class="quiz-btn-primary" id="quizExploreBtn">
+            <span class="material-symbols-outlined">explore</span>
+            Explore Recommended Activities
+          </button>
+          <button class="quiz-btn-secondary" id="quizRetakeBtn">
+            <span class="material-symbols-outlined">replay</span>
+            Retake Quiz
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container"></div>
+  <div id="chatbot-container"></div>
+
+  <script type="module" src="js/pages/quiz.js"></script>
+</body>
+</html>

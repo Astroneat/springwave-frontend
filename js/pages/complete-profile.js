@@ -18,12 +18,24 @@ function initCompleteProfileForm() {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const username = document.getElementById("username").value.trim();
+        const data = {
+            username: document.getElementById("username").value.trim(),
+            dob: document.getElementById("dob").value,
+            school: document.getElementById("school").value.trim(),
+            class: document.getElementById("class").value.trim(),
+            major: document.getElementById("major").value.trim(),
+            phoneNo: document.getElementById("phoneNo").value.trim(),
+        };
+
+        if (!data.username || !data.dob || !data.school || !data.class || !data.major || !data.phoneNo) {
+            setStatus("Please fill in all fields.", true);
+            return;
+        }
 
         setStatus("Saving...", false);
         try {
-            const data = await completeProfile({ username });
-            createSession(getToken(), data.user);
+            const result = await completeProfile(data);
+            createSession(getToken(), result.user);
             setStatus("Profile completed! Redirecting...", false);
             window.location.href = "/index.html";
         } catch (err) {

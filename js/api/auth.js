@@ -8,14 +8,8 @@ export function login(username, password) {
     );
 }
 
-export function register(username, password, fullname, email) {
-    return post("/auth/register", {
-            username, 
-            password, 
-            fullname, 
-            email
-        }
-    );
+export function register(data) {
+    return post("/auth/register", data);
 }
 
 export function getCurrentUser() {
