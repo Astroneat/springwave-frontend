@@ -6,7 +6,7 @@ const discussions = [
     avatar: "M",
     title: "Anyone joining AI Hackathon 2026?",
     preview: "Looking for teammates interested in NLP and computer vision. Let's form a team and build something amazing together!",
-    category: "event",
+    category: "general",
     tags: ["AI", "Hackathon", "Team Building"],
     replies: 12,
     views: 234,
@@ -45,7 +45,7 @@ const discussions = [
     avatar: "L",
     title: "Volunteer Program at Green City Project",
     preview: "Anyone participated in the Green City volunteering program? Would love to hear about your experience!",
-    category: "event",
+    category: "general",
     tags: ["Volunteer", "Environment", "Community"],
     replies: 6,
     views: 89,
@@ -189,5 +189,57 @@ export function getAISuggestions() {
 
 export function getDiscussionsByCategory(category) {
   if (category === "all") return [...discussions];
+  if (category === "event" || category === "uni" || category === "mine" || category === "saved") return [];
   return discussions.filter((d) => d.category === category);
+}
+
+export function getEventById(id) {
+  return upcomingEvents.find((e) => String(e.id) === String(id)) || null;
+}
+
+export function getEvents() {
+  return [...upcomingEvents];
+}
+
+const comments = [
+  { id: 1, discussionId: 1, author: "Quang Huy", avatar: "Q", content: "Count me in! I have experience with NLP from my university projects. Let me know if you need any help.", date: "1h ago", likes: 5 },
+  { id: 2, discussionId: 1, author: "Mai Lan", avatar: "M", content: "Great initiative! I'm also looking for a team. My strength is computer vision and image processing.", date: "45m ago", likes: 3 },
+  { id: 3, discussionId: 1, author: "Anh Khoa", avatar: "A", content: "I'd love to join too! I can handle the backend and API integration part.", date: "30m ago", likes: 2 },
+  { id: 4, discussionId: 2, author: "Bao Tran", avatar: "B", content: "Startup competitions are all about execution. Focus on your MVP and customer validation first.", date: "4h ago", likes: 8 },
+  { id: 5, discussionId: 2, author: "Duc Minh", avatar: "D", content: "I recommend using the Business Model Canvas — it really helps structure your pitch.", date: "3h ago", likes: 6 },
+  { id: 6, discussionId: 2, author: "Hoang Nguyen", avatar: "H", content: "Practice your pitch in front of friends first. Get feedback and iterate quickly!", date: "2h ago", likes: 4 },
+  { id: 7, discussionId: 3, author: "Thao Vy", avatar: "T", content: "First year is the best time to explore! Try joining clubs, attending workshops, and networking.", date: "12h ago", likes: 10 },
+  { id: 8, discussionId: 3, author: "Cong Dat", avatar: "C", content: "Don't stress too much. Focus on your studies first, then look for extracurriculars that interest you.", date: "10h ago", likes: 7 },
+  { id: 9, discussionId: 4, author: "Kim Ngan", avatar: "K", content: "I participated last year! It was an amazing experience. The organizing team was very supportive.", date: "2h ago", likes: 4 },
+  { id: 10, discussionId: 5, author: "Tuan Anh", avatar: "T", content: "Check out the UI/UX Design course on Coursera — it's free for students!", date: "5h ago", likes: 6 },
+  { id: 11, discussionId: 6, author: "Minh Thu", avatar: "M", content: "Join the International Student Club at your university. It's a great way to meet people!", date: "3h ago", likes: 5 },
+];
+
+export function getComments(discussionId) {
+  return comments.filter((c) => String(c.discussionId) === String(discussionId));
+}
+
+export function getTopComment(discussionId) {
+  const discComments = comments.filter((c) => c.discussionId === discussionId);
+  if (discComments.length === 0) return null;
+  return discComments.reduce((best, c) => (c.likes > best.likes ? c : best));
+}
+
+export function addComment(discussionId, content) {
+  const user = (() => {
+    try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
+  })();
+  const newComment = {
+    id: comments.length + 1,
+    discussionId,
+    author: user.name || "You",
+    avatar: (user.name || "Y")[0],
+    content,
+    date: "Just now",
+    likes: 0,
+  };
+  comments.push(newComment);
+  const disc = discussions.find((d) => d.id === discussionId);
+  if (disc) disc.replies++;
+  return newComment;
 }

@@ -8,23 +8,112 @@ import {
   getPopularDiscussions,
   getAISuggestions,
   getDiscussionsByCategory,
+  getEventById,
+  getEvents,
+  getComments,
+  getTopComment,
+  addComment,
 } from "../api/forum.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
-import { fetchContent } from "../lib/utils.js";
+import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { getActivityById, getActivities } from "../api/activities.js";
+import { CDN_DOMAIN } from "../config.js";
 
-let currentCategory = "all";
+const CATEGORIES = {
+  all:   { label: "All Discussions",      heroTitle: "Connect With Students Beyond Your Campus",                heroSubtitle: "Join discussions, exchange experiences, ask questions, and discover opportunities together with students across Da Nang.",     sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
+  event: { label: "Event Discussions",     heroTitle: "Event Discussions",                                      heroSubtitle: "Find and discuss upcoming events, hackathons, and activities near you.",                                                       sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
+  skills:{ label: "Skill Development",     heroTitle: "Skill Development",                                      heroSubtitle: "Explore topics by skill area and interest, and grow together with fellow learners.",                                            sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
+  uni:   { label: "University Communities", heroTitle: "University Communities",                                heroSubtitle: "Join your campus community and meet fellow students from your university.",                                                       sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
+  mine:  { label: "My Discussions",        heroTitle: "My Discussions",                                         heroSubtitle: "View and manage all your discussions in one place.",                                                                            sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
+  saved: { label: "Saved Posts",           heroTitle: "Saved Posts",                                            heroSubtitle: "Your bookmarked discussions and posts, saved for later.",                                                                       sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
+};
+
+function getCategoryFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const cat = params.get("cat");
+  return cat && CATEGORIES[cat] ? cat : "all";
+}
+
+const MAX_EVENT_DISCUSSIONS = 20;
+let discussionsCache = [];
+
+async function getEventDiscussions() {
+  try {
+    const { activities } = await getActivities();
+    if (!activities || activities.length === 0) return [];
+    return activities.slice(0, MAX_EVENT_DISCUSSIONS).map(eventToDiscussion);
+  } catch {
+    const events = getEvents();
+    if (events.length === 0) return [];
+    return events.map((e) => ({
+      id: e.id,
+      author: "SpringWave",
+      university: "",
+      avatar: "S",
+      title: e.title,
+      preview: `Join the discussion about ${e.title}! Share your thoughts and connect with other attendees.`,
+      category: "event",
+      tags: ["event"],
+      replies: 0,
+      views: 0,
+      lastActivity: e.date,
+      relatedEvent: e.id,
+      _event: { title: e.title, date: e.date, attendees: e.attendees },
+    }));
+  }
+}
+
+function eventToDiscussion(event) {
+  return {
+    id: event.activityID || event._id,
+    author: event.hostName || "SpringWave",
+    university: event.location || "",
+    avatar: (event.hostName || "S")[0],
+    title: event.title,
+    preview: (event.description || "").slice(0, 120) + ((event.description || "").length > 120 ? "..." : ""),
+    category: "event",
+    tags: [event.type || "event"],
+    replies: event.participants || 0,
+    views: 0,
+    lastActivity: event.heldDate ? formatDate(event.heldDate) : "Upcoming",
+    relatedEvent: event.activityID || event._id,
+    _event: { title: event.title, date: event.heldDate, attendees: event.participants || 0 },
+  };
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar();
   initBasicScroll();
   initForumSidebarToggle();
   initPostModal();
-  loadSidebar();
-  renderDiscussions(getTrendingDiscussions());
-  renderUniGrid();
-  renderTopicGrid();
-  initCategoryFilter();
+
+  const category = getCategoryFromURL();
+  setActiveCategory(category);
+  updateHero(category);
+  showSections(category);
+
+  let discussions;
+  if (category === "event") {
+    discussions = await getEventDiscussions();
+    discussionsCache = discussions;
+  } else {
+    discussions = getDiscussionsByCategory(category);
+  }
+  renderDiscussions(discussions, category);
+
+  if (category === "all" || category === "uni") {
+    renderUniGrid();
+  }
+  if (category === "all" || category === "skills") {
+    renderTopicGrid();
+  }
+
+  initSidebarLinkClick();
+  initEventDetailPopup();
+  initDiscussionDetail();
+  initDiscussionPopupClose();
+  await loadSidebar(category);
   await initChatbot();
   await loadFooter();
 });
@@ -37,6 +126,56 @@ async function loadFooter() {
   const html = await fetchContent("./components/footer.html");
   document.getElementById("footer-container").innerHTML = html;
 }
+
+function setActiveCategory(category) {
+  document.querySelectorAll(".forum-category-item").forEach((item) => {
+    const href = item.getAttribute("href");
+    const itemCat = !href || href === "./community.html" ? "all" : (href.match(/cat=(\w+)/) || [])[1];
+    const isActive = itemCat === category;
+    item.classList.toggle("active", isActive);
+    if (isActive) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
+  });
+}
+
+function updateHero(category) {
+  const config = CATEGORIES[category] || CATEGORIES.all;
+  const title = document.querySelector(".forum-hero-title");
+  const subtitle = document.querySelector(".forum-hero-subtitle");
+  if (title) title.textContent = config.heroTitle;
+  if (subtitle) subtitle.textContent = config.heroSubtitle;
+  document.title = `${config.label} - SpringWave`;
+}
+
+function showSections(category) {
+  const trending = document.getElementById("trending");
+  const universities = document.getElementById("universities");
+  const careerTopics = document.getElementById("careerTopics");
+  const config = CATEGORIES[category] || CATEGORIES.all;
+
+  if (trending) {
+    trending.style.display = category === "uni" ? "none" : "";
+    const title = trending.querySelector(".forum-section-title");
+    const sub = trending.querySelector(".forum-section-subtitle");
+    if (title) title.textContent = config.sectionTitle;
+    if (sub) sub.textContent = config.sectionSubtitle;
+  }
+
+  if (universities) universities.style.display = category === "all" || category === "uni" ? "" : "none";
+  if (careerTopics) careerTopics.style.display = category === "all" || category === "skills" ? "" : "none";
+}
+
+function initSidebarLinkClick() {
+  document.querySelectorAll(".forum-category-item").forEach((link) => {
+    link.addEventListener("click", () => {
+      document.getElementById("forumSidebar")?.classList.remove("open");
+    });
+  });
+}
+
+/* =============================
+   SIDEBAR TOGGLE
+   ============================= */
 
 function initForumSidebarToggle() {
   const toggle = document.getElementById("forumFilterBtn");
@@ -61,10 +200,29 @@ function initForumSidebarToggle() {
    SIDEBAR
    ============================= */
 
-async function loadSidebar() {
+async function loadSidebar(category) {
   const container = document.getElementById("forumSidebarContainer");
   const html = await fetchContent("./components/forum-sidebar.html");
   container.innerHTML = html;
+
+  const widgets = container.querySelectorAll(".forum-sidebar-widget");
+  if (category === "event") {
+    if (widgets[0]) widgets[0].style.display = "none";
+    if (widgets[1]) widgets[1].style.display = "";
+    if (widgets[2]) widgets[2].style.display = "none";
+  } else if (category === "skills") {
+    if (widgets[0]) widgets[0].style.display = "none";
+    if (widgets[1]) widgets[1].style.display = "none";
+    if (widgets[2]) widgets[2].style.display = "";
+  } else if (category === "uni") {
+    if (widgets[0]) widgets[0].style.display = "";
+    if (widgets[1]) widgets[1].style.display = "none";
+    if (widgets[2]) widgets[2].style.display = "none";
+  } else {
+    if (widgets[0]) widgets[0].style.display = "";
+    if (widgets[1]) widgets[1].style.display = "";
+    if (widgets[2]) widgets[2].style.display = "";
+  }
 
   renderPopularDiscussions();
   renderUpcomingEvents();
@@ -140,23 +298,36 @@ function renderAISuggestions() {
    DISCUSSIONS
    ============================= */
 
-function renderDiscussions(discussions) {
+function renderDiscussions(discussions, category) {
   const container = document.getElementById("forumDiscussions");
   if (!container) return;
+
   if (discussions.length === 0) {
+    const emptyMessages = {
+      mine:   ["forum", "No discussions yet", "You haven't started any discussions yet. Click 'Start Discussion' to create one!"],
+      saved:  ["bookmark", "No saved posts", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later."],
+      uni:    ["account_balance", "No university discussions", "Join a university community above to see discussions from your campus."],
+      event:  ["event", "No event discussions", "There are no event discussions yet. Be the first to start one!"],
+      skills: ["school", "No skill discussions", "There are no skill discussions yet. Be the first to start one!"],
+    };
+    const msg = emptyMessages[category] || ["forum", "No discussions yet", "Be the first to start a discussion in this category."];
     container.innerHTML = `
       <div class="forum-empty">
-        <span class="material-symbols-outlined forum-empty-icon">forum</span>
-        <p class="forum-empty-title">No discussions yet</p>
-        <p class="forum-empty-desc">Be the first to start a discussion in this category.</p>
+        <span class="material-symbols-outlined forum-empty-icon">${msg[0]}</span>
+        <p class="forum-empty-title">${msg[1]}</p>
+        <p class="forum-empty-desc">${msg[2]}</p>
       </div>
     `;
     return;
   }
+
   container.innerHTML = discussions
     .map(
-      (d) => `
-    <div class="forum-discussion-card">
+      (d) => {
+        const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+        const topComment = getTopComment(d.id);
+        return `
+    <div class="forum-discussion-card" data-discussion-id="${d.id}">
       <div class="forum-discussion-card-header">
         <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
           ${d.avatar}
@@ -169,18 +340,34 @@ function renderDiscussions(discussions) {
       </div>
       <h3 class="forum-discussion-title">${d.title}</h3>
       <p class="forum-discussion-preview">${d.preview}</p>
+      ${eventRef}
       <div class="forum-discussion-meta">
         <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
         <div class="forum-discussion-tags">
           ${d.tags.map((t) => `<span class="forum-tag">${t}</span>`).join("")}
         </div>
       </div>
+      ${topComment ? `
+      <div class="forum-top-comment">
+        <div class="forum-top-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${topComment.avatar}</div>
+        <div class="forum-top-comment-body">
+          <div class="forum-top-comment-header">
+            <span class="forum-top-comment-author">${topComment.author}</span>
+            <div class="forum-top-comment-likes">
+              <span class="material-symbols-outlined text-xs">thumb_up</span>
+              <span>${topComment.likes}</span>
+            </div>
+          </div>
+          <p class="forum-top-comment-text">${topComment.content}</p>
+        </div>
+      </div>
+      ` : ""}
       <div class="forum-discussion-footer">
         <div class="forum-discussion-stats">
-          <span class="forum-discussion-stat">
+          <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id}">
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
             ${d.replies} replies
-          </span>
+          </button>
           <span class="forum-discussion-stat">
             <span class="material-symbols-outlined text-sm">visibility</span>
             ${d.views} views
@@ -196,9 +383,194 @@ function renderDiscussions(discussions) {
         </div>
       </div>
     </div>
-  `
+  `;}
     )
     .join("");
+}
+
+function renderEventRef(eventId, eventData) {
+  const event = eventData || getEventById(eventId);
+  if (!event) return "";
+  return `
+    <div class="forum-event-ref" data-event-id="${eventId}">
+      <div class="forum-event-ref-icon">
+        <span class="material-symbols-outlined">event</span>
+      </div>
+      <div class="forum-event-ref-info">
+        <span class="forum-event-ref-label">Discussing</span>
+        <span class="forum-event-ref-title">${event.title}</span>
+        <span class="forum-event-ref-meta">
+          <span class="material-symbols-outlined text-xs">calendar_today</span>
+          ${event.date}
+          <span class="material-symbols-outlined text-xs">person</span>
+          ${event.attendees} attending
+        </span>
+      </div>
+      <span class="forum-event-ref-link">View Event</span>
+    </div>
+  `;
+}
+
+/* =============================
+   DISCUSSION DETAIL POPUP
+   ============================= */
+
+function initDiscussionDetail() {
+  document.getElementById("forumDiscussions")?.addEventListener("click", (e) => {
+    const card = e.target.closest(".forum-discussion-card");
+    if (!card) return;
+    if (e.target.closest(".forum-event-ref, .forum-event-ref-link, .forum-reply-btn, .forum-discussion-action-btn")) return;
+    const id = card.dataset.discussionId;
+    if (id) openDiscussionDetail(id);
+  });
+}
+
+function openDiscussionDetail(id) {
+  const overlay = document.getElementById("discussionPopupOverlay");
+  const container = document.getElementById("discussionPopupContainer");
+  if (!overlay || !container) return;
+
+  overlay.removeAttribute("hidden");
+  overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+  container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+
+  const allDiscussions = getDiscussionsByCategory("all");
+  const eventDisc = (discussionsCache || []);
+  const discussion = [...allDiscussions, ...eventDisc].find((d) => String(d.id) === String(id));
+  if (!discussion) {
+    container.innerHTML = `<div class="popup-loading text-slate-500">Discussion not found</div>`;
+    return;
+  }
+
+  const comments = getComments(id);
+  container.innerHTML = buildDiscussionDetailHTML(discussion, comments);
+
+  container.querySelector("#discussion-back-btn")?.addEventListener("click", closeDiscussionDetail);
+  container.querySelector("#discussion-submit-btn")?.addEventListener("click", () => {
+    submitDiscussionComment(id, container);
+  });
+  container.querySelector("#discussion-input")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitDiscussionComment(id, container);
+    }
+  });
+  container.querySelector("#discussion-input")?.focus();
+}
+
+function closeDiscussionDetail() {
+  const overlay = document.getElementById("discussionPopupOverlay");
+  const container = document.getElementById("discussionPopupContainer");
+  if (!overlay || !container || overlay.hasAttribute("hidden")) return;
+  overlay.classList.remove("active");
+  document.body.style.overflow = "";
+  setTimeout(() => {
+    container.innerHTML = "";
+    overlay.setAttribute("hidden", "");
+  }, 300);
+}
+
+function hideDiscussionPopup() {
+  const overlay = document.getElementById("discussionPopupOverlay");
+  const container = document.getElementById("discussionPopupContainer");
+  if (!overlay || !container || overlay.hasAttribute("hidden")) return;
+  overlay.classList.remove("active");
+  overlay.setAttribute("hidden", "");
+}
+
+function submitDiscussionComment(id, container) {
+  const input = container.querySelector("#discussion-input");
+  const text = input.value.trim();
+  if (!text) return;
+  addComment(id, text);
+  input.value = "";
+  const comments = getComments(id);
+  const list = container.querySelector(".discussion-detail-comments");
+  if (list) {
+    const lastComment = comments[comments.length - 1];
+    list.insertAdjacentHTML("beforeend", buildCommentHTML(lastComment));
+  }
+}
+
+function buildDiscussionDetailHTML(d, comments) {
+  const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+  const topActions = `
+    <div class="top-actions">
+      <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
+      <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">Favourite</span></button>
+    </div>
+  `;
+  return `
+    <div class="container discussion-detail">
+      <div class="top-bar">
+        <button class="back-btn" id="discussion-back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        ${topActions}
+      </div>
+      <div class="discussion-detail-card">
+        <div class="forum-discussion-card-header">
+          <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+            ${d.avatar}
+          </div>
+          <div class="forum-discussion-author-info">
+            <span class="forum-discussion-author-name">${d.author}</span>
+            <span class="forum-discussion-author-uni">${d.university || "SpringWave"}</span>
+          </div>
+          <span class="forum-discussion-time">${d.lastActivity}</span>
+        </div>
+        <h3 class="forum-discussion-title">${d.title}</h3>
+        <p class="forum-discussion-preview">${d.preview}</p>
+        ${eventRef}
+        <div class="forum-discussion-meta">
+          <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
+          <div class="forum-discussion-tags">
+            ${d.tags.map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+          </div>
+        </div>
+        <div class="forum-discussion-stats">
+          <span class="forum-discussion-stat">
+            <span class="material-symbols-outlined text-sm">chat_bubble</span>
+            ${comments.length} replies
+          </span>
+          <span class="forum-discussion-stat">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+            ${d.views} views
+          </span>
+        </div>
+      </div>
+      <div class="discussion-detail-comments">
+        ${comments.length === 0 ? '<p class="discussion-detail-empty">No comments yet. Be the first to reply!</p>'
+          : comments.map(buildCommentHTML).join("")}
+      </div>
+      <div class="discussion-detail-form">
+        <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment..." />
+        <button class="forum-comment-submit" id="discussion-submit-btn">
+          <span class="material-symbols-outlined text-sm">send</span> Post
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function buildCommentHTML(c) {
+  return `
+    <div class="discussion-detail-comment">
+      <div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar}</div>
+      <div class="forum-comment-body">
+        <div class="forum-comment-header">
+          <span class="forum-comment-author">${c.author}</span>
+          <span class="forum-comment-date">${c.date}</span>
+        </div>
+        <p class="forum-comment-text">${c.content}</p>
+        <div class="forum-comment-footer">
+          <button class="forum-comment-like-btn" data-comment-id="${c.id}">
+            <span class="material-symbols-outlined text-xs">thumb_up</span>
+            <span>${c.likes}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 /* =============================
@@ -263,26 +635,6 @@ function renderTopicGrid() {
 }
 
 /* =============================
-   CATEGORY FILTER
-   ============================= */
-
-function initCategoryFilter() {
-  const items = document.querySelectorAll(".forum-category-item");
-  items.forEach((item) => {
-    item.addEventListener("click", () => {
-      items.forEach((i) => i.classList.remove("active"));
-      item.classList.add("active");
-      currentCategory = item.dataset.category;
-      const discussions = getDiscussionsByCategory(currentCategory);
-      renderDiscussions(discussions);
-      document.getElementById("forumSidebar")?.classList.remove("open");
-
-      document.getElementById("trending")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  });
-}
-
-/* =============================
    POST MODAL
    ============================= */
 
@@ -292,14 +644,40 @@ function initPostModal() {
   const openBtns = document.querySelectorAll("[id='startDiscussionBtn']");
   const closeBtn = document.getElementById("forumPostClose");
   const cancelBtn = document.getElementById("forumPostCancel");
+  const postEvent = document.getElementById("postEvent");
+
+  let closeTimer = null;
+
+  function populateEventSelect() {
+    if (!postEvent) return;
+    const events = getEvents();
+    events.forEach((e) => {
+      const opt = document.createElement("option");
+      opt.value = e.id;
+      opt.textContent = `${e.title} — ${e.date}`;
+      postEvent.appendChild(opt);
+    });
+  }
+  populateEventSelect();
 
   function open() {
-    overlay.classList.add("active");
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    overlay.style.display = "flex";
+    requestAnimationFrame(() => {
+      overlay.classList.add("active");
+    });
     document.body.style.overflow = "hidden";
   }
+  window.openPostModal = open;
 
   function close() {
     overlay.classList.remove("active");
+    closeTimer = setTimeout(() => {
+      overlay.style.display = "none";
+    }, 300);
     document.body.style.overflow = "";
   }
 
@@ -322,6 +700,7 @@ function initPostModal() {
       document.getElementById("postTitle").value = "";
       document.getElementById("postContent").value = "";
       document.getElementById("postTags").value = "";
+      if (postEvent) postEvent.value = "";
     });
   }
 
@@ -330,6 +709,148 @@ function initPostModal() {
   });
 }
 
-function capitalize(str) {
-  return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
+/* =============================
+   EVENT DETAIL POPUP
+   ============================= */
+
+function initEventDetailPopup() {
+  const overlay = document.getElementById("eventPopupOverlay");
+  const backdrop = document.getElementById("eventPopupBackdrop");
+  const container = document.getElementById("eventPopupContainer");
+
+  async function open(eventId) {
+    if (!eventId) return;
+    container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    try {
+      const { activity } = await getActivityById(eventId);
+      container.innerHTML = buildEventDetailPopupHTML(activity);
+    } catch {
+      const event = getEventById(eventId);
+      if (event) {
+        container.innerHTML = buildEventDetailPopupHTML({
+          activityID: event.id,
+          title: event.title,
+          heldDate: event.date,
+          type: "event",
+          location: "Da Nang",
+          hostName: "SpringWave",
+          description: "Join the community discussion about this event! Share your thoughts, ask questions, and connect with other attendees.",
+          thumbnail: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop",
+          attachments: [],
+        });
+      } else {
+        container.innerHTML = `<div class="popup-loading text-slate-500">Event not found</div>`;
+      }
+    }
+
+    container.querySelector("#back-btn")?.addEventListener("click", close);
+  }
+
+  function close() {
+    overlay.classList.remove("active");
+    setTimeout(() => {
+      container.innerHTML = "";
+      overlay.setAttribute("hidden", "");
+      const discOverlay = document.getElementById("discussionPopupOverlay");
+      const discContainer = document.getElementById("discussionPopupContainer");
+      if (discOverlay && discContainer && discContainer.innerHTML && discOverlay.hasAttribute("hidden")) {
+        discOverlay.removeAttribute("hidden");
+        requestAnimationFrame(() => discOverlay.classList.add("active"));
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
+    }, 300);
+  }
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay || backdrop?.contains(e.target)) close();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.hasAttribute("hidden")) close();
+  });
+
+  document.addEventListener("click", (e) => {
+    const ref = e.target.closest(".forum-event-ref");
+    if (!ref) return;
+    const eventId = ref.dataset.eventId;
+    if (eventId) {
+      hideDiscussionPopup();
+      open(eventId);
+    }
+  });
 }
+
+function buildEventDetailPopupHTML(a) {
+  const heldDate = formatDate(a.heldDate);
+  const type = capitalize(a.type);
+  const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
+  const filesHTML = (a.attachments || []).map(f => {
+    const link = f.link || f.activityAttachLink || "";
+    const fileName = decodeURIComponent(link.split('/').pop());
+    return `<div class="file-item">
+        <div class="file-left">
+            <div class="file-icon"><i class="fa-solid fa-file"></i></div>
+            <div><h4>${fileName}</h4></div>
+        </div>
+        <a class="download-btn" href="${CDN_DOMAIN}/${link}" target="_blank"><i class="fa-solid fa-download"></i></a>
+    </div>`;
+  }).join("");
+
+  return `
+    <div class="container">
+      <div class="top-bar">
+        <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <div class="top-actions">
+          <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
+          <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">Favourite</span></button>
+        </div>
+      </div>
+      <div class="main-content">
+        <div class="left-panel">
+          <img src="${a.thumbnail || "https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop"}" alt="${a.title}">
+          <div class="tag"><i class="fa-solid fa-tag"></i> ${type}</div>
+          <div class="details-card">
+            <h2>Details</h2>
+            <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>Location</span><p>${a.location}</p></div></div>
+            <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
+            <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>Host</span><p>${a.hostName || a.createdByName || "Unknown"}</p></div></div>
+            <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>Type</span><p>${type}</p></div></div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <h1 class="title">${a.title}</h1>
+          <a class="location-link" href="${googleMapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
+          <div class="info-boxes">
+            <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
+            <div class="info-box"><i class="fa-regular fa-user"></i><div><span>Hosted by</span><p>${a.hostName || a.createdByName || "Unknown"}</p></div></div>
+          </div>
+          <div class="description-panel">
+            ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+          </div>
+          ${filesHTML ? `<div class="files-box"><h3>Attached Files (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
+        </div>
+      </div>
+    </div>`;
+}
+
+function initDiscussionPopupClose() {
+  const overlay = document.getElementById("discussionPopupOverlay");
+  const backdrop = document.getElementById("discussionPopupBackdrop");
+  if (!overlay) return;
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay || backdrop?.contains(e.target)) closeDiscussionDetail();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.hasAttribute("hidden")) closeDiscussionDetail();
+  });
+}
+
+

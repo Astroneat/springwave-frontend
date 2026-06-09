@@ -33,7 +33,7 @@
           <span class="material-symbols-outlined text-lg">edit_note</span>
           Start Discussion
         </button>
-        <a href="#trending" class="forum-hero-btn-secondary">
+        <a href="./community.html?cat=uni" class="forum-hero-btn-secondary">
           Explore Communities
           <span class="material-symbols-outlined text-lg">arrow_forward</span>
         </a>
@@ -65,31 +65,30 @@
         <div class="forum-sidebar-section">
           <h3 class="forum-sidebar-title">Categories</h3>
           <nav class="forum-category-list" id="categoryList">
-            <button class="forum-category-item active" data-category="all">
+            <a class="forum-category-item" href="./community.html">
               <span class="material-symbols-outlined forum-category-icon">forum</span>
               All Discussions
-            </button>
-            <button class="forum-category-item" data-category="event">
+            </a>
+            <a class="forum-category-item" href="./community.html?cat=event">
               <span class="material-symbols-outlined forum-category-icon">event</span>
               Event Discussions
-            </button>
-
-            <button class="forum-category-item" data-category="skills">
+            </a>
+            <a class="forum-category-item" href="./community.html?cat=skills">
               <span class="material-symbols-outlined forum-category-icon">school</span>
               Skill Development
-            </button>
-            <button class="forum-category-item" data-category="uni">
+            </a>
+            <a class="forum-category-item" href="./community.html?cat=uni">
               <span class="material-symbols-outlined forum-category-icon">account_balance</span>
               University Communities
-            </button>
-            <button class="forum-category-item" data-category="mine">
+            </a>
+            <a class="forum-category-item" href="./community.html?cat=mine">
               <span class="material-symbols-outlined forum-category-icon">person</span>
               My Discussions
-            </button>
-            <button class="forum-category-item" data-category="saved">
+            </a>
+            <a class="forum-category-item" href="./community.html?cat=saved">
               <span class="material-symbols-outlined forum-category-icon">bookmark</span>
               Saved Posts
-            </button>
+            </a>
           </nav>
         </div>
 
@@ -152,7 +151,7 @@
   </section>
 
   <!-- POST MODAL -->
-  <div class="forum-post-overlay" id="forumPostOverlay">
+  <div class="forum-post-overlay" id="forumPostOverlay" style="display: none;">
     <div class="forum-post-backdrop" id="forumPostBackdrop"></div>
     <div class="forum-post-modal" id="forumPostModal">
       <div class="forum-post-modal-header">
@@ -183,10 +182,10 @@
           <input type="text" id="postTags" placeholder="e.g. AI, Hackathon, Team Building (comma separated)" />
         </div>
         <div class="forum-post-field">
-          <label>Related Event (optional)</label>
-          <div class="forum-post-event-select" id="postEventSelect">
-            <span class="forum-post-event-placeholder">Search for an event...</span>
-          </div>
+          <label for="postEvent">Related Event (optional)</label>
+          <select id="postEvent">
+            <option value="">None — general discussion</option>
+          </select>
         </div>
       </div>
       <div class="forum-post-modal-footer">
@@ -199,8 +198,25 @@
     </div>
   </div>
 
+  <!-- EVENT DETAIL POPUP -->
+  <div class="popup-overlay" hidden id="eventPopupOverlay">
+    <div class="popup-backdrop" id="eventPopupBackdrop"></div>
+    <div class="popup-container" id="eventPopupContainer"></div>
+  </div>
+
+  <!-- DISCUSSION DETAIL POPUP -->
+  <div class="popup-overlay" hidden id="discussionPopupOverlay">
+    <div class="popup-backdrop" id="discussionPopupBackdrop"></div>
+    <div class="popup-container" id="discussionPopupContainer"></div>
+  </div>
+
   <!-- FOOTER -->
   <div id="footer-container"></div>
+
+  <!-- START DISCUSSION FAB -->
+  <button class="forum-fab-btn" id="startDiscussionBtn">
+    <span class="material-symbols-outlined text-xl">edit_note</span>
+  </button>
 
   <!-- CHATBOT -->
   <div id="chatbot-container"></div>
