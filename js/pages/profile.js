@@ -472,28 +472,30 @@ function renderExpPanel() {
   if (!container) return;
 
   const expData = [
-    { key: "communication", name: "Communication", exp: 420, color: "communication" },
-    { key: "technical", name: "Technical", exp: 180, color: "technical" },
-    { key: "creativity", name: "Creativity", exp: 680, color: "creativity" },
-    { key: "social", name: "Social Impact", exp: 45, color: "social" },
+    { key: "communication", name: "Communication", exp: 420, color: "communication", icon: "forum" },
+    { key: "technical", name: "Technical", exp: 180, color: "technical", icon: "code" },
+    { key: "creativity", name: "Creativity", exp: 680, color: "creativity", icon: "palette" },
+    { key: "social", name: "Social Impact", exp: 45, color: "social", icon: "volunteer_activism" },
   ];
 
   const dotColors = {
-    communication: "#3b82f6", technical: "#ef4444",
-    creativity: "#f97316", social: "#22c55e",
+    communication: "#3B82F6", technical: "#8B5CF6",
+    creativity: "#F59E0B", social: "#10B981",
   };
 
   container.innerHTML = expData.map((cat) => {
     const { level, current, next, progress } = calcLevel(cat.exp);
     const nextLabel = next !== null ? `${current} / ${next} EXP` : `${cat.exp} EXP (Max)`;
     const pct = Math.round(progress * 100);
-    const dotColor = dotColors[cat.color] || "#3b82f6";
+    const dotColor = dotColors[cat.color] || "#3B82F6";
 
     return `
       <div class="exp-category">
         <div class="exp-header">
           <span class="exp-label">
-            <span class="exp-dot" style="background: ${dotColor};"></span>
+            <span class="exp-icon-wrap" style="color: ${dotColor};">
+              <span class="material-symbols-outlined" style="font-size:20px">${cat.icon}</span>
+            </span>
             ${cat.name}
           </span>
           <span class="exp-level ${cat.color}">Lv.${level}</span>
