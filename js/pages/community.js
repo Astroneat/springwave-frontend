@@ -420,7 +420,7 @@ function initDiscussionDetail() {
     const card = e.target.closest(".forum-discussion-card");
     if (!card) return;
     if (e.target.closest(".forum-event-ref, .forum-event-ref-link, .forum-reply-btn, .forum-discussion-action-btn")) return;
-    const id = Number(card.dataset.discussionId);
+    const id = card.dataset.discussionId;
     if (id) openDiscussionDetail(id);
   });
 }
@@ -437,7 +437,7 @@ function openDiscussionDetail(id) {
 
   const allDiscussions = getDiscussionsByCategory("all");
   const eventDisc = (discussionsCache || []);
-  const discussion = [...allDiscussions, ...eventDisc].find((d) => d.id === id);
+  const discussion = [...allDiscussions, ...eventDisc].find((d) => String(d.id) === String(id));
   if (!discussion) {
     container.innerHTML = `<div class="popup-loading text-slate-500">Discussion not found</div>`;
     return;
@@ -462,13 +462,21 @@ function openDiscussionDetail(id) {
 function closeDiscussionDetail() {
   const overlay = document.getElementById("discussionPopupOverlay");
   const container = document.getElementById("discussionPopupContainer");
-  if (!overlay || !container) return;
+  if (!overlay || !container || overlay.hasAttribute("hidden")) return;
   overlay.classList.remove("active");
   document.body.style.overflow = "";
   setTimeout(() => {
     container.innerHTML = "";
     overlay.setAttribute("hidden", "");
   }, 300);
+}
+
+function hideDiscussionPopup() {
+  const overlay = document.getElementById("discussionPopupOverlay");
+  const container = document.getElementById("discussionPopupContainer");
+  if (!overlay || !container || overlay.hasAttribute("hidden")) return;
+  overlay.classList.remove("active");
+  overlay.setAttribute("hidden", "");
 }
 
 function submitDiscussionComment(id, container) {
@@ -486,6 +494,7 @@ function submitDiscussionComment(id, container) {
 }
 
 function buildDiscussionDetailHTML(d, comments) {
+  const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
   const topActions = `
     <div class="top-actions">
       <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
@@ -511,6 +520,7 @@ function buildDiscussionDetailHTML(d, comments) {
         </div>
         <h3 class="forum-discussion-title">${d.title}</h3>
         <p class="forum-discussion-preview">${d.preview}</p>
+        ${eventRef}
         <div class="forum-discussion-meta">
           <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
           <div class="forum-discussion-tags">
@@ -742,10 +752,18 @@ function initEventDetailPopup() {
 
   function close() {
     overlay.classList.remove("active");
-    document.body.style.overflow = "";
     setTimeout(() => {
       container.innerHTML = "";
       overlay.setAttribute("hidden", "");
+      const discOverlay = document.getElementById("discussionPopupOverlay");
+      const discContainer = document.getElementById("discussionPopupContainer");
+      if (discOverlay && discContainer && discContainer.innerHTML && discOverlay.hasAttribute("hidden")) {
+        discOverlay.removeAttribute("hidden");
+        requestAnimationFrame(() => discOverlay.classList.add("active"));
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
     }, 300);
   }
 
@@ -761,7 +779,10 @@ function initEventDetailPopup() {
     const ref = e.target.closest(".forum-event-ref");
     if (!ref) return;
     const eventId = ref.dataset.eventId;
-    if (eventId) open(eventId);
+    if (eventId) {
+      hideDiscussionPopup();
+      open(eventId);
+    }
   });
 }
 

@@ -216,7 +216,7 @@ const comments = [
 ];
 
 export function getComments(discussionId) {
-  return comments.filter((c) => c.discussionId === discussionId);
+  return comments.filter((c) => String(c.discussionId) === String(discussionId));
 }
 
 export function getTopComment(discussionId) {
