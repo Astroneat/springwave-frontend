@@ -15,7 +15,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
             const user = getUser();
             const userChipHTML = await fetchContent("/components/userchip.html");
             authSection.innerHTML = userChipHTML;
-            document.getElementById("user-name").textContent = user.username;
+            document.getElementById("user-avatar").textContent = user.username.charAt(0).toUpperCase();
             const adminBtn = document.getElementById("admin-btn");
             if (adminBtn) {
                 adminBtn.style.display = user?.role === "admin" ? "" : "none";

@@ -287,21 +287,21 @@
 }
 
 .user-chip {
-    @apply cursor-pointer flex items-center gap-2.5 py-2 px-[18px] rounded-full text-text-primary;
-    background: rgba(23, 85, 186, 0.08);
-    border: 1px solid rgba(23, 85, 186, 0.12);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    @apply cursor-pointer flex items-center justify-center w-[40px] h-[40px] rounded-full;
+    background: rgba(23, 85, 186, 0.12);
+    border: 2px solid rgba(23, 85, 186, 0.2);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .user-chip:hover {
-    background: rgba(23, 85, 186, 0.14);
-    @apply -translate-y-px;
+    background: rgba(23, 85, 186, 0.2);
+    border-color: rgba(23, 85, 186, 0.35);
+    transform: scale(1.1);
 }
 
-.user-name {
-    @apply text-[15px] font-semibold whitespace-nowrap font-body-md;
+.user-avatar {
+    @apply text-[16px] font-bold font-body-md text-white;
+    line-height: 1;
 }
 
 .user-chip i,
@@ -350,10 +350,6 @@
 }
 
 /* collapsed state adjusts */
-#navbar.collapsed .user-chip {
-    @apply py-1.5 px-3.5;
-}
-
 #navbar.collapsed .user-dropdown {
     @apply top-16;
 }
@@ -369,18 +365,34 @@
     }
 
 
-    .user-chip {
-        @apply py-1.5 px-3.5 gap-2;
-    }
 
-    .user-name {
-        @apply text-[13px];
-    }
 }
 
 /* ===== SPRING TRANSITION ===== */
 .spring-ease {
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* =========================
+   FORUM FAB BUTTON (green pen)
+========================= */
+
+.forum-fab-btn {
+    @apply fixed bottom-6 left-6 z-[9999] w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg;
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: white;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: none;
+    outline: none;
+}
+
+.forum-fab-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 24px rgba(5, 150, 105, 0.35);
+}
+
+.forum-fab-btn:active {
+    transform: scale(0.92);
 }
 
 /* =========================
@@ -3091,8 +3103,8 @@
    ========================= */
 
 .floating-card {
-    @apply absolute rounded-2xl px-5 py-3.5 flex items-center gap-3 shadow-xl;
-    background: rgba(255, 255, 255, 0.78);
+    @apply absolute rounded-xl px-3 py-2 flex items-center gap-2 shadow-lg;
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.5);
@@ -3144,7 +3156,7 @@
     @apply relative rounded-3xl overflow-hidden;
     background: linear-gradient(145deg, rgba(35, 73, 155, 0.06), rgba(59, 111, 212, 0.03));
     border: 1px solid rgba(35, 73, 155, 0.08);
-    min-height: 480px;
+    min-height: 300px;
 }
 
 .hero-grid-lines {
@@ -3651,10 +3663,6 @@
         @apply py-16;
     }
 
-    .floating-card {
-        @apply px-3.5 py-2.5 text-sm;
-    }
-
     .floating-card .ai-match-badge {
         @apply text-[10px];
     }
@@ -3664,7 +3672,7 @@
     }
 
     .hero-illustration {
-        min-height: 360px;
+        min-height: 260px;
     }
 
     .career-timeline {
@@ -3682,7 +3690,7 @@
 
 @media (max-width: 480px) {
     .hero-illustration {
-        min-height: 300px;
+        min-height: 220px;
     }
 
     .ai-dashboard-frame {
