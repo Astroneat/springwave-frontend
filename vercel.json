@@ -9,7 +9,8 @@
     { "source": "/profile", "destination": "/profile.html" },
     { "source": "/hostActivity", "destination": "/hostActivity.html" },
     { "source": "/complete-profile", "destination": "/complete-profile.html" },
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/community", "destination": "/community.html" }
   ],
   "headers": [
     {

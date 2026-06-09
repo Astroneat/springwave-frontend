@@ -11,6 +11,7 @@ const discussions = [
     replies: 12,
     views: 234,
     lastActivity: "2h ago",
+    relatedEvent: 1,
   },
   {
     id: 2,
@@ -50,6 +51,7 @@ const discussions = [
     replies: 6,
     views: 89,
     lastActivity: "3h ago",
+    relatedEvent: 3,
   },
   {
     id: 5,
@@ -189,5 +191,14 @@ export function getAISuggestions() {
 
 export function getDiscussionsByCategory(category) {
   if (category === "all") return [...discussions];
+  if (category === "uni" || category === "mine" || category === "saved") return [];
   return discussions.filter((d) => d.category === category);
+}
+
+export function getEventById(id) {
+  return upcomingEvents.find((e) => e.id === id) || null;
+}
+
+export function getEvents() {
+  return [...upcomingEvents];
 }
