@@ -10,6 +10,9 @@ import {
   getDiscussionsByCategory,
   getEventById,
   getEvents,
+  getComments,
+  getTopComment,
+  addComment,
 } from "../api/forum.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
@@ -33,6 +36,7 @@ function getCategoryFromURL() {
 }
 
 const MAX_EVENT_DISCUSSIONS = 20;
+let discussionsCache = [];
 
 async function getEventDiscussions() {
   try {
@@ -92,6 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let discussions;
   if (category === "event") {
     discussions = await getEventDiscussions();
+    discussionsCache = discussions;
   } else {
     discussions = getDiscussionsByCategory(category);
   }
@@ -106,6 +111,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initSidebarLinkClick();
   initEventDetailPopup();
+  initDiscussionDetail();
+  initDiscussionPopupClose();
   await loadSidebar(category);
   await initChatbot();
   await loadFooter();
@@ -318,8 +325,9 @@ function renderDiscussions(discussions, category) {
     .map(
       (d) => {
         const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+        const topComment = getTopComment(d.id);
         return `
-    <div class="forum-discussion-card">
+    <div class="forum-discussion-card" data-discussion-id="${d.id}">
       <div class="forum-discussion-card-header">
         <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
           ${d.avatar}
@@ -339,12 +347,27 @@ function renderDiscussions(discussions, category) {
           ${d.tags.map((t) => `<span class="forum-tag">${t}</span>`).join("")}
         </div>
       </div>
+      ${topComment ? `
+      <div class="forum-top-comment">
+        <div class="forum-top-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${topComment.avatar}</div>
+        <div class="forum-top-comment-body">
+          <div class="forum-top-comment-header">
+            <span class="forum-top-comment-author">${topComment.author}</span>
+            <div class="forum-top-comment-likes">
+              <span class="material-symbols-outlined text-xs">thumb_up</span>
+              <span>${topComment.likes}</span>
+            </div>
+          </div>
+          <p class="forum-top-comment-text">${topComment.content}</p>
+        </div>
+      </div>
+      ` : ""}
       <div class="forum-discussion-footer">
         <div class="forum-discussion-stats">
-          <span class="forum-discussion-stat">
+          <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id}">
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
             ${d.replies} replies
-          </span>
+          </button>
           <span class="forum-discussion-stat">
             <span class="material-symbols-outlined text-sm">visibility</span>
             ${d.views} views
@@ -384,6 +407,158 @@ function renderEventRef(eventId, eventData) {
         </span>
       </div>
       <span class="forum-event-ref-link">View Event</span>
+    </div>
+  `;
+}
+
+/* =============================
+   DISCUSSION DETAIL POPUP
+   ============================= */
+
+function initDiscussionDetail() {
+  document.getElementById("forumDiscussions")?.addEventListener("click", (e) => {
+    const card = e.target.closest(".forum-discussion-card");
+    if (!card) return;
+    if (e.target.closest(".forum-event-ref, .forum-event-ref-link, .forum-reply-btn, .forum-discussion-action-btn")) return;
+    const id = Number(card.dataset.discussionId);
+    if (id) openDiscussionDetail(id);
+  });
+}
+
+function openDiscussionDetail(id) {
+  const overlay = document.getElementById("discussionPopupOverlay");
+  const container = document.getElementById("discussionPopupContainer");
+  if (!overlay || !container) return;
+
+  overlay.removeAttribute("hidden");
+  overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+  container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+
+  const allDiscussions = getDiscussionsByCategory("all");
+  const eventDisc = (discussionsCache || []);
+  const discussion = [...allDiscussions, ...eventDisc].find((d) => d.id === id);
+  if (!discussion) {
+    container.innerHTML = `<div class="popup-loading text-slate-500">Discussion not found</div>`;
+    return;
+  }
+
+  const comments = getComments(id);
+  container.innerHTML = buildDiscussionDetailHTML(discussion, comments);
+
+  container.querySelector("#discussion-back-btn")?.addEventListener("click", closeDiscussionDetail);
+  container.querySelector("#discussion-submit-btn")?.addEventListener("click", () => {
+    submitDiscussionComment(id, container);
+  });
+  container.querySelector("#discussion-input")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitDiscussionComment(id, container);
+    }
+  });
+  container.querySelector("#discussion-input")?.focus();
+}
+
+function closeDiscussionDetail() {
+  const overlay = document.getElementById("discussionPopupOverlay");
+  const container = document.getElementById("discussionPopupContainer");
+  if (!overlay || !container) return;
+  overlay.classList.remove("active");
+  document.body.style.overflow = "";
+  setTimeout(() => {
+    container.innerHTML = "";
+    overlay.setAttribute("hidden", "");
+  }, 300);
+}
+
+function submitDiscussionComment(id, container) {
+  const input = container.querySelector("#discussion-input");
+  const text = input.value.trim();
+  if (!text) return;
+  addComment(id, text);
+  input.value = "";
+  const comments = getComments(id);
+  const list = container.querySelector(".discussion-detail-comments");
+  if (list) {
+    const lastComment = comments[comments.length - 1];
+    list.insertAdjacentHTML("beforeend", buildCommentHTML(lastComment));
+  }
+}
+
+function buildDiscussionDetailHTML(d, comments) {
+  const topActions = `
+    <div class="top-actions">
+      <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
+      <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">Favourite</span></button>
+    </div>
+  `;
+  return `
+    <div class="container discussion-detail">
+      <div class="top-bar">
+        <button class="back-btn" id="discussion-back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        ${topActions}
+      </div>
+      <div class="discussion-detail-card">
+        <div class="forum-discussion-card-header">
+          <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+            ${d.avatar}
+          </div>
+          <div class="forum-discussion-author-info">
+            <span class="forum-discussion-author-name">${d.author}</span>
+            <span class="forum-discussion-author-uni">${d.university || "SpringWave"}</span>
+          </div>
+          <span class="forum-discussion-time">${d.lastActivity}</span>
+        </div>
+        <h3 class="forum-discussion-title">${d.title}</h3>
+        <p class="forum-discussion-preview">${d.preview}</p>
+        <div class="forum-discussion-meta">
+          <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
+          <div class="forum-discussion-tags">
+            ${d.tags.map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+          </div>
+        </div>
+        <div class="forum-discussion-stats">
+          <span class="forum-discussion-stat">
+            <span class="material-symbols-outlined text-sm">chat_bubble</span>
+            ${comments.length} replies
+          </span>
+          <span class="forum-discussion-stat">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+            ${d.views} views
+          </span>
+        </div>
+      </div>
+      <div class="discussion-detail-comments">
+        ${comments.length === 0 ? '<p class="discussion-detail-empty">No comments yet. Be the first to reply!</p>'
+          : comments.map(buildCommentHTML).join("")}
+      </div>
+      <div class="discussion-detail-form">
+        <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment..." />
+        <button class="forum-comment-submit" id="discussion-submit-btn">
+          <span class="material-symbols-outlined text-sm">send</span> Post
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function buildCommentHTML(c) {
+  return `
+    <div class="discussion-detail-comment">
+      <div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar}</div>
+      <div class="forum-comment-body">
+        <div class="forum-comment-header">
+          <span class="forum-comment-author">${c.author}</span>
+          <span class="forum-comment-date">${c.date}</span>
+        </div>
+        <p class="forum-comment-text">${c.content}</p>
+        <div class="forum-comment-footer">
+          <button class="forum-comment-like-btn" data-comment-id="${c.id}">
+            <span class="material-symbols-outlined text-xs">thumb_up</span>
+            <span>${c.likes}</span>
+          </button>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -641,6 +816,20 @@ function buildEventDetailPopupHTML(a) {
         </div>
       </div>
     </div>`;
+}
+
+function initDiscussionPopupClose() {
+  const overlay = document.getElementById("discussionPopupOverlay");
+  const backdrop = document.getElementById("discussionPopupBackdrop");
+  if (!overlay) return;
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay || backdrop?.contains(e.target)) closeDiscussionDetail();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.hasAttribute("hidden")) closeDiscussionDetail();
+  });
 }
 
 
