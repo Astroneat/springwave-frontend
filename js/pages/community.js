@@ -29,12 +29,12 @@ import { addBadgeNotification } from "../lib/notifications.js";
 import { CDN_DOMAIN } from "../config.js";
 
 const CATEGORIES = {
-  all:   { label: "All Discussions",      heroTitle: "Connect With Students Beyond Your Campus",                heroSubtitle: "Join discussions, exchange experiences, ask questions, and discover opportunities together with students across Da Nang.",     sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
-  event: { label: "Event Discussions",     heroTitle: "Event Discussions",                                      heroSubtitle: "Find and discuss upcoming events, hackathons, and activities near you.",                                                       sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
-  skills:{ label: "Skill Development",     heroTitle: "Skill Development",                                      heroSubtitle: "Explore topics by skill area and interest, and grow together with fellow learners.",                                            sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
-  uni:   { label: "University Communities", heroTitle: "University Communities",                                heroSubtitle: "Join your campus community and meet fellow students from your university.",                                                       sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
-  mine:  { label: "My Discussions",        heroTitle: "My Discussions",                                         heroSubtitle: "View and manage all your discussions in one place.",                                                                            sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
-  saved: { label: "Saved Posts",           heroTitle: "Saved Posts",                                            heroSubtitle: "Your bookmarked discussions and posts, saved for later.",                                                                       sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
+  all:   { label: "All Discussions",        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
+  event: { label: "Event Discussions",      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
+  skills:{ label: "Skill Development",      sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
+  uni:   { label: "University Communities", sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
+  mine:  { label: "My Discussions",         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
+  saved: { label: "Saved Posts",            sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
 };
 
 function getCategoryFromURL() {
@@ -95,11 +95,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   initBasicScroll();
   initForumSidebarToggle();
   await initPostModal();
-  await updateHeroStats();
 
   const category = getCategoryFromURL();
   setActiveCategory(category);
-  updateHero(category);
+  updatePageTitle(category);
   showSections(category);
 
   let discussions;
@@ -147,12 +146,8 @@ function setActiveCategory(category) {
   });
 }
 
-function updateHero(category) {
+function updatePageTitle(category) {
   const config = CATEGORIES[category] || CATEGORIES.all;
-  const title = document.querySelector(".forum-hero-title");
-  const subtitle = document.querySelector(".forum-hero-subtitle");
-  if (title) title.textContent = config.heroTitle;
-  if (subtitle) subtitle.textContent = config.heroSubtitle;
   document.title = `${config.label} - SpringWave`;
 }
 
@@ -236,16 +231,6 @@ async function loadSidebar(category) {
   await renderPopularDiscussions();
   await renderUpcomingEvents();
   await renderAISuggestions();
-}
-
-async function updateHeroStats() {
-  const stats = await getStats();
-  const containers = document.querySelectorAll(".forum-hero-stat-number");
-  if (containers.length >= 3) {
-    containers[0].textContent = (stats.students || 15000).toLocaleString() + "+";
-    containers[1].textContent = (stats.discussions || 2000).toLocaleString() + "+";
-    containers[2].textContent = (stats.universities || 10) + "+";
-  }
 }
 
 async function renderPopularDiscussions() {
@@ -393,21 +378,7 @@ function renderDiscussions(discussions, category) {
           ${d.tags.map((t) => `<span class="forum-tag">${t}</span>`).join("")}
         </div>
       </div>
-      ${topComment ? `
-      <div class="forum-top-comment">
-        <div class="forum-top-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${topComment.avatar}</div>
-        <div class="forum-top-comment-body">
-          <div class="forum-top-comment-header">
-            <span class="forum-top-comment-author">${topComment.author}</span>
-            <div class="forum-top-comment-likes">
-              <span class="material-symbols-outlined text-xs">thumb_up</span>
-              <span>${topComment.likes}</span>
-            </div>
-          </div>
-          <p class="forum-top-comment-text">${topComment.content}</p>
-        </div>
-      </div>
-      ` : ""}
+
       <div class="forum-discussion-footer">
         <div class="forum-discussion-stats">
           <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id}">
@@ -638,6 +609,17 @@ async function renderUniGrid() {
   ]);
   const myUniId = myUni?._id || myUni?.id;
 
+  if (!unis || unis.length === 0) {
+    container.innerHTML = `
+      <div class="forum-empty" style="grid-column:1/-1;">
+        <span class="material-symbols-outlined forum-empty-icon">account_balance</span>
+        <p class="forum-empty-title">No university communities</p>
+        <p class="forum-empty-desc">University communities are not available yet. Check back later!</p>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = unis
     .map(
       (u) => {
@@ -699,6 +681,16 @@ async function renderTopicGrid() {
   const container = document.getElementById("forumTopicGrid");
   if (!container) return;
   const topics = await getSkillTopics();
+  if (!topics || topics.length === 0) {
+    container.innerHTML = `
+      <div class="forum-empty" style="grid-column:1/-1;">
+        <span class="material-symbols-outlined forum-empty-icon">school</span>
+        <p class="forum-empty-title">No skill topics yet</p>
+        <p class="forum-empty-desc">Skill discussion topics are being curated. Stay tuned!</p>
+      </div>
+    `;
+    return;
+  }
   container.innerHTML = topics
     .map(
       (t) => `

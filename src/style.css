@@ -3896,7 +3896,7 @@
 /* ===== LAYOUT ===== */
 
 .forum-layout {
-    @apply max-w-[1480px] mx-auto px-4 md:px-8 pb-20;
+    @apply max-w-[1480px] mx-auto px-4 md:px-8 pt-24 pb-20;
     display: grid;
     grid-template-columns: 240px 1fr 280px;
     gap: 28px;
@@ -4038,7 +4038,7 @@
 /* ===== MAIN CONTENT ===== */
 
 .forum-main {
-    @apply min-w-0;
+    @apply min-w-0 pt-6;
 }
 
 .forum-section {
