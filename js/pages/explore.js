@@ -14,11 +14,28 @@ let currentSort = "newest";
 let cachedTemplate = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get("event");
+
+    const eventPromise = eventId
+        ? getActivityById(eventId).then(r => r.activity || r).catch(() => null)
+        : Promise.resolve(null);
+
     await loadNavbar();
     await initExplore();
     await loadRecommendations();
     await initChatbot();
     initializePage();
+
+    if (eventId) {
+        const activity = await eventPromise;
+        if (activity) {
+            if (!allActivities.some(a => a.activityID === eventId || a._id === eventId)) {
+                allActivities.push(activity);
+            }
+            openPopup(eventId);
+        }
+    }
 });
 
 async function loadNavbar() {

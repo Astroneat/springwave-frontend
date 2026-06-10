@@ -622,7 +622,7 @@
 ========================= */
 
 .popup-container {
-    @apply relative max-h-[90vh] p-[20px] overflow-y-auto rounded-[20px] bg-white/92 opacity-0;
+    @apply relative max-h-[90vh] p-[20px] overflow-y-auto rounded-[20px] bg-white opacity-0;
     width: min(1200px, 95vw);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
