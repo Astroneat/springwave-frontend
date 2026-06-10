@@ -320,6 +320,10 @@
     @apply w-full h-full rounded-full object-cover;
 }
 
+.user-avatar-initial {
+    @apply absolute inset-0 flex items-center justify-center text-[16px] font-bold font-body-md text-white;
+}
+
 .user-chip i,
 .user-chip .material-symbols-outlined {
     @apply text-sm text-black/50;

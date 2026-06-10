@@ -18,13 +18,17 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
             authSection.innerHTML = userChipHTML;
             const avatarEl = document.getElementById("user-avatar");
             const avatarImg = document.getElementById("user-avatar-img");
+            const avatarInitial = document.getElementById("user-avatar-initial");
             if (user.avatar && avatarImg) {
                 avatarImg.src = user.avatar;
                 avatarImg.style.display = "";
-                if (avatarEl) avatarEl.textContent = "";
+                if (avatarInitial) avatarInitial.style.display = "none";
             } else {
                 if (avatarImg) avatarImg.style.display = "none";
-                if (avatarEl) avatarEl.textContent = user.username.charAt(0).toUpperCase();
+                if (avatarInitial) {
+                    avatarInitial.textContent = user.username.charAt(0).toUpperCase();
+                    avatarInitial.style.display = "";
+                }
             }
             const adminBtn = document.getElementById("admin-btn");
             if (adminBtn) {
@@ -42,7 +46,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
                 if (avatarUrl && avatarImg) {
                     avatarImg.src = avatarUrl;
                     avatarImg.style.display = "";
-                    if (avatarEl) avatarEl.textContent = "";
+                    if (avatarInitial) avatarInitial.style.display = "none";
                 }
             });
         } else {
