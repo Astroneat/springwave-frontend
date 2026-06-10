@@ -57,3 +57,16 @@ export function searchActivities(params) {
     if (params.limit) q.set("limit", params.limit);
     return get(`/events/search/all?${q.toString()}`).then(normalizeEvents);
 }
+
+export function searchSemantic(params) {
+    const q = new URLSearchParams();
+    if (params.q) q.set("q", params.q);
+    if (params.location) q.set("location", params.location);
+    if (params.heldDateFrom) q.set("heldDateFrom", params.heldDateFrom);
+    if (params.heldDateTo) q.set("heldDateTo", params.heldDateTo);
+    if (params.type) q.set("type", params.type);
+    if (params.tag) q.set("tag", params.tag);
+    if (params.page) q.set("page", params.page);
+    if (params.limit) q.set("limit", params.limit);
+    return get(`/events/search/semantic?${q.toString()}`).then(normalizeEvents);
+}

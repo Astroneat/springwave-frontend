@@ -431,6 +431,53 @@ function renderDiscussions(discussions, category) {
     .join("");
 }
 
+function buildDiscussionCardHTML(d) {
+  const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+  return `
+    <div class="forum-discussion-card" data-discussion-id="${d.id}">
+      <div class="forum-discussion-card-header">
+        <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+          ${d.avatar || ""}
+        </div>
+        <div class="forum-discussion-author-info">
+          <span class="forum-discussion-author-name">${d.author || "Unknown"}</span>
+          <span class="forum-discussion-author-uni">${d.university || ""}</span>
+        </div>
+        <span class="forum-discussion-time">${d.lastActivity || "Just now"}</span>
+      </div>
+      <h3 class="forum-discussion-title">${d.title || ""}</h3>
+      <p class="forum-discussion-preview">${d.preview || ""}</p>
+      ${eventRef}
+      <div class="forum-discussion-meta">
+        <span class="forum-category-badge forum-category-${d.category || "general"}">${capitalize(d.category || "general")}</span>
+        <div class="forum-discussion-tags">
+          ${(d.tags || []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+        </div>
+      </div>
+
+      <div class="forum-discussion-footer">
+        <div class="forum-discussion-stats">
+          <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id}">
+            <span class="material-symbols-outlined text-sm">chat_bubble</span>
+            ${d.replies || 0} replies
+          </button>
+          <span class="forum-discussion-stat">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+            ${d.views || 0} views
+          </span>
+        </div>
+        <div class="forum-discussion-actions">
+          <button class="forum-discussion-action-btn" title="Save">
+            <span class="material-symbols-outlined text-sm">bookmark_border</span>
+          </button>
+          <button class="forum-discussion-action-btn" title="Share">
+            <span class="material-symbols-outlined text-sm">share</span>
+          </button>
+        </div>
+      </div>
+      </div>`;
+}
+
 function renderEventRef(eventId, eventData) {
   if (!eventData) return "";
   const event = eventData;
@@ -751,6 +798,13 @@ async function renderUniGrid() {
     </div>
   `}).join("");
 
+  function updateMemberCount(cardEl, delta) {
+    const stat = cardEl?.querySelector(".forum-uni-stat-value");
+    if (!stat) return;
+    const current = parseInt(stat.textContent.replace(/,/g, "")) || 0;
+    stat.textContent = (current + delta).toLocaleString();
+  }
+
   container.querySelectorAll(".forum-uni-join-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -761,15 +815,19 @@ async function renderUniGrid() {
         await leaveUniversity(id);
         btn.classList.remove("joined");
         btn.textContent = "Join Community";
+        updateMemberCount(card, -1);
       } else {
         const res = await joinUniversity(id);
         if (res) {
+          const prevJoined = document.querySelector(".forum-uni-join-btn.joined");
+          if (prevJoined) updateMemberCount(prevJoined.closest(".forum-uni-card"), -1);
           document.querySelectorAll(".forum-uni-join-btn").forEach(b => {
             b.classList.remove("joined");
             b.textContent = "Join Community";
           });
           btn.classList.add("joined");
           btn.textContent = "✓ Joined";
+          updateMemberCount(card, 1);
         }
       }
     });
@@ -1080,42 +1138,80 @@ function initPostModal() {
         document.getElementById("postTitle")?.focus();
         return;
       }
-      const category = categorySelect?.value || "general";
-      const content = document.getElementById("postContent")?.value.trim() || "";
-      const tagsInput = document.getElementById("postTags")?.value || "";
-      const tags = tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(Boolean) : [];
+      publishBtn.disabled = true;
+      try {
+        const category = categorySelect?.value || "general";
+        const content = document.getElementById("postContent")?.value.trim() || "";
+        const tagsInput = document.getElementById("postTags")?.value || "";
+        const tags = tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(Boolean) : [];
 
-      let relatedEvent = undefined;
-      if (category === "event" && selectedEventId) relatedEvent = selectedEventId;
-      if (category === "skills" && selectedSkill) tags.push(selectedSkill);
+        let relatedEvent = undefined;
+        if (category === "event" && selectedEventId) relatedEvent = selectedEventId;
+        if (category === "skills" && selectedSkill) tags.push(selectedSkill);
 
-      const scopeEl = document.querySelector('input[name="scope"]:checked');
-      const scope = scopeEl?.value === "community" ? "community" : "general";
-      let communityId = undefined;
-      if (scope === "community") {
-        const myUni = await getMyUniversity().catch(() => null);
-        communityId = myUni?._id || myUni?.id;
-      }
+        const scopeEl = document.querySelector('input[name="scope"]:checked');
+        const scope = scopeEl?.value === "community" ? "community" : "general";
+        let communityId = undefined;
+        if (scope === "community") {
+          const myUni = await getMyUniversity().catch(() => null);
+          communityId = myUni?._id || myUni?.id;
+        }
 
-      const result = await createDiscussionWithScope({
-        title, content, category, tags, relatedEvent, scope, communityId,
-      });
+        const result = await createDiscussionWithScope({
+          title, content, category, tags, relatedEvent, scope, communityId,
+        });
 
-      if (result) {
-        grantContribution("discussion").then((res) => {
-          if (res && res.newBadges && Array.isArray(res.newBadges)) {
-            res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+        if (result) {
+          grantContribution("discussion").then((res) => {
+            if (res && res.newBadges && Array.isArray(res.newBadges)) {
+              res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+            }
+          }).catch(() => {});
+
+          const u = getUser();
+          result.avatar = (result.author || u?.username || "?")[0].toUpperCase();
+          result.university = u?.university || u?.school || "";
+          result.lastActivity = "Just now";
+          result.preview = content.substring(0, 150) + (content.length > 150 ? "..." : "");
+          result.tags = tags;
+          result.replies = 0;
+          result.views = 0;
+        }
+
+        close();
+        document.getElementById("postTitle").value = "";
+        document.getElementById("postContent").value = "";
+        document.getElementById("postTags").value = "";
+        selectedEventId = null;
+        selectedSkill = "";
+
+        if (result) {
+          const container = document.getElementById("forumDiscussions");
+          const empty = container?.querySelector(".forum-empty");
+          const cardHTML = buildDiscussionCardHTML(result);
+          if (empty) {
+            container.innerHTML = cardHTML;
+          } else {
+            container.insertAdjacentHTML("afterbegin", cardHTML);
           }
-        }).catch(() => {});
-      }
+          if (Array.isArray(window._currentDiscussions)) {
+            window._currentDiscussions.unshift(result);
+          }
 
-      close();
-      document.getElementById("postTitle").value = "";
-      document.getElementById("postContent").value = "";
-      document.getElementById("postTags").value = "";
-      selectedEventId = null;
-      selectedSkill = "";
-      setTimeout(() => window.location.reload(), 300);
+          const uniId = communityId || document.querySelector(".forum-uni-join-btn.joined")?.closest(".forum-uni-card")?.dataset.uniId;
+          if (uniId) {
+            const uniCard = document.querySelector(`.forum-uni-card[data-uni-id="${uniId}"]`);
+            const discStats = uniCard?.querySelectorAll(".forum-uni-stat-value");
+            const discStat = discStats?.[1];
+            if (discStat) {
+              const current = parseInt(discStat.textContent.replace(/,/g, "")) || 0;
+              discStat.textContent = (current + 1).toLocaleString();
+            }
+          }
+        }
+      } finally {
+        publishBtn.disabled = false;
+      }
     });
   }
 
