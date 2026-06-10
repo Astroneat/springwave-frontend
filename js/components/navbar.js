@@ -16,7 +16,16 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
             const user = getUser();
             const userChipHTML = await fetchContent("/components/userchip.html");
             authSection.innerHTML = userChipHTML;
-            document.getElementById("user-avatar").textContent = user.username.charAt(0).toUpperCase();
+            const avatarEl = document.getElementById("user-avatar");
+            const avatarImg = document.getElementById("user-avatar-img");
+            if (user.avatar && avatarImg) {
+                avatarImg.src = user.avatar;
+                avatarImg.style.display = "";
+                if (avatarEl) avatarEl.textContent = "";
+            } else {
+                if (avatarImg) avatarImg.style.display = "none";
+                if (avatarEl) avatarEl.textContent = user.username.charAt(0).toUpperCase();
+            }
             const adminBtn = document.getElementById("admin-btn");
             if (adminBtn) {
                 adminBtn.style.display = user?.role === "admin" ? "" : "none";
@@ -27,6 +36,15 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
                 bellIcon.classList.add("flex");
             }
             initNotifications();
+
+            window.addEventListener("avatar-updated", (e) => {
+                const avatarUrl = e.detail?.avatar;
+                if (avatarUrl && avatarImg) {
+                    avatarImg.src = avatarUrl;
+                    avatarImg.style.display = "";
+                    if (avatarEl) avatarEl.textContent = "";
+                }
+            });
         } else {
             authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
             if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }

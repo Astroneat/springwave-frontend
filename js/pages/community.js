@@ -1,5 +1,5 @@
 import "../../src/style.css";
-import { isAuthenticated, getUser } from "../lib/session.js";
+import { isAuthenticated, getUser, getToken } from "../lib/session.js";
 import {
   getTrendingDiscussions,
   getUniversityCommunities,
@@ -19,6 +19,14 @@ import {
   getMyUniversity,
   createDiscussionWithScope,
   getCommunityDiscussions,
+  deleteDiscussion,
+  likeComment,
+  saveDiscussion,
+  unsaveDiscussion,
+  getSavedDiscussions,
+  createUniversity,
+  updateUniversity,
+  deleteUniversity as deleteUni,
 } from "../api/forum.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
@@ -113,10 +121,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else {
     discussions = await getDiscussionsByCategory(category);
   }
+  window._currentDiscussions = discussions;
   renderDiscussions(discussions, category);
 
   if (category === "all" || category === "uni") {
     await renderUniGrid();
+    const user = getUser();
+    const addBtn = document.getElementById("forumAddUniBtn");
+    if (addBtn && user?.role === "admin") {
+      addBtn.style.display = "flex";
+      addBtn.addEventListener("click", () => {
+        openUniDialog(null, async (name, description, color) => {
+          const result = await createUniversity(name, description, color);
+          if (result) window.location.reload();
+        });
+      });
+    }
+    initUniDialog();
   }
   if (category === "all" || category === "skills") {
     await renderTopicGrid();
@@ -441,7 +462,34 @@ function initDiscussionDetail() {
   document.getElementById("forumDiscussions")?.addEventListener("click", async (e) => {
     const card = e.target.closest(".forum-discussion-card");
     if (!card) return;
-    if (e.target.closest(".forum-event-ref, .forum-event-ref-link, .forum-reply-btn, .forum-discussion-action-btn")) return;
+    if (e.target.closest(".forum-event-ref, .forum-event-ref-link, .forum-reply-btn")) return;
+
+    const actionBtn = e.target.closest(".forum-discussion-action-btn");
+    if (actionBtn) {
+      const id = card.dataset.discussionId;
+      if (!id) return;
+      const icon = actionBtn.querySelector(".material-symbols-outlined");
+      if (icon && icon.textContent.includes("bookmark")) {
+        if (!isAuthenticated()) { alert("Please login to save posts"); return; }
+        const isSaved = icon.textContent === "bookmark";
+        if (isSaved) {
+          const ok = await unsaveDiscussion(id);
+          if (ok) icon.textContent = "bookmark_border";
+        } else {
+          const ok = await saveDiscussion(id);
+          if (ok) icon.textContent = "bookmark";
+        }
+      } else if (icon && icon.textContent.includes("share")) {
+        const url = `${window.location.origin}/community.html?discussion=${id}`;
+        if (navigator.share) {
+          try { await navigator.share({ title: "Check this discussion", url }); } catch {}
+        } else {
+          try { await navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
+        }
+      }
+      return;
+    }
+
     const id = card.dataset.discussionId;
     if (id) await openDiscussionDetail(id);
   });
@@ -457,9 +505,10 @@ async function openDiscussionDetail(id) {
   document.body.style.overflow = "hidden";
   container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
 
+  const currentDiscussions = window._currentDiscussions || [];
   const allDiscussions = await getDiscussionsByCategory("all");
   const eventDisc = (discussionsCache || []);
-  const discussion = [...allDiscussions, ...eventDisc].find((d) => String(d.id) === String(id));
+  const discussion = [...currentDiscussions, ...allDiscussions, ...eventDisc].find((d) => String(d.id) === String(id));
   if (!discussion) {
     container.innerHTML = `<div class="popup-loading text-slate-500">Discussion not found</div>`;
     return;
@@ -479,6 +528,44 @@ async function openDiscussionDetail(id) {
     }
   });
   container.querySelector("#discussion-input")?.focus();
+
+  container.querySelectorAll(".forum-comment-like-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const commentId = btn.dataset.commentId;
+      if (!commentId) return;
+      const result = await likeComment(id, commentId);
+      if (result) {
+        const likeSpan = btn.querySelector("span");
+        if (likeSpan) likeSpan.textContent = result.likes;
+        const icon = btn.querySelector(".material-symbols-outlined");
+        if (icon) {
+          icon.textContent = result.liked ? "thumb_up" : "thumb_up";
+          btn.classList.toggle("liked", result.liked);
+        }
+      }
+    });
+  });
+
+  container.querySelector("#discussion-delete-btn")?.addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to delete this discussion?")) return;
+    const ok = await deleteDiscussion(id);
+    if (ok) {
+      closeDiscussionDetail();
+      window.location.reload();
+    } else {
+      alert("Failed to delete discussion");
+    }
+  });
+
+  container.querySelector("#discussion-share-btn")?.addEventListener("click", async () => {
+    const url = `${window.location.origin}/community.html?discussion=${id}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: "Check this discussion", url }); } catch {}
+    } else {
+      try { await navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
+    }
+  });
 }
 
 function closeDiscussionDetail() {
@@ -516,16 +603,19 @@ async function submitDiscussionComment(id, container) {
   const list = container.querySelector(".discussion-detail-comments");
   if (list) {
     const lastComment = comments[comments.length - 1];
-    if (lastComment) list.insertAdjacentHTML("beforeend", buildCommentHTML(lastComment));
+    if (lastComment) list.insertAdjacentHTML("beforeend", buildCommentHTML(lastComment, getUser()));
   }
 }
 
 function buildDiscussionDetailHTML(d, comments) {
   const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+  const user = getUser();
+  const isOwner = user && (d.author === (user.fullname || user.username));
+  const isAdmin = user && user.role === "admin";
   const topActions = `
     <div class="top-actions">
-      <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
-      <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">Favourite</span></button>
+      <button class="icon-btn" id="discussion-share-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
+      ${isOwner || isAdmin ? `<button class="icon-btn text-red-500" id="discussion-delete-btn"><i class="fa-solid fa-trash-can"></i> Delete</button>` : ""}
     </div>
   `;
   return `
@@ -567,7 +657,7 @@ function buildDiscussionDetailHTML(d, comments) {
       </div>
       <div class="discussion-detail-comments">
         ${comments.length === 0 ? '<p class="discussion-detail-empty">No comments yet. Be the first to reply!</p>'
-          : comments.map(buildCommentHTML).join("")}
+          : comments.map(c => buildCommentHTML(c, user)).join("")}
       </div>
       <div class="discussion-detail-form">
         <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment..." />
@@ -579,20 +669,21 @@ function buildDiscussionDetailHTML(d, comments) {
   `;
 }
 
-function buildCommentHTML(c) {
+function buildCommentHTML(c, currentUser) {
+  const liked = c.likedBy && currentUser && c.likedBy.some ? c.likedBy.some(id => String(id) === String(currentUser._id)) : false;
   return `
     <div class="discussion-detail-comment">
-      <div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar}</div>
+      <div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar || (c.userName || "?").charAt(0).toUpperCase()}</div>
       <div class="forum-comment-body">
         <div class="forum-comment-header">
-          <span class="forum-comment-author">${c.author}</span>
-          <span class="forum-comment-date">${c.date}</span>
+          <span class="forum-comment-author">${c.author || c.userName}</span>
+          <span class="forum-comment-date">${c.date || c.createdAt || "recent"}</span>
         </div>
         <p class="forum-comment-text">${c.content}</p>
         <div class="forum-comment-footer">
-          <button class="forum-comment-like-btn" data-comment-id="${c.id}">
-            <span class="material-symbols-outlined text-xs">thumb_up</span>
-            <span>${c.likes}</span>
+          <button class="forum-comment-like-btn ${liked ? 'liked' : ''}" data-comment-id="${c.id}">
+            <span class="material-symbols-outlined text-xs">${liked ? 'thumb_up' : 'thumb_up'}</span>
+            <span>${c.likes || 0}</span>
           </button>
         </div>
       </div>
@@ -613,6 +704,8 @@ async function renderUniGrid() {
     isAuthed ? getMyUniversity().catch(() => null) : Promise.resolve(null),
   ]);
   const myUniId = myUni?._id || myUni?.id;
+  const user = getUser();
+  const isAdmin = user?.role === "admin";
 
   if (!unis || unis.length === 0) {
     container.innerHTML = `
@@ -636,6 +729,11 @@ async function renderUniGrid() {
           <span class="material-symbols-outlined text-white text-2xl">account_balance</span>
         </div>
         <h3 class="forum-uni-name">${u.name}</h3>
+        ${isAdmin ? `
+        <div class="forum-uni-admin-actions">
+          <button class="forum-uni-edit-btn" title="Edit"><span class="material-symbols-outlined text-sm">edit</span></button>
+          <button class="forum-uni-delete-btn" title="Delete"><span class="material-symbols-outlined text-sm">delete</span></button>
+        </div>` : ""}
       </div>
       <div class="forum-uni-card-body">
         <div class="forum-uni-stat">
@@ -674,6 +772,33 @@ async function renderUniGrid() {
           btn.textContent = "✓ Joined";
         }
       }
+    });
+  });
+
+  container.querySelectorAll(".forum-uni-edit-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const card = btn.closest(".forum-uni-card");
+      const id = card?.dataset.uniId;
+      if (!id) return;
+      const uni = unis.find(u => String(u.id) === String(id));
+      if (!uni) return;
+      openUniDialog(uni, async (name, description, color) => {
+        const result = await updateUniversity(id, { name, description, color });
+        if (result) window.location.reload();
+      });
+    });
+  });
+
+  container.querySelectorAll(".forum-uni-delete-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const card = btn.closest(".forum-uni-card");
+      const id = card?.dataset.uniId;
+      if (!id) return;
+      if (!confirm("Delete this university? This action cannot be undone.")) return;
+      const ok = await deleteUni(id);
+      if (ok) window.location.reload();
     });
   });
 }
@@ -720,6 +845,106 @@ async function renderTopicGrid() {
       window.location.href = `./community.html?cat=skills&topic=${encodeURIComponent(topic)}`;
     });
   });
+}
+
+/* =============================
+   UNIVERSITY DIALOG
+   ============================= */
+
+let uniDialogCallback = null;
+let uniDialogMode = "create";
+let uniDialogEditId = null;
+
+function initUniDialog() {
+  const overlay = document.getElementById("uniDialog");
+  const closeBtn = document.getElementById("uniDialogClose");
+  const cancelBtn = document.getElementById("uniDialogCancel");
+  const saveBtn = document.getElementById("uniDialogSave");
+  const colorPicker = document.getElementById("uniColorPicker");
+  const colorHex = document.getElementById("uniColorHex");
+
+  if (!overlay) return;
+
+  function close() {
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  closeBtn?.addEventListener("click", close);
+  cancelBtn?.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+
+  colorPicker?.addEventListener("input", () => {
+    if (colorHex) colorHex.value = colorPicker.value;
+  });
+
+  colorHex?.addEventListener("input", () => {
+    const val = colorHex.value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+      if (colorPicker) colorPicker.value = val;
+    }
+  });
+
+  document.querySelectorAll(".forum-uni-color-swatch").forEach(swatch => {
+    swatch.addEventListener("click", () => {
+      const color = swatch.dataset.color;
+      if (colorPicker) colorPicker.value = color;
+      if (colorHex) colorHex.value = color;
+      document.querySelectorAll(".forum-uni-color-swatch").forEach(s => s.classList.remove("active"));
+      swatch.classList.add("active");
+    });
+  });
+
+  saveBtn?.addEventListener("click", () => {
+    const name = document.getElementById("uniName")?.value.trim();
+    if (!name) {
+      document.getElementById("uniName")?.focus();
+      return;
+    }
+    const description = document.getElementById("uniDescription")?.value.trim() || "";
+    const color = document.getElementById("uniColorPicker")?.value || "#3B6FD4";
+    close();
+    if (uniDialogCallback) uniDialogCallback(name, description, color);
+    uniDialogCallback = null;
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.style.display !== "none") close();
+  });
+}
+
+function openUniDialog(editData, callback) {
+  const overlay = document.getElementById("uniDialog");
+  const title = document.getElementById("uniDialogTitle");
+  const nameInput = document.getElementById("uniName");
+  const descInput = document.getElementById("uniDescription");
+  const colorPicker = document.getElementById("uniColorPicker");
+  const colorHex = document.getElementById("uniColorHex");
+  if (!overlay) return;
+
+  if (editData) {
+    title.textContent = "Edit University";
+    nameInput.value = editData.name || "";
+    descInput.value = editData.description || "";
+    const c = editData.color || "#3B6FD4";
+    if (colorPicker) colorPicker.value = c;
+    if (colorHex) colorHex.value = c;
+  } else {
+    title.textContent = "Add University";
+    nameInput.value = "";
+    descInput.value = "";
+    if (colorPicker) colorPicker.value = "#3B6FD4";
+    if (colorHex) colorHex.value = "#3B6FD4";
+  }
+
+  document.querySelectorAll(".forum-uni-color-swatch").forEach(s => s.classList.remove("active"));
+
+  uniDialogCallback = callback;
+  overlay.style.display = "flex";
+  document.body.style.overflow = "hidden";
+  setTimeout(() => nameInput?.focus(), 100);
 }
 
 /* =============================
@@ -939,6 +1164,17 @@ function initEventDetailPopup() {
     }
 
     container.querySelector("#back-btn")?.addEventListener("click", close);
+
+    container.querySelector(".icon-btn")?.addEventListener("click", () => {
+      const id = eventId;
+      const title = "SpringWave Event";
+      const url = `${window.location.origin}/explore.html?event=${id}`;
+      if (navigator.share) {
+        navigator.share({ title, url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard!")).catch(() => {});
+      }
+    });
   }
 
   function close() {

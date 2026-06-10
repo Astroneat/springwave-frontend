@@ -1,4 +1,4 @@
-import { get, put, post, del } from "./client.js";
+import { get, put, post, del, uploadFormData } from "./client.js";
 
 export function getParticipatedActivities() {
     return get("/user/participated");
@@ -37,4 +37,10 @@ export function getUserContribution() {
 
 export function grantContribution(action) {
     return post("/user/contribution/grant", { action });
+}
+
+export function uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    return uploadFormData("/user/avatar", formData);
 }

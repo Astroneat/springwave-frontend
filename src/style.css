@@ -287,7 +287,7 @@
 }
 
 .user-chip {
-    @apply cursor-pointer flex items-center justify-center w-[40px] h-[40px] rounded-full;
+    @apply cursor-pointer flex items-center justify-center w-[44px] h-[44px] rounded-full relative;
     background: rgba(23, 85, 186, 0.12);
     border: 2px solid rgba(23, 85, 186, 0.2);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -299,9 +299,25 @@
     transform: scale(1.1);
 }
 
+.user-chip::after {
+    content: '';
+    @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 border-l-2 border-b-2 border-slate-400;
+    transform: translateX(-50%) rotate(-45deg);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.user-chip:hover::after {
+    opacity: 1;
+}
+
 .user-avatar {
-    @apply text-[16px] font-bold font-body-md text-white;
+    @apply text-[16px] font-bold font-body-md text-white w-full h-full flex items-center justify-center;
     line-height: 1;
+}
+
+.user-avatar-img {
+    @apply w-full h-full rounded-full object-cover;
 }
 
 .user-chip i,
@@ -607,7 +623,7 @@
 
 .popup-container {
     @apply relative max-h-[90vh] p-[20px] overflow-y-auto rounded-[20px] bg-white/92 opacity-0;
-    width: min(1100px, 95vw);
+    width: min(1200px, 95vw);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
@@ -954,8 +970,97 @@
 }
 
 .profile-avatar {
-    @apply w-32 h-32 rounded-full bg-accent text-white flex items-center justify-center text-[48px] font-bold shrink-0;
+    @apply w-32 h-32 rounded-full bg-accent text-white flex items-center justify-center text-[48px] font-bold shrink-0 relative;
     border: 4px solid #f5f5f5;
+    overflow: hidden;
+}
+
+.profile-avatar-img {
+    @apply w-full h-full object-cover;
+}
+
+.avatar-upload-overlay {
+    @apply absolute inset-0 flex items-center justify-center cursor-pointer;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.2s ease;
+}
+
+.avatar-upload-overlay:hover {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.avatar-upload-overlay .material-symbols-outlined {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    font-size: 28px;
+}
+
+.avatar-upload-overlay:hover .material-symbols-outlined {
+    opacity: 1;
+}
+
+/* ===== CROP MODAL ===== */
+
+.crop-modal-overlay {
+    @apply fixed inset-0 z-[6000] flex items-center justify-center;
+    background: rgba(10, 15, 30, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.crop-modal {
+    @apply bg-white rounded-[20px] w-[min(500px,92vw)] overflow-hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+}
+
+.crop-modal-header {
+    @apply flex items-center justify-between px-6 py-4 border-b border-slate-100;
+}
+
+.crop-modal-header h3 {
+    @apply text-lg font-bold text-slate-900;
+}
+
+.crop-modal-close {
+    @apply w-8 h-8 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center text-slate-400;
+    transition: all 0.2s ease;
+}
+
+.crop-modal-close:hover {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.crop-modal-body {
+    @apply p-4;
+}
+
+.crop-modal-body img {
+    @apply max-w-full block;
+}
+
+.crop-modal-actions {
+    @apply flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100;
+}
+
+.crop-btn-cancel {
+    @apply px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold cursor-pointer;
+    transition: all 0.2s ease;
+}
+
+.crop-btn-cancel:hover {
+    @apply bg-slate-50;
+}
+
+.crop-btn-save {
+    @apply px-5 py-2.5 rounded-xl border-none bg-[#1755ba] text-white text-sm font-semibold cursor-pointer;
+    transition: all 0.2s ease;
+}
+
+.crop-btn-save:hover {
+    background: #0e3d8a;
+}
+
+.avatar-upload-overlay:hover .material-symbols-outlined {
+    opacity: 1;
 }
 
 .profile-info {
@@ -1369,6 +1474,8 @@
 
 .main-content {
     @apply grid grid-cols-[260px_1fr] gap-[28px];
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* ================= LEFT PANEL ================= */
@@ -1409,6 +1516,9 @@
 
 .title {
     @apply text-[36px] font-extrabold mb-1.5;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .location-link {
@@ -1446,6 +1556,8 @@
 
 .description-panel {
     @apply bg-[#fafcff] border border-[#e5ebf5] rounded-[16px] p-4 max-h-[840px] overflow-y-auto mb-[15px];
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .description-panel::-webkit-scrollbar {
@@ -4379,6 +4491,15 @@
     background: rgba(35, 73, 155, 0.06);
 }
 
+.forum-comment-like-btn.liked {
+    color: #23499b;
+    background: rgba(35, 73, 155, 0.1);
+}
+
+.forum-comment-like-btn.liked:hover {
+    background: rgba(35, 73, 155, 0.15);
+}
+
 .forum-comment-input {
     @apply flex-1 text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none;
     transition: all 0.2s ease;
@@ -4484,6 +4605,162 @@
 
 .forum-uni-join-btn:hover {
     background: rgba(23, 85, 186, 0.15);
+}
+
+.forum-uni-admin-actions {
+    @apply flex items-center gap-1 ml-auto;
+}
+
+.forum-uni-admin-actions button {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-none bg-transparent;
+    transition: all 0.2s ease;
+}
+
+.forum-uni-admin-actions button:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.forum-uni-add-btn {
+    @apply flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer border-none;
+    background: rgba(23, 85, 186, 0.08);
+    color: #1755ba;
+    transition: all 0.2s ease;
+}
+
+.forum-uni-add-btn:hover {
+    background: rgba(23, 85, 186, 0.15);
+}
+
+/* ===== UNIVERSITY DIALOG ===== */
+
+.forum-uni-dialog-overlay {
+    @apply fixed inset-0 z-[7000] flex items-center justify-center;
+    background: rgba(10, 15, 30, 0.45);
+    backdrop-filter: blur(4px);
+}
+
+.forum-uni-dialog {
+    @apply bg-white rounded-[20px] w-[min(480px,92vw)] overflow-hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+    transform: translateY(20px);
+    animation: forumUniFadeIn 0.25s ease forwards;
+}
+
+@keyframes forumUniFadeIn {
+    to { transform: translateY(0); }
+}
+
+.forum-uni-dialog-header {
+    @apply flex items-center justify-between px-6 py-4 border-b border-slate-100;
+}
+
+.forum-uni-dialog-header h2 {
+    @apply text-lg font-bold text-slate-900;
+}
+
+.forum-uni-dialog-close {
+    @apply w-8 h-8 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center text-slate-400;
+    transition: all 0.2s ease;
+}
+
+.forum-uni-dialog-close:hover {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.forum-uni-dialog-body {
+    @apply px-6 py-5 space-y-4;
+}
+
+.forum-uni-dialog-field {
+    @apply flex flex-col gap-1.5;
+}
+
+.forum-uni-dialog-field label {
+    @apply text-sm font-semibold text-slate-700;
+}
+
+.forum-uni-dialog-field input[type="text"],
+.forum-uni-dialog-field textarea {
+    @apply w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 outline-none;
+    transition: border-color 0.2s ease;
+}
+
+.forum-uni-dialog-field input[type="text"]:focus,
+.forum-uni-dialog-field textarea:focus {
+    @apply border-[#1755ba];
+    box-shadow: 0 0 0 3px rgba(23, 85, 186, 0.1);
+}
+
+.forum-uni-dialog-field textarea {
+    @apply resize-none;
+}
+
+.forum-uni-color-picker {
+    @apply flex flex-wrap items-center gap-3;
+}
+
+.forum-uni-color-picker input[type="color"] {
+    @apply w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-0.5;
+    background: none;
+}
+
+.forum-uni-color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+    @apply p-0;
+}
+
+.forum-uni-color-picker input[type="color"]::-webkit-color-swatch {
+    @apply rounded-lg border-none;
+}
+
+.forum-uni-color-hex {
+    @apply w-24 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 outline-none font-mono;
+    transition: border-color 0.2s ease;
+}
+
+.forum-uni-color-hex:focus {
+    @apply border-[#1755ba];
+    box-shadow: 0 0 0 3px rgba(23, 85, 186, 0.1);
+}
+
+.forum-uni-color-presets {
+    @apply flex items-center gap-1.5;
+}
+
+.forum-uni-color-swatch {
+    @apply w-7 h-7 rounded-full border-2 border-transparent cursor-pointer;
+    transition: all 0.2s ease;
+}
+
+.forum-uni-color-swatch:hover {
+    @apply scale-110;
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+.forum-uni-color-swatch.active {
+    @apply scale-110;
+    border-color: #1755ba;
+}
+
+.forum-uni-dialog-footer {
+    @apply flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100;
+}
+
+.forum-uni-dialog-btn-cancel {
+    @apply px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold cursor-pointer;
+    transition: all 0.2s ease;
+}
+
+.forum-uni-dialog-btn-cancel:hover {
+    @apply bg-slate-50;
+}
+
+.forum-uni-dialog-btn-save {
+    @apply px-5 py-2.5 rounded-xl border-none bg-[#1755ba] text-white text-sm font-semibold cursor-pointer inline-flex items-center gap-1.5;
+    transition: all 0.2s ease;
+}
+
+.forum-uni-dialog-btn-save:hover {
+    background: #0e3d8a;
 }
 
 /* ===== TOPIC GRID ===== */

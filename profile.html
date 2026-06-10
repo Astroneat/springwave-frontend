@@ -12,6 +12,7 @@
     rel="stylesheet">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
   <link rel="stylesheet" href="/assets/style.css" />
 </head>
 
@@ -20,7 +21,14 @@
 
   <div class="profile-page">
     <div class="profile-header">
-      <div class="profile-avatar" id="avatar-placeholder">?</div>
+      <div class="profile-avatar" id="avatar-placeholder">
+        <img id="avatar-image" class="profile-avatar-img" style="display:none;" alt="avatar"/>
+        <span id="avatar-initial">?</span>
+        <label class="avatar-upload-overlay" id="avatarUploadLabel">
+          <span class="material-symbols-outlined text-white">photo_camera</span>
+          <input type="file" id="avatarUploadInput" accept="image/*" style="display:none;"/>
+        </label>
+      </div>
       <div class="profile-info">
         <div class="profile-name-row">
           <h1 class="profile-name" id="profile-name">Loading...</h1>
@@ -113,7 +121,25 @@
     </div>
   </div>
 
+  <div class="crop-modal-overlay" id="cropModal" style="display:none;">
+    <div class="crop-modal-backdrop"></div>
+    <div class="crop-modal">
+      <div class="crop-modal-header">
+        <h3>Crop Avatar</h3>
+        <button class="crop-modal-close" id="cropModalClose"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="crop-modal-body">
+        <img id="cropImage" style="max-width:100%;"/>
+      </div>
+      <div class="crop-modal-actions">
+        <button class="crop-btn-cancel" id="cropBtnCancel">Cancel</button>
+        <button class="crop-btn-save" id="cropBtnSave">Save</button>
+      </div>
+    </div>
+  </div>
+
   <div id="chatbot-container"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
   <script type="module" src="js/pages/profile.js"></script>
 </body>
 

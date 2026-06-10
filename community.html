@@ -94,6 +94,9 @@
             <h2 class="forum-section-title">University Communities</h2>
             <p class="forum-section-subtitle">Join your campus community and meet fellow students</p>
           </div>
+          <button id="forumAddUniBtn" class="forum-uni-add-btn" style="display:none;">
+            <span class="material-symbols-outlined text-sm">add</span> Add University
+          </button>
         </div>
         <div class="forum-uni-grid" id="forumUniGrid">
           <!-- populated by JS -->
@@ -210,6 +213,51 @@
   <div class="popup-overlay" hidden id="discussionPopupOverlay">
     <div class="popup-backdrop" id="discussionPopupBackdrop"></div>
     <div class="popup-container" id="discussionPopupContainer"></div>
+  </div>
+
+  <!-- UNIVERSITY DIALOG -->
+  <div class="forum-uni-dialog-overlay" id="uniDialog" style="display:none;">
+    <div class="forum-uni-dialog-backdrop"></div>
+    <div class="forum-uni-dialog">
+      <div class="forum-uni-dialog-header">
+        <h2 id="uniDialogTitle">Add University</h2>
+        <button class="forum-uni-dialog-close" id="uniDialogClose">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="forum-uni-dialog-body">
+        <div class="forum-uni-dialog-field">
+          <label for="uniName">University Name</label>
+          <input type="text" id="uniName" placeholder="e.g. University of Da Nang" />
+        </div>
+        <div class="forum-uni-dialog-field">
+          <label for="uniDescription">Description (optional)</label>
+          <textarea id="uniDescription" rows="3" placeholder="Brief description about this university..."></textarea>
+        </div>
+        <div class="forum-uni-dialog-field">
+          <label>Brand Color</label>
+          <div class="forum-uni-color-picker">
+            <input type="color" id="uniColorPicker" value="#3B6FD4" />
+            <input type="text" id="uniColorHex" class="forum-uni-color-hex" value="#3B6FD4" placeholder="#3B6FD4" maxlength="7" />
+            <div class="forum-uni-color-presets">
+              <button class="forum-uni-color-swatch" data-color="#3B6FD4" style="background:#3B6FD4;" title="Blue"></button>
+              <button class="forum-uni-color-swatch" data-color="#10B981" style="background:#10B981;" title="Green"></button>
+              <button class="forum-uni-color-swatch" data-color="#F59E0B" style="background:#F59E0B;" title="Amber"></button>
+              <button class="forum-uni-color-swatch" data-color="#8B5CF6" style="background:#8B5CF6;" title="Purple"></button>
+              <button class="forum-uni-color-swatch" data-color="#EF4444" style="background:#EF4444;" title="Red"></button>
+              <button class="forum-uni-color-swatch" data-color="#EC4899" style="background:#EC4899;" title="Pink"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="forum-uni-dialog-footer">
+        <button class="forum-uni-dialog-btn-cancel" id="uniDialogCancel">Cancel</button>
+        <button class="forum-uni-dialog-btn-save" id="uniDialogSave">
+          <span class="material-symbols-outlined text-lg">check</span>
+          Save
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- FOOTER -->

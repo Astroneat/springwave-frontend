@@ -341,6 +341,18 @@ async function openPopup(activityID) {
     initParticipateButton(activityID);
     popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
 
+    popupContainer.querySelector(".icon-btn")?.addEventListener("click", () => {
+        const id = activityID;
+        const act = allActivities.find(a => a.activityID === id || a._id === id);
+        const title = act?.title || "SpringWave Event";
+        const url = `${window.location.origin}/explore.html?event=${id}`;
+        if (navigator.share) {
+            navigator.share({ title, url }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard!")).catch(() => {});
+        }
+    });
+
     if (isAuthenticated()) {
         Promise.all([
             checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(); }),
@@ -399,6 +411,16 @@ async function openPopup2(activityID, activityData) {
     popupContainer2.innerHTML = buildPopupHTML(activity, "Back");
     initParticipateButton(activityID);
     popupContainer2.querySelector("#back-btn")?.addEventListener("click", closePopup2);
+
+    popupContainer2.querySelector(".icon-btn")?.addEventListener("click", () => {
+        const title = activity?.title || "SpringWave Event";
+        const url = `${window.location.origin}/explore.html?event=${activityID}`;
+        if (navigator.share) {
+            navigator.share({ title, url }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard!")).catch(() => {});
+        }
+    });
 
     if (isAuthenticated()) {
         Promise.all([

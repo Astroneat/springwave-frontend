@@ -1,4 +1,5 @@
-import { get, post } from "./client.js";
+import { get, post, put, del } from "./client.js";
+import { getToken } from "../lib/session.js";
 import { formatDate } from "../lib/utils.js";
 
 const DISCUSSIONS_FALLBACK = [
@@ -49,7 +50,10 @@ export async function getTrendingDiscussions() {
 }
 
 export async function getDiscussionsByCategory(category) {
-  if (category === "event" || category === "uni" || category === "mine" || category === "saved") return [];
+  if (category === "event") return [];
+  if (category === "uni") return [];
+  if (category === "mine") return getMyDiscussions();
+  if (category === "saved") return getSavedDiscussions();
   try {
     const params = category === "all" ? "" : `?category=${category}`;
     const data = await get(`/community/discussions${params}`);
@@ -127,7 +131,7 @@ export async function getPopularDiscussions() {
 
 export async function getAISuggestions() {
   try {
-    const token = (() => { try { return JSON.parse(localStorage.getItem("user") || "{}").token; } catch { return ""; } })();
+    const token = getToken();
     if (!token) return [];
     const { getRecommendations } = await import("./recommendations.js");
     const data = await getRecommendations();
@@ -189,11 +193,8 @@ export async function getCommunityDiscussions(communityId) {
 
 export async function deleteDiscussion(id) {
   try {
-    const resp = await fetch(`http://localhost:3643/community/discussions/${id}`, {
-      method: "DELETE",
-      headers: { "Authorization": `Bearer ${(() => { try { return JSON.parse(localStorage.getItem("user") || "{}").token; } catch { return ""; } })()}` },
-    });
-    return resp.ok;
+    await del(`/community/discussions/${id}`);
+    return true;
   } catch {
     return false;
   }
@@ -210,15 +211,8 @@ export async function createUniversity(name, description, color) {
 
 export async function updateUniversity(id, updates) {
   try {
-    const resp = await fetch(`http://localhost:3643/community/universities/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${(() => { try { return JSON.parse(localStorage.getItem("user") || "{}").token; } catch { return ""; } })()}`,
-      },
-      body: JSON.stringify(updates),
-    });
-    return resp.ok ? resp.json() : null;
+    const data = await put(`/community/universities/${id}`, updates);
+    return data?.university || null;
   } catch {
     return null;
   }
@@ -226,14 +220,54 @@ export async function updateUniversity(id, updates) {
 
 export async function deleteUniversity(id) {
   try {
-    const resp = await fetch(`http://localhost:3643/community/universities/${id}`, {
-      method: "DELETE",
-      headers: { "Authorization": `Bearer ${(() => { try { return JSON.parse(localStorage.getItem("user") || "{}").token; } catch { return ""; } })()}` },
-    });
-    return resp.ok;
+    await del(`/community/universities/${id}`);
+    return true;
   } catch {
     return false;
   }
+}
+
+export async function likeComment(discussionId, commentId) {
+  try {
+    const data = await post(`/community/discussions/${discussionId}/comments/${commentId}/like`, {});
+    return data || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveDiscussion(id) {
+  try {
+    await post(`/community/discussions/${id}/save`, {});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function unsaveDiscussion(id) {
+  try {
+    await del(`/community/discussions/${id}/save`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getSavedDiscussions() {
+  try {
+    const data = await get("/community/discussions/saved/me");
+    if (data?.discussions) return data.discussions;
+  } catch {}
+  return [];
+}
+
+export async function getMyDiscussions() {
+  try {
+    const data = await get("/community/discussions?author=me");
+    if (data?.discussions) return data.discussions;
+  } catch {}
+  return [];
 }
 
 export async function getEventById(id) {

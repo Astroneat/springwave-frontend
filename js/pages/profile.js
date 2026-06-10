@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser, setUser } from "../lib/session.js";
-import { changeInfo, getFavourites, getUserContribution } from "../api/user.js";
+import { changeInfo, getFavourites, getUserContribution, uploadAvatar } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
 import { getMyProfile } from "../api/profile.js";
 import {
@@ -71,9 +71,47 @@ async function loadUserProfile() {
     document.getElementById("profile-role").textContent = roleMap[user.role] || "Student";
 
     const initial = (user.username || user.fullname || "?").charAt(0).toUpperCase();
-    document.getElementById("avatar-placeholder").textContent = initial;
+    const avatarImg = document.getElementById("avatar-image");
+    const avatarInitial = document.getElementById("avatar-initial");
+    if (user.avatar && avatarImg) {
+        avatarImg.src = user.avatar;
+        avatarImg.style.display = "";
+        if (avatarInitial) avatarInitial.style.display = "none";
+    } else {
+        if (avatarImg) avatarImg.style.display = "none";
+        if (avatarInitial) {
+            avatarInitial.textContent = initial;
+            avatarInitial.style.display = "";
+        }
+    }
 
     updateEditButton(user);
+
+    const avatarInput = document.getElementById("avatarUploadInput");
+    if (avatarInput) {
+        avatarInput.addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            openCropModal(file, async (croppedBlob) => {
+                try {
+                    const result = await uploadAvatar(croppedBlob);
+                    if (result?.avatar) {
+                        user.avatar = result.avatar;
+                        setUser(user);
+                        if (avatarImg) {
+                            avatarImg.src = result.avatar;
+                            avatarImg.style.display = "";
+                            if (avatarInitial) avatarInitial.style.display = "none";
+                        }
+                        window.dispatchEvent(new CustomEvent("avatar-updated", { detail: { avatar: result.avatar } }));
+                    }
+                } catch (err) {
+                    console.error("Avatar upload failed:", err);
+                    alert("Failed to upload avatar");
+                }
+            });
+        });
+    }
 }
 
 function updateEditButton(user) {
@@ -298,6 +336,7 @@ async function showFavPopup() {
 ========================= */
 
 let currentUser = null;
+let cropperInstance = null;
 
 function initEditProfile() {
     const editBtn = document.getElementById("edit-profile-btn");
@@ -385,6 +424,71 @@ async function handleEditSubmit(e) {
         statusEl.className = "edit-form-status error";
         statusEl.textContent = err.message || "Failed to update profile.";
     }
+}
+
+/* =========================
+   AVATAR CROP MODAL
+   ========================= */
+
+function openCropModal(file, onSave) {
+    const modal = document.getElementById("cropModal");
+    const img = document.getElementById("cropImage");
+    const closeBtn = document.getElementById("cropModalClose");
+    const cancelBtn = document.getElementById("cropBtnCancel");
+    const saveBtn = document.getElementById("cropBtnSave");
+    if (!modal || !img) return;
+
+    if (cropperInstance) {
+        cropperInstance.destroy();
+        cropperInstance = null;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        img.src = e.target.result;
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+
+        img.onload = () => {
+            cropperInstance = new Cropper(img, {
+                aspectRatio: 1,
+                viewMode: 1,
+                dragMode: "move",
+                cropBoxResizable: true,
+                cropBoxMovable: true,
+                background: false,
+                minCropBoxWidth: 100,
+                minCropBoxHeight: 100,
+            });
+        };
+    };
+    reader.readAsDataURL(file);
+
+    function closeCropModal() {
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
+        modal.style.display = "none";
+        document.body.style.overflow = "";
+        img.src = "";
+    }
+
+    closeBtn?.addEventListener("click", closeCropModal);
+    cancelBtn?.addEventListener("click", closeCropModal);
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeCropModal();
+    });
+
+    saveBtn?.addEventListener("click", () => {
+        if (!cropperInstance) return;
+        const canvas = cropperInstance.getCroppedCanvas({ width: 512, height: 512 });
+        canvas.toBlob((blob) => {
+            const croppedFile = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+            closeCropModal();
+            if (onSave) onSave(croppedFile);
+        }, "image/jpeg", 0.92);
+    });
 }
 
 /* =========================
