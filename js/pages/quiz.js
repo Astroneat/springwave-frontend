@@ -173,6 +173,12 @@ let currentQuestion = 0;
 let answers = [];
 let animFrame = null;
 
+if (!isAuthenticated()) {
+  window.location.replace("/login.html");
+} else {
+  document.body.style.display = "";
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar({ activeSection: "home" });
   await initChatbot();
