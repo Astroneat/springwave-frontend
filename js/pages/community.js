@@ -92,6 +92,11 @@ function eventToDiscussion(event) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar();
+  const user = getUser();
+  const avatarEl = document.getElementById("forumStatusAvatar");
+  if (avatarEl && user) {
+    avatarEl.textContent = (user.username || user.fullname || "?").charAt(0).toUpperCase();
+  }
   initBasicScroll();
   initForumSidebarToggle();
   await initPostModal();

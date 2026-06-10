@@ -3896,7 +3896,7 @@
 /* ===== LAYOUT ===== */
 
 .forum-layout {
-    @apply max-w-[1480px] mx-auto px-4 md:px-8 pt-24 pb-20;
+    @apply max-w-[1480px] mx-auto px-4 md:px-8 pb-20;
     display: grid;
     grid-template-columns: 240px 1fr 280px;
     gap: 28px;
@@ -4038,7 +4038,35 @@
 /* ===== MAIN CONTENT ===== */
 
 .forum-main {
-    @apply min-w-0 pt-6;
+    @apply min-w-0;
+}
+
+.forum-status-bar {
+    @apply max-w-[1480px] mx-auto px-4 md:px-8 pt-24 pb-4;
+}
+.forum-status-box {
+    @apply bg-white rounded-xl p-3 flex items-center gap-3 cursor-pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.2s, background 0.2s;
+}
+.forum-status-box:hover {
+    @apply bg-gray-50;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+.forum-status-avatar {
+    @apply w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-xs shrink-0;
+    background: linear-gradient(135deg, #23499b, #3B6FD4);
+}
+.forum-status-placeholder {
+    @apply flex-1 text-slate-400 text-sm;
+}
+.forum-status-post-btn {
+    @apply flex items-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white shrink-0;
+    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    transition: opacity 0.2s;
+}
+.forum-status-post-btn:hover {
+    opacity: 0.9;
 }
 
 .forum-section {
