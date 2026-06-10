@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { isAuthenticated } from "../lib/session.js";
-import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities } from "../api/activities.js";
+import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities, searchSemantic } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { getRecommendations, explainRecommendation } from "../api/recommendations.js";
 import { CDN_DOMAIN } from "../config.js";
@@ -163,12 +163,16 @@ function initSearchButton() {
         cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Searching...</div>`;
 
         try {
-            const data = await searchActivities({
-                keyword,
+            const params = {
                 location,
                 heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
                 heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
-            });
+            };
+
+            const data = keyword
+                ? await searchSemantic({ q: keyword, ...params })
+                : await searchActivities({ keyword, ...params });
+
             const activities = data?.activities || [];
             if (activities.length === 0) {
                 cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">No results found</div>`;
