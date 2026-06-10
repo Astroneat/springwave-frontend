@@ -3,9 +3,10 @@ import { isAuthenticated } from "../lib/session.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
-import { submitSurvey, getSurveyQuestions } from "../api/survey.js";
+import { submitSurvey, getSurveyQuestions, getSurveyResult } from "../api/survey.js";
+import { generateProfile } from "../api/profile.js";
 
-const QUESTIONS = [
+const HARDCODED_QUESTIONS = [
   {
     id: 1,
     category: "Preferences",
@@ -122,6 +123,8 @@ const QUESTIONS = [
   },
 ];
 
+let QUESTIONS = [...HARDCODED_QUESTIONS];
+
 const SCORE_LABELS = {
   communication: { name: "Communication", icon: "forum", color: "#3B82F6", desc: "Speaking, presenting, interacting" },
   technical: { name: "Technical", icon: "code", color: "#8B5CF6", desc: "Coding, engineering, problem-solving" },
@@ -174,8 +177,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar({ activeSection: "home" });
   await initChatbot();
   loadFooter();
+  await loadQuestions();
+  await checkExistingResult();
   initQuiz();
 });
+
+async function checkExistingResult() {
+  if (!isAuthenticated()) return;
+  const startBtn = document.getElementById("quizStartBtn");
+  if (!startBtn) return;
+
+  try {
+    const data = await getSurveyResult();
+    if (data?.scores) {
+      startBtn.innerHTML = `<span class="material-symbols-outlined">refresh</span> Retake Quiz`;
+    }
+  } catch {
+    // No existing result, show start as normal
+  }
+}
+
+async function loadQuestions() {
+  try {
+    const data = await getSurveyQuestions();
+    if (data?.questions?.length === HARDCODED_QUESTIONS.length) {
+      QUESTIONS = data.questions.map((q, idx) => ({
+        ...q,
+        id: idx + 1,
+        category: HARDCODED_QUESTIONS[idx]?.category || 'General',
+        answers: q.answers.map((a, aidx) => ({
+          ...a,
+          scores: HARDCODED_QUESTIONS[idx]?.answers[aidx]?.scores || { communication: 25, technical: 25, creativity: 25, socialImpact: 25 },
+        })),
+      }));
+    }
+  } catch {
+    console.log('Using hardcoded questions');
+  }
+}
 
 async function loadFooter() {
   const html = await fetchContent("./components/footer.html");
@@ -320,17 +359,25 @@ async function finishQuiz() {
     </div>
   `;
 
-  const scores = calculateScores();
+  let scores = calculateScores();
+  const answerData = answers.map((answerIndex, qIndex) => ({
+    questionIndex: qIndex,
+    answerIndex,
+  }));
 
   if (isAuthenticated()) {
     try {
-      const answerData = answers.map((answerIndex, qIndex) => ({
-        questionIndex: qIndex,
-        answerIndex,
-      }));
-      await submitSurvey(answerData);
+      const result = await submitSurvey(answerData);
+      if (result?.scores) {
+        scores = result.scores;
+      }
+      try {
+        await generateProfile({ answers: answerData });
+      } catch (profileErr) {
+        console.warn("Profile generation failed:", profileErr);
+      }
     } catch (err) {
-      console.warn("Survey submission failed (API may not be ready):", err);
+      console.warn("Survey submission failed:", err);
     }
   }
 

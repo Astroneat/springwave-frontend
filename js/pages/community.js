@@ -13,6 +13,12 @@ import {
   getComments,
   getTopComment,
   addComment,
+  getStats,
+  joinUniversity,
+  leaveUniversity,
+  getMyUniversity,
+  createDiscussionWithScope,
+  getCommunityDiscussions,
 } from "../api/forum.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
@@ -46,8 +52,8 @@ async function getEventDiscussions() {
     if (!activities || activities.length === 0) return [];
     return activities.slice(0, MAX_EVENT_DISCUSSIONS).map(eventToDiscussion);
   } catch {
-    const events = getEvents();
-    if (events.length === 0) return [];
+    const events = await getEvents();
+    if (!events || events.length === 0) return [];
     return events.map((e) => ({
       id: e.id,
       author: "SpringWave",
@@ -88,7 +94,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar();
   initBasicScroll();
   initForumSidebarToggle();
-  initPostModal();
+  await initPostModal();
+  await updateHeroStats();
 
   const category = getCategoryFromURL();
   setActiveCategory(category);
@@ -100,15 +107,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     discussions = await getEventDiscussions();
     discussionsCache = discussions;
   } else {
-    discussions = getDiscussionsByCategory(category);
+    discussions = await getDiscussionsByCategory(category);
   }
   renderDiscussions(discussions, category);
 
   if (category === "all" || category === "uni") {
-    renderUniGrid();
+    await renderUniGrid();
   }
   if (category === "all" || category === "skills") {
-    renderTopicGrid();
+    await renderTopicGrid();
   }
 
   initSidebarLinkClick();
@@ -226,19 +233,29 @@ async function loadSidebar(category) {
     if (widgets[2]) widgets[2].style.display = "";
   }
 
-  renderPopularDiscussions();
-  renderUpcomingEvents();
-  renderAISuggestions();
+  await renderPopularDiscussions();
+  await renderUpcomingEvents();
+  await renderAISuggestions();
 }
 
-function renderPopularDiscussions() {
+async function updateHeroStats() {
+  const stats = await getStats();
+  const containers = document.querySelectorAll(".forum-hero-stat-number");
+  if (containers.length >= 3) {
+    containers[0].textContent = (stats.students || 15000).toLocaleString() + "+";
+    containers[1].textContent = (stats.discussions || 2000).toLocaleString() + "+";
+    containers[2].textContent = (stats.universities || 10) + "+";
+  }
+}
+
+async function renderPopularDiscussions() {
   const container = document.getElementById("sidebarPopular");
   if (!container) return;
-  const popular = getPopularDiscussions();
+  const popular = await getPopularDiscussions();
   container.innerHTML = popular
     .map(
       (d, i) => `
-    <div class="forum-sidebar-popular-item">
+    <div class="forum-sidebar-popular-item" data-discussion-id="${d.id}" style="cursor:pointer;">
       <span class="forum-sidebar-popular-rank">${String(i + 1).padStart(2, "0")}</span>
       <div class="forum-sidebar-popular-info">
         <span class="forum-sidebar-popular-title">${d.title}</span>
@@ -248,41 +265,59 @@ function renderPopularDiscussions() {
   `
     )
     .join("");
+
+  container.querySelectorAll(".forum-sidebar-popular-item").forEach((item) => {
+    item.addEventListener("click", async () => {
+      const id = item.dataset.discussionId;
+      if (id) await openDiscussionDetail(id);
+    });
+  });
 }
 
-function renderUpcomingEvents() {
+async function renderUpcomingEvents() {
   const container = document.getElementById("sidebarUpcomingEvents");
   if (!container) return;
-  const events = getUpcomingEvents();
+  const events = await getUpcomingEvents();
+  if (!events || events.length === 0) { container.innerHTML = '<div class="forum-sidebar-empty" style="padding:12px;text-align:center;color:#94a3b8;font-size:13px;">No upcoming events</div>'; return; }
   container.innerHTML = events
     .map(
-      (e) => `
-    <div class="forum-sidebar-event">
+      (e) => {
+      const parts = (e.date || "").split(" ");
+      return `
+    <div class="forum-sidebar-event" data-event-id="${e.id}" style="cursor:pointer;">
       <div class="forum-sidebar-event-date">
-        <span class="forum-sidebar-event-day">${e.date.split(" ")[0]}</span>
-        <span class="forum-sidebar-event-month">${e.date.split(" ")[1]}</span>
+        <span class="forum-sidebar-event-day">${parts[0] || "?"}</span>
+        <span class="forum-sidebar-event-month">${parts[1] || ""}</span>
       </div>
       <div class="forum-sidebar-event-info">
         <span class="forum-sidebar-event-title">${e.title}</span>
-        <span class="forum-sidebar-event-attendees">
-          <span class="material-symbols-outlined text-xs">person</span>
-          ${e.attendees} attending
-        </span>
       </div>
     </div>
   `
-    )
+    })
     .join("");
+
+  container.querySelectorAll(".forum-sidebar-event").forEach((item) => {
+    item.addEventListener("click", async () => {
+      const id = item.dataset.eventId;
+      if (id) {
+        hideDiscussionPopup();
+        await window.openEventDetailPopup?.(id);
+      }
+    });
+  });
 }
 
-function renderAISuggestions() {
+async function renderAISuggestions() {
   const container = document.getElementById("sidebarAISuggested");
   if (!container) return;
-  const suggestions = getAISuggestions();
+  const suggestions = await getAISuggestions();
+  if (!suggestions || suggestions.length === 0) { container.style.display = "none"; return; }
+  container.style.display = "";
   container.innerHTML = suggestions
     .map(
       (s) => `
-    <div class="forum-sidebar-ai-item">
+    <div class="forum-sidebar-ai-item" data-event-id="${s.id}" style="cursor:pointer;">
       <div class="forum-sidebar-ai-icon">
         <span class="material-symbols-outlined">auto_awesome</span>
       </div>
@@ -294,6 +329,16 @@ function renderAISuggestions() {
   `
     )
     .join("");
+
+  container.querySelectorAll(".forum-sidebar-ai-item").forEach((item) => {
+    item.addEventListener("click", async () => {
+      const id = item.dataset.eventId;
+      if (id) {
+        hideDiscussionPopup();
+        await window.openEventDetailPopup?.(id);
+      }
+    });
+  });
 }
 
 /* =============================
@@ -327,7 +372,6 @@ function renderDiscussions(discussions, category) {
     .map(
       (d) => {
         const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
-        const topComment = getTopComment(d.id);
         return `
     <div class="forum-discussion-card" data-discussion-id="${d.id}">
       <div class="forum-discussion-card-header">
@@ -384,15 +428,15 @@ function renderDiscussions(discussions, category) {
           </button>
         </div>
       </div>
-    </div>
-  `;}
-    )
+      </div>
+    `
+    })
     .join("");
 }
 
 function renderEventRef(eventId, eventData) {
-  const event = eventData || getEventById(eventId);
-  if (!event) return "";
+  if (!eventData) return "";
+  const event = eventData;
   return `
     <div class="forum-event-ref" data-event-id="${eventId}">
       <div class="forum-event-ref-icon">
@@ -418,16 +462,16 @@ function renderEventRef(eventId, eventData) {
    ============================= */
 
 function initDiscussionDetail() {
-  document.getElementById("forumDiscussions")?.addEventListener("click", (e) => {
+  document.getElementById("forumDiscussions")?.addEventListener("click", async (e) => {
     const card = e.target.closest(".forum-discussion-card");
     if (!card) return;
     if (e.target.closest(".forum-event-ref, .forum-event-ref-link, .forum-reply-btn, .forum-discussion-action-btn")) return;
     const id = card.dataset.discussionId;
-    if (id) openDiscussionDetail(id);
+    if (id) await openDiscussionDetail(id);
   });
 }
 
-function openDiscussionDetail(id) {
+async function openDiscussionDetail(id) {
   const overlay = document.getElementById("discussionPopupOverlay");
   const container = document.getElementById("discussionPopupContainer");
   if (!overlay || !container) return;
@@ -437,7 +481,7 @@ function openDiscussionDetail(id) {
   document.body.style.overflow = "hidden";
   container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
 
-  const allDiscussions = getDiscussionsByCategory("all");
+  const allDiscussions = await getDiscussionsByCategory("all");
   const eventDisc = (discussionsCache || []);
   const discussion = [...allDiscussions, ...eventDisc].find((d) => String(d.id) === String(id));
   if (!discussion) {
@@ -445,7 +489,7 @@ function openDiscussionDetail(id) {
     return;
   }
 
-  const comments = getComments(id);
+  const comments = await getComments(id);
   container.innerHTML = buildDiscussionDetailHTML(discussion, comments);
 
   container.querySelector("#discussion-back-btn")?.addEventListener("click", closeDiscussionDetail);
@@ -481,22 +525,22 @@ function hideDiscussionPopup() {
   overlay.setAttribute("hidden", "");
 }
 
-function submitDiscussionComment(id, container) {
+async function submitDiscussionComment(id, container) {
   const input = container.querySelector("#discussion-input");
   const text = input.value.trim();
   if (!text) return;
-  addComment(id, text);
+  await addComment(id, text);
   grantContribution("reply").then((res) => {
     if (res && res.newBadges && Array.isArray(res.newBadges)) {
       res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
     }
   }).catch(() => {});
   input.value = "";
-  const comments = getComments(id);
+  const comments = await getComments(id);
   const list = container.querySelector(".discussion-detail-comments");
   if (list) {
     const lastComment = comments[comments.length - 1];
-    list.insertAdjacentHTML("beforeend", buildCommentHTML(lastComment));
+    if (lastComment) list.insertAdjacentHTML("beforeend", buildCommentHTML(lastComment));
   }
 }
 
@@ -584,14 +628,22 @@ function buildCommentHTML(c) {
    UNIVERSITY GRID
    ============================= */
 
-function renderUniGrid() {
+async function renderUniGrid() {
   const container = document.getElementById("forumUniGrid");
   if (!container) return;
-  const unis = getUniversityCommunities();
+  const isAuthed = isAuthenticated();
+  const [unis, myUni] = await Promise.all([
+    getUniversityCommunities(),
+    isAuthed ? getMyUniversity().catch(() => null) : Promise.resolve(null),
+  ]);
+  const myUniId = myUni?._id || myUni?.id;
+
   container.innerHTML = unis
     .map(
-      (u) => `
-    <div class="forum-uni-card">
+      (u) => {
+      const isJoined = myUniId && (String(u.id) === String(myUniId));
+      return `
+    <div class="forum-uni-card" data-uni-id="${u.id}">
       <div class="forum-uni-card-top" style="background: linear-gradient(135deg, ${u.color}22, ${u.color}11);">
         <div class="forum-uni-icon" style="background: ${u.color};">
           <span class="material-symbols-outlined text-white text-2xl">account_balance</span>
@@ -600,33 +652,57 @@ function renderUniGrid() {
       </div>
       <div class="forum-uni-card-body">
         <div class="forum-uni-stat">
-          <span class="forum-uni-stat-value">${u.memberCount.toLocaleString()}</span>
+          <span class="forum-uni-stat-value">${(u.memberCount || 0).toLocaleString()}</span>
           <span class="forum-uni-stat-label">Members</span>
         </div>
         <div class="forum-uni-stat">
           <span class="forum-uni-stat-value">${u.activeDiscussions}</span>
           <span class="forum-uni-stat-label">Discussions</span>
         </div>
-        <button class="forum-uni-join-btn">Join Community</button>
+        <button class="forum-uni-join-btn ${isJoined ? 'joined' : ''}">
+          ${isJoined ? '✓ Joined' : 'Join Community'}
+        </button>
       </div>
     </div>
-  `
-    )
-    .join("");
+  `}).join("");
+
+  container.querySelectorAll(".forum-uni-join-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const card = btn.closest(".forum-uni-card");
+      const id = card?.dataset.uniId;
+      if (!id) return;
+      if (btn.classList.contains("joined")) {
+        await leaveUniversity(id);
+        btn.classList.remove("joined");
+        btn.textContent = "Join Community";
+      } else {
+        const res = await joinUniversity(id);
+        if (res) {
+          document.querySelectorAll(".forum-uni-join-btn").forEach(b => {
+            b.classList.remove("joined");
+            b.textContent = "Join Community";
+          });
+          btn.classList.add("joined");
+          btn.textContent = "✓ Joined";
+        }
+      }
+    });
+  });
 }
 
 /* =============================
    TOPIC GRID
    ============================= */
 
-function renderTopicGrid() {
+async function renderTopicGrid() {
   const container = document.getElementById("forumTopicGrid");
   if (!container) return;
-  const topics = getSkillTopics();
+  const topics = await getSkillTopics();
   container.innerHTML = topics
     .map(
       (t) => `
-    <div class="forum-topic-card">
+    <div class="forum-topic-card" data-topic="${t.name}" style="cursor:pointer;">
       <div class="forum-topic-icon" style="background: ${t.color}15; color: ${t.color};">
         <span class="material-symbols-outlined text-2xl">${t.icon}</span>
       </div>
@@ -639,6 +715,14 @@ function renderTopicGrid() {
   `
     )
     .join("");
+
+  container.querySelectorAll(".forum-topic-card").forEach((card) => {
+    card.addEventListener("click", async () => {
+      const topic = card.dataset.topic;
+      if (!topic) return;
+      window.location.href = `./community.html?cat=skills&topic=${encodeURIComponent(topic)}`;
+    });
+  });
 }
 
 /* =============================
@@ -651,32 +735,103 @@ function initPostModal() {
   const openBtns = document.querySelectorAll("[id='startDiscussionBtn']");
   const closeBtn = document.getElementById("forumPostClose");
   const cancelBtn = document.getElementById("forumPostCancel");
-  const postEvent = document.getElementById("postEvent");
+  const categorySelect = document.getElementById("postCategory");
+  const postEventCards = document.getElementById("postEventCards");
+  const postSkillPills = document.getElementById("postSkillPills");
+  const postScopeField = document.getElementById("postScopeField");
 
+  let selectedEventId = null;
+  let selectedSkill = "";
   let closeTimer = null;
 
-  function populateEventSelect() {
-    if (!postEvent) return;
-    const events = getEvents();
-    events.forEach((e) => {
-      const opt = document.createElement("option");
-      opt.value = e.id;
-      opt.textContent = `${e.title} — ${e.date}`;
-      postEvent.appendChild(opt);
+  async function loadEventCards() {
+    if (!postEventCards) return;
+    postEventCards.innerHTML = '<div class="forum-post-loading-events">Loading events...</div>';
+    const events = await getEvents();
+    if (!events || events.length === 0) {
+      postEventCards.innerHTML = '<div class="forum-post-empty-events">No upcoming events</div>';
+      return;
+    }
+    postEventCards.innerHTML = events.map(e => {
+      const parts = (e.date || "").split(" ");
+      const isSelected = String(e.id) === String(selectedEventId);
+      return `
+      <div class="forum-post-event-card ${isSelected ? 'selected' : ''}" data-event-id="${e.id}">
+        <div class="forum-post-event-date">
+          <span class="forum-post-event-day">${parts[0] || "?"}</span>
+          <span class="forum-post-event-month">${parts[1] || ""}</span>
+        </div>
+        <div class="forum-post-event-info">
+          <span class="forum-post-event-title">${e.title}</span>
+        </div>
+        <span class="forum-post-event-check ${isSelected ? '' : 'hidden'}">
+          <span class="material-symbols-outlined text-sm">check_circle</span>
+        </span>
+      </div>
+    `}).join("");
+
+    postEventCards.querySelectorAll(".forum-post-event-card").forEach(card => {
+      card.addEventListener("click", () => {
+        postEventCards.querySelectorAll(".forum-post-event-card").forEach(c => {
+          c.classList.remove("selected");
+          c.querySelector(".forum-post-event-check")?.classList.add("hidden");
+        });
+        card.classList.add("selected");
+        card.querySelector(".forum-post-event-check")?.classList.remove("hidden");
+        selectedEventId = card.dataset.eventId;
+      });
     });
   }
-  populateEventSelect();
+
+  function updateCategoryUI(category) {
+    const isEvent = category === "event";
+    const isSkills = category === "skills";
+
+    if (postEventCards) postEventCards.style.display = isEvent ? "" : "none";
+    if (postSkillPills) postSkillPills.style.display = isSkills ? "" : "none";
+
+    if (isEvent) loadEventCards();
+    if (isSkills) selectedSkill = "";
+  }
+
+  if (categorySelect) {
+    categorySelect.addEventListener("change", () => updateCategoryUI(categorySelect.value));
+  }
+
+  if (postSkillPills) {
+    postSkillPills.querySelectorAll(".forum-post-pill").forEach(pill => {
+      pill.addEventListener("click", () => {
+        postSkillPills.querySelectorAll(".forum-post-pill").forEach(p => p.classList.remove("selected"));
+        pill.classList.add("selected");
+        selectedSkill = pill.dataset.skill;
+      });
+    });
+  }
+
+  async function checkScope() {
+    if (!postScopeField) return;
+    if (!isAuthenticated()) { postScopeField.style.display = "none"; return; }
+    const myUni = await getMyUniversity().catch(() => null);
+    const myUniId = myUni?._id || myUni?.id;
+    postScopeField.style.display = myUniId ? "" : "none";
+  }
 
   function open() {
     if (closeTimer) {
       clearTimeout(closeTimer);
       closeTimer = null;
     }
+    selectedEventId = null;
+    selectedSkill = "";
     overlay.style.display = "flex";
     requestAnimationFrame(() => {
       overlay.classList.add("active");
     });
     document.body.style.overflow = "hidden";
+
+    const cat = categorySelect?.value || "general";
+    updateCategoryUI(cat);
+    checkScope();
   }
   window.openPostModal = open;
 
@@ -697,22 +852,48 @@ function initPostModal() {
 
   const publishBtn = document.getElementById("forumPostPublish");
   if (publishBtn) {
-    publishBtn.addEventListener("click", () => {
+    publishBtn.addEventListener("click", async () => {
       const title = document.getElementById("postTitle")?.value.trim();
       if (!title) {
         document.getElementById("postTitle")?.focus();
         return;
       }
-      grantContribution("discussion").then((res) => {
-        if (res && res.newBadges && Array.isArray(res.newBadges)) {
-          res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
-        }
-      }).catch(() => {});
+      const category = categorySelect?.value || "general";
+      const content = document.getElementById("postContent")?.value.trim() || "";
+      const tagsInput = document.getElementById("postTags")?.value || "";
+      const tags = tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(Boolean) : [];
+
+      let relatedEvent = undefined;
+      if (category === "event" && selectedEventId) relatedEvent = selectedEventId;
+      if (category === "skills" && selectedSkill) tags.push(selectedSkill);
+
+      const scopeEl = document.querySelector('input[name="scope"]:checked');
+      const scope = scopeEl?.value === "community" ? "community" : "general";
+      let communityId = undefined;
+      if (scope === "community") {
+        const myUni = await getMyUniversity().catch(() => null);
+        communityId = myUni?._id || myUni?.id;
+      }
+
+      const result = await createDiscussionWithScope({
+        title, content, category, tags, relatedEvent, scope, communityId,
+      });
+
+      if (result) {
+        grantContribution("discussion").then((res) => {
+          if (res && res.newBadges && Array.isArray(res.newBadges)) {
+            res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+          }
+        }).catch(() => {});
+      }
+
       close();
       document.getElementById("postTitle").value = "";
       document.getElementById("postContent").value = "";
       document.getElementById("postTags").value = "";
-      if (postEvent) postEvent.value = "";
+      selectedEventId = null;
+      selectedSkill = "";
+      setTimeout(() => window.location.reload(), 300);
     });
   }
 
@@ -731,6 +912,7 @@ function initEventDetailPopup() {
   const container = document.getElementById("eventPopupContainer");
 
   async function open(eventId) {
+  window.openEventDetailPopup = open;
     if (!eventId) return;
     container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
     overlay.removeAttribute("hidden");
@@ -741,7 +923,7 @@ function initEventDetailPopup() {
       const { activity } = await getActivityById(eventId);
       container.innerHTML = buildEventDetailPopupHTML(activity);
     } catch {
-      const event = getEventById(eventId);
+      const event = await getEventById(eventId);
       if (event) {
         container.innerHTML = buildEventDetailPopupHTML({
           activityID: event.id,
@@ -787,13 +969,13 @@ function initEventDetailPopup() {
     if (e.key === "Escape" && !overlay.hasAttribute("hidden")) close();
   });
 
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", async (e) => {
     const ref = e.target.closest(".forum-event-ref");
     if (!ref) return;
     const eventId = ref.dataset.eventId;
     if (eventId) {
       hideDiscussionPopup();
-      open(eventId);
+      await open(eventId);
     }
   });
 }

@@ -2,6 +2,7 @@ import "../../src/style.css";
 import { isAuthenticated } from "../lib/session.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
+import { getRecommendations, explainRecommendation } from "../api/recommendations.js";
 import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
@@ -15,6 +16,7 @@ let cachedTemplate = null;
 document.addEventListener("DOMContentLoaded", async () => {
     await loadNavbar();
     await initExplore();
+    await loadRecommendations();
     await initChatbot();
     initializePage();
 });
@@ -68,6 +70,46 @@ async function initExplore() {
     initSidebar();
     await loadCards();
     initSearchButton();
+}
+
+async function loadRecommendations() {
+    const section = document.getElementById("recommendations-section");
+    const container = document.getElementById("recommendations-container");
+    if (!section || !container) return;
+
+    if (!isAuthenticated()) return;
+
+    try {
+        const data = await getRecommendations();
+        const recommended = data?.events || data?.recommendations || [];
+        if (recommended.length === 0) return;
+
+        section.style.display = "block";
+        container.innerHTML = recommended.slice(0, 6).map(a => {
+            const held = formatDate(a.heldDate);
+            return `
+                <div class="recommendation-card" data-id="${a._id || a.activityID}" style="cursor:pointer;">
+                    <div class="recommendation-thumb">
+                        ${a.thumbnail ? `<img src="${a.thumbnail}" alt="${a.title}">` : '<div class="recommendation-thumb-placeholder"><span class="material-symbols-outlined">event</span></div>'}
+                    </div>
+                    <div class="recommendation-body">
+                        <h4 class="recommendation-title">${a.title}</h4>
+                        <span class="recommendation-meta"><span class="material-symbols-outlined" style="font-size:14px;">location_on</span> ${a.location}</span>
+                        <span class="recommendation-meta"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span> ${held}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.recommendation-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.dataset.id;
+                openPopup(id);
+            });
+        });
+    } catch {
+        section.style.display = "none";
+    }
 }
 
 function initSearchButton() {

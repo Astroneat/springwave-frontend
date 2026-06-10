@@ -167,11 +167,24 @@
         </div>
         <div class="forum-post-field">
           <label for="postCategory">Category</label>
-            <select id="postCategory">
-              <option value="event">Event Discussions</option>
-              <option value="skills">Skill Development</option>
-              <option value="general">General</option>
-            </select>
+          <select id="postCategory">
+            <option value="general">General</option>
+            <option value="event">Event Discussion</option>
+            <option value="skills">Skill Development</option>
+          </select>
+        </div>
+        <div class="forum-post-field" id="postScopeField" style="display:none;">
+          <label>Post to</label>
+          <div class="forum-post-scope-options">
+            <label class="forum-post-radio">
+              <input type="radio" name="scope" value="general" checked>
+              <span>General — visible to everyone</span>
+            </label>
+            <label class="forum-post-radio">
+              <input type="radio" name="scope" value="community">
+              <span>My University Community — visible to members only</span>
+            </label>
+          </div>
         </div>
         <div class="forum-post-field">
           <label for="postContent">Content</label>
@@ -181,11 +194,29 @@
           <label for="postTags">Tags</label>
           <input type="text" id="postTags" placeholder="e.g. AI, Hackathon, Team Building (comma separated)" />
         </div>
-        <div class="forum-post-field">
-          <label for="postEvent">Related Event (optional)</label>
-          <select id="postEvent">
-            <option value="">None — general discussion</option>
-          </select>
+        <div class="forum-post-field" id="postEventField">
+          <label>Related Event (optional)</label>
+          <div id="postEventCards" class="forum-post-event-cards">
+            <div class="forum-post-loading-events">Loading events...</div>
+          </div>
+          <div id="postSkillPills" class="forum-post-skill-pills" style="display:none;">
+            <label class="forum-post-pill" data-skill="Communication">
+              <span class="forum-post-pill-icon" style="background:#3B82F6;">forum</span>
+              Communication
+            </label>
+            <label class="forum-post-pill" data-skill="Technical">
+              <span class="forum-post-pill-icon" style="background:#8B5CF6;">code</span>
+              Technical
+            </label>
+            <label class="forum-post-pill" data-skill="Creativity">
+              <span class="forum-post-pill-icon" style="background:#F59E0B;">palette</span>
+              Creativity
+            </label>
+            <label class="forum-post-pill" data-skill="Social Impact">
+              <span class="forum-post-pill-icon" style="background:#10B981;">volunteer_activism</span>
+              Social Impact
+            </label>
+          </div>
         </div>
       </div>
       <div class="forum-post-modal-footer">

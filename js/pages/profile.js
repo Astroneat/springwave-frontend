@@ -2,6 +2,7 @@ import "../../src/style.css";
 import { isAuthenticated, getUser, setUser } from "../lib/session.js";
 import { changeInfo, getFavourites, getUserContribution } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
+import { getMyProfile } from "../api/profile.js";
 import {
     getActivityById, participateActivity,
     unparticipateActivity, checkParticipation
@@ -23,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await initChatbot();
     await loadUserProfile();
     await renderContribPanel();
+    await renderAIProfile();
     initEditProfile();
 });
 
@@ -427,6 +429,45 @@ function computeLocalBadges(user, c) {
   if (c.repliesGiven > c.discussionsStarted * 10 && c.discussionsStarted > 0) badges.push("one_man_show");
   if (c.discussionsStarted <= 3 && c.discussionsStarted > 0 && c.likesReceived >= c.discussionsStarted * 5) badges.push("quality_over_quantity");
   return badges;
+}
+
+async function renderAIProfile() {
+  const card = document.getElementById("ai-profile-card");
+  const container = document.getElementById("ai-profile-content");
+  if (!card || !container) return;
+
+  try {
+    const data = await getMyProfile();
+    if (!data?.profile) {
+      card.style.display = "none";
+      return;
+    }
+
+    const p = data.profile;
+    card.style.display = "block";
+
+    container.innerHTML = `
+      <div class="ai-profile-section">
+        ${p.major ? `<div class="ai-profile-field"><span class="ai-profile-label">Major</span><span class="ai-profile-value">${p.major}</span></div>` : ''}
+        ${p.goal ? `<div class="ai-profile-field"><span class="ai-profile-label">Goal</span><span class="ai-profile-value">${p.goal}</span></div>` : ''}
+        ${p.skills?.length ? `
+          <div class="ai-profile-field">
+            <span class="ai-profile-label">Skills</span>
+            <div class="ai-profile-tags">${p.skills.map(s => `<span class="ai-profile-tag">${s}</span>`).join('')}</div>
+          </div>
+        ` : ''}
+        ${p.preferredActivities?.length ? `
+          <div class="ai-profile-field">
+            <span class="ai-profile-label">Preferred Activities</span>
+            <div class="ai-profile-tags">${p.preferredActivities.map(a => `<span class="ai-profile-tag">${a}</span>`).join('')}</div>
+          </div>
+        ` : ''}
+        ${p.description ? `<div class="ai-profile-field"><span class="ai-profile-label">About</span><p class="ai-profile-desc">${p.description}</p></div>` : ''}
+      </div>
+    `;
+  } catch {
+    card.style.display = "none";
+  }
 }
 
 const ALL_BADGES = [
