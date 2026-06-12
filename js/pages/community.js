@@ -1594,6 +1594,7 @@ function initPostModal() {
   const cancelBtn = document.getElementById("forumPostCancel");
   const categorySelect = document.getElementById("postCategory");
   const postEventCards = document.getElementById("postEventCards");
+  const postEventLabel = document.getElementById("postEventLabel");
   const postSkillPills = document.getElementById("postSkillPills");
   const postScopeField = document.getElementById("postScopeField");
 
@@ -1649,7 +1650,7 @@ function initPostModal() {
       postEventCards.innerHTML = '<div class="forum-post-empty-events">No upcoming events</div>';
       return;
     }
-    renderEventCards(events);
+    renderEventCards(events.slice(0, 5));
   }
 
   const eventSearchInput = document.getElementById("postEventSearchInput");
@@ -1660,7 +1661,7 @@ function initPostModal() {
       _eventSearchTimeout = setTimeout(() => {
         const q = eventSearchInput.value.trim().toLowerCase();
         if (!q) {
-          renderEventCards(_allEvents);
+          renderEventCards(_allEvents.slice(0, 5));
           return;
         }
         const filtered = _allEvents.filter(e => e.title.toLowerCase().includes(q));
@@ -1674,6 +1675,10 @@ function initPostModal() {
     const isSkills = category === "skills";
 
     if (postEventCards) postEventCards.style.display = isEvent ? "" : "none";
+    if (postEventLabel) {
+      postEventLabel.style.display = (isEvent || isSkills) ? "" : "none";
+      postEventLabel.textContent = isSkills ? "Related Skills" : "Related Event (optional)";
+    }
     if (postSkillPills) postSkillPills.style.display = isSkills ? "" : "none";
     if (postEventSearch) postEventSearch.style.display = isEvent ? "" : "none";
 
