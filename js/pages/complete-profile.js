@@ -9,8 +9,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     await initI18n();
+    await loadSchools();
     initCompleteProfileForm();
 });
+
+async function loadSchools() {
+    try {
+        const resp = await fetch("/schools.json");
+        const data = await resp.json();
+        const select = document.getElementById("school");
+        if (!select) return;
+        data.universities.forEach(u => {
+            const opt = document.createElement("option");
+            opt.value = u.name;
+            opt.textContent = `${u.name} (${u.shortName})`;
+            select.appendChild(opt);
+        });
+    } catch {}
+}
 
 function initCompleteProfileForm() {
     const form = document.getElementById("complete-profile-form");
@@ -23,7 +39,7 @@ function initCompleteProfileForm() {
         const data = {
             username: document.getElementById("username").value.trim(),
             dob: document.getElementById("dob").value,
-            school: document.getElementById("school").value.trim(),
+            school: document.getElementById("school").value,
             class: document.getElementById("class").value.trim(),
             major: document.getElementById("major").value.trim(),
             phoneNo: document.getElementById("phoneNo").value.trim(),

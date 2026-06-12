@@ -2314,7 +2314,7 @@
 }
 
 #floating-search.merged .search-bar {
-    transform: scale(85%, 85%);
+    transform: scale(0.85);
 }
 
 @media (max-width: 1550px) {
@@ -2399,6 +2399,14 @@
 
     .dr-dropdown.active {
         transform: translateY(0);
+    }
+
+    #floating-search.merged {
+        margin-left: 0;
+    }
+
+    #floating-search.merged .search-bar {
+        transform: none;
     }
 }
 
@@ -5911,4 +5919,211 @@
     display: flex;
     align-items: center;
     gap: 3px;
+}
+
+/* =========================
+   REPLY BUTTON
+   ========================= */
+
+.forum-comment-reply-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #64748b;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.forum-comment-reply-btn:hover {
+    color: #23499b;
+    background: rgba(35, 73, 155, 0.06);
+}
+
+.forum-comment-cancel-reply {
+    font-size: 12px;
+    color: #ef4444;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.forum-comment-cancel-reply:hover {
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.forum-comment-reply-to {
+    font-size: 12px;
+    font-weight: 600;
+    color: #23499b;
+    margin-right: 4px;
+}
+
+.forum-uni-card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+}
+
+.forum-uni-members-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.forum-uni-members-btn:hover {
+    border-color: #23499b;
+    color: #23499b;
+    background: rgba(35, 73, 155, 0.04);
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+   ========================= */
+
+@media (max-width: 768px) {
+    .forum-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .forum-sidebar-right {
+        display: none;
+    }
+
+    .forum-sidebar-left {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 280px;
+        height: 100vh;
+        z-index: 6000;
+        background: white;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+    }
+
+    .forum-sidebar-left.open {
+        left: 0;
+    }
+
+    .forum-sidebar-left-inner {
+        padding: 20px 16px;
+    }
+
+    .discussion-detail .top-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .discussion-detail .top-actions {
+        gap: 6px;
+    }
+
+    .discussion-detail-form {
+        flex-wrap: wrap;
+    }
+
+    .forum-comment-submit {
+        font-size: 13px;
+        padding: 8px 14px;
+    }
+
+    .discussion-detail-comment {
+        gap: 8px;
+    }
+
+    .forum-comment-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+    }
+
+    .discussion-detail-comments {
+        padding: 12px;
+    }
+
+    .discussion-detail .discussion-detail-card {
+        padding: 14px;
+    }
+
+    .discussion-detail-form {
+        padding: 12px;
+    }
+
+    .forum-uni-card-body {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .forum-uni-card-actions {
+        flex-direction: column;
+    }
+
+    .forum-uni-members-btn,
+    .forum-uni-join-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .discussion-detail-comments {
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .forum-comment-footer {
+        flex-wrap: wrap;
+    }
+
+    .forum-status-bar {
+        padding: 10px;
+    }
+
+    .forum-status-box {
+        gap: 8px;
+    }
+
+    .forum-discussion-card {
+        padding: 12px;
+    }
+
+    .forum-discussion-card-header {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .forum-discussion-time {
+        font-size: 10px;
+    }
+
+    .forum-discussion-title {
+        font-size: 14px;
+    }
+
+    .forum-section {
+        padding: 0 4px;
+    }
+
+    .forum-main {
+        padding: 0 8px;
+    }
 }

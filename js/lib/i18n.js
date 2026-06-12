@@ -60,6 +60,8 @@ function applyTranslation() {
     if (text !== key) {
       if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
         el.placeholder = text;
+      } else if (el.tagName === "TITLE") {
+        document.title = text;
       } else {
         el.textContent = text;
       }

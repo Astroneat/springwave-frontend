@@ -292,6 +292,7 @@
   },
   "quiz": {
     "title": "SpringWave - Bài trắc nghiệm AI",
+    "multi_select": "Chọn tất cả phù hợp",
     "start_title": "Khám phá hoạt động phù hợp với bạn",
     "start_desc": "Trả lời 10 câu hỏi nhanh để nhận gợi ý hoạt động từ AI dành riêng cho bạn.",
     "questions": "10 câu hỏi",

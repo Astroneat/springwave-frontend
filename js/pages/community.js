@@ -28,6 +28,12 @@ import {
   createUniversity,
   updateUniversity,
   deleteUniversity as deleteUni,
+  addReply,
+  getNotifications,
+  getUnreadNotificationCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+  getUniversityMembers,
 } from "../api/forum.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
@@ -38,12 +44,12 @@ import { addBadgeNotification } from "../lib/notifications.js";
 import { CDN_DOMAIN } from "../config.js";
 
 const CATEGORIES = {
-  all:   { label: t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
-  event: { label: t("community.event_discussions"),      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
-  skills:{ label: t("community.skill_development"),      sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
-  uni:   { label: t("community.uni_communities"), sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
-  mine:  { label: t("community.my_discussions"),         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
-  saved: { label: t("community.saved_posts"),            sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
+  all:   { label: () => t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
+  event: { label: () => t("community.event_discussions"),      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
+  skills:{ label: () => t("community.skill_development"),      sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
+  uni:   { label: () => t("community.uni_communities"), sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
+  mine:  { label: () => t("community.my_discussions"),         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
+  saved: { label: () => t("community.saved_posts"),            sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
 };
 
 function getCategoryFromURL() {
@@ -52,8 +58,28 @@ function getCategoryFromURL() {
   return cat && CATEGORIES[cat] ? cat : "all";
 }
 
+function getDiscussionParamFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("discussion");
+}
+
 const MAX_EVENT_DISCUSSIONS = 20;
 let discussionsCache = [];
+let savedDiscussionIds = new Set();
+
+async function loadSavedDiscussionIds() {
+  if (!isAuthenticated()) return;
+  try {
+    const saved = await getSavedDiscussions();
+    savedDiscussionIds = new Set(saved.map(d => String(d.id)));
+  } catch {
+    savedDiscussionIds = new Set();
+  }
+}
+
+function isSaved(id) {
+  return savedDiscussionIds.has(String(id));
+}
 
 async function getEventDiscussions() {
   try {
@@ -115,14 +141,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   updatePageTitle(category);
   showSections(category);
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const uniId = urlParams.get("uniId");
+  const uniName = urlParams.get("uniName");
+
   let discussions;
   if (category === "event") {
     discussions = await getEventDiscussions();
     discussionsCache = discussions;
+  } else if (category === "uni" && uniId) {
+    discussions = await getCommunityDiscussions(uniId);
+    const sectionTitle = document.querySelector(".forum-section-title");
+    if (sectionTitle && uniName) {
+      sectionTitle.textContent = `${uniName} Discussions`;
+    }
+    const sectionSub = document.querySelector(".forum-section-subtitle");
+    if (sectionSub) {
+      sectionSub.textContent = `Discussions from ${uniName || 'university'} community`;
+    }
   } else {
     discussions = await getDiscussionsByCategory(category);
   }
   window._currentDiscussions = discussions;
+  if (category !== "saved") {
+    await loadSavedDiscussionIds();
+  }
   renderDiscussions(discussions, category);
 
   if (category === "all" || category === "uni") {
@@ -151,6 +194,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadSidebar(category);
   await initChatbot();
   await loadFooter();
+
+  const discussionParam = getDiscussionParamFromURL();
+  if (discussionParam) {
+    setTimeout(() => openDiscussionDetail(discussionParam), 500);
+  }
 });
 
 async function loadNavbar() {
@@ -175,7 +223,7 @@ function setActiveCategory(category) {
 
 function updatePageTitle(category) {
   const config = CATEGORIES[category] || CATEGORIES.all;
-  document.title = `${config.label} - SpringWave`;
+  document.title = `${config.label()} - SpringWave`;
 }
 
 function showSections(category) {
@@ -384,6 +432,7 @@ function renderDiscussions(discussions, category) {
     .map(
       (d) => {
         const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+        const saved = isSaved(d.id);
         return `
     <div class="forum-discussion-card" data-discussion-id="${d.id}">
       <div class="forum-discussion-card-header">
@@ -419,7 +468,7 @@ function renderDiscussions(discussions, category) {
         </div>
         <div class="forum-discussion-actions">
           <button class="forum-discussion-action-btn" title="Save">
-            <span class="material-symbols-outlined text-sm">bookmark_border</span>
+            <span class="material-symbols-outlined text-sm">${saved ? 'bookmark' : 'bookmark_border'}</span>
           </button>
           <button class="forum-discussion-action-btn" title="Share">
             <span class="material-symbols-outlined text-sm">share</span>
@@ -519,13 +568,17 @@ function initDiscussionDetail() {
       const icon = actionBtn.querySelector(".material-symbols-outlined");
       if (icon && icon.textContent.includes("bookmark")) {
         if (!isAuthenticated()) { alert("Please login to save posts"); return; }
-        const isSaved = icon.textContent === "bookmark";
-        if (isSaved) {
-          const ok = await unsaveDiscussion(id);
-          if (ok) icon.textContent = "bookmark_border";
+        const currentlySaved = icon.textContent === "bookmark";
+        icon.textContent = currentlySaved ? "bookmark_border" : "bookmark";
+        const ok = currentlySaved ? await unsaveDiscussion(id) : await saveDiscussion(id);
+        if (ok) {
+          if (currentlySaved) {
+            savedDiscussionIds.delete(String(id));
+          } else {
+            savedDiscussionIds.add(String(id));
+          }
         } else {
-          const ok = await saveDiscussion(id);
-          if (ok) icon.textContent = "bookmark";
+          icon.textContent = currentlySaved ? "bookmark" : "bookmark_border";
         }
       } else if (icon && icon.textContent.includes("share")) {
         const url = `${window.location.origin}/community.html?discussion=${id}`;
@@ -577,20 +630,46 @@ async function openDiscussionDetail(id) {
   });
   container.querySelector("#discussion-input")?.focus();
 
+  container.querySelectorAll(".forum-comment-reply-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const replyToId = btn.dataset.commentId;
+      const author = btn.dataset.author;
+      const input = container.querySelector("#discussion-input");
+      if (input) {
+        input.dataset.replyToId = replyToId;
+        input.placeholder = `Reply to ${author}...`;
+        input.focus();
+        const cancelBtn = container.querySelector("#cancel-reply-btn");
+        if (cancelBtn) cancelBtn.style.display = "inline-flex";
+      }
+    });
+  });
+
+  container.querySelector("#cancel-reply-btn")?.addEventListener("click", () => {
+    const input = container.querySelector("#discussion-input");
+    if (input) {
+      delete input.dataset.replyToId;
+      input.placeholder = "Write a comment...";
+    }
+    const cancelBtn = container.querySelector("#cancel-reply-btn");
+    if (cancelBtn) cancelBtn.style.display = "none";
+  });
+
   container.querySelectorAll(".forum-comment-like-btn").forEach(btn => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const commentId = btn.dataset.commentId;
       if (!commentId) return;
+      const likeSpan = btn.querySelector(".like-count");
+      const currentLikes = parseInt(likeSpan?.textContent || "0");
+      const wasLiked = btn.classList.contains("liked");
+      if (likeSpan) likeSpan.textContent = wasLiked ? currentLikes - 1 : currentLikes + 1;
+      btn.classList.toggle("liked", !wasLiked);
       const result = await likeComment(id, commentId);
-      if (result) {
-        const likeSpan = btn.querySelector("span");
-        if (likeSpan) likeSpan.textContent = result.likes;
-        const icon = btn.querySelector(".material-symbols-outlined");
-        if (icon) {
-          icon.textContent = result.liked ? "thumb_up" : "thumb_up";
-          btn.classList.toggle("liked", result.liked);
-        }
+      if (!result) {
+        if (likeSpan) likeSpan.textContent = currentLikes;
+        btn.classList.toggle("liked", wasLiked);
       }
     });
   });
@@ -640,13 +719,23 @@ async function submitDiscussionComment(id, container) {
   const input = container.querySelector("#discussion-input");
   const text = input.value.trim();
   if (!text) return;
-  await addComment(id, text);
+  const replyToId = input.dataset.replyToId;
+  let newComment;
+  if (replyToId) {
+    newComment = await addReply(id, text, replyToId);
+  } else {
+    newComment = await addComment(id, text);
+  }
   grantContribution("reply").then((res) => {
     if (res && res.newBadges && Array.isArray(res.newBadges)) {
       res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
     }
   }).catch(() => {});
   input.value = "";
+  delete input.dataset.replyToId;
+  input.placeholder = "Write a comment...";
+  const cancelBtn = container.querySelector("#cancel-reply-btn");
+  if (cancelBtn) cancelBtn.style.display = "none";
   const comments = await getComments(id);
   const list = container.querySelector(".discussion-detail-comments");
   if (list) {
@@ -708,10 +797,11 @@ function buildDiscussionDetailHTML(d, comments) {
           : comments.map(c => buildCommentHTML(c, user)).join("")}
       </div>
       <div class="discussion-detail-form">
-        <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment..." />
+        <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment..." data-reply-to-id="" />
         <button class="forum-comment-submit" id="discussion-submit-btn">
           <span class="material-symbols-outlined text-sm">send</span> Post
         </button>
+        <button class="forum-comment-cancel-reply" id="cancel-reply-btn" style="display:none;">Cancel</button>
       </div>
     </div>
   `;
@@ -719,6 +809,9 @@ function buildDiscussionDetailHTML(d, comments) {
 
 function buildCommentHTML(c, currentUser) {
   const liked = c.likedBy && currentUser && c.likedBy.some ? c.likedBy.some(id => String(id) === String(currentUser._id)) : false;
+  const replyToHtml = c.replyTo && c.replyTo.userName
+    ? `<span class="forum-comment-reply-to">@${c.replyTo.userName}</span>`
+    : "";
   return `
     <div class="discussion-detail-comment">
       <div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar || (c.userName || "?").charAt(0).toUpperCase()}</div>
@@ -727,11 +820,15 @@ function buildCommentHTML(c, currentUser) {
           <span class="forum-comment-author">${c.author || c.userName}</span>
           <span class="forum-comment-date">${c.date || c.createdAt || "recent"}</span>
         </div>
-        <p class="forum-comment-text">${c.content}</p>
+        <p class="forum-comment-text">${replyToHtml}${c.content}</p>
         <div class="forum-comment-footer">
           <button class="forum-comment-like-btn ${liked ? 'liked' : ''}" data-comment-id="${c.id}">
-            <span class="material-symbols-outlined text-xs">${liked ? 'thumb_up' : 'thumb_up'}</span>
-            <span>${c.likes || 0}</span>
+            <span class="material-symbols-outlined text-xs">thumb_up</span>
+            <span class="like-count">${c.likes || 0}</span>
+          </button>
+          <button class="forum-comment-reply-btn" data-comment-id="${c.id}" data-author="${c.author || c.userName}">
+            <span class="material-symbols-outlined text-xs">reply</span>
+            <span>Reply</span>
           </button>
         </div>
       </div>
@@ -792,9 +889,14 @@ async function renderUniGrid() {
           <span class="forum-uni-stat-value">${u.activeDiscussions}</span>
           <span class="forum-uni-stat-label">Discussions</span>
         </div>
-        <button class="forum-uni-join-btn ${isJoined ? 'joined' : ''}">
-          ${isJoined ? '✓ Joined' : 'Join Community'}
-        </button>
+        <div class="forum-uni-card-actions">
+          <button class="forum-uni-members-btn" title="View Members">
+            <span class="material-symbols-outlined text-sm">group</span> Members
+          </button>
+          <button class="forum-uni-join-btn ${isJoined ? 'joined' : ''}">
+            ${isJoined ? '✓ Joined' : 'Join Community'}
+          </button>
+        </div>
       </div>
     </div>
   `}).join("");
@@ -831,6 +933,29 @@ async function renderUniGrid() {
           updateMemberCount(card, 1);
         }
       }
+    });
+  });
+
+  container.querySelectorAll(".forum-uni-card").forEach(card => {
+    card.addEventListener("click", async (e) => {
+      if (e.target.closest(".forum-uni-join-btn, .forum-uni-edit-btn, .forum-uni-delete-btn, .forum-uni-members-btn")) return;
+      const id = card.dataset.uniId;
+      if (!id) return;
+      const uni = unis.find(u => String(u.id) === String(id));
+      if (!uni) return;
+      window.location.href = `./community.html?cat=uni&uniId=${id}&uniName=${encodeURIComponent(uni.name)}`;
+    });
+  });
+
+  container.querySelectorAll(".forum-uni-members-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const card = btn.closest(".forum-uni-card");
+      const id = card?.dataset.uniId;
+      if (!id) return;
+      const members = await getUniversityMembers(id);
+      const uni = unis.find(u => String(u.id) === String(id));
+      showUniMembersModal(uni?.name || "Members", members);
     });
   });
 
@@ -1361,6 +1486,48 @@ function buildEventDetailPopupHTML(a) {
         </div>
       </div>
     </div>`;
+}
+
+function showUniMembersModal(uniName, members) {
+  const existing = document.getElementById("uniMembersModal");
+  if (existing) existing.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "uniMembersModal";
+  modal.className = "fixed inset-0 z-50 flex items-center justify-center";
+  modal.style.background = "rgba(0,0,0,0.6)";
+  modal.innerHTML = `
+    <div class="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-hidden shadow-2xl mx-4">
+      <div class="flex items-center justify-between p-5 border-b border-slate-200">
+        <h3 class="text-lg font-semibold text-slate-800">${uniName} Members</h3>
+        <button class="text-slate-400 hover:text-slate-600 text-2xl leading-none" id="uniMembersClose">&times;</button>
+      </div>
+      <div class="p-4 overflow-y-auto max-h-[55vh]">
+        ${members.length === 0
+          ? '<p class="text-slate-500 text-center py-8">No members yet</p>'
+          : members.map(m => `
+            <div class="flex items-center gap-3 py-3 px-2 hover:bg-slate-50 rounded-lg">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                ${(m.fullname || m.username || '?').charAt(0).toUpperCase()}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 truncate">${m.fullname || m.username || 'Unknown'}</p>
+                <p class="text-xs text-slate-500 truncate">${m.major || m.school || ''}</p>
+              </div>
+            </div>
+          `).join("")}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.remove();
+  });
+  modal.querySelector("#uniMembersClose")?.addEventListener("click", () => modal.remove());
+  document.addEventListener("keydown", function closeOnEsc(e) {
+    if (e.key === "Escape") { modal.remove(); document.removeEventListener("keydown", closeOnEsc); }
+  });
 }
 
 function initDiscussionPopupClose() {

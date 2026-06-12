@@ -236,6 +236,57 @@ export async function likeComment(discussionId, commentId) {
   }
 }
 
+export async function addReply(discussionId, content, replyToId) {
+  try {
+    const data = await post(`/community/discussions/${discussionId}/comments`, { content, replyToId });
+    return data?.comment || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getNotifications() {
+  try {
+    const data = await get("/notifications");
+    if (data?.notifications) return data.notifications;
+  } catch {}
+  return [];
+}
+
+export async function getUnreadNotificationCount() {
+  try {
+    const data = await get("/notifications/unread-count");
+    return data?.count || 0;
+  } catch {}
+  return 0;
+}
+
+export async function markNotificationRead(id) {
+  try {
+    await put(`/notifications/${id}/read`, {});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function markAllNotificationsRead() {
+  try {
+    await put("/notifications/read-all", {});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getUniversityMembers(uniId) {
+  try {
+    const data = await get(`/community/universities/${uniId}/members`);
+    if (data?.members) return data.members;
+  } catch {}
+  return [];
+}
+
 export async function saveDiscussion(id) {
   try {
     await post(`/community/discussions/${id}/save`, {});

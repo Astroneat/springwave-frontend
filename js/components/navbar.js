@@ -1,5 +1,5 @@
 import { isAuthenticated, getUser, logout } from "../lib/session.js";
-import { getNotifications, getUnreadCount, markRead, markAllRead } from "../lib/notifications.js";
+import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificationPolling, stopNotificationPolling } from "../lib/notifications.js";
 import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
 
@@ -93,6 +93,8 @@ function initNotifications() {
     const dropdown = document.getElementById("notif-dropdown");
     if (!bell || !dropdown) return;
 
+    startNotificationPolling();
+
     bell.addEventListener("click", (e) => {
         e.stopPropagation();
         dropdown.classList.toggle("active");
@@ -142,6 +144,23 @@ function renderNotifDropdown() {
 
     const unreadCount = all.filter((n) => !n.read).length;
 
+    function getNotifIcon(type) {
+        switch (type) {
+            case 'comment_like': return 'thumb_up';
+            case 'reply': return 'reply';
+            case 'new_comment': return 'chat_bubble';
+            case 'new_discussion': return 'forum';
+            case 'badge': return 'military_tech';
+            default: return 'notifications';
+        }
+    }
+
+    function getNotifLink(n) {
+        if (n.type === 'badge') return '/profile.html';
+        if (n.discussionId) return `/community.html?discussion=${n.discussionId}`;
+        return '#';
+    }
+
     dropdown.innerHTML = `
         <div class="notif-dropdown-menu">
             <div class="notif-header">
@@ -151,8 +170,8 @@ function renderNotifDropdown() {
             <div class="notif-list">
                 ${all.map((n) => `
                     <div class="notif-item ${n.read ? "" : "unread"}" data-notif-id="${n.id}">
-                        <div class="notif-item-icon unread">
-                            <span class="material-symbols-outlined">military_tech</span>
+                        <div class="notif-item-icon ${n.read ? "" : "unread"}">
+                            <span class="material-symbols-outlined">${getNotifIcon(n.type)}</span>
                         </div>
                         <div class="notif-item-body">
                             <span class="notif-item-msg">${n.message}</span>
@@ -170,9 +189,10 @@ function renderNotifDropdown() {
             const id = item.dataset.notifId;
             if (id) {
                 const n = all.find((x) => x.id === id);
-                if (n && n.type === "badge") {
+                if (n) {
                     markRead(id);
-                    window.location.href = "/profile.html";
+                    const link = getNotifLink(n);
+                    if (link) window.location.href = link;
                 }
             }
         });

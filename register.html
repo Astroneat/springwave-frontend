@@ -88,8 +88,10 @@
                     </div>
                     <div class="mb-3">
                         <label class="block mb-1.5 font-semibold text-[#222] text-sm" data-i18n="register.school">School</label>
-                        <input id="school" type="text" placeholder="e.g. VKU"
+                        <select id="school"
                             class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
+                            <option value="">-- Select your school --</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="block mb-1.5 font-semibold text-[#222] text-sm" data-i18n="register.class">Class</label>
@@ -116,9 +118,9 @@
                 REGISTER
             </button>
 
-            <div class="mt-4 text-center text-[17px] text-[#333]" data-i18n="register.has_account">
-                Already have an account?
-                <a href="login.html" class="text-[#23499b] font-bold no-underline" data-i18n="register.login_now"><u>Login now</u></a>
+            <div class="mt-4 text-center text-[17px] text-[#333]">
+                <span data-i18n="register.has_account">Already have an account?</span>
+                <a href="login.html" class="text-[#23499b] font-bold no-underline"><u data-i18n="register.login_now">Login now</u></a>
             </div>
         </form>
     </div>

@@ -5,8 +5,24 @@ import { initI18n } from "../lib/i18n.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
+    await loadSchools();
     initRegisterForm();
 });
+
+async function loadSchools() {
+    try {
+        const resp = await fetch("/schools.json");
+        const data = await resp.json();
+        const select = document.getElementById("school");
+        if (!select) return;
+        data.universities.forEach(u => {
+            const opt = document.createElement("option");
+            opt.value = u.name;
+            opt.textContent = `${u.name} (${u.shortName})`;
+            select.appendChild(opt);
+        });
+    } catch {}
+}
 
 function initRegisterForm() {
     const form = document.getElementById("register-form");
@@ -27,7 +43,7 @@ function initRegisterForm() {
         };
         const confirmPassword = document.getElementById("confirm-password").value.trim();
         const dob = document.getElementById("dob")?.value;
-        const school = document.getElementById("school")?.value.trim();
+        const school = document.getElementById("school")?.value;
         const className = document.getElementById("class")?.value.trim();
         const major = document.getElementById("major")?.value.trim();
         const phoneNo = document.getElementById("phoneNo")?.value.trim();

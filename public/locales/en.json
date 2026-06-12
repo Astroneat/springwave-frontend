@@ -292,6 +292,7 @@
   },
   "quiz": {
     "title": "SpringWave - AI Quiz",
+    "multi_select": "Select all that apply",
     "start_title": "Discover Your Perfect Activities",
     "start_desc": "Answer 10 quick questions to get AI-powered activity recommendations tailored to you.",
     "questions": "10 questions",

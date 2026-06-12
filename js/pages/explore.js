@@ -49,11 +49,25 @@ function initScrollMerge() {
     const navbar = document.getElementById("navbar");
     if (!searchBar || !navbar) return;
 
+    const isMobile = () => window.innerWidth < 768;
+
     window.addEventListener("scroll", () => {
+        if (isMobile()) {
+            searchBar.classList.remove("merged");
+            navbar.classList.remove("merged");
+            return;
+        }
         const rect = searchBar.getBoundingClientRect();
         const m = rect.top < navbar.offsetHeight;
         searchBar.classList.toggle("merged", m);
         navbar.classList.toggle("merged", m);
+    }, { passive: true });
+
+    window.addEventListener("resize", () => {
+        if (isMobile()) {
+            searchBar.classList.remove("merged");
+            navbar.classList.remove("merged");
+        }
     }, { passive: true });
 }
 
@@ -266,7 +280,7 @@ async function renderCardsDirect(activities) {
         cardsContainer.appendChild(card);
     });
 
-    document.getElementById("resultsCount").textContent = `${activities.length} ${activities.length === 1 ? t("explore.result_singular", { n: activities.length }) : t("explore.results", { n: activities.length })}`;
+    document.getElementById("resultsCount").textContent = activities.length === 1 ? t("explore.result_singular", { n: activities.length }) : t("explore.results", { n: activities.length });
 
     await syncCardFavourites();
     initCardClickHandlers();

@@ -251,7 +251,7 @@ function showScreen(id) {
 
 function startQuiz() {
   currentQuestion = 0;
-  answers = new Array(QUESTIONS.length).fill(null);
+  answers = new Array(QUESTIONS.length).fill(null).map(() => []);
   showScreen("quizQuestion");
   renderQuestion();
 }
@@ -282,17 +282,19 @@ function renderQuestion() {
 
   const container = document.getElementById("quizAnswers");
   container.innerHTML = "";
+  const selected = answers[currentQuestion] || [];
+  container.innerHTML = `<div class="quiz-multi-hint" style="font-size:12px;color:#64748b;margin-bottom:12px;font-weight:500;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">checklist</span> ${t("quiz.multi_select") || "Select all that apply"}</div>`;
   q.answers.forEach((answer, idx) => {
-    const btn = document.createElement("button");
-    btn.className = `quiz-answer-btn ${answers[currentQuestion] === idx ? "selected" : ""}`;
-    btn.innerHTML = `
-      <div class="quiz-answer-circle">${String.fromCharCode(65 + idx)}</div>
+    const isSelected = selected.includes(idx);
+    const div = document.createElement("div");
+    div.className = `quiz-answer-btn ${isSelected ? "selected" : ""}`;
+    div.innerHTML = `
+      <span class="quiz-answer-checkbox">${isSelected ? '<span class="material-symbols-outlined" style="font-size:20px;color:#23499b;">check_box</span>' : '<span class="material-symbols-outlined" style="font-size:20px;color:#94a3b8;">check_box_outline_blank</span>'}</span>
       <span class="quiz-answer-text">${answer.label}</span>
-      ${answers[currentQuestion] === idx ? '<span class="material-symbols-outlined quiz-answer-check">check_circle</span>' : ""}
     `;
-    btn.addEventListener("click", () => selectAnswer(idx));
-    btn.dataset.index = idx;
-    container.appendChild(btn);
+    div.addEventListener("click", () => selectAnswer(idx));
+    div.dataset.index = idx;
+    container.appendChild(div);
   });
 
   updateNavButtons();
@@ -308,26 +310,21 @@ function getCategoryColor(category) {
 }
 
 function selectAnswer(index) {
-  answers[currentQuestion] = index;
-  document.querySelectorAll(".quiz-answer-btn").forEach((btn, i) => {
-    btn.classList.toggle("selected", i === index);
-    const check = btn.querySelector(".quiz-answer-check");
-    if (i === index) {
-      if (!check) {
-        const icon = document.createElement("span");
-        icon.className = "material-symbols-outlined quiz-answer-check";
-        icon.textContent = "check_circle";
-        btn.appendChild(icon);
-      }
-    } else {
-      check?.remove();
-    }
-  });
-  document.getElementById("quizNextBtn").disabled = false;
+  const current = answers[currentQuestion] || [];
+  const idx = current.indexOf(index);
+  if (idx > -1) {
+    current.splice(idx, 1);
+  } else {
+    current.push(index);
+  }
+  answers[currentQuestion] = current;
+  renderQuestion();
+  document.getElementById("quizNextBtn").disabled = current.length === 0;
 }
 
 function nextQuestion() {
-  if (answers[currentQuestion] === null) return;
+  const current = answers[currentQuestion] || [];
+  if (current.length === 0) return;
   if (currentQuestion === QUESTIONS.length - 1) {
     finishQuiz();
     return;
@@ -354,7 +351,7 @@ function updateNavButtons() {
     nextBtn.innerHTML = `${t("quiz.next")} <span class="material-symbols-outlined">arrow_forward</span>`;
   }
 
-  nextBtn.disabled = answers[currentQuestion] === null;
+  nextBtn.disabled = !answers[currentQuestion] || answers[currentQuestion].length === 0;
 }
 
 async function finishQuiz() {
@@ -367,9 +364,9 @@ async function finishQuiz() {
   `;
 
   let scores = calculateScores();
-  const answerData = answers.map((answerIndex, qIndex) => ({
+  const answerData = answers.map((selectedIndices, qIndex) => ({
     questionIndex: qIndex,
-    answerIndex,
+    answerIndex: selectedIndices,
   }));
 
   if (isAuthenticated()) {
@@ -393,20 +390,22 @@ async function finishQuiz() {
 
 function calculateScores() {
   const total = { communication: 0, technical: 0, creativity: 0, socialImpact: 0 };
+  let divisor = 0;
   QUESTIONS.forEach((q, i) => {
-    const answerIndex = answers[i];
-    if (answerIndex !== null) {
-      const scores = q.answers[answerIndex]?.scores;
+    const selectedIndices = answers[i] || [];
+    selectedIndices.forEach(idx => {
+      const scores = q.answers[idx]?.scores;
       if (scores) {
         total.communication += scores.communication;
         total.technical += scores.technical;
         total.creativity += scores.creativity;
         total.socialImpact += scores.socialImpact;
       }
-    }
+    });
+    if (selectedIndices.length > 0) divisor++;
   });
 
-  const count = QUESTIONS.length;
+  const count = divisor || QUESTIONS.length;
   return {
     communication: Math.round(total.communication / count),
     technical: Math.round(total.technical / count),
