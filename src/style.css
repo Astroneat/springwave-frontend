@@ -906,11 +906,13 @@
 .footer-column a {
     @apply no-underline;
     color: rgba(255, 255, 255, 0.7);
-    transition: color 0.2s ease, transform 0.2s ease;
+    transform: translateX(0);
+    transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .footer-column a:hover {
-    @apply text-white translate-x-[3px];
+    @apply text-white;
+    transform: translateX(4px);
 }
 
 /* =========================
