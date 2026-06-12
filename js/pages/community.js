@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { t } from "../lib/i18n.js";
-import { isAuthenticated, getUser, getToken } from "../lib/session.js";
+import { isAuthenticated, getUser, getToken, setUser } from "../lib/session.js";
 import {
   getTrendingDiscussions,
   getUniversityCommunities,
@@ -29,6 +29,7 @@ import {
   updateUniversity,
   deleteUniversity as deleteUni,
   addReply,
+  deleteDiscussionComment,
   getNotifications,
   getUnreadNotificationCount,
   markNotificationRead,
@@ -40,6 +41,7 @@ import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/n
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { getActivityById, getActivities } from "../api/activities.js";
 import { grantContribution } from "../api/user.js";
+import { getCurrentUser } from "../api/auth.js";
 import { addBadgeNotification } from "../lib/notifications.js";
 import { CDN_DOMAIN } from "../config.js";
 
@@ -184,10 +186,26 @@ function showProfileModal() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar();
-  const user = getUser();
+  let user = getUser();
+
+  // Fetch fresh profile from backend to check real profile completeness
+  if (user && isAuthenticated()) {
+    try {
+      const res = await getCurrentUser();
+      if (res && res.user) {
+        user = res.user;
+        setUser(res.user);
+      }
+    } catch {}
+  }
+
   const avatarEl = document.getElementById("forumStatusAvatar");
   if (avatarEl && user) {
-    avatarEl.textContent = (user.username || user.fullname || "?").charAt(0).toUpperCase();
+    if (user.avatar && typeof user.avatar === 'string' && user.avatar.startsWith('http')) {
+      avatarEl.innerHTML = `<img src="${user.avatar}" alt="${user.fullname || user.username || ''}" class="forum-avatar-img" />`;
+    } else {
+      avatarEl.textContent = (user.username || user.fullname || "?").charAt(0).toUpperCase();
+    }
   }
   initBasicScroll();
   initForumSidebarToggle();
@@ -541,7 +559,7 @@ function renderDiscussions(discussions, category) {
     <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
       <div class="forum-discussion-card-header">
         <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
-          ${d.avatar}
+          ${renderAvatar(d.avatar, d.author)}
         </div>
         <div class="forum-discussion-author-info">
           <span class="forum-discussion-author-name">${d.author}</span>
@@ -584,10 +602,10 @@ function renderDiscussions(discussions, category) {
 function buildDiscussionCardHTML(d) {
   const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
   return `
-    <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
+      <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
       <div class="forum-discussion-card-header">
         <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
-          ${d.avatar || ""}
+          ${renderAvatar(d.avatar, d.author)}
         </div>
         <div class="forum-discussion-author-info">
           <span class="forum-discussion-author-name">${d.author || "Unknown"}</span>
@@ -626,6 +644,13 @@ function buildDiscussionCardHTML(d) {
         </div>
       </div>
       </div>`;
+}
+
+function renderAvatar(avatar, name) {
+  if (avatar && typeof avatar === 'string' && avatar.startsWith('http')) {
+    return `<img src="${avatar}" alt="${name || ''}" class="forum-avatar-img" />`;
+  }
+  return avatar || (name || '?').charAt(0).toUpperCase();
 }
 
 function renderEventRef(eventId, eventData) {
@@ -753,6 +778,11 @@ async function openDiscussionDetail(id) {
   const countEl = container.querySelector(".forum-comments-count");
   if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
 
+  const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
+  if (statsEl) {
+    statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${comments.length} replies`;
+  }
+
   requestAnimationFrame(() => { container.scrollTop = 0; });
   wireDiscussionEvents(id, container);
 }
@@ -860,18 +890,11 @@ function wireDiscussionEvents(id, container) {
                 parentEl.querySelector(".forum-comment-body").appendChild(repliesContainer);
               }
             }
-            const extraContainer = repliesContainer.querySelector(".forum-comment-extra-replies");
-            if (extraContainer) {
-              extraContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
-            } else {
-              repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
-            }
             const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
             if (expandBtn) {
-              const count = parseInt(expandBtn.dataset.hiddenCount || "0");
-              expandBtn.dataset.hiddenCount = String(count + 1);
-              const textSpan = expandBtn.querySelector(".forum-comment-expand-text");
-              if (textSpan) textSpan.textContent = `View ${count + 1} more ${count + 1 === 1 ? "reply" : "replies"}`;
+              expandBtn.insertAdjacentHTML("beforebegin", buildCommentHTML(newComment, getUser(), "", 1));
+            } else {
+              repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
             }
           }
         }
@@ -919,6 +942,35 @@ function wireDiscussionEvents(id, container) {
         if (!result) {
           if (likeSpan) likeSpan.textContent = currentLikes;
           likeBtn.classList.toggle("liked", wasLiked);
+        }
+      });
+      return;
+    }
+
+    const deleteBtn = e.target.closest(".forum-comment-delete-btn");
+    if (deleteBtn) {
+      e.stopPropagation();
+      const commentId = deleteBtn.dataset.commentId;
+      if (!commentId) return;
+      if (!confirm("Delete this comment?")) return;
+      const commentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${commentId}"]`);
+      deleteDiscussionComment(id, commentId).then(success => {
+        if (success) {
+          if (commentEl) commentEl.remove();
+          const countEl = container.querySelector(".forum-comments-count");
+          if (countEl) {
+            const current = parseInt(countEl.textContent) || 0;
+            countEl.textContent = `${Math.max(0, current - 1)} comment${current - 1 !== 1 ? "s" : ""}`;
+          }
+          const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
+          if (statsEl) {
+            const current = parseInt(statsEl.textContent.replace(/[^0-9]/g, '')) || 0;
+            statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${Math.max(0, current - 1)} replies`;
+          }
+          const commentsContainer = document.getElementById("discussion-detail-comments");
+          if (commentsContainer && commentsContainer.children.length === 0) {
+            commentsContainer.innerHTML = buildEmptyState();
+          }
         }
       });
       return;
@@ -1015,31 +1067,18 @@ async function submitDiscussionComment(id, container) {
             parentEl.querySelector(".forum-comment-body").appendChild(repliesContainer);
           }
         }
-        const extraContainer = repliesContainer.querySelector(".forum-comment-extra-replies");
         const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
-        if (extraContainer) {
-          extraContainer.insertAdjacentHTML("afterbegin", buildCommentHTML(newComment, getUser(), "", 1));
-          if (expandBtn) {
-            const count = parseInt(expandBtn.dataset.hiddenCount || "0");
-            expandBtn.dataset.hiddenCount = String(count + 1);
-            const textSpan = expandBtn.querySelector(".forum-comment-expand-text");
-            if (textSpan) textSpan.textContent = `View ${count + 1} more ${count + 1 === 1 ? "reply" : "replies"}`;
-          }
+        if (expandBtn) {
+          expandBtn.insertAdjacentHTML("beforebegin", buildCommentHTML(newComment, getUser(), "", 1));
         } else {
-          if (expandBtn) {
-            expandBtn.insertAdjacentHTML("beforebegin", buildCommentHTML(newComment, getUser(), "", 1));
-            const count = parseInt(expandBtn.dataset.hiddenCount || "0");
-            expandBtn.dataset.hiddenCount = String(count + 1);
-            const textSpan = expandBtn.querySelector(".forum-comment-expand-text");
-            if (textSpan) textSpan.textContent = `View ${count + 1} more ${count + 1 === 1 ? "reply" : "replies"}`;
-          } else {
-            repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
-          }
+          repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
         }
       }
     } else {
       const list = container.querySelector("#discussion-detail-comments");
       if (list) {
+        const empty = list.querySelector(".forum-comments-empty");
+        if (empty) empty.remove();
         list.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 0));
       }
     }
@@ -1047,6 +1086,11 @@ async function submitDiscussionComment(id, container) {
     if (countEl) {
       const current = parseInt(countEl.textContent) || 0;
       countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
+    }
+    const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
+    if (statsEl) {
+      const current = parseInt(statsEl.textContent.replace(/[^0-9]/g, '')) || 0;
+      statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
     }
   }
 }
@@ -1161,7 +1205,7 @@ function buildDiscussionDetailHTML(d, comments) {
       <div class="discussion-detail-card">
         <div class="forum-discussion-card-header">
           <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
-            ${d.avatar}
+            ${renderAvatar(d.avatar, d.author)}
           </div>
           <div class="forum-discussion-author-info">
             <span class="forum-discussion-author-name">${d.author}</span>
@@ -1181,7 +1225,7 @@ function buildDiscussionDetailHTML(d, comments) {
         <div class="forum-discussion-stats">
           <span class="forum-discussion-stat">
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
-            ${comments.length} replies
+            ${d.replies || d.replyCount || comments.length} replies
           </span>
         </div>
       </div>
@@ -1216,13 +1260,12 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
     : "";
   const nestedClass = depth > 0 ? " forum-comment-nested" : "";
   const user = currentUser || getUser();
-  const initial = (user?.fullname || user?.username || "?")[0];
   return `
     <div class="discussion-detail-comment${nestedClass}" data-comment-id="${c.id}">
-      ${depth === 0 ? `<div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar || (c.userName || "?").charAt(0).toUpperCase()}</div>` : ""}
+      ${depth === 0 ? `<div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName)}</div>` : ""}
       <div class="forum-comment-body">
         <div class="forum-comment-header">
-          ${depth > 0 ? `<div class="forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar || (c.userName || "?").charAt(0).toUpperCase()}</div>` : ""}
+          ${depth > 0 ? `<div class="forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName)}</div>` : ""}
           <span class="forum-comment-author">${c.author || c.userName}</span>
           <span class="forum-comment-date">${c.date || c.createdAt || "recent"}</span>
         </div>
@@ -1236,6 +1279,10 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
             <span class="material-symbols-outlined text-xs">reply</span>
             <span>Reply</span>
           </button>
+          ${currentUser && String(c.userID) === String(currentUser._id) ? `
+          <button class="forum-comment-delete-btn" data-comment-id="${c.id}">
+            <span class="material-symbols-outlined text-xs">delete</span>
+          </button>` : ""}
         </div>
         ${depth === 0 && (repliesHtml || hiddenCount > 0) ? `
         <div class="forum-comment-replies">
@@ -1250,7 +1297,7 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
           </button>` : ""}
         </div>` : ""}
         <div class="forum-comment-inline-reply" data-parent-id="${c.id}" style="display:none;">
-          <div class="forum-comment-inline-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${initial}</div>
+          <div class="forum-comment-inline-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(user?.avatar, user?.fullname || user?.username)}</div>
           <div class="forum-comment-inline-body">
             <input type="text" class="forum-comment-inline-input" placeholder="Write a reply..." />
             <div class="forum-comment-inline-actions">
@@ -1527,6 +1574,22 @@ function initUniDialog() {
   });
 }
 
+async function loadSchoolsIntoSelect(selectEl, editData) {
+  try {
+    const resp = await fetch("/schools.json");
+    const data = await resp.json();
+    selectEl.innerHTML = '<option value="">-- Select university --</option>';
+    data.universities.forEach(u => {
+      const opt = document.createElement("option");
+      opt.value = u.name;
+      opt.textContent = `${u.name} (${u.shortName})`;
+      selectEl.appendChild(opt);
+    });
+  } catch {
+    selectEl.innerHTML = '<option value="">-- Select university --</option>';
+  }
+}
+
 function openUniDialog(editData, callback) {
   const overlay = document.getElementById("uniDialog");
   const title = document.getElementById("uniDialogTitle");
@@ -1535,6 +1598,8 @@ function openUniDialog(editData, callback) {
   const colorPicker = document.getElementById("uniColorPicker");
   const colorHex = document.getElementById("uniColorHex");
   if (!overlay) return;
+
+  loadSchoolsIntoSelect(nameInput, editData);
 
   if (editData) {
     title.textContent = "Edit University";

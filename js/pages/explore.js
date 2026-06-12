@@ -547,7 +547,10 @@ async function syncCardFavourites() {
 function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
     const type = capitalize(a.type);
-    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
+    const hasCoords = a.locationLat && a.locationLng;
+    const googleMapsLink = hasCoords
+        ? `https://www.google.com/maps?q=${a.locationLat},${a.locationLng}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
     backText = backText || t("explore.back");
     const filesHTML = (a.attachments || []).map(f => {
         const link = f.link || f.activityAttachLink || "";

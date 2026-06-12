@@ -337,7 +337,7 @@
 
 /* ===== USER DROPDOWN ===== */
 .user-dropdown {
-    @apply fixed top-[72px] right-10 w-[220px] p-2 rounded-[18px] bg-white/95 z-50;
+    @apply fixed top-[72px] right-10 w-[220px] p-2 rounded-[18px] bg-white/95 z-[1100];
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
@@ -2306,8 +2306,15 @@
 ========================= */
 
 #floating-search {
-    @apply sticky top-[5px] w-full px-8 mb-8 opacity-100 pointer-events-auto z-[900];
+    @apply sticky top-[5px] w-full px-8 mb-8 opacity-100 z-[900];
     transform: none;
+    pointer-events: none;
+}
+
+#floating-search .search-bar,
+#floating-search .search-btn,
+#floating-search .refresh-btn {
+    pointer-events: auto;
 }
 
 #floating-search {
@@ -4225,6 +4232,7 @@
 .forum-status-avatar {
     @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0;
     background: linear-gradient(135deg, #23499b, #3B6FD4);
+    overflow: hidden;
 }
 .forum-status-placeholder {
     @apply flex-1 text-slate-400 text-base;
@@ -4284,6 +4292,14 @@
 
 .forum-discussion-author-avatar {
     @apply w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0;
+    overflow: hidden;
+}
+
+.forum-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .forum-discussion-author-info {
@@ -4532,6 +4548,7 @@
 
 .forum-comment-nested-avatar {
     @apply w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0;
+    overflow: hidden;
 }
 
 /* ===== COMMENTS HEADER & SORT ===== */
@@ -4599,6 +4616,7 @@
 
 .forum-comment-inline-avatar {
     @apply w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5;
+    overflow: hidden;
 }
 
 .forum-comment-inline-body {
@@ -4718,6 +4736,7 @@
 
 .forum-comment-avatar {
     @apply w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0;
+    overflow: hidden;
 }
 
 .forum-comment-body {

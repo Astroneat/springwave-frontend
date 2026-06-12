@@ -54,6 +54,9 @@ export async function initChatbot() {
   restoreMessages();
 
   window.addEventListener("beforeunload", () => saveHistory());
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) saveHistory();
+  });
 }
 
 function restoreMessages() {

@@ -33,9 +33,9 @@
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-sm"></i>
                     <input type="text" id="admin-search" placeholder="Search events..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[240px] md:w-[260px] outline-none focus:border-primary transition-colors" data-i18n="admin.search" />
                 </div>
-                <button id="add-event-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95" title="Add event manually">
+                <button id="add-event-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
                     <i class="fa-solid fa-plus"></i>
-                    <span class="hidden md:inline">Add Event Manually</span>
+                    <span class="hidden md:inline" data-i18n="admin.add_manual">Add Event Manually</span>
                 </button>
                 <button id="scrape-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95" title="Scrape Facebook pages for new events" data-i18n="admin.scrape">
                     <i class="fa-solid fa-cloud-arrow-down"></i>
@@ -262,7 +262,7 @@
         <div class="popup-backdrop" id="add-event-backdrop"></div>
         <div class="popup-container !p-0" id="add-event-container">
             <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
-                <h2 class="text-xl font-bold text-[#191b22]">Create New Event</h2>
+                <h2 class="text-xl font-bold text-[#191b22]" data-i18n="admin.create_event_title">Create New Event</h2>
                 <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] transition-all spring-ease" id="add-event-close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>

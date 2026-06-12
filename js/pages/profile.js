@@ -609,7 +609,7 @@ async function renderContribPanel() {
   try {
     data = await getUserContribution();
   } catch {
-    data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, badges: [] } };
+    data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] } };
   }
 
   const c = data.contribution;
@@ -667,11 +667,6 @@ async function renderContribPanel() {
         <span class="contrib-stat-icon material-symbols-outlined">forum</span>
         <span class="contrib-stat-value">${c.repliesGiven}</span>
         <span class="contrib-stat-label">Replies</span>
-      </div>
-      <div class="contrib-stat">
-        <span class="contrib-stat-icon material-symbols-outlined">thumb_up</span>
-        <span class="contrib-stat-value">${c.likesReceived}</span>
-        <span class="contrib-stat-label">Likes</span>
       </div>
     </div>
   `;
