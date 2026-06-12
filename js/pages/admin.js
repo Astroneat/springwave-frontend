@@ -697,12 +697,13 @@ function initManualAdd() {
         body.style.padding = "8px";
 
         const html = await fetchContent("./components/hostActivityDetails.html");
-        body.innerHTML = `<div style="zoom:0.85">${html}</div>`;
+        body.innerHTML = html;
 
         initThumbnailPreview();
         initFileUpload();
         setTimeout(() => {
             mapInstance = initMapPicker();
+            if (mapInstance?.map) setTimeout(() => mapInstance.map.resize(), 100);
         }, 400);
         initDateValidation();
         initFormSubmit(() => {

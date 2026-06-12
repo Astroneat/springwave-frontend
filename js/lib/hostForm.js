@@ -23,7 +23,7 @@ export function initThumbnailPreview() {
 export function initFileUpload() {
     const attachmentInput = document.getElementById("attachment-upload");
     const fileList = document.getElementById("file-list");
-    if (!attachmentInput) return;
+    if (!attachmentInput || !fileList) return;
     let selectedFiles = [];
 
     function renderFileList() {
@@ -280,7 +280,7 @@ function createDatePicker(config) {
     const closeBtn = document.getElementById(config.closeBtnId);
     const hiddenInput = document.getElementById(config.hiddenInputId);
 
-    if (!trigger) return null;
+    if (!trigger || !dropdown || !grid || !monthLabel) return null;
 
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
@@ -289,31 +289,31 @@ function createDatePicker(config) {
 
     document.body.appendChild(dropdown);
 
+    function pad(n) { return String(n).padStart(2, "0"); }
+
+    function updateDisplay() {
+        if (selectedDate && valueEl && placeholder) {
+            valueEl.textContent = `${pad(selectedDate.getDate())}/${pad(selectedDate.getMonth() + 1)}/${selectedDate.getFullYear()}`;
+            valueEl.classList.add("visible");
+            placeholder.classList.add("hidden");
+            if (hiddenInput) hiddenInput.value = selectedDate.toISOString().split("T")[0];
+        } else {
+            if (valueEl) valueEl.classList.remove("visible");
+            if (placeholder) placeholder.classList.remove("hidden");
+            if (hiddenInput) hiddenInput.value = "";
+        }
+    }
+
     const api = {
         clear() {
             selectedDate = null;
-            hiddenInput.value = "";
+            if (hiddenInput) hiddenInput.value = "";
             updateDisplay();
         },
         get onSelect() { return onSelect; },
         set onSelect(fn) { onSelect = fn; },
         get selectedDate() { return selectedDate; }
     };
-
-    function pad(n) { return String(n).padStart(2, "0"); }
-
-    function updateDisplay() {
-        if (selectedDate) {
-            valueEl.textContent = `${pad(selectedDate.getDate())}/${pad(selectedDate.getMonth() + 1)}/${selectedDate.getFullYear()}`;
-            valueEl.classList.add("visible");
-            placeholder.classList.add("hidden");
-            hiddenInput.value = selectedDate.toISOString().split("T")[0];
-        } else {
-            valueEl.classList.remove("visible");
-            placeholder.classList.remove("hidden");
-            hiddenInput.value = "";
-        }
-    }
 
     function renderCalendar() {
         grid.innerHTML = "";
@@ -393,7 +393,7 @@ function createDatePicker(config) {
         positionDropdown();
         dropdown.style.transform = "translateX(-50%) translateY(8px) scale(0.96)";
         dropdown.classList.add("active");
-        trigger.parentElement.classList.add("active");
+        if (trigger.parentElement) trigger.parentElement.classList.add("active");
         requestAnimationFrame(() => {
             dropdown.style.transform = "translateX(-50%) translateY(0) scale(1)";
         });
@@ -410,7 +410,7 @@ function createDatePicker(config) {
 
     function closeDropdown() {
         dropdown.classList.remove("active");
-        trigger.parentElement.classList.remove("active");
+        if (trigger.parentElement) trigger.parentElement.classList.remove("active");
         window.removeEventListener("scroll", followOnScroll);
         window.removeEventListener("resize", followOnScroll);
     }
@@ -421,29 +421,29 @@ function createDatePicker(config) {
         else openDropdown();
     });
 
-    prevBtn.addEventListener("click", (e) => {
+    if (prevBtn) prevBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         currentMonth--;
         if (currentMonth < 0) { currentMonth = 11; currentYear--; }
         renderCalendar();
     });
 
-    nextBtn.addEventListener("click", (e) => {
+    if (nextBtn) nextBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         currentMonth++;
         if (currentMonth > 11) { currentMonth = 0; currentYear++; }
         renderCalendar();
     });
 
-    clearBtn.addEventListener("click", (e) => {
+    if (clearBtn) clearBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         selectedDate = null;
-        hiddenInput.value = "";
+        if (hiddenInput) hiddenInput.value = "";
         updateDisplay();
         renderCalendar();
     });
 
-    closeBtn.addEventListener("click", (e) => {
+    if (closeBtn) closeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         closeDropdown();
     });
