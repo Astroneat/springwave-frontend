@@ -457,6 +457,7 @@
     "description": "Mô tả",
     "location": "Địa điểm",
     "logistics": "Thông tin tổ chức",
+    "host_name": "Đơn vị tổ chức",
     "held_date": "Ngày diễn ra",
     "select_date": "Chọn ngày",
     "app_deadline": "Hạn chót đăng ký",

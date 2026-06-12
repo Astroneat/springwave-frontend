@@ -263,7 +263,21 @@ export function initDateValidation() {
         hiddenInputId: "heldDate"
     });
 
+    loadSchoolList();
+
     return { heldDate };
+}
+
+async function loadSchoolList() {
+    const datalist = document.getElementById("schoolList");
+    if (!datalist) return;
+    try {
+        const resp = await fetch("/schools.json");
+        const data = await resp.json();
+        datalist.innerHTML = data.universities.map(u =>
+            `<option value="${u.name}">${u.shortName}</option>`
+        ).join("");
+    } catch {}
 }
 
 function createDatePicker(config) {
@@ -515,6 +529,7 @@ export function initFormSubmit(onSuccess) {
         const description = document.getElementById("description")?.value.trim();
         const location = document.getElementById("location")?.value.trim();
         const type = form.querySelector('input[name="type"]:checked')?.value;
+        const hostName = document.getElementById("hostName")?.value.trim();
         const heldDate = document.getElementById("heldDate")?.value;
         const thumbnailFile = document.getElementById("thumbnail-upload")?.files?.[0];
         const attachmentFiles = document.getElementById("attachment-upload")?.files;
@@ -530,6 +545,7 @@ export function initFormSubmit(onSuccess) {
         formData.append("location", location);
         formData.append("type", type);
         formData.append("heldDate", heldDate);
+        if (hostName) formData.append("hostName", hostName);
         const lat = document.getElementById("locationLat")?.value;
         const lng = document.getElementById("locationLng")?.value;
         if (lat) formData.append("locationLat", lat);

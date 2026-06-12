@@ -334,6 +334,11 @@ function buildEditHTML(e) {
             </div>
         </div>
         <div>
+            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Host</label>
+            <input id="edit-hostName" value="${(e.hostName || "").replace(/"/g, '&quot;')}" list="editSchoolList" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+            <datalist id="editSchoolList"></datalist>
+        </div>
+        <div>
             <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Description</label>
             <textarea id="edit-description" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22] resize-y" rows="8">${(e.description || "").replace(/"/g, '&quot;')}</textarea>
         </div>
@@ -357,6 +362,7 @@ document.getElementById("popup-actions")?.addEventListener("click", async e => {
         document.getElementById("save-btn")?.removeAttribute("hidden");
         document.getElementById("cancel-btn")?.removeAttribute("hidden");
         document.getElementById("popup-body").innerHTML = buildEditHTML(ev);
+        loadEditSchoolList();
     }
     else if (e.target.id === "cancel-btn" || e.target.closest("#cancel-btn")) {
         const ev = [...pendingEvents, ...publishedEvents].find(ev => ev._id === id);
@@ -374,6 +380,7 @@ document.getElementById("popup-actions")?.addEventListener("click", async e => {
             heldDate: document.getElementById("edit-heldDate")?.value || null,
             description: document.getElementById("edit-description")?.value.trim(),
             thumbnail: document.getElementById("edit-thumbnail")?.value.trim(),
+            hostName: document.getElementById("edit-hostName")?.value.trim() || undefined,
         };
         const classification = document.getElementById("edit-classification");
         if (classification) data.classificationReason = classification.value.trim();
@@ -732,4 +739,16 @@ function initManualAdd() {
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && !overlay.hasAttribute("hidden")) close();
     });
+}
+
+async function loadEditSchoolList() {
+    const datalist = document.getElementById("editSchoolList");
+    if (!datalist) return;
+    try {
+        const resp = await fetch("/schools.json");
+        const data = await resp.json();
+        datalist.innerHTML = data.universities.map(u =>
+            `<option value="${u.name}">${u.shortName}</option>`
+        ).join("");
+    } catch {}
 }
