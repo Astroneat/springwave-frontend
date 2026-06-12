@@ -323,7 +323,7 @@ function buildEditHTML(e) {
             <div>
                 <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Type</label>
                 <select id="edit-type" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]">
-                    ${['Sport', 'Music', 'Education', 'Technology', 'Volunteering', 'Social', 'Art'].map(t =>
+                    ${['Sport', 'Music', 'Education', 'Technology', 'Volunteering', 'Social', 'Art', 'Workshop', 'Seminar'].map(t =>
                         `<option value="${t}" ${(e.type || '') === t ? 'selected' : ''}>${t}</option>`
                     ).join('')}
                 </select>

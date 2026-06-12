@@ -1574,6 +1574,22 @@ function initUniDialog() {
   });
 }
 
+async function loadSchoolsIntoSelect(selectEl, editData) {
+  try {
+    const resp = await fetch("/schools.json");
+    const data = await resp.json();
+    selectEl.innerHTML = '<option value="">-- Select university --</option>';
+    data.universities.forEach(u => {
+      const opt = document.createElement("option");
+      opt.value = u.name;
+      opt.textContent = `${u.name} (${u.shortName})`;
+      selectEl.appendChild(opt);
+    });
+  } catch {
+    selectEl.innerHTML = '<option value="">-- Select university --</option>';
+  }
+}
+
 function openUniDialog(editData, callback) {
   const overlay = document.getElementById("uniDialog");
   const title = document.getElementById("uniDialogTitle");
@@ -1582,6 +1598,8 @@ function openUniDialog(editData, callback) {
   const colorPicker = document.getElementById("uniColorPicker");
   const colorHex = document.getElementById("uniColorHex");
   if (!overlay) return;
+
+  loadSchoolsIntoSelect(nameInput, editData);
 
   if (editData) {
     title.textContent = "Edit University";
