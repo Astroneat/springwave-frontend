@@ -18,7 +18,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
             const userChipHTML = await fetchContent("/components/userchip.html");
             authSection.innerHTML = userChipHTML;
             const avatarEl = document.getElementById("user-avatar");
-            const avatarImg = document.getElementById("user-avatar-img");
+            const avatarImg = document.querySelector(".user-avatar-img");
             const avatarInitial = document.getElementById("user-avatar-initial");
             if (user.avatar && avatarImg) {
                 avatarImg.src = user.avatar;
@@ -44,10 +44,15 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
 
             window.addEventListener("avatar-updated", (e) => {
                 const avatarUrl = e.detail?.avatar;
-                if (avatarUrl && avatarImg) {
-                    avatarImg.src = avatarUrl;
-                    avatarImg.style.display = "";
+                if (avatarUrl) {
+                    if (avatarImg) {
+                        avatarImg.src = avatarUrl;
+                        avatarImg.style.display = "";
+                    }
                     if (avatarInitial) avatarInitial.style.display = "none";
+                    document.querySelectorAll(".mobile-avatar-img").forEach(img => {
+                        img.src = avatarUrl;
+                    });
                 }
             });
         } else {
@@ -56,6 +61,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
         }
     }
 
+    updateMobileMenu();
     await initI18n();
     initLangSwitcher();
 
@@ -229,6 +235,8 @@ function initMobileMenu() {
     if (!hamburger || !mobileMenu) return;
 
     hamburger.addEventListener("click", () => {
+        const userMenu = document.querySelector(".user-menu");
+        if (userMenu) userMenu.classList.remove("active");
         mobileMenu.classList.toggle("open");
     });
     mobileOverlay?.addEventListener("click", () => {
@@ -237,6 +245,57 @@ function initMobileMenu() {
     mobileMenu.querySelectorAll("a").forEach(link => {
         link.addEventListener("click", () => mobileMenu.classList.remove("open"));
     });
+}
+
+function updateMobileMenu() {
+    const loginBtn = document.getElementById("mobileLoginBtn");
+    const getStartedBtn = document.getElementById("mobileGetStartedBtn");
+    if (!loginBtn || !getStartedBtn) return;
+
+    if (isAuthenticated()) {
+        const user = getUser();
+        loginBtn.outerHTML = createMobileUserHTML(user);
+        getStartedBtn.style.display = "none";
+
+        document.getElementById("mobileLogoutBtn")?.addEventListener("click", () => {
+            logout();
+            window.location.href = "/login.html";
+        });
+    }
+}
+
+function createMobileUserHTML(user) {
+    const initial = user.username?.charAt(0)?.toUpperCase() || "U";
+    const avatarHtml = user.avatar
+        ? `<img src="${user.avatar}" alt="" class="w-full h-full rounded-full object-cover mobile-avatar-img">`
+        : `<span class="text-primary font-bold text-sm">${initial}</span>`;
+    const safeUsername = escapeHtml(user.username || "");
+    const safeEmail = escapeHtml(user.email || "");
+
+    return `
+        <div class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-primary-fixed/10">
+            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-primary/20">
+                ${avatarHtml}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-on-surface truncate">${safeUsername}</p>
+                <p class="text-xs text-on-surface-variant truncate">${safeEmail}</p>
+            </div>
+        </div>
+        <a href="/profile.html" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-on-surface-variant hover:bg-primary-fixed/20 hover:text-primary font-headline-md text-lg font-medium spring-ease">
+            <span class="material-symbols-outlined">person</span> <span data-i18n="nav.profile">Profile</span>
+        </a>
+        <button class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-600 hover:bg-red-50 font-headline-md text-lg font-medium spring-ease w-full text-left" id="mobileLogoutBtn">
+            <span class="material-symbols-outlined">logout</span> <span data-i18n="nav.logout">Logout</span>
+        </button>
+    `;
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
 }
 
 /* =========================
