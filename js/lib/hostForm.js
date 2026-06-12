@@ -256,8 +256,7 @@ export function initMapPicker() {
 
 export function initDateValidation() {
     const heldDate = createDatePicker({
-        triggerId: "heldDateTrigger", dropdownId: "heldDateDropdown",
-        placeholderId: "heldDatePlaceholder", valueId: "heldDateValue",
+        triggerId: "heldDateInput", dropdownId: "heldDateDropdown",
         gridId: "heldDateCalGrid", monthLabelId: "heldDateMonthLabel",
         prevBtnId: "heldDatePrev", nextBtnId: "heldDateNext",
         clearBtnId: "heldDateClear", closeBtnId: "heldDateClose",
@@ -268,10 +267,8 @@ export function initDateValidation() {
 }
 
 function createDatePicker(config) {
-    const trigger = document.getElementById(config.triggerId);
+    const input = document.getElementById(config.triggerId);
     const dropdown = document.getElementById(config.dropdownId);
-    const placeholder = document.getElementById(config.placeholderId);
-    const valueEl = document.getElementById(config.valueId);
     const grid = document.getElementById(config.gridId);
     const monthLabel = document.getElementById(config.monthLabelId);
     const prevBtn = document.getElementById(config.prevBtnId);
@@ -280,26 +277,40 @@ function createDatePicker(config) {
     const closeBtn = document.getElementById(config.closeBtnId);
     const hiddenInput = document.getElementById(config.hiddenInputId);
 
-    if (!trigger || !dropdown || !grid || !monthLabel) return null;
+    if (!input || !dropdown || !grid || !monthLabel) return null;
 
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
     let selectedDate = null;
     let onSelect = null;
+    let manualTyping = false;
 
     document.body.appendChild(dropdown);
 
     function pad(n) { return String(n).padStart(2, "0"); }
 
+    function formatDate(d) {
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+
+    function parseDate(str) {
+        const parts = str.split("/");
+        if (parts.length !== 3) return null;
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const y = parseInt(parts[2], 10);
+        if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+        const date = new Date(y, m - 1, d);
+        if (date.getDate() !== d || date.getMonth() !== m - 1 || date.getFullYear() !== y) return null;
+        return date;
+    }
+
     function updateDisplay() {
-        if (selectedDate && valueEl && placeholder) {
-            valueEl.textContent = `${pad(selectedDate.getDate())}/${pad(selectedDate.getMonth() + 1)}/${selectedDate.getFullYear()}`;
-            valueEl.classList.add("visible");
-            placeholder.classList.add("hidden");
+        if (selectedDate) {
+            input.value = formatDate(selectedDate);
             if (hiddenInput) hiddenInput.value = selectedDate.toISOString().split("T")[0];
         } else {
-            if (valueEl) valueEl.classList.remove("visible");
-            if (placeholder) placeholder.classList.remove("hidden");
+            input.value = "";
             if (hiddenInput) hiddenInput.value = "";
         }
     }
@@ -345,6 +356,7 @@ function createDatePicker(config) {
             if (selectedDate && date.getTime() === selectedDate.getTime()) el.classList.add("selected");
             el.addEventListener("click", () => {
                 selectedDate = date;
+                manualTyping = false;
                 updateDisplay();
                 renderCalendar();
                 closeDropdown();
@@ -365,7 +377,7 @@ function createDatePicker(config) {
     const NAVBAR_SAFE = 80;
 
     function positionDropdown() {
-        const rect = trigger.getBoundingClientRect();
+        const rect = input.getBoundingClientRect();
         const dropdownWidth = 320;
         const dropdownHeight = dropdown.offsetHeight || 380;
         let left = rect.left + rect.width / 2;
@@ -393,7 +405,7 @@ function createDatePicker(config) {
         positionDropdown();
         dropdown.style.transform = "translateX(-50%) translateY(8px) scale(0.96)";
         dropdown.classList.add("active");
-        if (trigger.parentElement) trigger.parentElement.classList.add("active");
+        if (input.parentElement) input.parentElement.classList.add("active");
         requestAnimationFrame(() => {
             dropdown.style.transform = "translateX(-50%) translateY(0) scale(1)";
         });
@@ -402,7 +414,7 @@ function createDatePicker(config) {
     }
 
     function followOnScroll() {
-        const rect = trigger.getBoundingClientRect();
+        const rect = input.getBoundingClientRect();
         const navbarH = 80;
         if (rect.bottom < navbarH || rect.top > window.innerHeight) { closeDropdown(); return; }
         positionDropdown();
@@ -410,15 +422,44 @@ function createDatePicker(config) {
 
     function closeDropdown() {
         dropdown.classList.remove("active");
-        if (trigger.parentElement) trigger.parentElement.classList.remove("active");
+        if (input.parentElement) input.parentElement.classList.remove("active");
         window.removeEventListener("scroll", followOnScroll);
         window.removeEventListener("resize", followOnScroll);
     }
 
-    trigger.addEventListener("click", (e) => {
+    input.addEventListener("focus", () => {
+        if (!dropdown.classList.contains("active")) openDropdown();
+    });
+
+    input.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (dropdown.classList.contains("active")) closeDropdown();
-        else openDropdown();
+        if (!dropdown.classList.contains("active")) openDropdown();
+    });
+
+    input.addEventListener("input", () => {
+        const val = input.value.trim();
+        if (!val) {
+            selectedDate = null;
+            if (hiddenInput) hiddenInput.value = "";
+            return;
+        }
+        if (val.length >= 8) {
+            const parsed = parseDate(val);
+            if (parsed) {
+                selectedDate = parsed;
+                manualTyping = true;
+                if (hiddenInput) hiddenInput.value = selectedDate.toISOString().split("T")[0];
+                if (onSelect) onSelect(parsed);
+            }
+        }
+    });
+
+    input.addEventListener("blur", () => {
+        if (manualTyping || !input.value.trim()) return;
+        const parsed = parseDate(input.value.trim());
+        if (!parsed) {
+            input.value = selectedDate ? formatDate(selectedDate) : "";
+        }
     });
 
     if (prevBtn) prevBtn.addEventListener("click", (e) => {
@@ -438,6 +479,7 @@ function createDatePicker(config) {
     if (clearBtn) clearBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         selectedDate = null;
+        manualTyping = false;
         if (hiddenInput) hiddenInput.value = "";
         updateDisplay();
         renderCalendar();
@@ -450,7 +492,7 @@ function createDatePicker(config) {
 
     document.addEventListener("click", (e) => {
         if (dropdown.classList.contains("active")) {
-            if (!dropdown.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) {
+            if (!dropdown.contains(e.target) && e.target !== input && !input.contains(e.target)) {
                 closeDropdown();
             }
         }

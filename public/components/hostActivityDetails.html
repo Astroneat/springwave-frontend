@@ -208,13 +208,9 @@
                 <div class="date-card">
                     <label class="label" data-i18n="host.held_date">Held Date</label>
 
-                    <div class="dp-trigger" id="heldDateTrigger">
-                        <span class="material-symbols-outlined">
-                            event
-                        </span>
-                        <span class="dp-placeholder" id="heldDatePlaceholder" data-i18n="host.select_date">Select date</span>
-                        <span class="dp-value" id="heldDateValue"></span>
-                        <span class="dp-chevron">▾</span>
+                    <div class="dp-trigger">
+                        <span class="material-symbols-outlined">event</span>
+                        <input type="text" id="heldDateInput" class="dp-input" placeholder="dd/mm/yyyy" autocomplete="off">
                     </div>
 
                     <div class="dp-dropdown" id="heldDateDropdown">
