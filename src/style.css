@@ -6485,3 +6485,106 @@
         padding: 12px 16px;
     }
 }
+
+/* =========================
+   ABOUT PAGE
+   ========================= */
+
+.believe-card {
+    @apply bg-white rounded-2xl p-6 md:p-8 flex items-start gap-5;
+    border: 1px solid #ecedfa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.believe-card:hover {
+    border-color: #b0c6ff;
+    box-shadow: 0 8px 24px rgba(35, 73, 155, 0.08);
+}
+
+.believe-number {
+    @apply text-[40px] font-extrabold leading-none flex-shrink-0;
+    background: linear-gradient(135deg, #23499b, #3b6fd4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.25;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.believe-card p {
+    @apply text-[15px] text-on-surface-variant leading-relaxed;
+    font-family: 'Inter', sans-serif;
+}
+
+.team-card {
+    @apply bg-white rounded-2xl p-8 text-center relative overflow-hidden;
+    border: 1px solid #ecedfa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.35s ease;
+}
+
+.team-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(35, 73, 155, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.team-card:hover {
+    border-color: #b0c6ff;
+    box-shadow: 0 16px 40px rgba(35, 73, 155, 0.1);
+    transform: translateY(-6px);
+}
+
+.team-card-accent {
+    @apply absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl;
+    opacity: 0.8;
+}
+
+.team-avatar {
+    @apply w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-5 relative overflow-hidden;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.team-card:hover .team-avatar {
+    transform: scale(1.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.team-avatar-img {
+    @apply w-full h-full object-cover;
+}
+
+.team-avatar-letter {
+    @apply text-white text-[28px] font-extrabold;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.team-name {
+    @apply text-[17px] font-bold text-[#1e293b] mb-3;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: color 0.3s ease;
+}
+
+.team-card:hover .team-name {
+    color: #23499b;
+}
+
+.team-role-line {
+    @apply w-10 h-[3px] rounded-full mx-auto mb-3;
+    background: linear-gradient(90deg, #b0c6ff, #23499b);
+    transition: width 0.35s ease;
+}
+
+.team-card:hover .team-role-line {
+    width: 48px;
+}
+
+.team-role {
+    @apply text-[14px] text-on-surface-variant font-semibold tracking-wide;
+    transition: color 0.3s ease;
+}

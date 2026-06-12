@@ -17,6 +17,7 @@ export default defineConfig({
         admin: resolve(__dirname, "admin.html"),
         community: resolve(__dirname, "community.html"),
         quiz: resolve(__dirname, "quiz.html"),
+        about: resolve(__dirname, "about.html"),
       },
       output: {
         assetFileNames: "assets/[name][extname]",
