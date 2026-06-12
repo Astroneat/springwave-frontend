@@ -199,9 +199,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     discussions = await getDiscussionsByCategory(category);
   }
   window._currentDiscussions = discussions;
-  if (category !== "saved") {
-    await loadSavedDiscussionIds();
-  }
+  await loadSavedDiscussionIds();
   renderDiscussions(discussions, category);
 
   if (category === "all" || category === "uni") {
@@ -497,14 +495,10 @@ function renderDiscussions(discussions, category) {
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
             ${d.replies} replies
           </button>
-          <span class="forum-discussion-stat">
-            <span class="material-symbols-outlined text-sm">visibility</span>
-            ${d.views} views
-          </span>
         </div>
         <div class="forum-discussion-actions">
           <button class="forum-discussion-action-btn" title="Save">
-            <span class="material-symbols-outlined text-sm">${saved ? 'bookmark' : 'bookmark_border'}</span>
+            <span class="material-symbols-outlined text-sm${saved ? ' bookmarked' : ''}">${saved ? 'bookmark' : 'bookmark_border'}</span>
           </button>
           <button class="forum-discussion-action-btn" title="Share">
             <span class="material-symbols-outlined text-sm">share</span>
@@ -595,7 +589,7 @@ function initDiscussionDetail() {
   document.getElementById("forumDiscussions")?.addEventListener("click", async (e) => {
     const card = e.target.closest(".forum-discussion-card");
     if (!card) return;
-    if (e.target.closest(".forum-event-ref, .forum-event-ref-link, .forum-reply-btn")) return;
+    if (e.target.closest(".forum-event-ref, .forum-event-ref-link")) return;
 
     const actionBtn = e.target.closest(".forum-discussion-action-btn");
     if (actionBtn) {
@@ -606,6 +600,7 @@ function initDiscussionDetail() {
         if (!isAuthenticated()) { alert("Please login to save posts"); return; }
         const currentlySaved = icon.textContent === "bookmark";
         icon.textContent = currentlySaved ? "bookmark_border" : "bookmark";
+        icon.classList.toggle("bookmarked", !currentlySaved);
         const ok = currentlySaved ? await unsaveDiscussion(id) : await saveDiscussion(id);
         if (ok) {
           if (currentlySaved) {
@@ -615,6 +610,7 @@ function initDiscussionDetail() {
           }
         } else {
           icon.textContent = currentlySaved ? "bookmark" : "bookmark_border";
+          icon.classList.toggle("bookmarked", currentlySaved);
         }
       } else if (icon && icon.textContent.includes("share")) {
         const url = `${window.location.origin}/community.html?discussion=${id}`;
@@ -651,10 +647,29 @@ async function openDiscussionDetail(id) {
     return;
   }
 
-  const comments = await getComments(id);
-  container.innerHTML = buildDiscussionDetailHTML(discussion, comments);
+  container.innerHTML = buildDiscussionDetailHTML(discussion, []);
+  const commentsContainer = document.getElementById("discussion-detail-comments");
+  if (commentsContainer) {
+    commentsContainer.innerHTML = buildCommentSkeleton(4);
+  }
 
+  const comments = await getComments(id);
+  if (commentsContainer) {
+    const { roots, childMap } = groupComments(comments);
+    commentsContainer.innerHTML = comments.length === 0
+      ? buildEmptyState()
+      : roots.map(c => renderCommentTree(c, childMap, getUser())).join("");
+  }
+
+  const countEl = container.querySelector(".forum-comments-count");
+  if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
+
+  wireDiscussionEvents(id, container);
+}
+
+function wireDiscussionEvents(id, container) {
   container.querySelector("#discussion-back-btn")?.addEventListener("click", closeDiscussionDetail);
+
   container.querySelector("#discussion-submit-btn")?.addEventListener("click", () => {
     submitDiscussionComment(id, container);
   });
@@ -666,22 +681,6 @@ async function openDiscussionDetail(id) {
   });
   container.querySelector("#discussion-input")?.focus();
 
-  container.querySelectorAll(".forum-comment-reply-btn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const replyToId = btn.dataset.commentId;
-      const author = btn.dataset.author;
-      const input = container.querySelector("#discussion-input");
-      if (input) {
-        input.dataset.replyToId = replyToId;
-        input.placeholder = `Reply to ${author}...`;
-        input.focus();
-        const cancelBtn = container.querySelector("#cancel-reply-btn");
-        if (cancelBtn) cancelBtn.style.display = "inline-flex";
-      }
-    });
-  });
-
   container.querySelector("#cancel-reply-btn")?.addEventListener("click", () => {
     const input = container.querySelector("#discussion-input");
     if (input) {
@@ -690,24 +689,6 @@ async function openDiscussionDetail(id) {
     }
     const cancelBtn = container.querySelector("#cancel-reply-btn");
     if (cancelBtn) cancelBtn.style.display = "none";
-  });
-
-  container.querySelectorAll(".forum-comment-like-btn").forEach(btn => {
-    btn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const commentId = btn.dataset.commentId;
-      if (!commentId) return;
-      const likeSpan = btn.querySelector(".like-count");
-      const currentLikes = parseInt(likeSpan?.textContent || "0");
-      const wasLiked = btn.classList.contains("liked");
-      if (likeSpan) likeSpan.textContent = wasLiked ? currentLikes - 1 : currentLikes + 1;
-      btn.classList.toggle("liked", !wasLiked);
-      const result = await likeComment(id, commentId);
-      if (!result) {
-        if (likeSpan) likeSpan.textContent = currentLikes;
-        btn.classList.toggle("liked", wasLiked);
-      }
-    });
   });
 
   container.querySelector("#discussion-delete-btn")?.addEventListener("click", async () => {
@@ -729,6 +710,154 @@ async function openDiscussionDetail(id) {
       try { await navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
     }
   });
+
+  container.addEventListener("click", (e) => {
+    const replyBtn = e.target.closest(".forum-comment-reply-btn");
+    if (replyBtn) {
+      e.stopPropagation();
+      const commentId = replyBtn.dataset.commentId;
+      const parentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${commentId}"]`);
+      if (!parentEl) return;
+      container.querySelectorAll(".forum-comment-inline-reply").forEach(r => r.style.display = "none");
+      const inline = parentEl.querySelector(".forum-comment-inline-reply");
+      if (inline) {
+        inline.style.display = "flex";
+        const input = inline.querySelector(".forum-comment-inline-input");
+        if (input) { input.focus(); input.dataset.replyToId = commentId; }
+      }
+      return;
+    }
+
+    const cancelInlineBtn = e.target.closest(".forum-comment-inline-cancel");
+    if (cancelInlineBtn) {
+      e.stopPropagation();
+      const inline = cancelInlineBtn.closest(".forum-comment-inline-reply");
+      if (inline) {
+        inline.style.display = "none";
+        const input = inline.querySelector(".forum-comment-inline-input");
+        if (input) { input.value = ""; delete input.dataset.replyToId; }
+      }
+      return;
+    }
+
+    const submitInlineBtn = e.target.closest(".forum-comment-inline-submit");
+    if (submitInlineBtn) {
+      e.stopPropagation();
+      const inline = submitInlineBtn.closest(".forum-comment-inline-reply");
+      if (!inline) return;
+      const input = inline.querySelector(".forum-comment-inline-input");
+      if (!input || !input.value.trim()) return;
+      const replyToId = input.dataset.replyToId;
+      if (!replyToId) return;
+      const text = input.value.trim();
+      addReply(id, text, replyToId).then(newComment => {
+        grantContribution("reply").then((res) => {
+          if (res && res.newBadges && Array.isArray(res.newBadges)) {
+            res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+          }
+        }).catch(() => {});
+        if (newComment) {
+          const parentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${replyToId}"]`);
+          if (parentEl) {
+            let repliesContainer = parentEl.querySelector(".forum-comment-replies");
+            if (!repliesContainer) {
+              repliesContainer = document.createElement("div");
+              repliesContainer.className = "forum-comment-replies";
+              const inlineEditor = parentEl.querySelector(".forum-comment-inline-reply");
+              if (inlineEditor) {
+                parentEl.querySelector(".forum-comment-body").insertBefore(repliesContainer, inlineEditor);
+              } else {
+                parentEl.querySelector(".forum-comment-body").appendChild(repliesContainer);
+              }
+            }
+            const extraContainer = repliesContainer.querySelector(".forum-comment-extra-replies");
+            if (extraContainer) {
+              extraContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
+            } else {
+              repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
+            }
+            const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
+            if (expandBtn) {
+              const count = parseInt(expandBtn.dataset.hiddenCount || "0");
+              expandBtn.dataset.hiddenCount = String(count + 1);
+              const textSpan = expandBtn.querySelector(".forum-comment-expand-text");
+              if (textSpan) textSpan.textContent = `View ${count + 1} more ${count + 1 === 1 ? "reply" : "replies"}`;
+            }
+          }
+        }
+        input.value = "";
+        delete input.dataset.replyToId;
+        inline.style.display = "none";
+        const countEl = container.querySelector(".forum-comments-count");
+        if (countEl) {
+          const current = parseInt(countEl.textContent) || 0;
+          countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
+        }
+      });
+      return;
+    }
+
+    const expandBtn = e.target.closest(".forum-comment-expand-btn");
+    if (expandBtn) {
+      e.stopPropagation();
+      const parentEl = expandBtn.closest(".discussion-detail-comment");
+      if (!parentEl) return;
+      const extraContainer = parentEl.querySelector(".forum-comment-extra-replies");
+      if (!extraContainer) return;
+      const isExpanded = expandBtn.classList.contains("expanded");
+      if (isExpanded) {
+        extraContainer.style.maxHeight = "0";
+        expandBtn.classList.remove("expanded");
+      } else {
+        extraContainer.style.maxHeight = "2000px";
+        expandBtn.classList.add("expanded");
+      }
+      return;
+    }
+
+    const likeBtn = e.target.closest(".forum-comment-like-btn");
+    if (likeBtn) {
+      e.stopPropagation();
+      const commentId = likeBtn.dataset.commentId;
+      if (!commentId) return;
+      const likeSpan = likeBtn.querySelector(".like-count");
+      const currentLikes = parseInt(likeSpan?.textContent || "0");
+      const wasLiked = likeBtn.classList.contains("liked");
+      if (likeSpan) likeSpan.textContent = wasLiked ? currentLikes - 1 : currentLikes + 1;
+      likeBtn.classList.toggle("liked", !wasLiked);
+      likeComment(id, commentId).then(result => {
+        if (!result) {
+          if (likeSpan) likeSpan.textContent = currentLikes;
+          likeBtn.classList.toggle("liked", wasLiked);
+        }
+      });
+      return;
+    }
+
+    const startBtn = e.target.closest(".forum-comment-start-btn");
+    if (startBtn) {
+      const input = container.querySelector("#discussion-input");
+      if (input) input.focus();
+      return;
+    }
+  });
+
+  const sortEl = container.querySelector("#forum-comments-sort");
+  if (sortEl && !sortEl._wired) {
+    sortEl._wired = true;
+    sortEl.addEventListener("change", async (e) => {
+      const sortBy = e.target.value;
+      const allComments = await getComments(id);
+      const sorted = sortComments(allComments, sortBy);
+      const { roots, childMap } = groupComments(sorted);
+      const commentsContainer = document.getElementById("discussion-detail-comments");
+      if (commentsContainer) {
+        commentsContainer.innerHTML = sorted.length === 0
+          ? buildEmptyState()
+          : roots.map(c => renderCommentTree(c, childMap, getUser())).join("");
+      }
+    });
+  }
 }
 
 function closeDiscussionDetail() {
@@ -768,16 +897,150 @@ async function submitDiscussionComment(id, container) {
     }
   }).catch(() => {});
   input.value = "";
+  const submittedReplyToId = input.dataset.replyToId;
   delete input.dataset.replyToId;
   input.placeholder = "Write a comment...";
   const cancelBtn = container.querySelector("#cancel-reply-btn");
   if (cancelBtn) cancelBtn.style.display = "none";
-  const comments = await getComments(id);
-  const list = container.querySelector(".discussion-detail-comments");
-  if (list) {
-    const lastComment = comments[comments.length - 1];
-    if (lastComment) list.insertAdjacentHTML("beforeend", buildCommentHTML(lastComment, getUser()));
+  if (newComment) {
+    if (submittedReplyToId) {
+      const parentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${submittedReplyToId}"]`);
+      if (parentEl) {
+        let repliesContainer = parentEl.querySelector(".forum-comment-replies");
+        if (!repliesContainer) {
+          repliesContainer = document.createElement("div");
+          repliesContainer.className = "forum-comment-replies";
+          const inlineEditor = parentEl.querySelector(".forum-comment-inline-reply");
+          if (inlineEditor) {
+            parentEl.querySelector(".forum-comment-body").insertBefore(repliesContainer, inlineEditor);
+          } else {
+            parentEl.querySelector(".forum-comment-body").appendChild(repliesContainer);
+          }
+        }
+        const extraContainer = repliesContainer.querySelector(".forum-comment-extra-replies");
+        const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
+        if (extraContainer) {
+          extraContainer.insertAdjacentHTML("afterbegin", buildCommentHTML(newComment, getUser(), "", 1));
+          if (expandBtn) {
+            const count = parseInt(expandBtn.dataset.hiddenCount || "0");
+            expandBtn.dataset.hiddenCount = String(count + 1);
+            const textSpan = expandBtn.querySelector(".forum-comment-expand-text");
+            if (textSpan) textSpan.textContent = `View ${count + 1} more ${count + 1 === 1 ? "reply" : "replies"}`;
+          }
+        } else {
+          if (expandBtn) {
+            expandBtn.insertAdjacentHTML("beforebegin", buildCommentHTML(newComment, getUser(), "", 1));
+            const count = parseInt(expandBtn.dataset.hiddenCount || "0");
+            expandBtn.dataset.hiddenCount = String(count + 1);
+            const textSpan = expandBtn.querySelector(".forum-comment-expand-text");
+            if (textSpan) textSpan.textContent = `View ${count + 1} more ${count + 1 === 1 ? "reply" : "replies"}`;
+          } else {
+            repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
+          }
+        }
+      }
+    } else {
+      const list = container.querySelector("#discussion-detail-comments");
+      if (list) {
+        list.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 0));
+      }
+    }
+    const countEl = container.querySelector(".forum-comments-count");
+    if (countEl) {
+      const current = parseInt(countEl.textContent) || 0;
+      countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
+    }
   }
+}
+
+function groupComments(comments) {
+  const map = {};
+  const childMap = {};
+  const roots = [];
+
+  comments.forEach(c => {
+    map[c.id] = c;
+    childMap[c.id] = childMap[c.id] || [];
+  });
+
+  comments.forEach(c => {
+    const parentId = c.replyToId || (c.replyTo && c.replyTo.id);
+    if (parentId && map[parentId]) {
+      (childMap[parentId] = childMap[parentId] || []).push(c);
+    } else {
+      roots.push(c);
+    }
+  });
+
+  return { roots, childMap };
+}
+
+function collectDescendants(comment, childMap) {
+  const result = [];
+  const children = childMap[comment.id] || [];
+  children.forEach(child => {
+    result.push(child);
+    result.push(...collectDescendants(child, childMap));
+  });
+  return result;
+}
+
+function renderCommentTree(comment, childMap, currentUser, depth = 0) {
+  if (depth === 0) {
+    const allDescendants = collectDescendants(comment, childMap);
+    const visibleReplies = allDescendants.slice(0, 2);
+    const hiddenReplies = allDescendants.slice(2);
+    const repliesHtml = visibleReplies.map(r => buildCommentHTML(r, currentUser, "", 1)).join("");
+    const hiddenHtml = hiddenReplies.map(r => buildCommentHTML(r, currentUser, "", 1)).join("");
+    return buildCommentHTML(comment, currentUser, repliesHtml, 0, hiddenHtml, hiddenReplies.length);
+  }
+  return buildCommentHTML(comment, currentUser, "", Math.min(depth, 1));
+}
+
+function sortComments(comments, sortBy) {
+  const sorted = [...comments];
+  switch (sortBy) {
+    case "newest": return sorted.sort((a, b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0));
+    case "oldest": return sorted.sort((a, b) => new Date(a.createdAt || a.date || 0) - new Date(b.createdAt || b.date || 0));
+    case "relevant": return sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    default: return sorted;
+  }
+}
+
+function buildCommentSkeleton(count = 3) {
+  return `
+    <div class="forum-comments-skeleton">
+      ${Array.from({ length: count }, () => `
+      <div class="forum-skeleton-row">
+        <div class="forum-skeleton-avatar"></div>
+        <div class="forum-skeleton-lines">
+          <div class="forum-skeleton-line" style="width:120px"></div>
+          <div class="forum-skeleton-line" style="width:100%"></div>
+          <div class="forum-skeleton-line" style="width:60%"></div>
+        </div>
+      </div>`).join("")}
+    </div>`;
+}
+
+function buildEmptyState() {
+  const user = getUser();
+  return `
+    <div class="forum-comments-empty">
+      <div class="forum-comments-empty-icon">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <rect x="8" y="12" width="48" height="36" rx="8" fill="#e2e8f0"/>
+          <rect x="14" y="20" width="36" height="4" rx="2" fill="#cbd5e1"/>
+          <rect x="14" y="28" width="28" height="4" rx="2" fill="#cbd5e1"/>
+          <rect x="14" y="36" width="20" height="4" rx="2" fill="#cbd5e1"/>
+          <circle cx="16" cy="54" r="6" fill="#e2e8f0"/>
+          <circle cx="32" cy="54" r="6" fill="#e2e8f0"/>
+          <circle cx="48" cy="54" r="6" fill="#e2e8f0"/>
+        </svg>
+      </div>
+      <h3>No comments yet</h3>
+      <p>Be the first to start the conversation.</p>
+      ${user ? `<button class="forum-comment-start-btn" style="margin-top:12px;padding:8px 20px;background:#23499b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Write a comment</button>` : ""}
+    </div>`;
 }
 
 function buildDiscussionDetailHTML(d, comments) {
@@ -822,15 +1085,20 @@ function buildDiscussionDetailHTML(d, comments) {
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
             ${comments.length} replies
           </span>
-          <span class="forum-discussion-stat">
-            <span class="material-symbols-outlined text-sm">visibility</span>
-            ${d.views} views
-          </span>
         </div>
       </div>
-      <div class="discussion-detail-comments">
-        ${comments.length === 0 ? '<p class="discussion-detail-empty">No comments yet. Be the first to reply!</p>'
-          : comments.map(c => buildCommentHTML(c, user)).join("")}
+      <div class="forum-comments-header">
+        <span class="forum-comments-count">${comments.length} comment${comments.length !== 1 ? "s" : ""}</span>
+        <select class="forum-comments-sort" id="forum-comments-sort">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="relevant">Most Relevant</option>
+        </select>
+      </div>
+      <div class="discussion-detail-comments" id="discussion-detail-comments">
+        ${comments.length === 0
+          ? buildEmptyState()
+          : (() => { const { roots, childMap } = groupComments(comments); return roots.map(c => renderCommentTree(c, childMap, user)).join(""); })()}
       </div>
       <div class="discussion-detail-form">
         <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment..." data-reply-to-id="" />
@@ -843,16 +1111,20 @@ function buildDiscussionDetailHTML(d, comments) {
   `;
 }
 
-function buildCommentHTML(c, currentUser) {
+function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtml = "", hiddenCount = 0) {
   const liked = c.likedBy && currentUser && c.likedBy.some ? c.likedBy.some(id => String(id) === String(currentUser._id)) : false;
   const replyToHtml = c.replyTo && c.replyTo.userName
     ? `<span class="forum-comment-reply-to">@${c.replyTo.userName}</span>`
     : "";
+  const nestedClass = depth > 0 ? " forum-comment-nested" : "";
+  const user = currentUser || getUser();
+  const initial = (user?.fullname || user?.username || "?")[0];
   return `
-    <div class="discussion-detail-comment">
-      <div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar || (c.userName || "?").charAt(0).toUpperCase()}</div>
+    <div class="discussion-detail-comment${nestedClass}" data-comment-id="${c.id}">
+      ${depth === 0 ? `<div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar || (c.userName || "?").charAt(0).toUpperCase()}</div>` : ""}
       <div class="forum-comment-body">
         <div class="forum-comment-header">
+          ${depth > 0 ? `<div class="forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${c.avatar || (c.userName || "?").charAt(0).toUpperCase()}</div>` : ""}
           <span class="forum-comment-author">${c.author || c.userName}</span>
           <span class="forum-comment-date">${c.date || c.createdAt || "recent"}</span>
         </div>
@@ -866,6 +1138,28 @@ function buildCommentHTML(c, currentUser) {
             <span class="material-symbols-outlined text-xs">reply</span>
             <span>Reply</span>
           </button>
+        </div>
+        ${depth === 0 && (repliesHtml || hiddenCount > 0) ? `
+        <div class="forum-comment-replies">
+          ${repliesHtml}
+          ${hiddenCount > 0 ? `
+          <div class="forum-comment-extra-replies" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,opacity 0.25s ease;">
+            ${hiddenHtml}
+          </div>
+          <button class="forum-comment-expand-btn" data-comment-id="${c.id}" data-hidden-count="${hiddenCount}">
+            <span class="forum-comment-expand-text">View ${hiddenCount} more ${hiddenCount === 1 ? "reply" : "replies"}</span>
+            <span class="forum-comment-expand-text-hide" style="display:none">Show less</span>
+          </button>` : ""}
+        </div>` : ""}
+        <div class="forum-comment-inline-reply" data-parent-id="${c.id}" style="display:none;">
+          <div class="forum-comment-inline-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${initial}</div>
+          <div class="forum-comment-inline-body">
+            <input type="text" class="forum-comment-inline-input" placeholder="Write a reply..." />
+            <div class="forum-comment-inline-actions">
+              <button class="forum-comment-inline-cancel">Cancel</button>
+              <button class="forum-comment-inline-submit">Reply</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
