@@ -3,11 +3,13 @@ import { isAuthenticated } from "../lib/session.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities, searchSemantic } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { getRecommendations, explainRecommendation } from "../api/recommendations.js";
+import { createDiscussionWithScope } from "../api/forum.js";
 import { CDN_DOMAIN } from "../config.js";
 import { t } from "../lib/i18n.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { getUser } from "../lib/session.js";
 
 let allActivities = [];
 let currentCategory = "all";
@@ -26,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await initExplore();
     await loadRecommendations();
     await initChatbot();
+    initExplorePostModal();
     initializePage();
 
     if (eventId) {
@@ -391,10 +394,10 @@ async function openPopup(activityID) {
 
     popupContainer.querySelector(".discuss-btn")?.addEventListener("click", () => {
         const btn = popupContainer.querySelector(".discuss-btn");
+        const eventId = btn?.dataset.eventId;
         const eventTitle = btn?.dataset.eventTitle;
-        if (eventTitle) {
-            localStorage.setItem("pendingDiscussEvent", JSON.stringify({ title: eventTitle }));
-            window.location.href = "./community.html?discuss=event";
+        if (eventId && eventTitle && window._openExplorePostModal) {
+            window._openExplorePostModal(eventId, eventTitle);
         }
     });
 
@@ -469,10 +472,10 @@ async function openPopup2(activityID, activityData) {
 
     popupContainer2.querySelector(".discuss-btn")?.addEventListener("click", () => {
         const btn = popupContainer2.querySelector(".discuss-btn");
+        const eventId = btn?.dataset.eventId;
         const eventTitle = btn?.dataset.eventTitle;
-        if (eventTitle) {
-            localStorage.setItem("pendingDiscussEvent", JSON.stringify({ title: eventTitle }));
-            window.location.href = "./community.html?discuss=event";
+        if (eventId && eventTitle && window._openExplorePostModal) {
+            window._openExplorePostModal(eventId, eventTitle);
         }
     });
 
@@ -563,7 +566,7 @@ function buildPopupHTML(a, backText) {
         <div class="top-bar">
             <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${backText}</button>
             <div class="top-actions">
-                <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> ${t("explore.share")}</button>
+                <button class="icon-btn"><span class="material-symbols-outlined text-base">share</span> ${t("explore.share")}</button>
                 <button class="discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}"><span class="material-symbols-outlined text-lg">forum</span> Discuss</button>
                 <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite")}</span></button>
             </div>
@@ -809,6 +812,138 @@ function initSearchDatePicker() {
     document.addEventListener("click", (e) => { if (dropdown.classList.contains("active") && !dropdown.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) closeDropdown(); });
     dropdown.addEventListener("click", (e) => e.stopPropagation());
     formatDisplay();
+}
+
+/* =============================
+   EXPLORE POST MODAL
+   ============================= */
+
+function initExplorePostModal() {
+  const overlay = document.getElementById("explorePostOverlay");
+  const backdrop = document.getElementById("explorePostBackdrop");
+  const closeBtn = document.getElementById("explorePostClose");
+  const cancelBtn = document.getElementById("explorePostCancel");
+  const publishBtn = document.getElementById("explorePostPublish");
+  const titleInput = document.getElementById("explorePostTitle");
+  const contentInput = document.getElementById("explorePostContent");
+  const tagsInput = document.getElementById("explorePostTags");
+  const eventInfo = document.getElementById("explorePostEventInfo");
+
+  let currentEventId = null;
+  let currentEventTitle = "";
+
+  function open(eventId, eventTitle) {
+    currentEventId = eventId;
+    currentEventTitle = eventTitle;
+    titleInput.value = "";
+    contentInput.value = "";
+    tagsInput.value = "";
+    eventInfo.innerHTML = `
+      <span class="material-symbols-outlined text-blue-600">event</span>
+      <div class="forum-post-event-info">
+        <span class="text-sm font-medium text-slate-800">${eventTitle}</span>
+        <span class="text-xs text-slate-500">This discussion will be linked to this event</span>
+      </div>
+      <span class="material-symbols-outlined text-blue-600">check_circle</span>
+    `;
+    overlay.style.display = "flex";
+    requestAnimationFrame(() => overlay.classList.add("active"));
+    document.body.style.overflow = "hidden";
+  }
+
+  function close() {
+    overlay.classList.remove("active");
+    setTimeout(() => { overlay.style.display = "none"; }, 300);
+    document.body.style.overflow = "";
+  }
+
+  closeBtn?.addEventListener("click", close);
+  cancelBtn?.addEventListener("click", close);
+  if (backdrop) backdrop.addEventListener("click", close);
+
+  publishBtn?.addEventListener("click", async () => {
+    const title = titleInput.value.trim();
+    if (!title) { titleInput.focus(); return; }
+    publishBtn.disabled = true;
+    try {
+      const result = await createDiscussionWithScope({
+        title,
+        content: contentInput.value.trim() || "",
+        category: "event",
+        tags: (tagsInput.value || "").split(",").map(t => t.trim()).filter(Boolean),
+        relatedEvent: currentEventId,
+        scope: "general",
+      });
+      close();
+      if (result) {
+        const act = allActivities.find(a => a.activityID === currentEventId || a._id === currentEventId);
+        result._event = {
+          title: act?.title || currentEventTitle,
+          date: act?.heldDate || "",
+          attendees: act?.participants || 0,
+        };
+        if (!result.tags) result.tags = (tagsInput.value || "").split(",").map(t => t.trim()).filter(Boolean);
+        if (!result.category) result.category = "event";
+        if (!result.lastActivity) result.lastActivity = "Just now";
+        if (!result.replies) result.replies = 0;
+        result.id = result.id || result._id;
+        try { sessionStorage.setItem("springwave_pending_discussion", JSON.stringify(result)); } catch {}
+        const discId = result._id || result.id;
+        showSuccessToast(
+          "Discussion posted successfully! Click here to view",
+          discId ? `./community.html?discussion=${discId}` : null,
+          "View Discussion"
+        );
+      }
+    } finally {
+      publishBtn.disabled = false;
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("active")) close();
+  });
+
+  window._openExplorePostModal = open;
+}
+
+function showSuccessToast(message, linkUrl, linkText) {
+  const existing = document.querySelectorAll(".success-toast");
+  const offset = existing.length * 80;
+  const toast = document.createElement("div");
+  toast.className = "success-toast";
+  toast.style.bottom = `${24 + offset}px`;
+  toast.innerHTML = `
+    <div class="success-toast-icon">
+      <span class="material-symbols-outlined">check_circle</span>
+    </div>
+    <div class="success-toast-body">
+      <span class="success-toast-heading">Success!</span>
+      <span class="success-toast-message">${message}</span>
+      ${linkUrl ? `<span class="success-toast-link">${linkText || "View Discussion"}</span>` : ""}
+    </div>
+    <button class="success-toast-close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  `;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("show"));
+  if (linkUrl) {
+    toast.addEventListener("click", (e) => {
+      if (e.target.closest(".success-toast-close")) return;
+      window.location.href = linkUrl;
+    });
+    toast.style.cursor = "pointer";
+  }
+  toast.querySelector(".success-toast-close")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  });
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 6000);
 }
 
 

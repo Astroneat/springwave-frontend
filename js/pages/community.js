@@ -63,6 +63,31 @@ function getDiscussionParamFromURL() {
   return params.get("discussion");
 }
 
+async function enrichDiscussionsEventData(discussions) {
+  const needEnrich = discussions.filter(d => d.relatedEvent && !d._event);
+  if (needEnrich.length === 0) return;
+  const eventIds = [...new Set(needEnrich.map(d => d.relatedEvent))];
+  await Promise.all(eventIds.map(async (eventId) => {
+    try {
+      const { activity } = await getActivityById(eventId);
+      if (activity) {
+        needEnrich.filter(d => d.relatedEvent === eventId).forEach(d => {
+          d._event = { title: activity.title, date: activity.heldDate, attendees: activity.participants || 0 };
+        });
+      }
+    } catch {
+      try {
+        const event = await getEventById(eventId);
+        if (event) {
+          needEnrich.filter(d => d.relatedEvent === eventId).forEach(d => {
+            d._event = { title: event.title, date: event.date, attendees: event.attendees || 0 };
+          });
+        }
+      } catch {}
+    }
+  }));
+}
+
 const MAX_EVENT_DISCUSSIONS = 20;
 let discussionsCache = [];
 let savedDiscussionIds = new Set();
@@ -200,6 +225,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   window._currentDiscussions = discussions;
   await loadSavedDiscussionIds();
+  await enrichDiscussionsEventData(discussions);
+
+  const pendingRaw = sessionStorage.getItem("springwave_pending_discussion");
+  if (pendingRaw) {
+    sessionStorage.removeItem("springwave_pending_discussion");
+    try {
+      const pending = JSON.parse(pendingRaw);
+      if (pending && (pending._id || pending.id)) {
+        const pid = pending._id || pending.id;
+        const existingIdx = discussions.findIndex(d => (d.id || d._id) === pid);
+        if (existingIdx !== -1) discussions.splice(existingIdx, 1);
+        discussions.unshift(pending);
+      }
+    } catch {}
+  }
+
   renderDiscussions(discussions, category);
 
   if (category === "all" || category === "uni") {
@@ -236,14 +277,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const discussParam = urlParams.get("discuss");
   if (discussParam === "event") {
-    const pending = (() => { try { return JSON.parse(localStorage.getItem("pendingDiscussEvent")); } catch { return null; } })();
-    if (pending?.title) {
-      localStorage.removeItem("pendingDiscussEvent");
-      setTimeout(() => {
-        window.openPostModal({ eventTitle: pending.title });
-        history.replaceState({}, "", window.location.pathname);
-      }, 100);
-    }
+    history.replaceState({}, "", window.location.pathname);
   }
 });
 
@@ -361,7 +395,7 @@ async function renderPopularDiscussions() {
   container.innerHTML = popular
     .map(
       (d, i) => `
-    <div class="forum-sidebar-popular-item" data-discussion-id="${d.id}" style="cursor:pointer;">
+    <div class="forum-sidebar-popular-item" data-discussion-id="${d.id || d._id}" style="cursor:pointer;">
       <span class="forum-sidebar-popular-rank">${String(i + 1).padStart(2, "0")}</span>
       <div class="forum-sidebar-popular-info">
         <span class="forum-sidebar-popular-title">${d.title}</span>
@@ -480,7 +514,7 @@ function renderDiscussions(discussions, category) {
         const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
         const saved = isSaved(d.id);
         return `
-    <div class="forum-discussion-card" data-discussion-id="${d.id}">
+    <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
       <div class="forum-discussion-card-header">
         <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
           ${d.avatar}
@@ -503,7 +537,7 @@ function renderDiscussions(discussions, category) {
 
       <div class="forum-discussion-footer">
         <div class="forum-discussion-stats">
-          <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id}">
+          <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id || d._id}">
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
             ${d.replies} replies
           </button>
@@ -526,7 +560,7 @@ function renderDiscussions(discussions, category) {
 function buildDiscussionCardHTML(d) {
   const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
   return `
-    <div class="forum-discussion-card" data-discussion-id="${d.id}">
+    <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
       <div class="forum-discussion-card-header">
         <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
           ${d.avatar || ""}
@@ -549,7 +583,7 @@ function buildDiscussionCardHTML(d) {
 
       <div class="forum-discussion-footer">
         <div class="forum-discussion-stats">
-          <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id}">
+          <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id || d._id}">
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
             ${d.replies || 0} replies
           </button>
@@ -656,10 +690,26 @@ async function openDiscussionDetail(id) {
   const currentDiscussions = window._currentDiscussions || [];
   const allDiscussions = await getDiscussionsByCategory("all");
   const eventDisc = (discussionsCache || []);
-  const discussion = [...currentDiscussions, ...allDiscussions, ...eventDisc].find((d) => String(d.id) === String(id));
+  const discussion = [...currentDiscussions, ...allDiscussions, ...eventDisc].find((d) => String(d.id || d._id) === String(id));
   if (!discussion) {
     container.innerHTML = `<div class="popup-loading text-slate-500">Discussion not found</div>`;
     return;
+  }
+
+  if (discussion.relatedEvent && !discussion._event) {
+    try {
+      const { activity } = await getActivityById(discussion.relatedEvent);
+      if (activity) {
+        discussion._event = { title: activity.title, date: activity.heldDate, attendees: activity.participants || 0 };
+      }
+    } catch {
+      try {
+        const event = await getEventById(discussion.relatedEvent);
+        if (event) {
+          discussion._event = { title: event.title, date: event.date, attendees: event.attendees || 0 };
+        }
+      } catch {}
+    }
   }
 
   container.innerHTML = buildDiscussionDetailHTML(discussion, []);
@@ -679,7 +729,7 @@ async function openDiscussionDetail(id) {
   const countEl = container.querySelector(".forum-comments-count");
   if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
 
-  container.scrollTop = 0;
+  requestAnimationFrame(() => { container.scrollTop = 0; });
   wireDiscussionEvents(id, container);
 }
 
@@ -1074,8 +1124,8 @@ function buildDiscussionDetailHTML(d, comments) {
   const isAdmin = user && user.role === "admin";
   const topActions = `
     <div class="top-actions">
-      <button class="icon-btn" id="discussion-share-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
-      ${isOwner || isAdmin ? `<button class="icon-btn text-red-500" id="discussion-delete-btn"><i class="fa-solid fa-trash-can"></i> Delete</button>` : ""}
+      <button class="icon-btn" id="discussion-share-btn"><span class="material-symbols-outlined text-base">share</span> Share</button>
+      ${isOwner || isAdmin ? `<button class="delete-btn" id="discussion-delete-btn"><span class="material-symbols-outlined text-base">delete</span> Delete</button>` : ""}
     </div>
   `;
   return `
@@ -1101,7 +1151,7 @@ function buildDiscussionDetailHTML(d, comments) {
         <div class="forum-discussion-meta">
           <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
           <div class="forum-discussion-tags">
-            ${d.tags.map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+          ${(d.tags || []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
           </div>
         </div>
         <div class="forum-discussion-stats">
