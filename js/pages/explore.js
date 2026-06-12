@@ -877,6 +877,7 @@ function initExplorePostModal() {
       close();
       if (result) {
         const act = allActivities.find(a => a.activityID === currentEventId || a._id === currentEventId);
+        result.relatedEvent = currentEventId;
         result._event = {
           title: act?.title || currentEventTitle,
           date: act?.heldDate || "",
@@ -888,6 +889,14 @@ function initExplorePostModal() {
         if (!result.replies) result.replies = 0;
         result.id = result.id || result._id;
         try { sessionStorage.setItem("springwave_pending_discussion", JSON.stringify(result)); } catch {}
+        try {
+          result._storedAt = Date.now();
+          const stored = JSON.parse(localStorage.getItem("springwave_event_discussions") || "[]");
+          const idx = stored.findIndex(d => (d.id || d._id) === (result.id || result._id));
+          if (idx === -1) stored.unshift(result);
+          else stored[idx] = result;
+          localStorage.setItem("springwave_event_discussions", JSON.stringify(stored));
+        } catch {}
         const discId = result._id || result.id;
         showSuccessToast(
           "Discussion posted successfully! Click here to view",

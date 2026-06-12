@@ -208,8 +208,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let discussions;
   if (category === "event") {
-    discussions = await getEventDiscussions();
-    discussionsCache = discussions;
+    const [userDiscussions, eventDiscussions] = await Promise.all([
+      getDiscussionsByCategory("event"),
+      getEventDiscussions(),
+    ]);
+    discussions = [...userDiscussions, ...eventDiscussions];
+    discussionsCache = eventDiscussions;
   } else if (category === "uni" && uniId) {
     discussions = await getCommunityDiscussions(uniId);
     const sectionTitle = document.querySelector(".forum-section-title");
@@ -226,6 +230,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   window._currentDiscussions = discussions;
   await loadSavedDiscussionIds();
   await enrichDiscussionsEventData(discussions);
+
+  const storedDiscRaw = localStorage.getItem("springwave_event_discussions");
+  if (storedDiscRaw) {
+    try {
+      const storedDiscs = JSON.parse(storedDiscRaw).filter(sd => {
+        const age = Date.now() - (sd._storedAt || 0);
+        return age < 7 * 24 * 60 * 60 * 1000; // remove entries older than 7 days
+      });
+      for (const sd of storedDiscs) {
+        const existing = discussions.findIndex(d => (d.id || d._id) === (sd.id || sd._id));
+        if (existing !== -1) {
+          discussions[existing]._event = sd._event;
+          discussions[existing].relatedEvent = sd.relatedEvent || discussions[existing].relatedEvent;
+        } else {
+          delete sd._storedAt;
+          discussions.unshift(sd);
+        }
+      }
+    } catch {}
+  }
 
   const pendingRaw = sessionStorage.getItem("springwave_pending_discussion");
   if (pendingRaw) {
@@ -1599,6 +1623,7 @@ function initPostModal() {
   const postScopeField = document.getElementById("postScopeField");
 
   let selectedEventId = null;
+  let _selectedEventData = null;
   let selectedSkill = "";
   let closeTimer = null;
   let _allEvents = [];
@@ -1637,6 +1662,9 @@ function initPostModal() {
         card.classList.add("selected");
         card.querySelector(".forum-post-event-check")?.classList.remove("hidden");
         selectedEventId = card.dataset.eventId;
+        _selectedEventData = null;
+        const ev = _allEvents.find(e => String(e.id) === String(selectedEventId));
+        if (ev) _selectedEventData = { title: ev.title, date: ev.date, attendees: ev.attendees || 0 };
       });
     });
   }
@@ -1722,6 +1750,7 @@ function initPostModal() {
       closeTimer = null;
     }
     selectedEventId = null;
+    _selectedEventData = null;
     selectedSkill = "";
     overlay.style.display = "flex";
     requestAnimationFrame(() => {
@@ -1818,6 +1847,21 @@ function initPostModal() {
           result.tags = tags;
           result.replies = 0;
           result.views = 0;
+
+          if (category === "event" && relatedEvent) {
+            result.relatedEvent = relatedEvent;
+            if (_selectedEventData) result._event = { ..._selectedEventData };
+          }
+          if (result._event) {
+            try {
+              result._storedAt = Date.now();
+              const stored = JSON.parse(localStorage.getItem("springwave_event_discussions") || "[]");
+              const idx = stored.findIndex(d => (d.id || d._id) === (result.id || result._id));
+              if (idx === -1) stored.unshift(result);
+              else stored[idx] = result;
+              localStorage.setItem("springwave_event_discussions", JSON.stringify(stored));
+            } catch {}
+          }
         }
 
         close();

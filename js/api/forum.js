@@ -55,7 +55,6 @@ export async function getTrendingDiscussions() {
 }
 
 export async function getDiscussionsByCategory(category) {
-  if (category === "event") return [];
   if (category === "uni") return [];
   if (category === "mine") return getMyDiscussions();
   if (category === "saved") return getSavedDiscussions();
