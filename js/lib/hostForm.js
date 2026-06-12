@@ -264,32 +264,7 @@ export function initDateValidation() {
         hiddenInputId: "heldDate"
     });
 
-    const deadline = createDatePicker({
-        triggerId: "deadlineTrigger", dropdownId: "deadlineDropdown",
-        placeholderId: "deadlinePlaceholder", valueId: "deadlineValue",
-        gridId: "deadlineCalGrid", monthLabelId: "deadlineMonthLabel",
-        prevBtnId: "deadlinePrev", nextBtnId: "deadlineNext",
-        clearBtnId: "deadlineClear", closeBtnId: "deadlineClose",
-        hiddenInputId: "applicationDeadline"
-    });
-
-    heldDate.onSelect = (date) => {
-        const dVal = document.getElementById("applicationDeadline")?.value;
-        if (dVal && new Date(dVal) >= date) {
-            alert("Application deadline must be earlier than the activity start date.");
-            deadline.clear();
-        }
-    };
-
-    deadline.onSelect = (date) => {
-        const hVal = document.getElementById("heldDate")?.value;
-        if (hVal && date >= new Date(hVal)) {
-            alert("Application deadline must be earlier than the activity start date.");
-            deadline.clear();
-        }
-    };
-
-    return { heldDate, deadline };
+    return { heldDate };
 }
 
 function createDatePicker(config) {
