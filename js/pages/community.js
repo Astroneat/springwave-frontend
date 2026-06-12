@@ -233,6 +233,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (discussionParam) {
     setTimeout(() => openDiscussionDetail(discussionParam), 500);
   }
+
+  const discussParam = urlParams.get("discuss");
+  if (discussParam === "event") {
+    const pending = (() => { try { return JSON.parse(localStorage.getItem("pendingDiscussEvent")); } catch { return null; } })();
+    if (pending?.title) {
+      localStorage.removeItem("pendingDiscussEvent");
+      setTimeout(() => {
+        window.openPostModal({ eventTitle: pending.title });
+        history.replaceState({}, "", window.location.pathname);
+      }, 100);
+    }
+  }
 });
 
 async function loadNavbar() {
@@ -633,6 +645,9 @@ async function openDiscussionDetail(id) {
   const container = document.getElementById("discussionPopupContainer");
   if (!overlay || !container) return;
 
+  const chatbot = document.getElementById("chatbot-widget");
+  if (chatbot) chatbot.style.display = "none";
+
   overlay.removeAttribute("hidden");
   overlay.classList.add("active");
   document.body.style.overflow = "hidden";
@@ -664,6 +679,7 @@ async function openDiscussionDetail(id) {
   const countEl = container.querySelector(".forum-comments-count");
   if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
 
+  container.scrollTop = 0;
   wireDiscussionEvents(id, container);
 }
 
@@ -864,6 +880,10 @@ function closeDiscussionDetail() {
   const overlay = document.getElementById("discussionPopupOverlay");
   const container = document.getElementById("discussionPopupContainer");
   if (!overlay || !container || overlay.hasAttribute("hidden")) return;
+
+  const chatbot = document.getElementById("chatbot-widget");
+  if (chatbot) chatbot.style.display = "";
+
   overlay.classList.remove("active");
   document.body.style.overflow = "";
   setTimeout(() => {
@@ -876,6 +896,10 @@ function hideDiscussionPopup() {
   const overlay = document.getElementById("discussionPopupOverlay");
   const container = document.getElementById("discussionPopupContainer");
   if (!overlay || !container || overlay.hasAttribute("hidden")) return;
+
+  const chatbot = document.getElementById("chatbot-widget");
+  if (chatbot) chatbot.style.display = "";
+
   overlay.classList.remove("active");
   overlay.setAttribute("hidden", "");
 }
@@ -1465,6 +1489,53 @@ function openUniDialog(editData, callback) {
    POST MODAL
    ============================= */
 
+/* =============================
+   SUCCESS TOAST
+   ============================= */
+
+function showSuccessToast(message, linkUrl, linkText) {
+  const existing = document.querySelectorAll(".success-toast");
+  const offset = existing.length * 80;
+
+  const toast = document.createElement("div");
+  toast.className = "success-toast";
+  toast.style.bottom = `${24 + offset}px`;
+  toast.innerHTML = `
+    <div class="success-toast-icon">
+      <span class="material-symbols-outlined">check_circle</span>
+    </div>
+    <div class="success-toast-body">
+      <span class="success-toast-heading">Success!</span>
+      <span class="success-toast-message">${message}</span>
+      ${linkUrl ? `<span class="success-toast-link">${linkText || "View Discussion"}</span>` : ""}
+    </div>
+    <button class="success-toast-close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  `;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("show"));
+
+  if (linkUrl) {
+    toast.addEventListener("click", (e) => {
+      if (e.target.closest(".success-toast-close")) return;
+      window.location.href = linkUrl;
+    });
+    toast.style.cursor = "pointer";
+  }
+
+  toast.querySelector(".success-toast-close")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  });
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 6000);
+}
+
 function initPostModal() {
   const overlay = document.getElementById("forumPostOverlay");
   const backdrop = document.getElementById("forumPostBackdrop");
@@ -1479,13 +1550,13 @@ function initPostModal() {
   let selectedEventId = null;
   let selectedSkill = "";
   let closeTimer = null;
+  let _allEvents = [];
+  let _eventSearchTimeout = null;
 
-  async function loadEventCards() {
+  function renderEventCards(events) {
     if (!postEventCards) return;
-    postEventCards.innerHTML = `<div class="forum-post-loading-events">${t("community.loading_events")}</div>`;
-    const events = await getEvents();
     if (!events || events.length === 0) {
-      postEventCards.innerHTML = '<div class="forum-post-empty-events">No upcoming events</div>';
+      postEventCards.innerHTML = '<div class="forum-post-empty-events">No events found</div>';
       return;
     }
     postEventCards.innerHTML = events.map(e => {
@@ -1519,14 +1590,47 @@ function initPostModal() {
     });
   }
 
-  function updateCategoryUI(category) {
+  async function loadEventCards() {
+    if (!postEventCards) return;
+    postEventCards.innerHTML = `<div class="forum-post-loading-events">${t("community.loading_events")}</div>`;
+    const events = await getEvents();
+    _allEvents = events || [];
+    if (!events || events.length === 0) {
+      postEventCards.innerHTML = '<div class="forum-post-empty-events">No upcoming events</div>';
+      return;
+    }
+    renderEventCards(events);
+  }
+
+  const eventSearchInput = document.getElementById("postEventSearchInput");
+  const postEventSearch = document.getElementById("postEventSearch");
+  if (eventSearchInput && postEventSearch) {
+    eventSearchInput.addEventListener("input", () => {
+      clearTimeout(_eventSearchTimeout);
+      _eventSearchTimeout = setTimeout(() => {
+        const q = eventSearchInput.value.trim().toLowerCase();
+        if (!q) {
+          renderEventCards(_allEvents);
+          return;
+        }
+        const filtered = _allEvents.filter(e => e.title.toLowerCase().includes(q));
+        renderEventCards(filtered);
+      }, 150);
+    });
+  }
+
+  function updateCategoryUI(category, callback) {
     const isEvent = category === "event";
     const isSkills = category === "skills";
 
     if (postEventCards) postEventCards.style.display = isEvent ? "" : "none";
     if (postSkillPills) postSkillPills.style.display = isSkills ? "" : "none";
+    if (postEventSearch) postEventSearch.style.display = isEvent ? "" : "none";
 
-    if (isEvent) loadEventCards();
+    if (isEvent) {
+      if (eventSearchInput) eventSearchInput.value = "";
+      loadEventCards().then(() => callback?.());
+    }
     if (isSkills) selectedSkill = "";
   }
 
@@ -1552,7 +1656,7 @@ function initPostModal() {
     postScopeField.style.display = myUniId ? "" : "none";
   }
 
-  function open() {
+  function open(config) {
     const user = getUser();
     if (user && !isProfileComplete(user)) {
       showProfileModal();
@@ -1570,8 +1674,30 @@ function initPostModal() {
     });
     document.body.style.overflow = "hidden";
 
-    const cat = categorySelect?.value || "general";
-    updateCategoryUI(cat);
+    let cat = categorySelect?.value || "general";
+    if (config?.eventTitle) {
+      cat = "event";
+      if (categorySelect) categorySelect.value = "event";
+      updateCategoryUI(cat, () => {
+        const cards = postEventCards?.querySelectorAll(".forum-post-event-card");
+        if (cards) {
+          for (const card of cards) {
+            const titleEl = card.querySelector(".forum-post-event-title");
+            if (titleEl && titleEl.textContent.trim() === config.eventTitle) {
+              card.click();
+              break;
+            }
+          }
+        }
+      });
+    } else {
+      if (config?.eventId) {
+        selectedEventId = config.eventId;
+        cat = "event";
+        if (categorySelect) categorySelect.value = "event";
+      }
+      updateCategoryUI(cat);
+    }
     checkScope();
   }
   window.openPostModal = open;
@@ -1658,6 +1784,9 @@ function initPostModal() {
           if (Array.isArray(window._currentDiscussions)) {
             window._currentDiscussions.unshift(result);
           }
+
+          const discId = result._id || result.id;
+          showSuccessToast("Discussion posted successfully! Click here to view", discId ? `./community.html?discussion=${discId}` : null, "View Discussion");
 
           const uniId = communityId || document.querySelector(".forum-uni-join-btn.joined")?.closest(".forum-uni-card")?.dataset.uniId;
           if (uniId) {

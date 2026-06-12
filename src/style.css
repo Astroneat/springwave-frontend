@@ -394,28 +394,6 @@
 }
 
 /* =========================
-   FORUM FAB BUTTON (green pen)
-========================= */
-
-.forum-fab-btn {
-    @apply fixed bottom-6 left-6 z-[9999] w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg;
-    background: linear-gradient(135deg, #059669, #10b981);
-    color: white;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border: none;
-    outline: none;
-}
-
-.forum-fab-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 24px rgba(5, 150, 105, 0.35);
-}
-
-.forum-fab-btn:active {
-    transform: scale(0.92);
-}
-
-/* =========================
    CHATBOT
 ========================= */
 
@@ -1441,6 +1419,21 @@
 
 .icon-btn:hover {
     @apply bg-[#f2f5ff] -translate-y-0.5;
+}
+
+.discuss-btn {
+    @apply border-none h-[36px] px-[14px] rounded-[10px] cursor-pointer flex items-center justify-center gap-1.5 text-[11px] font-semibold text-white shrink-0;
+    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(35, 73, 155, 0.25);
+}
+.discuss-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(35, 73, 155, 0.35);
+}
+.discuss-btn:active {
+    transform: scale(0.96);
 }
 
 /* ================= FAVOURITE ================= */
@@ -4192,28 +4185,34 @@
     @apply max-w-[1480px] mx-auto px-4 md:px-8 pt-24 pb-4;
 }
 .forum-status-box {
-    @apply bg-white rounded-xl p-3 flex items-center gap-3 cursor-pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    transition: box-shadow 0.2s, background 0.2s;
+    @apply bg-white rounded-xl p-4 flex items-center gap-3 cursor-pointer;
+    max-width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.2s, border-color 0.2s;
 }
 .forum-status-box:hover {
     @apply bg-gray-50;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    border-color: #23499b;
 }
 .forum-status-avatar {
-    @apply w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-xs shrink-0;
+    @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0;
     background: linear-gradient(135deg, #23499b, #3B6FD4);
 }
 .forum-status-placeholder {
-    @apply flex-1 text-slate-400 text-sm;
+    @apply flex-1 text-slate-400 text-base;
 }
 .forum-status-post-btn {
-    @apply flex items-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white shrink-0;
+    @apply flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0;
     background: linear-gradient(135deg, #23499b, #3B6FD4);
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, transform 0.15s;
 }
 .forum-status-post-btn:hover {
     opacity: 0.9;
+    transform: scale(1.02);
 }
 
 .forum-section {
@@ -5291,6 +5290,20 @@
     box-shadow: 0 4px 16px rgba(35, 73, 155, 0.3);
 }
 
+.forum-post-event-search {
+    @apply flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white mb-2;
+    transition: border-color 0.2s;
+}
+.forum-post-event-search:focus-within {
+    border-color: #3B6FD4;
+}
+.forum-post-event-search input {
+    @apply flex-1 border-none outline-none text-sm bg-transparent;
+}
+.forum-post-event-search input::placeholder {
+    color: #94a3b8;
+}
+
 .forum-post-event-cards {
     @apply flex flex-col gap-2 max-h-[200px] overflow-y-auto;
 }
@@ -5875,6 +5888,77 @@
     color: #1e293b;
 }
 
+.success-toast {
+    position: fixed;
+    right: 24px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 9999;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+    border-left: 4px solid #10B981;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.success-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.success-toast-icon {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center shrink-0;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+}
+
+.success-toast-icon .material-symbols-outlined {
+    font-size: 22px;
+}
+
+.success-toast-body {
+    @apply flex flex-col flex-1 min-w-0;
+}
+
+.success-toast-heading {
+    @apply text-xs font-bold uppercase tracking-wide;
+    color: #10B981;
+}
+
+.success-toast-message {
+    @apply text-sm;
+    color: #1e293b;
+}
+
+.success-toast-link {
+    @apply text-sm font-semibold mt-1 inline-block;
+    color: #23499b;
+}
+
+.success-toast-close {
+    @apply w-6 h-6 flex items-center justify-center rounded-full shrink-0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: background 0.15s, color 0.15s;
+}
+
+.success-toast-close:hover {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.success-toast-close .material-symbols-outlined {
+    font-size: 16px;
+}
+
 /* =========================
    NOTIFICATION DROPDOWN
    ========================= */
@@ -6314,11 +6398,14 @@
     }
 
     .forum-status-bar {
-        padding: 10px;
+        padding: 12px;
+        padding-top: 5.5rem;
     }
 
     .forum-status-box {
         gap: 8px;
+        padding: 10px 12px;
+        max-width: none;
     }
 
     .forum-discussion-card {

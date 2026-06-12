@@ -389,6 +389,15 @@ async function openPopup(activityID) {
         }
     });
 
+    popupContainer.querySelector(".discuss-btn")?.addEventListener("click", () => {
+        const btn = popupContainer.querySelector(".discuss-btn");
+        const eventTitle = btn?.dataset.eventTitle;
+        if (eventTitle) {
+            localStorage.setItem("pendingDiscussEvent", JSON.stringify({ title: eventTitle }));
+            window.location.href = "./community.html?discuss=event";
+        }
+    });
+
     if (isAuthenticated()) {
         Promise.all([
             checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(); }),
@@ -455,6 +464,15 @@ async function openPopup2(activityID, activityData) {
             navigator.share({ title, url }).catch(() => {});
         } else {
             navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard!")).catch(() => {});
+        }
+    });
+
+    popupContainer2.querySelector(".discuss-btn")?.addEventListener("click", () => {
+        const btn = popupContainer2.querySelector(".discuss-btn");
+        const eventTitle = btn?.dataset.eventTitle;
+        if (eventTitle) {
+            localStorage.setItem("pendingDiscussEvent", JSON.stringify({ title: eventTitle }));
+            window.location.href = "./community.html?discuss=event";
         }
     });
 
@@ -546,6 +564,7 @@ function buildPopupHTML(a, backText) {
             <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${backText}</button>
             <div class="top-actions">
                 <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> ${t("explore.share")}</button>
+                <button class="discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}"><span class="material-symbols-outlined text-lg">forum</span> Discuss</button>
                 <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite")}</span></button>
             </div>
         </div>

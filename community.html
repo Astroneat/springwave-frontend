@@ -170,6 +170,10 @@
         </div>
         <div class="forum-post-field" id="postEventField">
           <label data-i18n="community.related_event">Related Event (optional)</label>
+          <div class="forum-post-event-search" id="postEventSearch" style="display:none;">
+            <span class="material-symbols-outlined text-base text-slate-400">search</span>
+            <input type="text" id="postEventSearchInput" placeholder="Search events..." data-i18n="community.search_events" />
+          </div>
           <div id="postEventCards" class="forum-post-event-cards">
             <div class="forum-post-loading-events" data-i18n="community.loading_events">Loading events...</div>
           </div>
@@ -283,11 +287,6 @@
 
   <!-- FOOTER -->
   <div id="footer-container"></div>
-
-  <!-- START DISCUSSION FAB -->
-  <button class="forum-fab-btn" id="startDiscussionBtn">
-    <span class="material-symbols-outlined text-xl">edit_note</span>
-  </button>
 
   <!-- CHATBOT -->
   <div id="chatbot-container"></div>
