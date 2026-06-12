@@ -277,7 +277,7 @@ function buildViewHTML(e) {
         </div>
         <div class="flex-1 min-w-0">
             <h2 class="font-headline-md text-2xl font-bold text-[#191b22] mb-2">${e.title}</h2>
-            ${e.location ? `<p class="text-sm text-primary mb-4"><i class="fa-solid fa-location-dot mr-1.5"></i>${e.location}</p>` : ""}
+            ${e.location ? `<p class="text-sm text-primary mb-4"><i class="fa-solid fa-location-dot mr-1.5"></i><a href="${e.locationLat && e.locationLng ? `https://www.google.com/maps?q=${e.locationLat},${e.locationLng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.location)}`}" target="_blank" class="hover:underline">${e.location}</a></p>` : ""}
             <div class="bg-[#f8f9fc] rounded-2xl p-5 max-h-[400px] overflow-y-auto text-sm leading-relaxed text-[#475569] whitespace-pre-wrap">
                 ${e.description || "No description"}
             </div>
@@ -322,7 +322,11 @@ function buildEditHTML(e) {
             </div>
             <div>
                 <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Type</label>
-                <input id="edit-type" value="${(e.type || "").replace(/"/g, '&quot;')}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+                <select id="edit-type" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]">
+                    ${['Sport', 'Music', 'Education', 'Technology', 'Volunteering', 'Social', 'Art'].map(t =>
+                        `<option value="${t}" ${(e.type || '') === t ? 'selected' : ''}>${t}</option>`
+                    ).join('')}
+                </select>
             </div>
             <div>
                 <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Date</label>

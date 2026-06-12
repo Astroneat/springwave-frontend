@@ -520,6 +520,10 @@ export function initFormSubmit(onSuccess) {
         formData.append("type", type);
         formData.append("heldDate", heldDate);
         formData.append("applicationDeadline", applicationDeadline);
+        const lat = document.getElementById("locationLat")?.value;
+        const lng = document.getElementById("locationLng")?.value;
+        if (lat) formData.append("locationLat", lat);
+        if (lng) formData.append("locationLng", lng);
         if (thumbnailFile) formData.append("thumbnail", thumbnailFile);
         if (attachmentFiles && attachmentFiles.length > 0) {
             for (const file of attachmentFiles) formData.append("attachments", file);

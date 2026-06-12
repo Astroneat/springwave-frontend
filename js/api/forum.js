@@ -273,6 +273,15 @@ export async function likeComment(discussionId, commentId) {
   }
 }
 
+export async function deleteDiscussionComment(discussionId, commentId) {
+  try {
+    await del(`/community/discussions/${discussionId}/comments/${commentId}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function addReply(discussionId, content, replyToId) {
   try {
     const data = await post(`/community/discussions/${discussionId}/comments`, { content, replyToId });
