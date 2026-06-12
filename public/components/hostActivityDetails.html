@@ -202,16 +202,11 @@
         </section>
 
 
-        <!-- LOGISTICS -->
+        <!-- HELD DATE -->
         <section class="section">
-
-            <h2 class="section-title" data-i18n="host.logistics">Logistics</h2>
-
             <div class="date-grid">
-
-                <!-- START DATE -->
                 <div class="date-card">
-                    <label class="label" data-i18n="host.start_date">Activity Start Date</label>
+                    <label class="label" data-i18n="host.held_date">Held Date</label>
 
                     <div class="dp-trigger" id="heldDateTrigger">
                         <span class="material-symbols-outlined">
@@ -236,62 +231,6 @@
                     </div>
 
                     <input id="heldDate" name="heldDate" type="hidden" required>
-
-                    <p class="sub-text">
-                        Example: Activity starts on 18/05.
-                    </p>
-                </div>
-
-
-                <!-- DEADLINE -->
-                <div class="date-card">
-                    <label class="label" data-i18n="host.app_deadline">Application Deadline</label>
-
-                    <div class="dp-trigger" id="deadlineTrigger">
-                        <span class="material-symbols-outlined">
-                            calendar_today
-                        </span>
-                        <span class="dp-placeholder" id="deadlinePlaceholder" data-i18n="host.select_date">Select date</span>
-                        <span class="dp-value" id="deadlineValue"></span>
-                        <span class="dp-chevron">▾</span>
-                    </div>
-
-                    <div class="dp-dropdown" id="deadlineDropdown">
-                        <div class="dp-cal-header">
-                            <button class="dp-nav" id="deadlinePrev" type="button">‹</button>
-                            <span class="dp-month-label" id="deadlineMonthLabel">Month Year</span>
-                            <button class="dp-nav" id="deadlineNext" type="button">›</button>
-                        </div>
-                        <div class="dp-cal-grid" id="deadlineCalGrid"></div>
-                        <div class="dp-cal-footer">
-                            <button class="dp-clear" id="deadlineClear" type="button" data-i18n="common.clear">Clear</button>
-                            <button class="dp-close" id="deadlineClose" type="button" data-i18n="common.close">Close</button>
-                        </div>
-                    </div>
-
-                    <input id="applicationDeadline" name="applicationDeadline" type="hidden" required>
-                </div>
-            </div>
-
-
-            <!-- INFO -->
-            <div class="info-box">
-
-                <span class="material-symbols-outlined">
-                    info
-                </span>
-
-                <div>
-                    <h4 data-i18n="host.important">Important Notice</h4>
-
-                    <p data-i18n="host.important_desc">
-                        The application deadline should be earlier than the activity start date.
-                        <br><br>
-                        Example:
-                        <strong>Apply Deadline: 16/05</strong>
-                        →
-                        <strong>Start Date: 18/05</strong>
-                    </p>
                 </div>
             </div>
         </section>

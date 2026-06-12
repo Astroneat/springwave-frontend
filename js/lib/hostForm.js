@@ -499,17 +499,11 @@ export function initFormSubmit(onSuccess) {
         const location = document.getElementById("location")?.value.trim();
         const type = form.querySelector('input[name="type"]:checked')?.value;
         const heldDate = document.getElementById("heldDate")?.value;
-        const applicationDeadline = document.getElementById("applicationDeadline")?.value;
         const thumbnailFile = document.getElementById("thumbnail-upload")?.files?.[0];
         const attachmentFiles = document.getElementById("attachment-upload")?.files;
 
-        if (!title || !description || !location || !type || !heldDate || !applicationDeadline) {
+        if (!title || !description || !location || !type || !heldDate) {
             setStatus("Please fill in all required fields.", true, statusMsg);
-            return;
-        }
-
-        if (new Date(applicationDeadline) >= new Date(heldDate)) {
-            setStatus("Application deadline must be earlier than the activity start date.", true, statusMsg);
             return;
         }
 
@@ -519,7 +513,6 @@ export function initFormSubmit(onSuccess) {
         formData.append("location", location);
         formData.append("type", type);
         formData.append("heldDate", heldDate);
-        formData.append("applicationDeadline", applicationDeadline);
         const lat = document.getElementById("locationLat")?.value;
         const lng = document.getElementById("locationLng")?.value;
         if (lat) formData.append("locationLat", lat);
