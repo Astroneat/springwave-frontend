@@ -231,7 +231,11 @@
     "save": "Lưu",
     "popular": "Thảo luận phổ biến",
     "upcoming_events": "Sự kiện sắp tới",
-    "ai_suggested": "AI gợi ý cho bạn"
+    "ai_suggested": "AI gợi ý cho bạn",
+    "profile_modal_title": "Hoàn thiện hồ sơ của bạn",
+    "profile_modal_desc": "Để bắt đầu thảo luận và tương tác trong cộng đồng, vui lòng hoàn thiện hồ sơ trước.",
+    "profile_modal_btn": "Hoàn thiện hồ sơ",
+    "profile_modal_later": "Để sau"
   },
   "profile": {
     "title": "Hồ sơ - SpringWave",
@@ -315,6 +319,7 @@
     "score_moderate": "Trung bình",
     "score_developing": "Đang phát triển",
     "balanced": "Bạn có xu hướng cân bằng giữa nhiều lĩnh vực kỹ năng",
+    "suggestion_reason": "Bạn có xu hướng mạnh về {{primary}} và {{secondary}}",
     "score_comm": "Giao tiếp",
     "score_comm_desc": "Nói, thuyết trình, tương tác",
     "score_tech": "Kỹ thuật",
@@ -322,7 +327,101 @@
     "score_creative": "Sáng tạo",
     "score_creative_desc": "Thiết kế, đổi mới, tư duy nghệ thuật",
     "score_social": "Tác động xã hội",
-    "score_social_desc": "Tình nguyện, cộng đồng, lãnh đạo"
+    "score_social_desc": "Tình nguyện, cộng đồng, lãnh đạo",
+    "q1": {
+      "question": "Bạn muốn tham gia loại hoạt động nào nhất?",
+      "answers": [
+        "Hội thảo / buổi chia sẻ kỹ năng",
+        "Cuộc thi / hackathon",
+        "Sự kiện nghệ thuật / lễ hội",
+        "Hoạt động câu lạc bộ / nhóm",
+        "Tình nguyện / từ thiện"
+      ]
+    },
+    "q2": {
+      "question": "Lĩnh vực nào bạn quan tâm?",
+      "answers": [
+        "Công nghệ - Lập trình",
+        "Kinh doanh - Khởi nghiệp",
+        "Nghệ thuật - Sáng tạo",
+        "Thể thao - Sức khỏe",
+        "Kỹ năng mềm - Phát triển bản thân",
+        "Khoa học - Học thuật"
+      ]
+    },
+    "q3": {
+      "question": "Thời gian nào bạn thường rảnh?",
+      "answers": [
+        "Buổi sáng (8–12 giờ)",
+        "Buổi chiều (13–17 giờ)",
+        "Buổi tối (18–22 giờ)",
+        "Cuối tuần"
+      ]
+    },
+    "q4": {
+      "question": "Bạn sẵn sàng dành bao nhiêu thời gian?",
+      "answers": [
+        "1–2 giờ (ngắn, sự kiện một lần)",
+        "Nửa ngày (3–4 giờ)",
+        "Cả ngày (hội nghị, cuộc thi)",
+        "Nhiều buổi (hội thảo dài hạn)"
+      ]
+    },
+    "q5": {
+      "question": "Bạn thích hoạt động nhóm hay cá nhân?",
+      "answers": [
+        "Nhóm (làm việc với bạn bè)",
+        "Cá nhân (trải nghiệm một mình)",
+        "Không có sở thích đặc biệt"
+      ]
+    },
+    "q6": {
+      "question": "Mục tiêu chính của bạn khi tham gia là gì?",
+      "answers": [
+        "Học kỹ năng mới",
+        "Mở rộng mạng lưới quan hệ",
+        "Thư giãn và vui vẻ",
+        "Xây dựng hồ sơ / CV",
+        "Khám phá đam mê"
+      ]
+    },
+    "q7": {
+      "question": "Bạn muốn hoạt động diễn ra ở đâu?",
+      "answers": [
+        "Trong khuôn viên trường",
+        "Ngoài trường (trung tâm thành phố, công ty)",
+        "Trực tuyến (nền tảng ảo)",
+        "Không quan trọng"
+      ]
+    },
+    "q8": {
+      "question": "Bạn muốn đảm nhận vai trò gì trong hoạt động?",
+      "answers": [
+        "Người tham gia",
+        "Người tổ chức / điều phối",
+        "Người thuyết trình / hướng dẫn",
+        "Người hỗ trợ / tình nguyện"
+      ]
+    },
+    "q9": {
+      "question": "Bạn thích hoạt động cạnh tranh hay xã hội hơn?",
+      "answers": [
+        "Cạnh tranh (giải thưởng, cuộc thi)",
+        "Xã hội (kết nối, chia sẻ)",
+        "Cả hai",
+        "Không có sở thích đặc biệt"
+      ]
+    },
+    "q10": {
+      "question": "Yếu tố nào thu hút bạn nhất?",
+      "answers": [
+        "Người hướng dẫn chuyên gia / nổi tiếng",
+        "Chứng chỉ / giải thưởng",
+        "Bạn bè cũng tham gia",
+        "Chủ đề thú vị, mới lạ",
+        "Miễn phí hoặc chi phí thấp"
+      ]
+    }
   },
   "host": {
     "title": "Tạo hoạt động mới - SpringWave",

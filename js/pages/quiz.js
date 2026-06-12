@@ -127,36 +127,37 @@ const HARDCODED_QUESTIONS = [
 let QUESTIONS = [...HARDCODED_QUESTIONS];
 
 const SCORE_LABELS = {
-  communication: { name: "Communication", icon: "forum", color: "#3B82F6", desc: "Speaking, presenting, interacting" },
-  technical: { name: "Technical", icon: "code", color: "#8B5CF6", desc: "Coding, engineering, problem-solving" },
-  creativity: { name: "Creativity", icon: "palette", color: "#F59E0B", desc: "Design, innovation, artistic thinking" },
-  socialImpact: { name: "Social Impact", icon: "volunteer_activism", color: "#10B981", desc: "Volunteering, community, leadership" },
+  communication: { nameKey: "quiz.score_comm", icon: "forum", color: "#3B82F6", descKey: "quiz.score_comm_desc" },
+  technical: { nameKey: "quiz.score_tech", icon: "code", color: "#8B5CF6", descKey: "quiz.score_tech_desc" },
+  creativity: { nameKey: "quiz.score_creative", icon: "palette", color: "#F59E0B", descKey: "quiz.score_creative_desc" },
+  socialImpact: { nameKey: "quiz.score_social", icon: "volunteer_activism", color: "#10B981", descKey: "quiz.score_social_desc" },
 };
 
 function getSuggestion(primary, secondary, primaryScore, secondaryScore) {
-  const primaryLabel = SCORE_LABELS[primary]?.name || primary;
-  const secondaryLabel = SCORE_LABELS[secondary]?.name || secondary;
+  const primaryLabel = t(SCORE_LABELS[primary]?.nameKey) || primary;
+  const secondaryLabel = t(SCORE_LABELS[secondary]?.nameKey) || secondary;
+  const reasonText = t("quiz.suggestion_reason", { primary: primaryLabel, secondary: secondaryLabel });
 
   const suggestions = {
     communication: {
-      technical: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["workshop", "seminar", "networking", "hackathon", "tech_talk", "coding_session"], level: "strong" },
-      creativity: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["festival", "art_event", "music_show", "workshop", "seminar", "networking"], level: "strong" },
-      socialImpact: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["volunteer", "community_event", "charity", "workshop", "seminar", "networking"], level: "strong" },
+      technical: { reason: reasonText, types: ["workshop", "seminar", "networking", "hackathon", "tech_talk", "coding_session"], level: "strong" },
+      creativity: { reason: reasonText, types: ["festival", "art_event", "music_show", "workshop", "seminar", "networking"], level: "strong" },
+      socialImpact: { reason: reasonText, types: ["volunteer", "community_event", "charity", "workshop", "seminar", "networking"], level: "strong" },
     },
     technical: {
-      communication: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["hackathon", "tech_talk", "coding_session", "workshop", "seminar", "networking"], level: "strong" },
-      creativity: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["hackathon", "tech_talk", "coding_session", "art_event", "festival", "workshop"], level: "strong" },
-      socialImpact: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["volunteer", "community_event", "hackathon", "tech_talk", "coding_session"], level: "strong" },
+      communication: { reason: reasonText, types: ["hackathon", "tech_talk", "coding_session", "workshop", "seminar", "networking"], level: "strong" },
+      creativity: { reason: reasonText, types: ["hackathon", "tech_talk", "coding_session", "art_event", "festival", "workshop"], level: "strong" },
+      socialImpact: { reason: reasonText, types: ["volunteer", "community_event", "hackathon", "tech_talk", "coding_session"], level: "strong" },
     },
     creativity: {
-      communication: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["festival", "art_event", "music_show", "workshop", "seminar", "networking"], level: "strong" },
-      technical: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["festival", "art_event", "music_show", "hackathon", "tech_talk", "workshop"], level: "strong" },
-      socialImpact: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["festival", "art_event", "music_show", "volunteer", "community_event", "charity"], level: "strong" },
+      communication: { reason: reasonText, types: ["festival", "art_event", "music_show", "workshop", "seminar", "networking"], level: "strong" },
+      technical: { reason: reasonText, types: ["festival", "art_event", "music_show", "hackathon", "tech_talk", "workshop"], level: "strong" },
+      socialImpact: { reason: reasonText, types: ["festival", "art_event", "music_show", "volunteer", "community_event", "charity"], level: "strong" },
     },
     socialImpact: {
-      communication: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["volunteer", "community_event", "charity", "workshop", "seminar", "networking"], level: "strong" },
-      technical: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["volunteer", "community_event", "charity", "hackathon", "tech_talk", "coding_session"], level: "strong" },
-      creativity: { reason: `You have a strong tendency in ${primaryLabel} and ${secondaryLabel}`, types: ["volunteer", "community_event", "charity", "festival", "art_event", "music_show"], level: "strong" },
+      communication: { reason: reasonText, types: ["volunteer", "community_event", "charity", "workshop", "seminar", "networking"], level: "strong" },
+      technical: { reason: reasonText, types: ["volunteer", "community_event", "charity", "hackathon", "tech_talk", "coding_session"], level: "strong" },
+      creativity: { reason: reasonText, types: ["volunteer", "community_event", "charity", "festival", "art_event", "music_show"], level: "strong" },
     },
   };
 
@@ -263,6 +264,8 @@ function getCategoryIcon(category) {
 
 function renderQuestion() {
   const q = QUESTIONS[currentQuestion];
+  const qKey = `q${q.id}`;
+  const translatedQuestion = t(`quiz.${qKey}.question`);
   document.getElementById("questionNumber").textContent = `${t("quiz.question")} ${currentQuestion + 1}`;
   document.getElementById("questionCategory").textContent = q.category;
   document.getElementById("questionCategory").style.background = getCategoryColor(q.category) + "20";
@@ -270,7 +273,7 @@ function renderQuestion() {
   document.getElementById("questionCategory").innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${getCategoryIcon(q.category)}</span> ${q.category}`;
 
   const title = document.getElementById("questionTitle");
-  title.textContent = q.question;
+  title.textContent = translatedQuestion !== `quiz.${qKey}.question` ? translatedQuestion : q.question;
   title.style.background = `linear-gradient(135deg, #23499b, #3B6FD4)`;
   title.style.webkitBackgroundClip = "text";
   title.style.webkitTextFillColor = "transparent";
@@ -284,13 +287,16 @@ function renderQuestion() {
   container.innerHTML = "";
   const selected = answers[currentQuestion] || [];
   container.innerHTML = `<div class="quiz-multi-hint" style="font-size:12px;color:#64748b;margin-bottom:12px;font-weight:500;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">checklist</span> ${t("quiz.multi_select") || "Select all that apply"}</div>`;
+  const translatedAnswers = t(`quiz.${qKey}.answers`);
   q.answers.forEach((answer, idx) => {
     const isSelected = selected.includes(idx);
+    const translatedLabel = Array.isArray(translatedAnswers) ? translatedAnswers[idx] : undefined;
+    const displayLabel = translatedLabel || answer.label;
     const div = document.createElement("div");
     div.className = `quiz-answer-btn ${isSelected ? "selected" : ""}`;
     div.innerHTML = `
       <span class="quiz-answer-checkbox">${isSelected ? '<span class="material-symbols-outlined" style="font-size:20px;color:#23499b;">check_box</span>' : '<span class="material-symbols-outlined" style="font-size:20px;color:#94a3b8;">check_box_outline_blank</span>'}</span>
-      <span class="quiz-answer-text">${answer.label}</span>
+      <span class="quiz-answer-text">${displayLabel}</span>
     `;
     div.addEventListener("click", () => selectAnswer(idx));
     div.dataset.index = idx;
@@ -473,8 +479,8 @@ function renderResults(scores) {
           <div class="quiz-score-info">
             <span class="material-symbols-outlined quiz-score-icon" style="color:${info.color}">${info.icon}</span>
             <div>
-              <span class="quiz-score-name">${info.name}</span>
-              <span class="quiz-score-desc">${info.desc}</span>
+              <span class="quiz-score-name">${t(info.nameKey)}</span>
+              <span class="quiz-score-desc">${t(info.descKey)}</span>
             </div>
           </div>
           <span class="quiz-score-value" style="color:${info.color}">${value}</span>

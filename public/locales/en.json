@@ -231,7 +231,11 @@
     "save": "Save",
     "popular": "Popular Discussions",
     "upcoming_events": "Upcoming Events",
-    "ai_suggested": "AI Suggested for You"
+    "ai_suggested": "AI Suggested for You",
+    "profile_modal_title": "Complete Your Profile",
+    "profile_modal_desc": "To start discussions and interact with the community, please complete your profile first.",
+    "profile_modal_btn": "Complete Profile",
+    "profile_modal_later": "Later"
   },
   "profile": {
     "title": "Profile - SpringWave",
@@ -315,6 +319,7 @@
     "score_moderate": "Moderate",
     "score_developing": "Developing",
     "balanced": "You have a balanced tendency across multiple skill areas",
+    "suggestion_reason": "You have a strong tendency in {{primary}} and {{secondary}}",
     "score_comm": "Communication",
     "score_comm_desc": "Speaking, presenting, interacting",
     "score_tech": "Technical",
@@ -322,7 +327,101 @@
     "score_creative": "Creativity",
     "score_creative_desc": "Design, innovation, artistic thinking",
     "score_social": "Social Impact",
-    "score_social_desc": "Volunteering, community, leadership"
+    "score_social_desc": "Volunteering, community, leadership",
+    "q1": {
+      "question": "What type of activity do you want to join most?",
+      "answers": [
+        "Workshop / skill-sharing session",
+        "Competition / hackathon",
+        "Arts event / festival",
+        "Club / group activities",
+        "Volunteer / charity work"
+      ]
+    },
+    "q2": {
+      "question": "Which field interests you?",
+      "answers": [
+        "Technology - Programming",
+        "Business - Entrepreneurship",
+        "Arts - Creativity",
+        "Sports - Health",
+        "Soft skills - Self development",
+        "Science - Academics"
+      ]
+    },
+    "q3": {
+      "question": "What time are you usually free?",
+      "answers": [
+        "Morning (8AM–12PM)",
+        "Afternoon (1PM–5PM)",
+        "Evening (6PM–10PM)",
+        "Weekends"
+      ]
+    },
+    "q4": {
+      "question": "How much time are you willing to commit?",
+      "answers": [
+        "1–2 hours (short, one-time event)",
+        "Half day (3–4 hours)",
+        "Full day (conference, competition)",
+        "Multiple sessions (long-term workshop)"
+      ]
+    },
+    "q5": {
+      "question": "Do you prefer group or individual activities?",
+      "answers": [
+        "Group (working with friends)",
+        "Individual (solo experience)",
+        "No preference"
+      ]
+    },
+    "q6": {
+      "question": "What is your main goal when participating?",
+      "answers": [
+        "Learn new skills",
+        "Expand my network",
+        "Relax and have fun",
+        "Build my resume / CV",
+        "Discover my passions"
+      ]
+    },
+    "q7": {
+      "question": "Where would you like the activity to take place?",
+      "answers": [
+        "On campus",
+        "Off campus (city center, company)",
+        "Online (virtual platform)",
+        "Doesn't matter"
+      ]
+    },
+    "q8": {
+      "question": "What role do you want to take in the activity?",
+      "answers": [
+        "Participant",
+        "Organizer / coordinator",
+        "Presenter / instructor",
+        "Supporter / volunteer"
+      ]
+    },
+    "q9": {
+      "question": "Do you prefer competitive or social activities?",
+      "answers": [
+        "Competitive (prizes, contests)",
+        "Social (networking, sharing)",
+        "Both",
+        "No preference"
+      ]
+    },
+    "q10": {
+      "question": "Which factor attracts you the most?",
+      "answers": [
+        "Expert / celebrity instructor",
+        "Certificate / award",
+        "Friends are joining too",
+        "Interesting, novel topic",
+        "Free or low cost"
+      ]
+    }
   },
   "host": {
     "title": "Create New Activity - SpringWave",

@@ -125,6 +125,38 @@ function eventToDiscussion(event) {
   };
 }
 
+function isProfileComplete(user) {
+  return user && user.dob && user.school && user.class && user.major && user.phoneNo;
+}
+
+function showProfileModal() {
+  const overlay = document.getElementById("profileModalOverlay");
+  if (!overlay) return;
+  overlay.removeAttribute("hidden");
+  overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+  const laterBtn = document.getElementById("profileModalLater");
+  if (laterBtn) {
+    laterBtn.onclick = () => {
+      overlay.classList.remove("active");
+      setTimeout(() => {
+        overlay.setAttribute("hidden", "");
+        document.body.style.overflow = "";
+      }, 300);
+    };
+  }
+  const backdrop = document.getElementById("profileModalBackdrop");
+  if (backdrop) {
+    backdrop.onclick = () => {
+      overlay.classList.remove("active");
+      setTimeout(() => {
+        overlay.setAttribute("hidden", "");
+        document.body.style.overflow = "";
+      }, 300);
+    };
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar();
   const user = getUser();
@@ -135,6 +167,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   initBasicScroll();
   initForumSidebarToggle();
   await initPostModal();
+
+  if (user && !isProfileComplete(user)) {
+    showProfileModal();
+  }
 
   const category = getCategoryFromURL();
   setActiveCategory(category);
@@ -1223,6 +1259,11 @@ function initPostModal() {
   }
 
   function open() {
+    const user = getUser();
+    if (user && !isProfileComplete(user)) {
+      showProfileModal();
+      return;
+    }
     if (closeTimer) {
       clearTimeout(closeTimer);
       closeTimer = null;
