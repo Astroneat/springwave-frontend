@@ -5,6 +5,7 @@ import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { t } from "../lib/i18n.js";
+import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit } from "../lib/hostForm.js";
 
 let currentTab = "pending";
 let pendingEvents = [];
@@ -38,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initScrape();
     initPopups();
     initBulkActions();
+    initManualAdd();
     await loadData();
     startAutoRefresh();
 });
@@ -670,4 +672,59 @@ function openDeletePopup(id, title) {
     overlay.removeAttribute("hidden");
     overlay.classList.add("active");
     document.body.style.overflow = "hidden";
+}
+
+/* =========================
+   MANUAL ADD EVENT
+========================= */
+
+function initManualAdd() {
+    const overlay = document.getElementById("add-event-overlay");
+    const backdrop = document.getElementById("add-event-backdrop");
+    const closeBtn = document.getElementById("add-event-close");
+    const body = document.getElementById("add-event-body");
+
+    let mapInstance = null;
+
+    async function open() {
+        overlay.removeAttribute("hidden");
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+        body.style.padding = "8px";
+
+        const html = await fetchContent("./components/hostActivityDetails.html");
+        body.innerHTML = `<div style="zoom:0.85">${html}</div>`;
+
+        initThumbnailPreview();
+        initFileUpload();
+        setTimeout(() => {
+            mapInstance = initMapPicker();
+        }, 400);
+        initDateValidation();
+        initFormSubmit(() => {
+            close();
+            loadData();
+        });
+    }
+
+    function close() {
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        body.style.padding = "";
+        if (mapInstance?.map) {
+            mapInstance.map.remove();
+        }
+        setTimeout(() => {
+            overlay.setAttribute("hidden", "");
+            body.innerHTML = `<div class="flex items-center justify-center py-16 text-[#94a3b8]"><div class="spinner"></div></div>`;
+            mapInstance = null;
+        }, 300);
+    }
+
+    document.getElementById("add-event-btn").addEventListener("click", open);
+    backdrop?.addEventListener("click", close);
+    closeBtn?.addEventListener("click", close);
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !overlay.hasAttribute("hidden")) close();
+    });
 }
