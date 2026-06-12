@@ -27,16 +27,16 @@ const SKILLS_FALLBACK = [
 
 const COMMENTS_FALLBACK = [
   { id: 1, discussionId: "mock-1", author: "Quang Huy", avatar: "Q", content: "Count me in!", date: "1h ago", likes: 5 },
-  { id: 2, discussionId: "mock-1", author: "Mai Lan", avatar: "M", content: "Great initiative!", date: "45m ago", likes: 3, replyToId: 1, replyTo: { id: 1, userName: "Quang Huy" } },
+  { id: 2, discussionId: "mock-1", author: "Mai Lan", avatar: "M", content: "Great initiative!", date: "45m ago", likes: 3, replyToId: 1, replyTo: { userId: 1, userName: "Quang Huy" } },
   { id: 3, discussionId: "mock-2", author: "Bao Tran", avatar: "B", content: "Focus on your MVP first.", date: "4h ago", likes: 8 },
   { id: 4, discussionId: "mock-3", author: "Thao Vy", avatar: "T", content: "First year is the best time to explore!", date: "12h ago", likes: 10 },
   { id: 5, discussionId: "mock-4", author: "Kim Ngan", avatar: "K", content: "Amazing experience!", date: "2h ago", likes: 4 },
   { id: 6, discussionId: "mock-5", author: "Tuan Anh", avatar: "T", content: "Check Coursera for free courses.", date: "5h ago", likes: 6 },
   { id: 7, discussionId: "mock-6", author: "Minh Thu", avatar: "M", content: "Join the International Student Club!", date: "3h ago", likes: 5 },
-  { id: 8, discussionId: "mock-3", author: "Anh Khoa", avatar: "A", content: "Totally agree! Join clubs and talk to seniors.", date: "10h ago", likes: 6, replyToId: 4, replyTo: { id: 4, userName: "Thao Vy" } },
+  { id: 8, discussionId: "mock-3", author: "Anh Khoa", avatar: "A", content: "Totally agree! Join clubs and talk to seniors.", date: "10h ago", likes: 6, replyToId: 4, replyTo: { userId: 4, userName: "Thao Vy" } },
   { id: 9, discussionId: "mock-3", author: "Bich Ngoc", avatar: "B", content: "What clubs would you recommend for a freshman?", date: "9h ago", likes: 3 },
-  { id: 10, discussionId: "mock-3", author: "Thao Vy", avatar: "T", content: "The English club and the coding club are great starters!", date: "8h ago", likes: 7, replyToId: 9, replyTo: { id: 9, userName: "Bich Ngoc" } },
-  { id: 11, discussionId: "mock-3", author: "Cong Minh", avatar: "C", content: "Don't forget about volunteer groups too!", date: "6h ago", likes: 4, replyToId: 9, replyTo: { id: 9, userName: "Bich Ngoc" } },
+  { id: 10, discussionId: "mock-3", author: "Thao Vy", avatar: "T", content: "The English club and the coding club are great starters!", date: "8h ago", likes: 7, replyToId: 9, replyTo: { userId: 9, userName: "Bich Ngoc" } },
+  { id: 11, discussionId: "mock-3", author: "Cong Minh", avatar: "C", content: "Don't forget about volunteer groups too!", date: "6h ago", likes: 4, replyToId: 9, replyTo: { userId: 9, userName: "Bich Ngoc" } },
   { id: 12, discussionId: "mock-1", author: "Hoa Nguyen", avatar: "H", content: "I'm interested! What's the timeline?", date: "30m ago", likes: 2 },
 ];
 
@@ -284,7 +284,7 @@ export async function addReply(discussionId, content, replyToId) {
     return null;
   } catch {
     const user = (() => { try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; } })();
-    const comment = { id: Date.now(), discussionId, author: user.fullname || "You", avatar: (user.fullname || "Y")[0], content, replyToId, date: "Just now", likes: 0, replyTo: { id: replyToId } };
+    const comment = { id: Date.now(), discussionId, author: user.fullname || "You", avatar: (user.fullname || "Y")[0], content, replyToId, date: "Just now", likes: 0, replyTo: { userId: replyToId } };
     storeComment(discussionId, comment);
     return comment;
   }

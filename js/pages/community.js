@@ -964,7 +964,7 @@ function groupComments(comments) {
   });
 
   comments.forEach(c => {
-    const parentId = c.replyToId || (c.replyTo && c.replyTo.id);
+    const parentId = c.replyToId || (c.replyTo && (c.replyTo.id || c.replyTo.userId));
     if (parentId && map[parentId]) {
       (childMap[parentId] = childMap[parentId] || []).push(c);
     } else {
