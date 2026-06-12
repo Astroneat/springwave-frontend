@@ -2,8 +2,10 @@ import "../../src/style.css";
 import { login, googleLogin } from "../api/auth.js";
 import { createSession, isAuthenticated } from "../lib/session.js";
 import { GOOGLE_CLIENT_ID } from "../config.js";
+import { initI18n } from "../lib/i18n.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+    await initI18n();
     initLoginForm();
     initGoogleLogin();
 });

@@ -11,7 +11,8 @@ export async function fetchContent(url) {
 
 export function formatDate(dateString) {
     if (!dateString) return "Unknown Date";
-    return new Date(dateString).toLocaleDateString("en-GB", {
+    const lang = localStorage.getItem("springwave_lang") || "en";
+    return new Date(dateString).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-GB", {
         day: "2-digit", month: "2-digit", year: "numeric"
     });
 }

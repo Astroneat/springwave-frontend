@@ -1,5 +1,6 @@
 import { isAuthenticated } from "../lib/session.js";
 import { sendChatMessage } from "../api/chatbot.js";
+import { t } from "../lib/i18n.js";
 
 let isOpen = false;
 let conversationHistory = [];
@@ -50,7 +51,7 @@ async function sendMessage() {
   input.style.height = "auto";
 
   if (!isAuthenticated()) {
-    addMessage("bot", "Vui lòng đăng nhập để sử dụng chatbot.");
+    addMessage("bot", t("chatbot.login_required"));
     return;
   }
 
@@ -66,8 +67,7 @@ async function sendMessage() {
     conversationHistory.push({ role: "assistant", content: data.reply });
   } catch {
     msgEl.classList.remove("typing");
-    msgEl.querySelector(".message-content").textContent =
-      "Xin lỗi, đã xảy ra lỗi. Vui lòng thử lại sau.";
+    msgEl.querySelector(".message-content").textContent = t("chatbot.error");
   }
 
   document.getElementById("chatbot-messages").scrollTop =

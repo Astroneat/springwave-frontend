@@ -12,6 +12,7 @@ import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { t } from "../lib/i18n.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {
@@ -67,7 +68,7 @@ async function loadUserProfile() {
         document.getElementById("profile-school").textContent = user.school;
     }
 
-    const roleMap = { student: "Student", host: "Host", admin: "Admin" };
+    const roleMap = { student: t("user.student"), host: t("user.host"), admin: t("user.admin") };
     document.getElementById("profile-role").textContent = roleMap[user.role] || "Student";
 
     const initial = (user.username || user.fullname || "?").charAt(0).toUpperCase();
@@ -107,7 +108,7 @@ async function loadUserProfile() {
                     }
                 } catch (err) {
                     console.error("Avatar upload failed:", err);
-                    alert("Failed to upload avatar");
+                    alert(t("profile.failed_upload"));
                 }
             });
         });
@@ -120,10 +121,10 @@ function updateEditButton(user) {
 
     const isComplete = user.dob && user.school && user.class && user.major && user.phoneNo;
     if (isComplete) {
-        btn.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> Edit Profile';
+        btn.innerHTML = `<i class="fa-regular fa-pen-to-square"></i> ${t("profile.edit_profile")}`;
         btn.classList.remove("complete");
     } else {
-        btn.innerHTML = '<i class="fa-regular fa-circle-check"></i> Complete Profile';
+        btn.innerHTML = `<i class="fa-regular fa-circle-check"></i> ${t("profile.complete_profile")}`;
         btn.classList.add("complete");
     }
 }
@@ -195,8 +196,8 @@ function setParticipated() {
     const btn = document.querySelector(".participate");
     if (!btn) return;
     btn.classList.add("active");
-    btn.querySelector(".participate-header").textContent = "PARTICIPATED";
-    btn.querySelector(".participate-text").textContent = "You have joined in this activity";
+    btn.querySelector(".participate-header").textContent = t("profile.participated");
+    btn.querySelector(".participate-text").textContent = t("profile.joined_activity");
 }
 
 function setFavourited() {
@@ -218,20 +219,20 @@ function initParticipateButton(activityID) {
             if (isActive) {
                 await unparticipateActivity(activityID);
                 button.classList.remove("active");
-                button.querySelector(".participate-header").textContent = "PARTICIPATE";
-                button.querySelector(".participate-text").textContent = "Join this activity";
+                button.querySelector(".participate-header").textContent = t("profile.participate");
+                button.querySelector(".participate-text").textContent = t("profile.join_activity");
             } else {
                 await participateActivity(activityID);
                 button.classList.add("active");
-                button.querySelector(".participate-header").textContent = "PARTICIPATED";
-                button.querySelector(".participate-text").textContent = "You have joined in this activity";
+                button.querySelector(".participate-header").textContent = t("profile.participated");
+                button.querySelector(".participate-text").textContent = t("profile.joined_activity");
             }
         } catch (err) {
             console.error("Participate error:", err);
-            button.querySelector(".participate-text").textContent = err.message || "Error";
+            button.querySelector(".participate-text").textContent = err.message || t("common.error");
             setTimeout(() => {
                 button.querySelector(".participate-text").textContent =
-                    button.classList.contains("active") ? "You have joined in this activity" : "Join this activity";
+                    button.classList.contains("active") ? t("profile.joined_activity") : t("profile.join_activity");
             }, 2000);
         }
     });
@@ -256,10 +257,10 @@ function buildPopupHTML(a) {
     return `
     <div class="container">
         <div class="top-bar">
-            <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${t("profile.back")}</button>
             <div class="top-actions">
-                <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
-                <button class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">Favourite</span></button>
+                <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> ${t("profile.share")}</button>
+                <button class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("profile.favourite")}</span></button>
             </div>
         </div>
         <div class="main-content">
@@ -267,32 +268,32 @@ function buildPopupHTML(a) {
                 <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
                 <div class="tag"><i class="fa-solid fa-tag"></i> ${type}</div>
                 <div class="details-card">
-                    <h2>Details</h2>
-                    <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>Location</span><p>${a.location}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>Host</span><p>${a.hostName || "Unknown"}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-clock"></i><div><span>Apply deadline</span><p>${deadline}</p></div></div>
-                    <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>Type</span><p>${type}</p></div></div>
+                    <h2>${t("profile.details")}</h2>
+                    <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>${t("profile.location")}</span><p>${a.location}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>${t("profile.date")}</span><p>${heldDate}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>${t("profile.host")}</span><p>${a.hostName || t("profile.unknown")}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-clock"></i><div><span>${t("profile.apply_deadline")}</span><p>${deadline}</p></div></div>
+                    <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>${t("profile.type")}</span><p>${type}</p></div></div>
                 </div>
             </div>
             <div class="right-panel">
                 <h1 class="title">${a.title}</h1>
                 <a class="location-link" href="${mapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
                 <div class="info-boxes">
-                    <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-clock"></i><div><span>Apply deadline</span><p>${deadline}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>Hosted by</span><p>${a.hostName || "Unknown"}</p></div></div>
+                    <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>${t("profile.date")}</span><p>${heldDate}</p></div></div>
+                    <div class="info-box"><i class="fa-regular fa-clock"></i><div><span>${t("profile.apply_deadline")}</span><p>${deadline}</p></div></div>
+                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>${t("profile.hosted_by")}</span><p>${a.hostName || t("profile.unknown_host")}</p></div></div>
                 </div>
                 <div class="description-panel">
                     ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
                 </div>
-                ${filesHTML ? `<div class="files-box"><h3>Attached Files (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
+                ${filesHTML ? `<div class="files-box"><h3>${t("profile.attached_files")} (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
             </div>
         </div>
         <div class="action-buttons">
-            <button class="action-btn discuss" type="button"><i class="fa-solid fa-comments"></i><div><h4>DISCUSS</h4><p>0 Comments</p></div></button>
-            <button class="action-btn participate" type="button"><i class="fa-solid fa-users"></i><div><h4 class="participate-header">PARTICIPATE</h4><p class="participate-text">Join this activity</p></div></button>
-            <button class="action-btn report" type="button"><i class="fa-solid fa-flag"></i><div><h4>REPORT</h4><p>Report this activity</p></div></button>
+            <button class="action-btn discuss" type="button"><i class="fa-solid fa-comments"></i><div><h4>${t("profile.discuss")}</h4><p>${(a.comments || 0)} ${t("profile.comments")}</p></div></button>
+            <button class="action-btn participate" type="button"><i class="fa-solid fa-users"></i><div><h4 class="participate-header">${t("profile.participate")}</h4><p class="participate-text">${t("profile.join_activity")}</p></div></button>
+            <button class="action-btn report" type="button"><i class="fa-solid fa-flag"></i><div><h4>${t("profile.report")}</h4><p>${t("profile.report_activity")}</p></div></button>
         </div>
     </div>`;
 }
@@ -315,10 +316,10 @@ async function showFavPopup() {
         popupContainer.innerHTML = `
             <div class="container">
                 <div class="top-bar">
-                    <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                    <h2 class="fav-popup-title">Favourite Activities</h2>
+                    <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${t("profile.back")}</button>
+                    <h2 class="fav-popup-title">${t("profile.favourite_activities")}</h2>
                 </div>
-                <div class="fav-list">${items || '<p class="fav-empty">No favourites yet.</p>'}</div>
+                <div class="fav-list">${items || `<p class="fav-empty">${t("profile.no_favourites")}</p>`}</div>
             </div>`;
 
         popupOverlay.removeAttribute("hidden");
@@ -403,13 +404,13 @@ async function handleEditSubmit(e) {
 
     if (!data.fullname || !data.dob || !data.school || !data.className || !data.major) {
         statusEl.className = "edit-form-status error";
-        statusEl.textContent = "Please fill in all required fields.";
+        statusEl.textContent = t("profile.fill_required");
         document.getElementById("edit-form").appendChild(statusEl);
         return;
     }
 
     statusEl.className = "edit-form-status";
-    statusEl.textContent = "Saving...";
+    statusEl.textContent = t("profile.saving");
     document.getElementById("edit-form").appendChild(statusEl);
 
     try {
@@ -418,11 +419,11 @@ async function handleEditSubmit(e) {
         setUser(result.user);
         await loadUserProfile();
         statusEl.className = "edit-form-status success";
-        statusEl.textContent = "Profile updated successfully!";
+        statusEl.textContent = t("profile.profile_updated");
         setTimeout(closeEditModal, 1200);
     } catch (err) {
         statusEl.className = "edit-form-status error";
-        statusEl.textContent = err.message || "Failed to update profile.";
+        statusEl.textContent = err.message || t("profile.failed_update");
     }
 }
 

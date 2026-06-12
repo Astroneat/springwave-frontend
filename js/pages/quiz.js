@@ -5,6 +5,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { submitSurvey, getSurveyQuestions, getSurveyResult } from "../api/survey.js";
 import { generateProfile } from "../api/profile.js";
+import { t } from "../lib/i18n.js";
 
 const HARDCODED_QUESTIONS = [
   {
@@ -196,7 +197,7 @@ async function checkExistingResult() {
   try {
     const data = await getSurveyResult();
     if (data?.scores) {
-      startBtn.innerHTML = `<span class="material-symbols-outlined">refresh</span> Retake Quiz`;
+      startBtn.innerHTML = `<span class="material-symbols-outlined">refresh</span> ${t("quiz.retake_btn")}`;
     }
   } catch {
     // No existing result, show start as normal
@@ -262,7 +263,7 @@ function getCategoryIcon(category) {
 
 function renderQuestion() {
   const q = QUESTIONS[currentQuestion];
-  document.getElementById("questionNumber").textContent = `Question ${currentQuestion + 1}`;
+  document.getElementById("questionNumber").textContent = `${t("quiz.question")} ${currentQuestion + 1}`;
   document.getElementById("questionCategory").textContent = q.category;
   document.getElementById("questionCategory").style.background = getCategoryColor(q.category) + "20";
   document.getElementById("questionCategory").style.color = getCategoryColor(q.category);
@@ -348,9 +349,9 @@ function updateNavButtons() {
   prevBtn.classList.toggle("hidden", currentQuestion === 0);
 
   if (currentQuestion === QUESTIONS.length - 1) {
-    nextBtn.innerHTML = `<span class="material-symbols-outlined">check</span> Finish`;
+    nextBtn.innerHTML = `<span class="material-symbols-outlined">check</span> ${t("quiz.finish")}`;
   } else {
-    nextBtn.innerHTML = `Next <span class="material-symbols-outlined">arrow_forward</span>`;
+    nextBtn.innerHTML = `${t("quiz.next")} <span class="material-symbols-outlined">arrow_forward</span>`;
   }
 
   nextBtn.disabled = answers[currentQuestion] === null;
@@ -361,7 +362,7 @@ async function finishQuiz() {
   document.getElementById("quizResult").innerHTML = `
     <div class="quiz-loading-result">
       <div class="quiz-spinner"></div>
-      <p>Analyzing your responses...</p>
+      <p>${t("quiz.analyzing")}</p>
     </div>
   `;
 
@@ -422,7 +423,7 @@ function renderResults(scores) {
   let suggestions = getSuggestion(primary[0], secondary[0], primary[1], secondary[1]);
   if (!suggestions) {
     suggestions = {
-      reason: "You have a balanced tendency across multiple skill areas",
+      reason: t("quiz.balanced"),
       types: ["workshop", "seminar", "networking", "hackathon", "festival", "volunteer"],
       level: "balanced",
     };
@@ -434,8 +435,8 @@ function renderResults(scores) {
     <div class="quiz-result-icon">
       <span class="material-symbols-outlined">auto_awesome</span>
     </div>
-    <h1 class="quiz-result-title">Your Personality Profile</h1>
-    <p class="quiz-result-desc">Based on your responses, here's how you score across four key areas.</p>
+    <h1 class="quiz-result-title">${t("quiz.result_title")}</h1>
+    <p class="quiz-result-desc">${t("quiz.result_desc")}</p>
 
     <div class="quiz-scores" id="quizScores"></div>
 
@@ -444,11 +445,11 @@ function renderResults(scores) {
     <div class="quiz-result-actions">
       <button class="quiz-btn-primary" id="quizExploreBtn">
         <span class="material-symbols-outlined">explore</span>
-        ${isAuthenticated() ? "Explore Recommended Activities" : "Register to Explore Activities"}
+        ${isAuthenticated() ? t("quiz.explore_activities") : t("quiz.register_explore")}
       </button>
       <button class="quiz-btn-secondary" id="quizRetakeBtn">
         <span class="material-symbols-outlined">replay</span>
-        Retake Quiz
+        ${t("quiz.retake")}
       </button>
     </div>
   `;
@@ -466,7 +467,7 @@ function renderResults(scores) {
   Object.entries(scores).forEach(([key, value]) => {
     const info = SCORE_LABELS[key];
     const level = value >= 70 ? "high" : value >= 45 ? "medium" : "low";
-    const levelLabel = value >= 70 ? "Strong" : value >= 45 ? "Moderate" : "Developing";
+    const levelLabel = value >= 70 ? t("quiz.score_strong") : value >= 45 ? t("quiz.score_moderate") : t("quiz.score_developing");
     scoresContainer.innerHTML += `
       <div class="quiz-score-item">
         <div class="quiz-score-header">
@@ -492,7 +493,7 @@ function renderResults(scores) {
     <div class="quiz-suggestion-card">
       <div class="quiz-suggestion-header">
         <span class="material-symbols-outlined" style="color:#23499b">tips_and_updates</span>
-        <h3>Suggested Activities For You</h3>
+        <h3>${t("quiz.suggested_activities")}</h3>
       </div>
       <p class="quiz-suggestion-reason">${suggestions.reason}</p>
       <div class="quiz-suggestion-tags">

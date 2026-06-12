@@ -9,7 +9,7 @@
     rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
     rel="stylesheet">
-  <title>Explore Activities - SpringWave</title>
+  <title data-i18n="explore.title">Explore Activities - SpringWave</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="/assets/style.css" />
@@ -28,10 +28,10 @@
         <span
           class="inline-flex items-center gap-2 py-1.5 px-4 bg-primary-fixed text-on-primary-fixed-variant rounded-full font-label-md text-label-md">
           <span class="material-symbols-outlined text-lg">search</span>
-          Discover Events
+          <span data-i18n="explore.discover_label">Discover Events</span>
         </span>
-        <h1 class="font-headline-lg text-headline-lg">Find Your Next Adventure</h1>
-        <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto">Search through hundreds of
+        <h1 class="font-headline-lg text-headline-lg" data-i18n="explore.find_adventure">Find Your Next Adventure</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto" data-i18n="explore.explore_desc">Search through hundreds of
           activities and events happening around you.</p>
       </div>
     </div>
@@ -40,7 +40,7 @@
     <div id="recommendations-section" class="max-w-container-max mx-auto px-gutter mb-6" style="display:none;">
       <div class="recommendations-header">
         <span class="material-symbols-outlined" style="color:#8B5CF6;font-size:22px;">auto_awesome</span>
-        <h2 class="recommendations-title">Recommended For You</h2>
+        <h2 class="recommendations-title" data-i18n="explore.recommended">Recommended For You</h2>
       </div>
       <div id="recommendations-container" class="recommendations-container"></div>
     </div>
@@ -50,13 +50,13 @@
       <div id="floating-search">
         <div class="search-bar glass-search">
           <div class="search-item">
-            <label for="search-1">Where</label>
-            <input id="search-1" type="text" placeholder="Anywhere" />
+            <label for="search-1" data-i18n="explore.where">Where</label>
+            <input id="search-1" type="text" placeholder="Anywhere" data-i18n-placeholder="explore.anywhere" />
           </div>
           <div class="search-item search-item-date" id="searchDateItem">
-            <label for="search-2">When</label>
+            <label for="search-2" data-i18n="explore.when">When</label>
             <div class="dr-trigger" id="drTrigger">
-              <span class="dr-placeholder" id="drPlaceholder">Anytime</span>
+              <span class="dr-placeholder" id="drPlaceholder" data-i18n="explore.anytime">Anytime</span>
               <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
               <span class="dr-chevron">▾</span>
             </div>
@@ -68,18 +68,18 @@
               </div>
               <div class="dr-cal-grid" id="drCalGrid"></div>
               <div class="dr-cal-footer">
-                <button class="dr-clear" id="drClear">Clear</button>
-                <button class="dr-close" id="drClose">Close</button>
+                <button class="dr-clear" id="drClear" data-i18n="explore.clear">Clear</button>
+                <button class="dr-close" id="drClose" data-i18n="explore.close">Close</button>
               </div>
             </div>
           </div>
           <div class="search-item">
-            <label for="search-3">Preferences</label>
-            <input id="search-3" type="text" placeholder="Anything you'd like" />
+            <label for="search-3" data-i18n="explore.preferences">Preferences</label>
+            <input id="search-3" type="text" placeholder="Anything you'd like" data-i18n-placeholder="explore.anything_you_like" />
           </div>
           <button class="search-btn">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Search</span>
+            <span data-i18n="explore.search">Search</span>
           </button>
           <button class="refresh-btn" id="refresh-btn">
             <i class="fa-solid fa-rotate"></i>
@@ -95,40 +95,40 @@
           <aside class="explore-sidebar" id="exploreSidebar">
             <div class="sidebar-inner">
               <div class="sidebar-section">
-                <h3 class="sidebar-title">Categories</h3>
+                <h3 class="sidebar-title" data-i18n="explore.categories">Categories</h3>
                 <div class="category-list" id="categoryList">
-                  <button class="category-chip active" data-category="all">All</button>
-                  <button class="category-chip" data-category="sports">Sports</button>
-                  <button class="category-chip" data-category="music">Music</button>
-                  <button class="category-chip" data-category="education">Education</button>
-                  <button class="category-chip" data-category="technology">Technology</button>
-                  <button class="category-chip" data-category="volunteering">Volunteering</button>
-                  <button class="category-chip" data-category="social">Social</button>
-                  <button class="category-chip" data-category="arts">Arts</button>
+                  <button class="category-chip active" data-category="all" data-i18n="explore.all">All</button>
+                  <button class="category-chip" data-category="sports" data-i18n="explore.sports">Sports</button>
+                  <button class="category-chip" data-category="music" data-i18n="explore.music">Music</button>
+                  <button class="category-chip" data-category="education" data-i18n="explore.education">Education</button>
+                  <button class="category-chip" data-category="technology" data-i18n="explore.technology">Technology</button>
+                  <button class="category-chip" data-category="volunteering" data-i18n="explore.volunteering">Volunteering</button>
+                  <button class="category-chip" data-category="social" data-i18n="explore.social">Social</button>
+                  <button class="category-chip" data-category="arts" data-i18n="explore.arts">Arts</button>
                 </div>
               </div>
 
               <div class="sidebar-section">
-                <h3 class="sidebar-title">Sort By</h3>
+                <h3 class="sidebar-title" data-i18n="explore.sort_by">Sort By</h3>
                 <div class="sort-list" id="sortList">
                   <label class="sort-option active" data-sort="newest">
                     <span class="sort-radio"></span>
-                    <span>Newest</span>
+                    <span data-i18n="explore.newest">Newest</span>
                   </label>
                   <label class="sort-option" data-sort="popular">
                     <span class="sort-radio"></span>
-                    <span>Most Popular</span>
+                    <span data-i18n="explore.most_popular">Most Popular</span>
                   </label>
                   <label class="sort-option" data-sort="ending">
                     <span class="sort-radio"></span>
-                    <span>Ending Soon</span>
+                    <span data-i18n="explore.ending_soon">Ending Soon</span>
                   </label>
                 </div>
               </div>
 
               <button class="clear-filters-btn" id="clearFilters">
                 <span class="material-symbols-outlined text-lg">close</span>
-                Clear Filters
+                <span data-i18n="explore.clear_filters">Clear Filters</span>
               </button>
             </div>
           </aside>
@@ -139,7 +139,7 @@
               <span class="results-count" id="resultsCount">0 activities</span>
               <div class="sidebar-toggle" id="sidebarToggle">
                 <span class="material-symbols-outlined">filter_list</span>
-                Filters
+                <span data-i18n="explore.filters">Filters</span>
               </div>
             </div>
             <div id="cards-container" class="cards-container"></div>

@@ -4,6 +4,7 @@ import { getActivities, getActivityById, participateActivity, unparticipateActiv
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { getRecommendations, explainRecommendation } from "../api/recommendations.js";
 import { CDN_DOMAIN } from "../config.js";
+import { t } from "../lib/i18n.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
@@ -160,7 +161,7 @@ function initSearchButton() {
         currentSort = "newest";
 
         const cardsContainer = document.getElementById("cards-container");
-        cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Searching...</div>`;
+        cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching")}</div>`;
 
         try {
             const params = {
@@ -175,13 +176,13 @@ function initSearchButton() {
 
             const activities = data?.activities || [];
             if (activities.length === 0) {
-                cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">No results found</div>`;
-                document.getElementById("resultsCount").textContent = "0 activities";
+                cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.no_results")}</div>`;
+                document.getElementById("resultsCount").textContent = t("explore.results", { n: 0 });
                 return;
             }
             await renderCards(activities);
         } catch (e) {
-            cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">Search error</div>`;
+            cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.search_error")}</div>`;
         }
     });
 }
@@ -200,7 +201,7 @@ async function loadCards() {
         await applyFiltersAndSort();
     } catch (err) {
         console.error(err);
-        cardsContainer.innerHTML = `<div class="empty-state">Failed to load activities</div>`;
+        cardsContainer.innerHTML = `<div class="empty-state">${t("explore.failed_load")}</div>`;
     }
 }
 
@@ -243,8 +244,8 @@ async function renderCardsDirect(activities) {
     if (!cachedTemplate) return;
 
     if (activities.length === 0) {
-        cardsContainer.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#94a3b8"><span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px">search_off</span><p style="font-size:16px;font-weight:600">No activities match your filters</p><p style="font-size:13px;margin-top:4px">Try adjusting the category or search term</p></div>`;
-        document.getElementById("resultsCount").textContent = "0 activities";
+        cardsContainer.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#94a3b8"><span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px">search_off</span><p style="font-size:16px;font-weight:600">${t("explore.no_match")}</p><p style="font-size:13px;margin-top:4px">${t("explore.no_match_hint")}</p></div>`;
+        document.getElementById("resultsCount").textContent = t("explore.results", { n: 0 });
         return;
     }
 
@@ -258,14 +259,14 @@ async function renderCardsDirect(activities) {
             image.alt = activity.title;
         }
         card.querySelector(".card-title").textContent = activity.title;
-        card.querySelectorAll(".info span")[0].textContent = activity.location || "Unknown Location";
+        card.querySelectorAll(".info span")[0].textContent = activity.location || t("explore.unknown_location");
         card.querySelectorAll(".info span")[1].textContent = formatDate(activity.heldDate);
         card.querySelectorAll(".info span")[2].textContent = capitalize(activity.type || "Activity");
         card.dataset.id = activity.activityID;
         cardsContainer.appendChild(card);
     });
 
-    document.getElementById("resultsCount").textContent = `${activities.length} ${activities.length === 1 ? "activity" : "activities"}`;
+    document.getElementById("resultsCount").textContent = `${activities.length} ${activities.length === 1 ? t("explore.result_singular", { n: activities.length }) : t("explore.results", { n: activities.length })}`;
 
     await syncCardFavourites();
     initCardClickHandlers();
@@ -512,7 +513,7 @@ function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
     const type = capitalize(a.type);
     const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
-    backText = backText || "Back";
+    backText = backText || t("explore.back");
     const filesHTML = (a.attachments || []).map(f => {
         const link = f.link || f.activityAttachLink || "";
         const fileName = decodeURIComponent(link.split('/').pop());
@@ -530,8 +531,8 @@ function buildPopupHTML(a, backText) {
         <div class="top-bar">
             <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${backText}</button>
             <div class="top-actions">
-                <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
-                <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">Favourite</span></button>
+                <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> ${t("explore.share")}</button>
+                <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite")}</span></button>
             </div>
         </div>
         <div class="main-content">
@@ -539,24 +540,24 @@ function buildPopupHTML(a, backText) {
                 <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
                 <div class="tag"><i class="fa-solid fa-tag"></i> ${type}</div>
                 <div class="details-card">
-                    <h2>Details</h2>
-                    <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>Location</span><p>${a.location}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>Host</span><p>${a.hostName || a.createdByName || "Unknown"}</p></div></div>
-                    <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>Type</span><p>${type}</p></div></div>
+                    <h2>${t("explore.details")}</h2>
+                    <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>${t("explore.location")}</span><p>${a.location}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>${t("explore.date")}</span><p>${heldDate}</p></div></div>
+                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>${t("explore.host")}</span><p>${a.hostName || a.createdByName || t("common.unknown")}</p></div></div>
+                    <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>${t("explore.type")}</span><p>${type}</p></div></div>
                 </div>
             </div>
             <div class="right-panel">
                 <h1 class="title">${a.title}</h1>
                 <a class="location-link" href="${googleMapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
                 <div class="info-boxes">
-                    <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>Hosted by</span><p>${a.hostName || a.createdByName || "Unknown"}</p></div></div>
+                    <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>${t("explore.date")}</span><p>${heldDate}</p></div></div>
+                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>${t("explore.hosted_by")}</span><p>${a.hostName || a.createdByName || t("common.unknown")}</p></div></div>
                 </div>
                 <div class="description-panel">
                     ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
                 </div>
-                ${filesHTML ? `<div class="files-box"><h3>Attached Files (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
+                ${filesHTML ? `<div class="files-box"><h3>${t("explore.attached_files")} (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
             </div>
         </div>
 
@@ -592,8 +593,8 @@ function setParticipated() {
     const btn = document.querySelector(".participate");
     if (!btn) return;
     btn.classList.add("active");
-    btn.querySelector(".participate-header").textContent = "PARTICIPATED";
-    btn.querySelector(".participate-text").textContent = "You have joined in this activity";
+    btn.querySelector(".participate-header").textContent = t("explore.participated");
+    btn.querySelector(".participate-text").textContent = t("explore.joined_activity");
 }
 
 function setFavourited(activityID) {
@@ -625,7 +626,7 @@ async function showFavourites() {
 
 function buildFavouritesHTML(activities) {
     if (activities.length === 0) {
-        return `<div class="container" style="padding:40px;text-align:center;color:var(--text-muted)"><p>No favourites yet.</p></div>`;
+        return `<div class="container" style="padding:40px;text-align:center;color:var(--text-muted)"><p>${t("explore.no_favourites")}</p></div>`;
     }
     const items = activities.map(a => {
         const held = formatDate(a.heldDate);
@@ -644,7 +645,7 @@ function buildFavouritesHTML(activities) {
             </div>
         </div>`;
     }).join('');
-    return `<div class="container"><div class="top-bar"><button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button><h2 style="font-size:22px;font-weight:700;">Favourite Activities</h2></div><div style="margin-top:20px;">${items}</div></div>`;
+    return `<div class="container"><div class="top-bar"><button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${t("explore.back")}</button><h2 style="font-size:22px;font-weight:700;">${t("explore.favourite_activities")}</h2></div><div style="margin-top:20px;">${items}</div></div>`;
 }
 
 function initParticipateButton(activityID) {
@@ -659,19 +660,19 @@ function initParticipateButton(activityID) {
             if (isActive) {
                 await unparticipateActivity(activityID);
                 button.classList.remove("active");
-                button.querySelector(".participate-header").textContent = "PARTICIPATE";
-                button.querySelector(".participate-text").textContent = "Join this activity";
+                button.querySelector(".participate-header").textContent = t("explore.participate");
+                button.querySelector(".participate-text").textContent = t("explore.join_activity");
             } else {
                 await participateActivity(activityID);
                 button.classList.add("active");
-                button.querySelector(".participate-header").textContent = "PARTICIPATED";
-                button.querySelector(".participate-text").textContent = "You have joined in this activity";
+                button.querySelector(".participate-header").textContent = t("explore.participated");
+                button.querySelector(".participate-text").textContent = t("explore.joined_activity");
             }
         } catch (err) {
             console.error("Participate error:", err);
-            button.querySelector(".participate-text").textContent = err.message || "Error";
+            button.querySelector(".participate-text").textContent = err.message || t("common.error");
             setTimeout(() => {
-                button.querySelector(".participate-text").textContent = button.classList.contains("active") ? "You have joined in this activity" : "Join this activity";
+                button.querySelector(".participate-text").textContent = button.classList.contains("active") ? t("explore.joined_activity") : t("explore.join_activity");
             }, 2000);
         }
     });

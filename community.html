@@ -8,7 +8,7 @@
     rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
     rel="stylesheet">
-  <title>Community - SpringWave</title>
+  <title data-i18n="community.title">Community - SpringWave</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="/assets/style.css" />
 </head>
@@ -20,8 +20,8 @@
   <div class="forum-status-bar">
     <div class="forum-status-box" id="startDiscussionBtn">
       <div class="forum-status-avatar" id="forumStatusAvatar">?</div>
-      <span class="forum-status-placeholder">What's on your mind?</span>
-      <button class="forum-status-post-btn">
+      <span class="forum-status-placeholder" data-i18n="community.what_mind">What's on your mind?</span>
+      <button class="forum-status-post-btn" data-i18n="community.post">
         <span class="material-symbols-outlined" style="font-size:16px">edit_note</span>
         Post
       </button>
@@ -34,36 +34,36 @@
     <aside class="forum-sidebar-left" id="forumSidebar">
       <div class="forum-sidebar-left-inner">
         <div class="forum-sidebar-section">
-          <h3 class="forum-sidebar-title">Categories</h3>
+          <h3 class="forum-sidebar-title" data-i18n="community.categories">Categories</h3>
           <nav class="forum-category-list" id="categoryList">
-            <a class="forum-category-item" href="./community.html">
+            <a class="forum-category-item" href="./community.html" data-i18n="community.all_discussions">
               <span class="material-symbols-outlined forum-category-icon">forum</span>
               All Discussions
             </a>
-            <a class="forum-category-item" href="./community.html?cat=event">
+            <a class="forum-category-item" href="./community.html?cat=event" data-i18n="community.event_discussions">
               <span class="material-symbols-outlined forum-category-icon">event</span>
               Event Discussions
             </a>
-            <a class="forum-category-item" href="./community.html?cat=skills">
+            <a class="forum-category-item" href="./community.html?cat=skills" data-i18n="community.skill_development">
               <span class="material-symbols-outlined forum-category-icon">school</span>
               Skill Development
             </a>
-            <a class="forum-category-item" href="./community.html?cat=uni">
+            <a class="forum-category-item" href="./community.html?cat=uni" data-i18n="community.uni_communities">
               <span class="material-symbols-outlined forum-category-icon">account_balance</span>
               University Communities
             </a>
-            <a class="forum-category-item" href="./community.html?cat=mine">
+            <a class="forum-category-item" href="./community.html?cat=mine" data-i18n="community.my_discussions">
               <span class="material-symbols-outlined forum-category-icon">person</span>
               My Discussions
             </a>
-            <a class="forum-category-item" href="./community.html?cat=saved">
+            <a class="forum-category-item" href="./community.html?cat=saved" data-i18n="community.saved_posts">
               <span class="material-symbols-outlined forum-category-icon">bookmark</span>
               Saved Posts
             </a>
           </nav>
         </div>
 
-        <button class="forum-sidebar-toggle" id="forumSidebarToggle">
+        <button class="forum-sidebar-toggle" id="forumSidebarToggle" data-i18n="common.close">
           <span class="material-symbols-outlined">close</span>
           Close
         </button>
@@ -75,10 +75,10 @@
       <div class="forum-section" id="trending">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
-            <h2 class="forum-section-title">Trending Discussions</h2>
-            <p class="forum-section-subtitle">Active conversations across the community</p>
+            <h2 class="forum-section-title" data-i18n="community.trending">Trending Discussions</h2>
+            <p class="forum-section-subtitle" data-i18n="community.trending_sub">Active conversations across the community</p>
           </div>
-          <button class="forum-mobile-filter-btn" id="forumFilterBtn">
+          <button class="forum-mobile-filter-btn" id="forumFilterBtn" data-i18n="community.categories_btn">
             <span class="material-symbols-outlined">filter_list</span>
             Categories
           </button>
@@ -91,10 +91,10 @@
       <div class="forum-section" id="universities">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
-            <h2 class="forum-section-title">University Communities</h2>
-            <p class="forum-section-subtitle">Join your campus community and meet fellow students</p>
+            <h2 class="forum-section-title" data-i18n="community.uni_heading">University Communities</h2>
+            <p class="forum-section-subtitle" data-i18n="community.uni_sub">Join your campus community and meet fellow students</p>
           </div>
-          <button id="forumAddUniBtn" class="forum-uni-add-btn" style="display:none;">
+          <button id="forumAddUniBtn" class="forum-uni-add-btn" style="display:none;" data-i18n="community.add_uni">
             <span class="material-symbols-outlined text-sm">add</span> Add University
           </button>
         </div>
@@ -106,8 +106,8 @@
       <div class="forum-section" id="careerTopics">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
-            <h2 class="forum-section-title">Skills Discussions</h2>
-            <p class="forum-section-subtitle">Explore topics by skill area and interest</p>
+            <h2 class="forum-section-title" data-i18n="community.skills_heading">Skills Discussions</h2>
+            <p class="forum-section-subtitle" data-i18n="community.skills_sub">Explore topics by skill area and interest</p>
           </div>
         </div>
         <div class="forum-topic-grid" id="forumTopicGrid">
@@ -129,22 +129,22 @@
     <div class="forum-post-backdrop" id="forumPostBackdrop"></div>
     <div class="forum-post-modal" id="forumPostModal">
       <div class="forum-post-modal-header">
-        <h2>Start a Discussion</h2>
+        <h2 data-i18n="community.start_discussion">Start a Discussion</h2>
         <button class="forum-post-modal-close" id="forumPostClose">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
       <div class="forum-post-modal-body">
         <div class="forum-post-field">
-          <label for="postTitle">Title</label>
-          <input type="text" id="postTitle" placeholder="What's on your mind?" />
+          <label for="postTitle" data-i18n="community.title_label">Title</label>
+          <input type="text" id="postTitle" placeholder="What's on your mind?" data-i18n="community.what_mind" />
         </div>
         <div class="forum-post-field">
-          <label for="postCategory">Category</label>
+          <label for="postCategory" data-i18n="community.category_label">Category</label>
           <select id="postCategory">
-            <option value="general">General</option>
-            <option value="event">Event Discussion</option>
-            <option value="skills">Skill Development</option>
+            <option value="general" data-i18n="community.general">General</option>
+            <option value="event" data-i18n="community.event_discussions">Event Discussion</option>
+            <option value="skills" data-i18n="community.skill_development">Skill Development</option>
           </select>
         </div>
         <div class="forum-post-field" id="postScopeField" style="display:none;">
@@ -152,26 +152,26 @@
           <div class="forum-post-scope-options">
             <label class="forum-post-radio">
               <input type="radio" name="scope" value="general" checked>
-              <span>General — visible to everyone</span>
+              <span data-i18n="community.general_visible">General — visible to everyone</span>
             </label>
             <label class="forum-post-radio">
               <input type="radio" name="scope" value="community">
-              <span>My University Community — visible to members only</span>
+              <span data-i18n="community.uni_visible">My University Community — visible to members only</span>
             </label>
           </div>
         </div>
         <div class="forum-post-field">
-          <label for="postContent">Content</label>
+          <label for="postContent" data-i18n="community.content">Content</label>
           <textarea id="postContent" rows="6" placeholder="Share your thoughts, questions, or experiences..."></textarea>
         </div>
         <div class="forum-post-field">
-          <label for="postTags">Tags</label>
+          <label for="postTags" data-i18n="community.tags">Tags</label>
           <input type="text" id="postTags" placeholder="e.g. AI, Hackathon, Team Building (comma separated)" />
         </div>
         <div class="forum-post-field" id="postEventField">
-          <label>Related Event (optional)</label>
+          <label data-i18n="community.related_event">Related Event (optional)</label>
           <div id="postEventCards" class="forum-post-event-cards">
-            <div class="forum-post-loading-events">Loading events...</div>
+            <div class="forum-post-loading-events" data-i18n="community.loading_events">Loading events...</div>
           </div>
           <div id="postSkillPills" class="forum-post-skill-pills" style="display:none;">
             <label class="forum-post-pill" data-skill="Communication">
@@ -194,8 +194,8 @@
         </div>
       </div>
       <div class="forum-post-modal-footer">
-        <button class="forum-post-btn-cancel" id="forumPostCancel">Cancel</button>
-        <button class="forum-post-btn-publish disabled:opacity-50 disabled:cursor-not-allowed" id="forumPostPublish">
+        <button class="forum-post-btn-cancel" id="forumPostCancel" data-i18n="common.cancel">Cancel</button>
+        <button class="forum-post-btn-publish disabled:opacity-50 disabled:cursor-not-allowed" id="forumPostPublish" data-i18n="community.publish">
           <span class="material-symbols-outlined text-lg">publish</span>
           Publish
         </button>
@@ -220,22 +220,22 @@
     <div class="forum-uni-dialog-backdrop"></div>
     <div class="forum-uni-dialog">
       <div class="forum-uni-dialog-header">
-        <h2 id="uniDialogTitle">Add University</h2>
+        <h2 id="uniDialogTitle" data-i18n="community.add_uni_title">Add University</h2>
         <button class="forum-uni-dialog-close" id="uniDialogClose">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
       <div class="forum-uni-dialog-body">
         <div class="forum-uni-dialog-field">
-          <label for="uniName">University Name</label>
+          <label for="uniName" data-i18n="community.uni_name">University Name</label>
           <input type="text" id="uniName" placeholder="e.g. University of Da Nang" />
         </div>
         <div class="forum-uni-dialog-field">
-          <label for="uniDescription">Description (optional)</label>
+          <label for="uniDescription" data-i18n="community.uni_desc">Description (optional)</label>
           <textarea id="uniDescription" rows="3" placeholder="Brief description about this university..."></textarea>
         </div>
         <div class="forum-uni-dialog-field">
-          <label>Brand Color</label>
+          <label data-i18n="community.uni_color">Brand Color</label>
           <div class="forum-uni-color-picker">
             <input type="color" id="uniColorPicker" value="#3B6FD4" />
             <input type="text" id="uniColorHex" class="forum-uni-color-hex" value="#3B6FD4" placeholder="#3B6FD4" maxlength="7" />
@@ -251,8 +251,8 @@
         </div>
       </div>
       <div class="forum-uni-dialog-footer">
-        <button class="forum-uni-dialog-btn-cancel" id="uniDialogCancel">Cancel</button>
-        <button class="forum-uni-dialog-btn-save" id="uniDialogSave">
+        <button class="forum-uni-dialog-btn-cancel" id="uniDialogCancel" data-i18n="common.cancel">Cancel</button>
+        <button class="forum-uni-dialog-btn-save" id="uniDialogSave" data-i18n="common.save">
           <span class="material-symbols-outlined text-lg">check</span>
           Save
         </button>

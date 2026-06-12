@@ -4,6 +4,7 @@ import { getEvents, getPendingEvents, approveEvent, rejectEvent, deleteEvent, sc
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { t } from "../lib/i18n.js";
 
 let currentTab = "pending";
 let pendingEvents = [];
@@ -93,17 +94,19 @@ function renderTable() {
     const title = document.getElementById("table-title");
 
     const events = getActiveEvents();
-    title.textContent = currentTab === "pending" ? "Pending Review" : "Published Events";
+    title.textContent = currentTab === "pending" ? t("admin.pending_review") : t("admin.published_events");
 
     if (events.length === 0) {
         tbody.innerHTML = "";
         empty.classList.remove("hidden");
-        count.textContent = "0 events";
+        count.textContent = t("admin.events_count", { n: 0 });
         return;
     }
 
     empty.classList.add("hidden");
-    count.textContent = `${events.length} ${events.length === 1 ? "event" : "events"}`;
+    count.textContent = events.length === 1
+        ? t("admin.events_count_one", { n: 1 })
+        : t("admin.events_count", { n: events.length });
 
     tbody.innerHTML = events.map((e, i) => {
         const sourceSchool = e.source?.school || e.createdByName || "—";
@@ -115,10 +118,10 @@ function renderTable() {
         let actionsHTML;
         if (currentTab === "pending") {
             actionsHTML = `
-                <button class="approve-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#059669] hover:bg-green-50 hover:border-green-200 transition-all spring-ease" title="Approve">
+                <button class="approve-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#059669] hover:bg-green-50 hover:border-green-200 transition-all spring-ease" title="${t("admin.approve")}">
                     <i class="fa-solid fa-check text-sm"></i>
                 </button>
-                <button class="reject-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Reject">
+                <button class="reject-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="${t("admin.reject")}">
                     <i class="fa-solid fa-ban text-sm"></i>
                 </button>
             `;
@@ -127,7 +130,7 @@ function renderTable() {
                 <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="View">
                     <i class="fa-regular fa-eye text-sm"></i>
                 </button>
-                <button class="delete-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Delete">
+                <button class="delete-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="${t("admin.delete")}">
                     <i class="fa-solid fa-trash-can text-sm"></i>
                 </button>
             `;
@@ -218,7 +221,7 @@ function updateBulkBar() {
     }
 
     bar.classList.remove("hidden");
-    count.textContent = `${n} selected`;
+    count.textContent = t("admin.selected", { n });
 
     approveBtn.classList.toggle("hidden", currentTab !== "pending");
     deleteBtn.classList.toggle("hidden", currentTab !== "published");
@@ -497,7 +500,7 @@ function initRefresh() {
 function showEmpty() {
     document.getElementById("admin-table-body").innerHTML = "";
     document.getElementById("table-empty").classList.remove("hidden");
-    document.getElementById("table-count").textContent = "0 events";
+    document.getElementById("table-count").textContent = t("admin.events_count", { n: 0 });
 }
 
 function initScrape() {
@@ -547,15 +550,15 @@ function initScrape() {
                 <div class="flex justify-center gap-6 my-6" id="scrape-stats">
                     <div class="text-center">
                         <p class="text-[32px] font-extrabold text-[#191b22]" id="scrape-total">0</p>
-                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">Found</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">${t("admin.found")}</p>
                     </div>
                     <div class="text-center">
                         <p class="text-[32px] font-extrabold text-[#059669]" id="scrape-inserted">0</p>
-                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">New</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">${t("admin.new")}</p>
                     </div>
                     <div class="text-center">
                         <p class="text-[32px] font-extrabold text-[#db2777]" id="scrape-errors">0</p>
-                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">Errors</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">${t("admin.errors")}</p>
                     </div>
                 </div>
             `;

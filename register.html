@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SpringWave - Register</title>
+    <title data-i18n="register.title">SpringWave - Register</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -22,31 +22,32 @@
 
         <a href="index.html" class="inline-block mb-6 transition duration-200 hover:-translate-y-1">
             <div
-                class="inline-flex items-center gap-2 px-3 py-1 mb-6 bg-[#23499b] text-white font-semibold rounded-xl shadow-md transition-all duration-200 hover:bg-[#183a82] hover:-translate-y-1">
+                class="inline-flex items-center gap-2 px-3 py-1 mb-6 bg-[#23499b] text-white font-semibold rounded-xl shadow-md transition-all duration-200 hover:bg-[#183a82] hover:-translate-y-1"
+                data-i18n="register.home">
 
                 <i class="bi bi-house-door text-[24px]"></i>
                 Home
             </div>
         </a>
 
-        <h1 class="text-[42px] max-sm:text-[30px] max-sm:mb-6 font-bold text-[#23499b] text-center mb-10">JOIN
+        <h1 class="text-[42px] max-sm:text-[30px] max-sm:mb-6 font-bold text-[#23499b] text-center mb-10" data-i18n="register.heading">JOIN
             SPRINGWAVE!</h1>
 
         <form id="register-form">
             <div class="mb-5">
-                <label class="block mb-2.5 font-semibold text-[#222] text-base">
+                <label class="block mb-2.5 font-semibold text-[#222] text-base" data-i18n="register.full_name">
                     Full Name <span class="text-red-500">*</span>
                 </label>
                 <div class="flex gap-3.5 max-md:flex-col">
-                    <input id="first-name" type="text" placeholder="First Name" required
+                    <input id="first-name" type="text" placeholder="First Name" data-i18n="register.first_name" required
                         class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20 max-sm:text-base">
-                    <input id="last-name" type="text" placeholder="Last Name" required
+                    <input id="last-name" type="text" placeholder="Last Name" data-i18n="register.last_name" required
                         class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20 max-sm:text-base">
                 </div>
             </div>
 
             <div class="mb-5">
-                <label class="block mb-2.5 font-semibold text-[#222] text-base">
+                <label class="block mb-2.5 font-semibold text-[#222] text-base" data-i18n="register.username">
                     Username <span class="text-red-500">*</span>
                 </label>
                 <input id="username" type="text" placeholder="AlbertEpstein" required
@@ -54,7 +55,7 @@
             </div>
 
             <div class="mb-5">
-                <label class="block mb-2.5 font-semibold text-[#222] text-base">
+                <label class="block mb-2.5 font-semibold text-[#222] text-base" data-i18n="register.email">
                     Email <span class="text-red-500">*</span>
                 </label>
                 <input id="email" type="email" placeholder="example@gmail.com" required
@@ -62,46 +63,46 @@
             </div>
 
             <div class="mb-5">
-                <label class="block mb-2.5 font-semibold text-[#222] text-base">
+                <label class="block mb-2.5 font-semibold text-[#222] text-base" data-i18n="register.password">
                     Password <span class="text-red-500">*</span>
                 </label>
-                <input id="password" type="password" placeholder="Enter password" required
+                <input id="password" type="password" placeholder="Enter password" data-i18n="register.enter_password" required
                     class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20 max-sm:text-base">
             </div>
 
             <div class="mb-2.5" id="last-form-group">
-                <label class="block mb-2.5 font-semibold text-[#222] text-base">
+                <label class="block mb-2.5 font-semibold text-[#222] text-base" data-i18n="register.confirm_password">
                     Confirm Password <span class="text-red-500">*</span>
                 </label>
-                <input id="confirm-password" type="password" placeholder="Confirm password" required
+                <input id="confirm-password" type="password" placeholder="Confirm password" data-i18n="register.confirm_password_ph" required
                     class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20 max-sm:text-base">
             </div>
 
             <details class="mb-5">
-                <summary class="cursor-pointer font-semibold text-[#23499b] text-sm mb-3">Optional: Add profile details to skip this step later</summary>
+                <summary class="cursor-pointer font-semibold text-[#23499b] text-sm mb-3" data-i18n="register.optional_details">Optional: Add profile details to skip this step later</summary>
                 <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                     <div class="mb-3">
-                        <label class="block mb-1.5 font-semibold text-[#222] text-sm">Date of Birth</label>
+                        <label class="block mb-1.5 font-semibold text-[#222] text-sm" data-i18n="register.dob">Date of Birth</label>
                         <input id="dob" type="date"
                             class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                     </div>
                     <div class="mb-3">
-                        <label class="block mb-1.5 font-semibold text-[#222] text-sm">School</label>
+                        <label class="block mb-1.5 font-semibold text-[#222] text-sm" data-i18n="register.school">School</label>
                         <input id="school" type="text" placeholder="e.g. VKU"
                             class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                     </div>
                     <div class="mb-3">
-                        <label class="block mb-1.5 font-semibold text-[#222] text-sm">Class</label>
+                        <label class="block mb-1.5 font-semibold text-[#222] text-sm" data-i18n="register.class">Class</label>
                         <input id="class" type="text" placeholder="e.g. 12A"
                             class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                     </div>
                     <div class="mb-3">
-                        <label class="block mb-1.5 font-semibold text-[#222] text-sm">Major</label>
+                        <label class="block mb-1.5 font-semibold text-[#222] text-sm" data-i18n="register.major">Major</label>
                         <input id="major" type="text" placeholder="e.g. Computer Science"
                             class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                     </div>
                     <div class="mb-3">
-                        <label class="block mb-1.5 font-semibold text-[#222] text-sm">Phone Number</label>
+                        <label class="block mb-1.5 font-semibold text-[#222] text-sm" data-i18n="register.phone">Phone Number</label>
                         <input id="phoneNo" type="tel" placeholder="e.g. 0123456789"
                             class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                     </div>
@@ -110,14 +111,14 @@
 
             <div id="status-msg" class="text-sm my-2"></div>
 
-            <button type="submit"
+            <button type="submit" data-i18n="register.register_btn"
                 class="w-full p-4 bg-[#ffde42] border-2 border-[#23499b] rounded-2xl text-xl font-bold cursor-pointer mt-2.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(255,222,66,0.4)] max-sm:p-3.5 max-sm:text-lg">
                 REGISTER
             </button>
 
-            <div class="mt-4 text-center text-[17px] text-[#333]">
+            <div class="mt-4 text-center text-[17px] text-[#333]" data-i18n="register.has_account">
                 Already have an account?
-                <a href="login.html" class="text-[#23499b] font-bold no-underline"><u>Login now</u></a>
+                <a href="login.html" class="text-[#23499b] font-bold no-underline" data-i18n="register.login_now"><u>Login now</u></a>
             </div>
         </form>
     </div>

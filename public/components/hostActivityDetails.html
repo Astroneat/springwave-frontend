@@ -1,8 +1,8 @@
 <main class="container" id="hostActivity">
 
     <div class="page-title">
-        <h1>Create New Activity</h1>
-        <p>
+        <h1 data-i18n="host.page_title">Create New Activity</h1>
+        <p data-i18n="host.page_desc">
             Fill in the details below to publish your activity to the SpringWave community.
         </p>
     </div>
@@ -12,8 +12,8 @@
         <!-- THUMBNAIL -->
         <section class="section">
 
-            <label class="label">Activity Thumbnail</label>
-            <p class="sub-text">
+            <label class="label" data-i18n="host.thumbnail">Activity Thumbnail</label>
+            <p class="sub-text" data-i18n="host.thumbnail_desc">
                 Upload an image for your activity banner.
             </p>
 
@@ -32,11 +32,11 @@
                         </span>
                     </div>
 
-                    <div class="upload-title">
+                    <div class="upload-title" data-i18n="host.click_upload">
                         Click to upload image
                     </div>
 
-                    <div class="upload-subtitle">
+                    <div class="upload-subtitle" data-i18n="host.upload_formats">
                         PNG, JPG, SVG or GIF
                     </div>
                 </div>
@@ -47,10 +47,10 @@
         <!-- DETAILS -->
         <section class="section">
 
-            <h2 class="section-title">Activity Details</h2>
+            <h2 class="section-title" data-i18n="host.activity_details">Activity Details</h2>
 
             <div style="margin-bottom: 25px;">
-                <label class="label">Activity Title</label>
+                <label class="label" data-i18n="host.activity_title">Activity Title</label>
 
                 <input id="title" name="title" type="text" class="input" placeholder="e.g., Sunset Yoga on the Beach" required>
             </div>
@@ -59,7 +59,7 @@
             <!-- TYPE -->
             <div style="margin-bottom: 25px;">
 
-                <label class="label">Activity Type</label>
+                <label class="label" data-i18n="host.activity_type">Activity Type</label>
 
                 <div class="activity-type-grid">
 
@@ -72,8 +72,8 @@
                             </span>
 
                             <div>
-                                <h4>Social Activity</h4>
-                                <p>Meetups, volunteering, workshops.</p>
+                                <h4 data-i18n="host.social_activity">Social Activity</h4>
+                                <p data-i18n="host.social_desc">Meetups, volunteering, workshops.</p>
                             </div>
                         </div>
                     </label>
@@ -87,8 +87,8 @@
                             </span>
 
                             <div>
-                                <h4>Academic Competition</h4>
-                                <p>Olympiads, contests, hackathons.</p>
+                                <h4 data-i18n="host.academic_comp">Academic Competition</h4>
+                                <p data-i18n="host.academic_desc">Olympiads, contests, hackathons.</p>
                             </div>
                         </div>
                     </label>
@@ -98,7 +98,7 @@
 
             <!-- DESCRIPTION -->
             <div style="margin-bottom: 25px;">
-                <label class="label">Description</label>
+                <label class="label" data-i18n="host.description">Description</label>
 
                 <textarea id="description" name="description" class="textarea" required
                     placeholder="Provide a detailed overview of what participants can expect..."></textarea>
@@ -106,9 +106,9 @@
 
             <!-- LOCATION -->
             <div>
-                <label class="label">Location</label>
+                <label class="label" data-i18n="host.location">Location</label>
                 <div class="location-input-row">
-                    <input id="location" name="location" type="text" class="input" placeholder="Type address or click on map" required>
+                    <input id="location" name="location" type="text" class="input" placeholder="Type address or click on map" required data-i18n="host.location">
                     <button type="button" class="btn btn-locate" id="locateBtn" title="Use my location">
                         <span class="material-symbols-outlined">my_location</span>
                     </button>
@@ -127,19 +127,19 @@
         <!-- LOGISTICS -->
         <section class="section">
 
-            <h2 class="section-title">Logistics</h2>
+            <h2 class="section-title" data-i18n="host.logistics">Logistics</h2>
 
             <div class="date-grid">
 
                 <!-- START DATE -->
                 <div class="date-card">
-                    <label class="label">Activity Start Date</label>
+                    <label class="label" data-i18n="host.start_date">Activity Start Date</label>
 
                     <div class="dp-trigger" id="heldDateTrigger">
                         <span class="material-symbols-outlined">
                             event
                         </span>
-                        <span class="dp-placeholder" id="heldDatePlaceholder">Select date</span>
+                        <span class="dp-placeholder" id="heldDatePlaceholder" data-i18n="host.select_date">Select date</span>
                         <span class="dp-value" id="heldDateValue"></span>
                         <span class="dp-chevron">▾</span>
                     </div>
@@ -152,8 +152,8 @@
                         </div>
                         <div class="dp-cal-grid" id="heldDateCalGrid"></div>
                         <div class="dp-cal-footer">
-                            <button class="dp-clear" id="heldDateClear" type="button">Clear</button>
-                            <button class="dp-close" id="heldDateClose" type="button">Close</button>
+                            <button class="dp-clear" id="heldDateClear" type="button" data-i18n="common.clear">Clear</button>
+                            <button class="dp-close" id="heldDateClose" type="button" data-i18n="common.close">Close</button>
                         </div>
                     </div>
 
@@ -167,13 +167,13 @@
 
                 <!-- DEADLINE -->
                 <div class="date-card">
-                    <label class="label">Application Deadline</label>
+                    <label class="label" data-i18n="host.app_deadline">Application Deadline</label>
 
                     <div class="dp-trigger" id="deadlineTrigger">
                         <span class="material-symbols-outlined">
                             calendar_today
                         </span>
-                        <span class="dp-placeholder" id="deadlinePlaceholder">Select date</span>
+                        <span class="dp-placeholder" id="deadlinePlaceholder" data-i18n="host.select_date">Select date</span>
                         <span class="dp-value" id="deadlineValue"></span>
                         <span class="dp-chevron">▾</span>
                     </div>
@@ -186,8 +186,8 @@
                         </div>
                         <div class="dp-cal-grid" id="deadlineCalGrid"></div>
                         <div class="dp-cal-footer">
-                            <button class="dp-clear" id="deadlineClear" type="button">Clear</button>
-                            <button class="dp-close" id="deadlineClose" type="button">Close</button>
+                            <button class="dp-clear" id="deadlineClear" type="button" data-i18n="common.clear">Clear</button>
+                            <button class="dp-close" id="deadlineClose" type="button" data-i18n="common.close">Close</button>
                         </div>
                     </div>
 
@@ -204,9 +204,9 @@
                 </span>
 
                 <div>
-                    <h4>Important Notice</h4>
+                    <h4 data-i18n="host.important">Important Notice</h4>
 
-                    <p>
+                    <p data-i18n="host.important_desc">
                         The application deadline should be earlier than the activity start date.
                         <br><br>
                         Example:
@@ -222,9 +222,9 @@
         <!-- ATTACHMENTS -->
         <section class="section">
 
-            <label class="label">Attachments</label>
+            <label class="label" data-i18n="host.attachments">Attachments</label>
 
-            <p class="sub-text">
+            <p class="sub-text" data-i18n="host.attachments_desc">
                 Upload images, PDFs, Word documents, PowerPoints, or ZIP files.
             </p>
 
@@ -241,11 +241,11 @@
                     </span>
                 </div>
 
-                <div class="upload-title">
+                <div class="upload-title" data-i18n="host.upload_files">
                     Upload Files
                 </div>
 
-                <div class="upload-subtitle">
+                <div class="upload-subtitle" data-i18n="host.drag_files">
                     Click or drag files here
                 </div>
             </label>
@@ -261,11 +261,11 @@
 
         <!-- BUTTONS -->
         <div class="button-group">
-            <button type="button" class="btn btn-outline">
+            <button type="button" class="btn btn-outline" data-i18n="host.save_draft">
                 Save as Draft
             </button>
 
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" data-i18n="host.publish">
                 Publish Activity
             </button>
         </div>

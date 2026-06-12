@@ -1,12 +1,14 @@
 import "../../src/style.css";
 import { completeProfile } from "../api/auth.js";
 import { createSession, getToken, getUser, logout, isAuthenticated } from "../lib/session.js";
+import { initI18n } from "../lib/i18n.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {
         window.location.href = "/login.html";
         return;
     }
+    await initI18n();
     initCompleteProfileForm();
 });
 

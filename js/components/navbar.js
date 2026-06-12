@@ -1,6 +1,7 @@
 import { isAuthenticated, getUser, logout } from "../lib/session.js";
 import { getNotifications, getUnreadCount, markRead, markAllRead } from "../lib/notifications.js";
 import { fetchContent } from "../lib/utils.js";
+import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
 
 export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
     const html = await fetchContent("/components/navbar.html");
@@ -50,10 +51,13 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
                 }
             });
         } else {
-            authSection.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
+            authSection.innerHTML = `<a href="/login.html" class="login-btn" data-i18n="nav.login_btn">Login</a>`;
             if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }
         }
     }
+
+    await initI18n();
+    initLangSwitcher();
 
     return document.getElementById("navbar");
 }
@@ -129,7 +133,7 @@ function renderNotifDropdown() {
             <div class="notif-dropdown-menu">
                 <div class="notif-empty">
                     <span class="material-symbols-outlined notif-empty-icon">notifications_none</span>
-                    <span>No notifications yet</span>
+                    <span data-i18n="user.no_notifications">No notifications yet</span>
                 </div>
             </div>
         `;
@@ -141,8 +145,8 @@ function renderNotifDropdown() {
     dropdown.innerHTML = `
         <div class="notif-dropdown-menu">
             <div class="notif-header">
-                <span class="notif-header-title">Notifications</span>
-                ${unreadCount > 0 ? `<button class="notif-mark-all" id="notif-mark-all">Mark all read</button>` : ""}
+                <span class="notif-header-title" data-i18n="user.notifications">Notifications</span>
+                ${unreadCount > 0 ? `<button class="notif-mark-all" id="notif-mark-all" data-i18n="user.mark_all_read">Mark all read</button>` : ""}
             </div>
             <div class="notif-list">
                 ${all.map((n) => `
@@ -186,12 +190,12 @@ function renderNotifDropdown() {
 function timeAgo(iso) {
     const diff = Date.now() - new Date(iso).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "Just now";
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return t("user.just_now");
+    if (mins < 60) return t("user.m_ago", { n: mins });
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
+    if (hrs < 24) return t("user.h_ago", { n: hrs });
     const days = Math.floor(hrs / 24);
-    return `${days}d ago`;
+    return t("user.d_ago", { n: days });
 }
 
 /* =========================
@@ -243,4 +247,19 @@ function initUserDropdown(onFavouritesClick) {
         userMenu.classList.remove("active");
         if (onFavouritesClick) onFavouritesClick();
     });
+}
+
+function initLangSwitcher() {
+    const btn = document.getElementById("langSwitcher");
+    const label = document.getElementById("langLabel");
+    if (!btn) return;
+    const updateLabel = () => {
+        if (label) label.textContent = getLang().toUpperCase();
+    };
+    updateLabel();
+    btn.addEventListener("click", () => {
+        const next = getLang() === "en" ? "vi" : "en";
+        setLang(next).then(updateLabel);
+    });
+    window.addEventListener("language-changed", updateLabel);
 }

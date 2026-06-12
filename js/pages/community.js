@@ -1,4 +1,5 @@
 import "../../src/style.css";
+import { t } from "../lib/i18n.js";
 import { isAuthenticated, getUser, getToken } from "../lib/session.js";
 import {
   getTrendingDiscussions,
@@ -37,12 +38,12 @@ import { addBadgeNotification } from "../lib/notifications.js";
 import { CDN_DOMAIN } from "../config.js";
 
 const CATEGORIES = {
-  all:   { label: "All Discussions",        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
-  event: { label: "Event Discussions",      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
-  skills:{ label: "Skill Development",      sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
-  uni:   { label: "University Communities", sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
-  mine:  { label: "My Discussions",         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
-  saved: { label: "Saved Posts",            sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
+  all:   { label: t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
+  event: { label: t("community.event_discussions"),      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
+  skills:{ label: t("community.skill_development"),      sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
+  uni:   { label: t("community.uni_communities"), sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
+  mine:  { label: t("community.my_discussions"),         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
+  saved: { label: t("community.saved_posts"),            sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
 };
 
 function getCategoryFromURL() {
@@ -990,7 +991,7 @@ function openUniDialog(editData, callback) {
     if (colorPicker) colorPicker.value = c;
     if (colorHex) colorHex.value = c;
   } else {
-    title.textContent = "Add University";
+    title.textContent = t("community.add_uni_title");
     nameInput.value = "";
     descInput.value = "";
     if (colorPicker) colorPicker.value = "#3B6FD4";
@@ -1026,7 +1027,7 @@ function initPostModal() {
 
   async function loadEventCards() {
     if (!postEventCards) return;
-    postEventCards.innerHTML = '<div class="forum-post-loading-events">Loading events...</div>';
+    postEventCards.innerHTML = `<div class="forum-post-loading-events">${t("community.loading_events")}</div>`;
     const events = await getEvents();
     if (!events || events.length === 0) {
       postEventCards.innerHTML = '<div class="forum-post-empty-events">No upcoming events</div>';

@@ -6,8 +6,8 @@
           <i class="fa-solid fa-robot"></i>
         </div>
         <div>
-          <div class="chatbot-title">SpringWave Assistant</div>
-          <div class="chatbot-status">Online</div>
+          <div class="chatbot-title" data-i18n="chatbot.title">SpringWave Assistant</div>
+          <div class="chatbot-status" data-i18n="chatbot.online">Online</div>
         </div>
       </div>
       <button class="chatbot-close" id="chatbot-close">
@@ -16,13 +16,13 @@
     </div>
     <div class="chatbot-messages" id="chatbot-messages">
       <div class="message bot">
-        <div class="message-content">
-          Xin chào! Tôi là trợ lý SpringWave. Tôi có thể giúp gì cho bạn?
+        <div class="message-content" data-i18n="chatbot.greeting">
+          Hello! I'm SpringWave Assistant. How can I help you?
         </div>
       </div>
     </div>
     <div class="chatbot-input-area">
-      <input type="text" class="chatbot-input" id="chatbot-input" placeholder="Nhập tin nhắn..." autocomplete="off" />
+      <input type="text" class="chatbot-input" id="chatbot-input" data-i18n="chatbot.input_placeholder" placeholder="Type a message..." autocomplete="off" />
       <button class="chatbot-send" id="chatbot-send">
         <i class="fa-solid fa-paper-plane"></i>
       </button>

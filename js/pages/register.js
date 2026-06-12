@@ -1,8 +1,10 @@
 import "../../src/style.css";
 import { register } from "../api/auth.js";
 import { isAuthenticated } from "../lib/session.js";
+import { initI18n } from "../lib/i18n.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+    await initI18n();
     initRegisterForm();
 });
 

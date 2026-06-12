@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard — SpringWave</title>
+    <title data-i18n="admin.title">Admin Dashboard — SpringWave</title>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,17 +25,17 @@
         <!-- HEADER -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div>
-                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]">Admin Dashboard</h1>
-                <p class="text-[#64748b] text-base mt-1">Review, approve, and manage all platform events</p>
+                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]" data-i18n="admin.dashboard">Admin Dashboard</h1>
+                <p class="text-[#64748b] text-base mt-1" data-i18n="admin.dashboard_desc">Review, approve, and manage all platform events</p>
             </div>
             <div class="flex items-center gap-3">
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-sm"></i>
-                    <input type="text" id="admin-search" placeholder="Search events..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[240px] md:w-[260px] outline-none focus:border-primary transition-colors" />
+                    <input type="text" id="admin-search" placeholder="Search events..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[240px] md:w-[260px] outline-none focus:border-primary transition-colors" data-i18n="admin.search" />
                 </div>
-                <button id="scrape-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95" title="Scrape Facebook pages for new events">
+                <button id="scrape-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95" title="Scrape Facebook pages for new events" data-i18n="admin.scrape">
                     <i class="fa-solid fa-cloud-arrow-down"></i>
-                    <span class="hidden md:inline">Scrape</span>
+                    <span class="hidden md:inline" data-i18n="admin.scrape">Scrape</span>
                 </button>
                 <button id="refresh-admin-btn" class="w-10 h-10 rounded-full border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f1f5f9] transition-all spring-ease" title="Refresh">
                     <i class="fa-solid fa-rotate"></i>
@@ -50,7 +50,7 @@
                     <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary">
                         <i class="fa-solid fa-calendar-days text-lg"></i>
                     </div>
-                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Total</span>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin.total">Total</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-total">—</p>
             </div>
@@ -59,7 +59,7 @@
                     <div class="w-10 h-10 rounded-xl bg-[#d1fae5] flex items-center justify-center text-[#059669]">
                         <i class="fa-solid fa-check-circle text-lg"></i>
                     </div>
-                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Published</span>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin.published">Published</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-published">—</p>
             </div>
@@ -68,7 +68,7 @@
                     <div class="w-10 h-10 rounded-xl bg-[#fef3c7] flex items-center justify-center text-[#d97706]">
                         <i class="fa-solid fa-clock text-lg"></i>
                     </div>
-                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Pending</span>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin.pending">Pending</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-pending">—</p>
             </div>
@@ -77,7 +77,7 @@
                     <div class="w-10 h-10 rounded-xl bg-[#fce7f3] flex items-center justify-center text-[#db2777]">
                         <i class="fa-solid fa-eye text-lg"></i>
                     </div>
-                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Views</span>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin.views">Views</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-views">—</p>
             </div>
@@ -85,10 +85,10 @@
 
         <!-- TABS -->
         <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
-            <button class="tab-btn active" data-tab="pending">
+            <button class="tab-btn active" data-tab="pending" data-i18n="admin.pending_review">
                 <i class="fa-solid fa-clock mr-1.5"></i> Pending Review
             </button>
-            <button class="tab-btn" data-tab="published">
+            <button class="tab-btn" data-tab="published" data-i18n="admin.published">
                 <i class="fa-solid fa-check-circle mr-1.5"></i> Published
             </button>
         </div>
@@ -96,19 +96,19 @@
         <!-- BULK ACTION BAR -->
         <div class="hidden items-center gap-3 mb-4 px-2" id="bulk-bar">
             <span class="text-sm font-semibold text-[#191b22]" id="bulk-count">0 selected</span>
-            <button class="py-2 px-4 rounded-xl border-none bg-[#059669] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#047857] active:scale-95 hidden" id="bulk-approve">
+            <button class="py-2 px-4 rounded-xl border-none bg-[#059669] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#047857] active:scale-95 hidden" id="bulk-approve" data-i18n="admin.approve_selected">
                 <i class="fa-solid fa-check"></i> Approve Selected
             </button>
-            <button class="py-2 px-4 rounded-xl border-none bg-red-500 text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-red-600 active:scale-95 hidden" id="bulk-delete">
+            <button class="py-2 px-4 rounded-xl border-none bg-red-500 text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-red-600 active:scale-95 hidden" id="bulk-delete" data-i18n="admin.delete_selected">
                 <i class="fa-solid fa-trash-can"></i> Delete Selected
             </button>
-            <button class="py-2 px-4 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95" id="bulk-clear">Clear</button>
+            <button class="py-2 px-4 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95" id="bulk-clear" data-i18n="common.clear">Clear</button>
         </div>
 
         <!-- TABLE CARD -->
         <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-[#ecedfa]">
-                <h2 class="font-headline-md text-xl font-bold text-[#191b22]" id="table-title">Pending Review</h2>
+                <h2 class="font-headline-md text-xl font-bold text-[#191b22]" id="table-title" data-i18n="admin.pending_review">Pending Review</h2>
                 <span class="text-sm text-[#64748b] font-medium" id="table-count">0 events</span>
             </div>
             <div class="overflow-x-auto">
@@ -118,12 +118,12 @@
                             <th class="text-left py-3.5 px-4 w-12">
                                 <input type="checkbox" id="select-all" class="w-4 h-4 rounded border-[#c3c6d5] text-primary cursor-pointer accent-primary" />
                             </th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Event</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell">Type</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell">Source</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell">Date</th>
-                            <th class="text-center py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell">Views</th>
-                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Actions</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin.event_col">Event</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin.type_col">Type</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell" data-i18n="admin.source_col">Source</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell" data-i18n="admin.date_col">Date</th>
+                            <th class="text-center py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin.views_col">Views</th>
+                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin.actions_col">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="admin-table-body">
@@ -132,8 +132,8 @@
             </div>
             <div id="table-empty" class="hidden text-center py-16 text-[#94a3b8]">
                 <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
-                <p class="text-base font-semibold">No events found</p>
-                <p class="text-sm mt-1">Try adjusting your search</p>
+                <p class="text-base font-semibold" data-i18n="admin.no_events">No events found</p>
+                <p class="text-sm mt-1" data-i18n="admin.adjust_search">Try adjusting your search</p>
             </div>
         </div>
     </main>
@@ -145,11 +145,11 @@
             <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-check text-green-600 text-2xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Approve Event</h3>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin.approve_title">Approve Event</h3>
             <p class="text-sm text-[#64748b] mb-6">Publish <strong id="approve-title">this event</strong> to make it visible to all users?</p>
             <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="approve-cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-[#059669] text-white font-semibold text-sm spring-ease hover:bg-[#047857] active:scale-95" id="approve-confirm">
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="approve-cancel" data-i18n="common.cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-[#059669] text-white font-semibold text-sm spring-ease hover:bg-[#047857] active:scale-95" id="approve-confirm" data-i18n="admin.approve">
                     <i class="fa-solid fa-check mr-1.5"></i> Approve
                 </button>
             </div>
@@ -163,11 +163,11 @@
             <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-ban text-red-500 text-2xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Reject Event</h3>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin.reject_title">Reject Event</h3>
             <p class="text-sm text-[#64748b] mb-6">Reject and delete <strong id="reject-title">this event</strong>? This action cannot be undone.</p>
             <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="reject-cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="reject-confirm">
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="reject-cancel" data-i18n="common.cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="reject-confirm" data-i18n="admin.reject">
                     <i class="fa-solid fa-ban mr-1.5"></i> Reject
                 </button>
             </div>
@@ -181,11 +181,11 @@
             <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-trash-can text-red-500 text-2xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Delete Event</h3>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin.delete_title">Delete Event</h3>
             <p class="text-sm text-[#64748b] mb-6">Delete <strong id="delete-title">this event</strong> permanently? This cannot be undone.</p>
             <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="delete-cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="delete-confirm">
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="delete-cancel" data-i18n="common.cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="delete-confirm" data-i18n="admin.delete">
                     <i class="fa-solid fa-trash-can mr-1.5"></i> Delete
                 </button>
             </div>
@@ -197,17 +197,17 @@
         <div class="popup-backdrop" id="popup-backdrop"></div>
         <div class="popup-container" id="popup-container">
             <div class="flex items-center justify-between mb-6">
-                <button class="back-btn !py-2.5 !px-4 !text-sm" id="popup-back">
+                <button class="back-btn !py-2.5 !px-4 !text-sm" id="popup-back" data-i18n="admin.back">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
                 <div class="flex items-center gap-2" id="popup-actions">
-                    <button class="back-btn !py-2.5 !px-4 !text-sm !text-primary !border-primary/30 hover:!bg-primary/5" hidden id="edit-btn">
+                    <button class="back-btn !py-2.5 !px-4 !text-sm !text-primary !border-primary/30 hover:!bg-primary/5" hidden id="edit-btn" data-i18n="admin.edit">
                         <i class="fa-regular fa-pen-to-square"></i> Edit
                     </button>
-                    <button class="back-btn !py-2.5 !px-4 !text-sm" hidden id="save-btn">
+                    <button class="back-btn !py-2.5 !px-4 !text-sm" hidden id="save-btn" data-i18n="admin.save">
                         <i class="fa-regular fa-floppy-disk"></i> Save
                     </button>
-                    <button class="back-btn !py-2.5 !px-4 !text-sm !text-red-500 !border-red-200 hover:!bg-red-50" hidden id="cancel-btn">
+                    <button class="back-btn !py-2.5 !px-4 !text-sm !text-red-500 !border-red-200 hover:!bg-red-50" hidden id="cancel-btn" data-i18n="common.cancel">
                         Cancel
                     </button>
                 </div>
@@ -226,29 +226,29 @@
                 <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
                     <i class="fa-solid fa-cloud-arrow-down text-primary text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-[#191b22] mb-2">Scraping Facebook Pages</h3>
-                <p class="text-sm text-[#64748b]">Fetching events from configured pages...</p>
+                <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin.scraping">Scraping Facebook Pages</h3>
+                <p class="text-sm text-[#64748b]" data-i18n="admin.scraping_desc">Fetching events from configured pages...</p>
             </div>
             <div class="hidden text-center" id="scrape-result">
                 <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                     <i class="fa-solid fa-check text-green-600 text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-[#191b22] mb-2">Scrape Complete</h3>
+                <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin.scrape_complete">Scrape Complete</h3>
                 <div class="flex justify-center gap-6 my-6" id="scrape-stats">
                     <div class="text-center">
                         <p class="text-[32px] font-extrabold text-[#191b22]" id="scrape-total">0</p>
-                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">Found</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase" data-i18n="admin.found">Found</p>
                     </div>
                     <div class="text-center">
                         <p class="text-[32px] font-extrabold text-[#059669]" id="scrape-inserted">0</p>
-                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">New</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase" data-i18n="admin.new">New</p>
                     </div>
                     <div class="text-center">
                         <p class="text-[32px] font-extrabold text-[#db2777]" id="scrape-errors">0</p>
-                        <p class="text-[13px] text-[#64748b] font-semibold uppercase">Errors</p>
+                        <p class="text-[13px] text-[#64748b] font-semibold uppercase" data-i18n="admin.errors">Errors</p>
                     </div>
                 </div>
-                <button class="py-3 px-8 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="scrape-done">Done</button>
+                <button class="py-3 px-8 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="scrape-done" data-i18n="admin.done">Done</button>
             </div>
         </div>
     </div>

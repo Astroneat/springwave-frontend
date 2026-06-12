@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SpringWave - Complete Profile</title>
+    <title data-i18n="complete_profile.title">SpringWave - Complete Profile</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -22,18 +22,18 @@
 
         <a href="index.html" class="inline-block mb-6 transition duration-200 hover:-translate-y-1">
             <div
-                class="inline-flex items-center gap-2 text-[17px] font-semibold text-[#23499b] transition duration-200 hover:text-[#183a82]">
+                class="inline-flex items-center gap-2 text-[17px] font-semibold text-[#23499b] transition duration-200 hover:text-[#183a82]" data-i18n="complete_profile.home">
                 <i class="bi bi-house-door text-[24px]"></i>
                 Home
             </div>
         </a>
 
-        <h1 class="text-[42px] max-sm:text-[30px] font-bold text-[#23499b] text-center mb-2">Complete Your Profile</h1>
-        <p class="text-center text-gray-500 mb-8 text-sm">Fill in your details to complete your account setup</p>
+        <h1 class="text-[42px] max-sm:text-[30px] font-bold text-[#23499b] text-center mb-2" data-i18n="complete_profile.heading">Complete Your Profile</h1>
+        <p class="text-center text-gray-500 mb-8 text-sm" data-i18n="complete_profile.desc">Fill in your details to complete your account setup</p>
 
         <form id="complete-profile-form">
             <div class="mb-4">
-                <label class="block mb-2.5 font-semibold text-[#222] text-base">
+                <label class="block mb-2.5 font-semibold text-[#222] text-base" data-i18n="complete_profile.username">
                     Username <span class="text-red-500">*</span>
                 </label>
                 <input id="username" type="text" placeholder="Choose a username" required
@@ -42,35 +42,35 @@
 
             <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                 <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
+                    <label class="block mb-2.5 font-semibold text-[#222] text-sm" data-i18n="complete_profile.dob">
                         Date of Birth <span class="text-red-500">*</span>
                     </label>
                     <input id="dob" type="date" required
                         class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                 </div>
                 <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
+                    <label class="block mb-2.5 font-semibold text-[#222] text-sm" data-i18n="complete_profile.school">
                         School <span class="text-red-500">*</span>
                     </label>
                     <input id="school" type="text" placeholder="e.g. VKU" required
                         class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                 </div>
                 <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
+                    <label class="block mb-2.5 font-semibold text-[#222] text-sm" data-i18n="complete_profile.class">
                         Class <span class="text-red-500">*</span>
                     </label>
                     <input id="class" type="text" placeholder="e.g. 12A" required
                         class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                 </div>
                 <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
+                    <label class="block mb-2.5 font-semibold text-[#222] text-sm" data-i18n="complete_profile.major">
                         Major <span class="text-red-500">*</span>
                     </label>
                     <input id="major" type="text" placeholder="e.g. Computer Science" required
                         class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
                 </div>
                 <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
+                    <label class="block mb-2.5 font-semibold text-[#222] text-sm" data-i18n="complete_profile.phone">
                         Phone Number <span class="text-red-500">*</span>
                     </label>
                     <input id="phoneNo" type="tel" placeholder="e.g. 0123456789" required
@@ -80,7 +80,7 @@
 
             <div id="status-msg" class="text-sm my-2"></div>
 
-            <button type="submit"
+            <button type="submit" data-i18n="complete_profile.submit_btn"
                 class="w-full p-4 bg-[#ffde42] border-2 border-[#23499b] rounded-2xl text-xl font-bold cursor-pointer mt-2.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(255,222,66,0.4)]">
                 COMPLETE PROFILE
             </button>

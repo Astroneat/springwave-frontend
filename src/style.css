@@ -419,6 +419,29 @@
    CHATBOT
 ========================= */
 
+.lang-switcher-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(35, 73, 155, 0.2);
+    background: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lang-switcher-btn:hover {
+    background: rgba(35, 73, 155, 0.05);
+}
+.lang-switcher-btn:active {
+    transform: scale(0.95);
+}
+.lang-switcher-btn .lang-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
 .chatbot-widget {
     @apply fixed bottom-6 right-6 z-[9999] flex flex-col items-end font-body-md;
 }

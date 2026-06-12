@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SpringWave - AI Quiz</title>
+  <title data-i18n="quiz.title">SpringWave - AI Quiz</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -19,27 +19,27 @@
         <div class="quiz-start-icon">
           <span class="material-symbols-outlined">psychology</span>
         </div>
-        <h1 class="quiz-start-title">Discover Your Perfect Activities</h1>
-        <p class="quiz-start-desc">
+        <h1 class="quiz-start-title" data-i18n="quiz.start_title">Discover Your Perfect Activities</h1>
+        <p class="quiz-start-desc" data-i18n="quiz.start_desc">
           Answer 10 quick questions to get AI-powered activity recommendations tailored to you.
         </p>
         <div class="quiz-start-features">
           <div class="quiz-start-feature">
             <span class="material-symbols-outlined">quiz</span>
-            <span>10 questions</span>
+            <span data-i18n="quiz.questions">10 questions</span>
           </div>
           <div class="quiz-start-feature">
             <span class="material-symbols-outlined">timer</span>
-            <span>2-3 min</span>
+            <span data-i18n="quiz.duration">2-3 min</span>
           </div>
           <div class="quiz-start-feature">
             <span class="material-symbols-outlined">auto_awesome</span>
-            <span>AI results</span>
+            <span data-i18n="quiz.ai_results">AI results</span>
           </div>
         </div>
         <button class="quiz-btn-primary" id="quizStartBtn">
           <span class="material-symbols-outlined">play_arrow</span>
-          Start Quiz
+          <span data-i18n="quiz.start_btn">Start Quiz</span>
         </button>
       </div>
 
@@ -57,11 +57,11 @@
         <div class="quiz-nav">
           <button class="quiz-btn-nav hidden" id="quizPrevBtn">
             <span class="material-symbols-outlined">arrow_back</span>
-            Previous
+            <span data-i18n="quiz.previous">Previous</span>
           </button>
           <div></div>
           <button class="quiz-btn-nav quiz-btn-next" id="quizNextBtn" disabled>
-            Next
+            <span data-i18n="quiz.next">Next</span>
             <span class="material-symbols-outlined">arrow_forward</span>
           </button>
         </div>
@@ -81,11 +81,11 @@
         <div class="quiz-result-actions">
           <button class="quiz-btn-primary" id="quizExploreBtn">
             <span class="material-symbols-outlined">explore</span>
-            Explore Recommended Activities
+            <span data-i18n="quiz.explore_activities">Explore Recommended Activities</span>
           </button>
           <button class="quiz-btn-secondary" id="quizRetakeBtn">
             <span class="material-symbols-outlined">replay</span>
-            Retake Quiz
+            <span data-i18n="quiz.retake">Retake Quiz</span>
           </button>
         </div>
       </div>

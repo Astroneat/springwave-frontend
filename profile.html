@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile - SpringWave</title>
+  <title data-i18n="profile.title">Profile - SpringWave</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
@@ -44,7 +44,7 @@
           <div class="profile-detail-item"><i class="fa-regular fa-user"></i> <span id="profile-username">-</span></div>
         </div>
       </div>
-      <button class="edit-profile-btn" id="edit-profile-btn">
+      <button class="edit-profile-btn" id="edit-profile-btn" data-i18n="profile.edit_profile">
         <i class="fa-regular fa-pen-to-square"></i> Edit Profile
       </button>
     </div>
@@ -52,19 +52,19 @@
     <div class="profile-layout">
       <div class="profile-sidebar">
         <div class="profile-card" id="exp-panel">
-          <h2>Community Contribution</h2>
+          <h2 data-i18n="profile.community_contribution">Community Contribution</h2>
           <div id="exp-list"></div>
         </div>
         <div class="profile-card" id="ai-profile-card" style="display:none;">
-          <h2><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span> AI Profile</h2>
-          <p class="badges-subtitle">Your AI-generated profile based on quiz answers and activity preferences.</p>
+          <h2 data-i18n="profile.ai_profile"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span> AI Profile</h2>
+          <p class="badges-subtitle" data-i18n="profile.ai_profile_desc">Your AI-generated profile based on quiz answers and activity preferences.</p>
           <div id="ai-profile-content"></div>
         </div>
       </div>
 
       <div class="profile-card">
-        <h2>Badges</h2>
-        <p class="badges-subtitle">Complete actions across the community to earn badges. Each badge has its own personality — collect them all.</p>
+        <h2 data-i18n="profile.badges">Badges</h2>
+        <p class="badges-subtitle" data-i18n="profile.badges_desc">Complete actions across the community to earn badges. Each badge has its own personality — collect them all.</p>
         <div id="badges-grid"></div>
       </div>
     </div>
@@ -81,41 +81,41 @@
     <div class="edit-modal-backdrop"></div>
     <div class="edit-modal">
       <div class="edit-modal-header">
-        <h2>Edit Profile</h2>
+        <h2 data-i18n="profile.edit_modal_title">Edit Profile</h2>
         <button class="edit-modal-close" id="edit-modal-close"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form id="edit-form">
         <div class="edit-form-group">
-          <label>Full Name</label>
+          <label data-i18n="profile.full_name">Full Name</label>
           <input type="text" id="edit-fullname" required>
         </div>
         <div class="edit-form-row">
           <div class="edit-form-group">
-            <label>Date of Birth</label>
+            <label data-i18n="profile.dob">Date of Birth</label>
             <input type="date" id="edit-dob" required>
           </div>
           <div class="edit-form-group">
-            <label>Phone Number</label>
+            <label data-i18n="profile.phone">Phone Number</label>
             <input type="tel" id="edit-phone" required>
           </div>
         </div>
         <div class="edit-form-row">
           <div class="edit-form-group">
-            <label>School</label>
+            <label data-i18n="profile.school">School</label>
             <input type="text" id="edit-school" required>
           </div>
           <div class="edit-form-group">
-            <label>Class</label>
+            <label data-i18n="profile.class">Class</label>
             <input type="text" id="edit-class" required>
           </div>
         </div>
         <div class="edit-form-group">
-          <label>Major</label>
+          <label data-i18n="profile.major">Major</label>
           <input type="text" id="edit-major" required>
         </div>
         <div class="edit-form-actions">
-          <button type="button" class="edit-btn-cancel" id="edit-btn-cancel">Cancel</button>
-          <button type="submit" class="edit-btn-save">Save Changes</button>
+          <button type="button" class="edit-btn-cancel" id="edit-btn-cancel" data-i18n="common.cancel">Cancel</button>
+          <button type="submit" class="edit-btn-save" data-i18n="profile.save_changes">Save Changes</button>
         </div>
       </form>
     </div>
@@ -125,15 +125,15 @@
     <div class="crop-modal-backdrop"></div>
     <div class="crop-modal">
       <div class="crop-modal-header">
-        <h3>Crop Avatar</h3>
+        <h3 data-i18n="profile.crop_avatar">Crop Avatar</h3>
         <button class="crop-modal-close" id="cropModalClose"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="crop-modal-body">
         <img id="cropImage" style="max-width:100%;"/>
       </div>
       <div class="crop-modal-actions">
-        <button class="crop-btn-cancel" id="cropBtnCancel">Cancel</button>
-        <button class="crop-btn-save" id="cropBtnSave">Save</button>
+        <button class="crop-btn-cancel" id="cropBtnCancel" data-i18n="common.cancel">Cancel</button>
+        <button class="crop-btn-save" id="cropBtnSave" data-i18n="common.save">Save</button>
       </div>
     </div>
   </div>
