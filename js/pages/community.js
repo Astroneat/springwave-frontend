@@ -71,10 +71,11 @@ async function enrichDiscussionsEventData(discussions) {
   const eventIds = [...new Set(needEnrich.map(d => d.relatedEvent))];
   await Promise.all(eventIds.map(async (eventId) => {
     try {
-      const { activity } = await getActivityById(eventId);
-      if (activity) {
+      const data = await getActivityById(eventId);
+      const ev = data?.activity || data;
+      if (ev) {
         needEnrich.filter(d => d.relatedEvent === eventId).forEach(d => {
-          d._event = { title: activity.title, date: activity.heldDate, attendees: activity.participants || 0 };
+          d._event = { title: ev.title, date: ev.heldDate || ev.date, attendees: ev.participants || ev.attendees || 0 };
         });
       }
     } catch {
@@ -127,9 +128,9 @@ async function getEventDiscussions() {
       tags: ["event"],
       replies: 0,
       views: 0,
-      lastActivity: e.date,
+      lastActivity: e.heldDate || e.date,
       relatedEvent: e.id,
-      _event: { title: e.title, date: e.date, attendees: e.attendees },
+      _event: { title: e.title, date: e.heldDate || e.date, attendees: e.participants || e.attendees || 0 },
     }));
   }
 }
@@ -667,8 +668,6 @@ function renderEventRef(eventId, eventData) {
         <span class="forum-event-ref-meta">
           <span class="material-symbols-outlined text-xs">calendar_today</span>
           ${event.date}
-          <span class="material-symbols-outlined text-xs">person</span>
-          ${event.attendees} attending
         </span>
       </div>
       <span class="forum-event-ref-link">View Event</span>
@@ -747,9 +746,10 @@ async function openDiscussionDetail(id) {
 
   if (discussion.relatedEvent && !discussion._event) {
     try {
-      const { activity } = await getActivityById(discussion.relatedEvent);
-      if (activity) {
-        discussion._event = { title: activity.title, date: activity.heldDate, attendees: activity.participants || 0 };
+      const data = await getActivityById(discussion.relatedEvent);
+      const ev = data?.activity || data;
+      if (ev) {
+        discussion._event = { title: ev.title, date: ev.heldDate || ev.date, attendees: ev.participants || ev.attendees || 0 };
       }
     } catch {
       try {

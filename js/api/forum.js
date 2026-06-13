@@ -405,7 +405,7 @@ export async function getEventById(id) {
   const { getActivityById } = await import("./activities.js");
   try {
     const data = await getActivityById(id);
-    if (data?.activity) return { id: data.activity._id || id, title: data.activity.title, date: formatDate(data.activity.heldDate), attendees: data.activity.viewCount || 0 };
+    if (data?.activity) return { id: data.activity._id || id, title: data.activity.title, date: formatDate(data.activity.heldDate), attendees: data.activity.participants || 0 };
   } catch {}
   return null;
 }
