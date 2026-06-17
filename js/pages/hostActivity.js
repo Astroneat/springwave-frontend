@@ -20,7 +20,7 @@ document.addEventListener(
         }
 
         const user = getUser();
-        if (user?.role !== 'host' && user?.role !== 'admin') {
+        if (user?.role !== 'admin') {
             window.location.href = "./index.html";
             return;
         }

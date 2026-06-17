@@ -244,13 +244,14 @@ function buildPopupHTML(a) {
     const type = capitalize(a.type);
     const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
     const filesHTML = (a.attachments || []).map(f => {
-        const fileName = decodeURIComponent(f.link.split('/').pop());
+        const link = f.activityAttachLink || f.link || '';
+        const fileName = decodeURIComponent(link.split('/').pop());
         return `<div class="file-item">
             <div class="file-left">
                 <div class="file-icon"><i class="fa-solid fa-file"></i></div>
                 <div><h4>${fileName}</h4></div>
             </div>
-            <a class="download-btn" href="${CDN_DOMAIN}/${f.link}" target="_blank"><i class="fa-solid fa-download"></i></a>
+            <a class="download-btn" href="${CDN_DOMAIN}/${link}" target="_blank"><i class="fa-solid fa-download"></i></a>
         </div>`;
     }).join("");
 

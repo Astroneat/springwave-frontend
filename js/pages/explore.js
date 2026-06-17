@@ -248,7 +248,7 @@ async function applyFiltersAndSort() {
             filtered.sort((a, b) => new Date(b.heldDate || 0) - new Date(a.heldDate || 0));
             break;
         case "popular":
-            filtered.sort((a, b) => (b.participants || 0) - (a.participants || 0));
+            filtered.sort((a, b) => ((b.participants?.length || b.viewCount || 0) - (a.participants?.length || a.viewCount || 0)));
             break;
         case "ending":
             filtered.sort((a, b) => new Date(a.applicationDeadline || a.heldDate || 0) - new Date(b.applicationDeadline || b.heldDate || 0));
@@ -374,7 +374,6 @@ async function openPopup(activityID) {
     const activity = allActivities.find(a => a.activityID === activityID || a._id === activityID) || null;
     if (activity) {
         popupContainer.innerHTML = buildPopupHTML(activity);
-        getActivityById(activityID).catch(() => {});
     } else {
         const { activity: fetched } = await getActivityById(activityID);
         popupContainer.innerHTML = buildPopupHTML(fetched);

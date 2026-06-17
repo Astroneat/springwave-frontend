@@ -69,6 +69,10 @@ function initRegisterForm() {
         data._ts = formTimestamp;
         data.deviceFingerprint = getDeviceFingerprint().deviceId;
 
+        if(data.password.length < 6) {
+            setStatus("Password must be at least 6 characters.", true);
+            return;
+        }
         if(data.password !== confirmPassword) {
             setStatus("Passwords do not match.", true);
             return;

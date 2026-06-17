@@ -50,7 +50,9 @@ export async function getTrendingDiscussions() {
       discussionsCache = data.discussions;
       return data.discussions;
     }
-  } catch {}
+  } catch {
+    console.warn('[Forum] API unavailable, using fallback data for trending discussions');
+  }
   return DISCUSSIONS_FALLBACK;
 }
 
@@ -138,7 +140,9 @@ export async function getUniversityCommunities() {
   try {
     const data = await get("/community/universities");
     if (data?.universities) return data.universities;
-  } catch {}
+  } catch {
+    console.warn('[Forum] API unavailable, using fallback data for universities');
+  }
   return UNIVERSITIES_FALLBACK;
 }
 
@@ -146,7 +150,9 @@ export async function getSkillTopics() {
   try {
     const data = await get("/community/skills");
     if (data?.skills) return data.skills;
-  } catch {}
+  } catch {
+    console.warn('[Forum] API unavailable, using fallback data for skills');
+  }
   return SKILLS_FALLBACK;
 }
 
