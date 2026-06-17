@@ -1,6 +1,8 @@
 import "../../src/style.css";
 import { t } from "../lib/i18n.js";
 import { isAuthenticated, getUser, getToken, setUser } from "../lib/session.js";
+import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
+import { sanitizeHtml } from "../lib/sanitize.js";
 import {
   getTrendingDiscussions,
   getUniversityCommunities,
@@ -1032,8 +1034,16 @@ function hideDiscussionPopup() {
 
 async function submitDiscussionComment(id, container) {
   const input = container.querySelector("#discussion-input");
-  const text = input.value.trim();
+  const text = sanitizeHtml(input.value.trim());
   if (!text) return;
+
+  const check = canPerformAction('addComment');
+  if (!check.allowed) {
+    alert(`Please wait ${check.remaining} seconds before posting another comment.`);
+    return;
+  }
+  markActionPerformed('addComment');
+
   const replyToId = input.dataset.replyToId;
   let newComment;
   if (replyToId) {
@@ -1869,17 +1879,24 @@ function initPostModal() {
   const publishBtn = document.getElementById("forumPostPublish");
   if (publishBtn) {
     publishBtn.addEventListener("click", async () => {
-      const title = document.getElementById("postTitle")?.value.trim();
+      const check = canPerformAction('createDiscussion');
+      if (!check.allowed) {
+        alert(`Please wait ${check.remaining} seconds before posting another discussion.`);
+        return;
+      }
+
+      const title = sanitizeHtml(document.getElementById("postTitle")?.value.trim());
       if (!title) {
         document.getElementById("postTitle")?.focus();
         return;
       }
       publishBtn.disabled = true;
+      markActionPerformed('createDiscussion');
       try {
         const category = categorySelect?.value || "general";
-        const content = document.getElementById("postContent")?.value.trim() || "";
+        const content = sanitizeHtml(document.getElementById("postContent")?.value.trim() || "");
         const tagsInput = document.getElementById("postTags")?.value || "";
-        const tags = tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(Boolean) : [];
+        const tags = tagsInput ? tagsInput.split(",").map(t => sanitizeHtml(t.trim())).filter(Boolean) : [];
 
         let relatedEvent = undefined;
         if (category === "event" && selectedEventId) relatedEvent = selectedEventId;

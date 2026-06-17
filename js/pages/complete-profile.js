@@ -1,7 +1,8 @@
 import "../../src/style.css";
-import { completeProfile } from "../api/auth.js";
-import { createSession, getToken, getUser, logout, isAuthenticated } from "../lib/session.js";
+import { getCurrentUser, completeProfile } from "../api/auth.js";
+import { isAuthenticated, getToken, createSession, setUser } from "../lib/session.js";
 import { initI18n } from "../lib/i18n.js";
+import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {
@@ -35,6 +36,13 @@ function initCompleteProfileForm() {
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        const check = canPerformAction('register');
+        if (!check.allowed) {
+            setStatus(`Please wait ${check.remaining} seconds.`, true);
+            return;
+        }
+        markActionPerformed('register');
 
         const data = {
             username: document.getElementById("username").value.trim(),

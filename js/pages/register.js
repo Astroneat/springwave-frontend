@@ -2,6 +2,8 @@ import "../../src/style.css";
 import { register } from "../api/auth.js";
 import { isAuthenticated } from "../lib/session.js";
 import { initI18n } from "../lib/i18n.js";
+import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
+import { sanitizeHtml } from "../lib/sanitize.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
@@ -33,10 +35,18 @@ function initRegisterForm() {
 
     async function handleSubmit(event) {
         event.preventDefault();
-        const firstName = document.getElementById("first-name").value.trim();
-        const lastName = document.getElementById("last-name").value.trim();
+
+        const check = canPerformAction('register');
+        if (!check.allowed) {
+            setStatus(`Please wait ${check.remaining} seconds before trying again.`, true);
+            return;
+        }
+        markActionPerformed('register');
+
+        const firstName = sanitizeHtml(document.getElementById("first-name").value.trim());
+        const lastName = sanitizeHtml(document.getElementById("last-name").value.trim());
         const data = {
-            username: document.getElementById("username").value.trim(),
+            username: sanitizeHtml(document.getElementById("username").value.trim()),
             email: document.getElementById("email").value.trim(),
             fullname: firstName + " " + lastName,
             password: document.getElementById("password").value.trim(),

@@ -6,6 +6,7 @@ import { fetchContent } from "../lib/utils.js";
 import { submitSurvey, getSurveyQuestions, getSurveyResult } from "../api/survey.js";
 import { generateProfile } from "../api/profile.js";
 import { t } from "../lib/i18n.js";
+import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 
 const HARDCODED_QUESTIONS = [
   {
@@ -376,6 +377,9 @@ async function finishQuiz() {
   }));
 
   if (isAuthenticated()) {
+    const check = canPerformAction('submitSurvey');
+    if (!check.allowed) return;
+    markActionPerformed('submitSurvey');
     try {
       const result = await submitSurvey(answerData);
       if (result?.scores) {

@@ -8,6 +8,8 @@ import { CDN_DOMAIN } from "../config.js";
 import { t } from "../lib/i18n.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
+import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
+import { sanitizeHtml } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { getUser } from "../lib/session.js";
 
@@ -865,15 +867,22 @@ function initExplorePostModal() {
   if (backdrop) backdrop.addEventListener("click", close);
 
   publishBtn?.addEventListener("click", async () => {
-    const title = titleInput.value.trim();
+    const check = canPerformAction('createDiscussion');
+    if (!check.allowed) {
+      alert(`Please wait ${check.remaining} seconds before posting.`);
+      return;
+    }
+    markActionPerformed('createDiscussion');
+
+    const title = sanitizeHtml(titleInput.value.trim());
     if (!title) { titleInput.focus(); return; }
     publishBtn.disabled = true;
     try {
       const result = await createDiscussionWithScope({
         title,
-        content: contentInput.value.trim() || "",
+        content: sanitizeHtml(contentInput.value.trim() || ""),
         category: "event",
-        tags: (tagsInput.value || "").split(",").map(t => t.trim()).filter(Boolean),
+        tags: (tagsInput.value || "").split(",").map(t => sanitizeHtml(t.trim())).filter(Boolean),
         relatedEvent: currentEventId,
         scope: "general",
       });

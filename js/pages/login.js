@@ -3,6 +3,7 @@ import { login, googleLogin } from "../api/auth.js";
 import { createSession, isAuthenticated } from "../lib/session.js";
 import { GOOGLE_CLIENT_ID } from "../config.js";
 import { initI18n } from "../lib/i18n.js";
+import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
@@ -17,6 +18,12 @@ function initLoginForm() {
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const check = canPerformAction('login');
+        if (!check.allowed) {
+            setStatus(`Please wait ${check.remaining} seconds before trying again.`, true);
+            return;
+        }
+        markActionPerformed('login');
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
         setStatus("Logging in", false);

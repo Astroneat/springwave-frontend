@@ -1,4 +1,6 @@
 import { createActivity } from "../api/activities.js";
+import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
+import { sanitizeHtml } from "../lib/sanitize.js";
 
 const MAX_FILES = 10;
 
@@ -525,11 +527,18 @@ export function initFormSubmit(onSuccess) {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const title = document.getElementById("title")?.value.trim();
-        const description = document.getElementById("description")?.value.trim();
-        const location = document.getElementById("location")?.value.trim();
+        const check = canPerformAction('createEvent');
+        if (!check.allowed) {
+            setStatus(`Please wait ${check.remaining} seconds before posting again.`, true, statusMsg);
+            return;
+        }
+        markActionPerformed('createEvent');
+
+        const title = sanitizeHtml(document.getElementById("title")?.value.trim());
+        const description = sanitizeHtml(document.getElementById("description")?.value.trim());
+        const location = sanitizeHtml(document.getElementById("location")?.value.trim());
         const type = form.querySelector('input[name="type"]:checked')?.value;
-        const hostName = document.getElementById("hostName")?.value.trim();
+        const hostName = sanitizeHtml(document.getElementById("hostName")?.value.trim());
         const heldDate = document.getElementById("heldDate")?.value;
         const thumbnailFile = document.getElementById("thumbnail-upload")?.files?.[0];
         const attachmentFiles = document.getElementById("attachment-upload")?.files;
