@@ -576,7 +576,7 @@ function renderDiscussions(discussions, category) {
       <div class="forum-discussion-meta">
         <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
         <div class="forum-discussion-tags">
-          ${d.tags.map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+          ${(Array.isArray(d.tags) ? d.tags : []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
         </div>
       </div>
 
@@ -622,7 +622,7 @@ function buildDiscussionCardHTML(d) {
       <div class="forum-discussion-meta">
         <span class="forum-category-badge forum-category-${d.category || "general"}">${capitalize(d.category || "general")}</span>
         <div class="forum-discussion-tags">
-          ${(d.tags || []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+          ${(Array.isArray(d.tags) ? d.tags : []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
         </div>
       </div>
 
@@ -1229,7 +1229,7 @@ function buildDiscussionDetailHTML(d, comments) {
         <div class="forum-discussion-meta">
           <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
           <div class="forum-discussion-tags">
-          ${(d.tags || []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+          ${(Array.isArray(d.tags) ? d.tags : []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
           </div>
         </div>
         <div class="forum-discussion-stats">
