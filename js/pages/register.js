@@ -4,6 +4,7 @@ import { isAuthenticated } from "../lib/session.js";
 import { initI18n } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
+import { getDeviceFingerprint } from "../lib/device.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
@@ -30,6 +31,8 @@ function initRegisterForm() {
     const form = document.getElementById("register-form");
     const statusMessage = document.getElementById("status-msg");
     if (!form) return;
+
+    const formTimestamp = Date.now();
 
     form.addEventListener("submit", handleSubmit);
 
@@ -62,6 +65,9 @@ function initRegisterForm() {
         if (className) data.class = className;
         if (major) data.major = major;
         if (phoneNo) data.phoneNo = phoneNo;
+
+        data._ts = formTimestamp;
+        data.deviceFingerprint = getDeviceFingerprint().deviceId;
 
         if(data.password !== confirmPassword) {
             setStatus("Passwords do not match.", true);
