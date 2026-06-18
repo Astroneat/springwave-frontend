@@ -18,8 +18,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function initTurnstile() {
     const container = document.getElementById("turnstile-container");
-    if (!container || typeof turnstile === "undefined") return;
-
+    if (!container) return;
+    if (typeof turnstile === "undefined") {
+        setTimeout(initTurnstile, 300);
+        return;
+    }
+    if (turnstileWidgetId !== null) {
+        turnstile.remove(turnstileWidgetId);
+    }
     turnstileWidgetId = turnstile.render(container, {
         sitekey: TURNSTILE_SITE_KEY,
         theme: "light",
@@ -116,6 +122,10 @@ function initRegisterForm() {
     }
 
     function showVerificationMessage(email) {
+        if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+            turnstile.remove(turnstileWidgetId);
+            turnstileWidgetId = null;
+        }
         const form = document.getElementById("register-form");
         form.innerHTML = `
             <div class="text-center py-8">
