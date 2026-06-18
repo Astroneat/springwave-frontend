@@ -99,15 +99,37 @@ function initRegisterForm() {
 
         setStatus("Registering...", false);
         try {
-            await register(data);
-            setStatus("Registered successfully! Redirecting to login...", false);
-            window.location.href = "/login.html";
+            const result = await register(data);
+
+            if (result.emailSent) {
+                showVerificationMessage(data.email);
+            } else {
+                setStatus("Registered successfully! Redirecting to login...", false);
+                setTimeout(() => { window.location.href = "/login.html"; }, 1000);
+            }
         } catch (err) {
             setStatus(err.message, true);
             if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
                 turnstile.reset(turnstileWidgetId);
             }
         }
+    }
+
+    function showVerificationMessage(email) {
+        const form = document.getElementById("register-form");
+        form.innerHTML = `
+            <div class="text-center py-8">
+                <span class="material-symbols-outlined text-6xl text-green-500 mb-4">mark_email_unread</span>
+                <h2 class="text-2xl font-bold text-[#23499b] mb-3">Check Your Email</h2>
+                <p class="text-gray-600 mb-2">We sent a verification link to:</p>
+                <p class="text-lg font-semibold text-gray-800 mb-6">${email}</p>
+                <p class="text-sm text-gray-500 mb-6">Click the link in the email to verify your account, then log in.</p>
+                <a href="login.html"
+                    class="inline-block w-full p-4 bg-[#23499b] text-white rounded-2xl text-lg font-bold cursor-pointer transition duration-200 hover:-translate-y-0.5">
+                    Go to Login
+                </a>
+            </div>
+        `;
     }
 
     function setStatus(msg, isError) {

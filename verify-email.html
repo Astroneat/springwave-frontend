@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpringWave - Verify Email</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body class="min-h-screen bg-cover flex justify-center items-center p-10 max-sm:p-5"
+    style="background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url('assets/images/danang-17042710410701744932512.jpeg'); backdrop-filter: blur(3px);">
+
+    <div class="w-[70%] max-w-[500px] bg-white/90 backdrop-blur-sm rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.12)] p-9 max-sm:w-full max-sm:p-6 text-center">
+        <a href="index.html" class="inline-block mb-6 transition duration-200 hover:-translate-y-1">
+            <div class="inline-flex items-center gap-2 px-3 py-1 mb-6 bg-[#23499b] text-white font-semibold rounded-xl shadow-md transition-all duration-200 hover:bg-[#183a82] hover:-translate-y-1">
+                <i class="bi bi-house-door text-[24px]"></i> Home
+            </div>
+        </a>
+
+        <div id="verification-status">
+            <div id="loading-spinner" class="mb-6">
+                <span class="material-symbols-outlined animate-spin text-6xl text-[#23499b]">progress_activity</span>
+                <p class="mt-4 text-gray-600 text-lg">Verifying your email...</p>
+            </div>
+            <div id="success-message" style="display:none;" class="mb-6">
+                <span class="material-symbols-outlined text-6xl text-green-500">check_circle</span>
+                <h2 class="text-2xl font-bold text-[#23499b] mt-4">Email Verified!</h2>
+                <p class="mt-2 text-gray-600">Your email has been verified. You can now post discussions.</p>
+            </div>
+            <div id="error-message" style="display:none;" class="mb-6">
+                <span class="material-symbols-outlined text-6xl text-red-500">error</span>
+                <h2 class="text-2xl font-bold text-red-500 mt-4">Verification Failed</h2>
+                <p id="error-text" class="mt-2 text-gray-600">This link is invalid or expired.</p>
+            </div>
+        </div>
+
+        <a href="login.html" id="login-btn" style="display:none;"
+            class="inline-block w-full p-4 bg-[#23499b] text-white rounded-2xl text-xl font-bold cursor-pointer mt-4 transition duration-200 hover:-translate-y-0.5">
+            Go to Login
+        </a>
+        <a href="index.html" id="home-btn" style="display:none;"
+            class="inline-block mt-4 text-[#23499b] font-semibold">Back to Home</a>
+    </div>
+
+    <script type="module">
+        import { API_BASE_URL } from './js/config.js';
+
+        async function verifyEmail() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            const spinner = document.getElementById('loading-spinner');
+            const successMsg = document.getElementById('success-message');
+            const errorMsg = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            const loginBtn = document.getElementById('login-btn');
+            const homeBtn = document.getElementById('home-btn');
+
+            if (!token) {
+                spinner.style.display = 'none';
+                errorMsg.style.display = 'block';
+                errorText.textContent = 'No verification token found.';
+                homeBtn.style.display = 'inline-block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify-email/${token}`);
+                const data = await response.json();
+
+                spinner.style.display = 'none';
+
+                if (response.ok) {
+                    successMsg.style.display = 'block';
+                    loginBtn.style.display = 'inline-block';
+                    homeBtn.style.display = 'inline-block';
+                } else {
+                    errorMsg.style.display = 'block';
+                    errorText.textContent = data.error || 'Verification failed.';
+                    homeBtn.style.display = 'inline-block';
+                }
+            } catch {
+                spinner.style.display = 'none';
+                errorMsg.style.display = 'block';
+                errorText.textContent = 'Network error. Please try again.';
+                homeBtn.style.display = 'inline-block';
+            }
+        }
+
+        verifyEmail();
+    </script>
+</body>
+</html>

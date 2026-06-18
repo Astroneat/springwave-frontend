@@ -1895,6 +1895,12 @@ function initPostModal() {
   const publishBtn = document.getElementById("forumPostPublish");
   if (publishBtn) {
     publishBtn.addEventListener("click", async () => {
+      const user = getUser();
+      if (user && user.emailVerified === false) {
+        showToast("Please verify your email before posting. Check your inbox or resend the verification.", true);
+        return;
+      }
+
       const check = canPerformAction('createDiscussion');
       if (!check.allowed) {
         alert(`Please wait ${check.remaining} seconds before posting another discussion.`);

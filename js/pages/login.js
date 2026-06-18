@@ -4,6 +4,7 @@ import { createSession, isAuthenticated } from "../lib/session.js";
 import { GOOGLE_CLIENT_ID } from "../config.js";
 import { initI18n } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
+import { API_BASE_URL } from "../config.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
@@ -30,8 +31,12 @@ function initLoginForm() {
         try {
             const data = await login(username, password);
             createSession(data.token, data.user);
-            setStatus("Logged in successfully! Redirecting...", false);
-            window.location.href = "/index.html";
+            if (data.user && !data.user.emailVerified) {
+                showVerificationWarning(data.user.email);
+            } else {
+                setStatus("Logged in successfully! Redirecting...", false);
+                setTimeout(() => { window.location.href = "/index.html"; }, 800);
+            }
         } catch(err) {
             if(err.status === 401) {
                 setStatus("Invalid credentials", true);
@@ -50,6 +55,41 @@ function initLoginForm() {
             statusMsg.classList.remove("error-msg");
             statusMsg.classList.add("success-msg");
         }
+    }
+
+    async function showVerificationWarning(email) {
+        const form = document.getElementById("login-form");
+        form.innerHTML = `
+            <div class="text-center py-6">
+                <span class="material-symbols-outlined text-6xl text-amber-500 mb-4">mark_email_unread</span>
+                <h2 class="text-xl font-bold text-[#23499b] mb-2">Email Not Verified</h2>
+                <p class="text-gray-600 mb-4">Please check your email (${email}) and click the verification link.</p>
+                <button id="resend-btn"
+                    class="w-full p-3 bg-[#ffde42] border-2 border-[#23499b] rounded-2xl text-lg font-bold cursor-pointer transition duration-200 hover:-translate-y-0.5 mb-3">
+                    Resend Verification Email
+                </button>
+                <a href="index.html"
+                    class="inline-block w-full p-3 bg-gray-200 rounded-2xl text-lg font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5">
+                    Go to Home
+                </a>
+                <p id="resend-status" class="text-sm mt-3 text-gray-500"></p>
+            </div>
+        `;
+        const baseUrl = API_BASE_URL;
+        document.getElementById("resend-btn")?.addEventListener("click", async () => {
+            const status = document.getElementById("resend-status");
+            status.textContent = "Sending...";
+            try {
+                const resp = await fetch(baseUrl + "/auth/resend-verification", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email }),
+                });
+                const data = await resp.json();
+                status.textContent = data.message || "Verification email sent!";
+            } catch {
+                status.textContent = "Failed to send. Try again later.";
+            }
+        });
     }
 }
 
