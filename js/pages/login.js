@@ -91,7 +91,7 @@ function initLoginForm() {
                 const data = await resp.json();
                 if (resp.ok) {
                     status.textContent = data.message || "Verification email sent!";
-                    status.className = "text-sm mt-3 text-green-600";
+                    status.className = "text-sm mt-3 " + (data.emailSent === false ? "text-yellow-600" : "text-green-600");
                 } else {
                     status.textContent = data.error || "Failed to resend.";
                     status.className = "text-sm mt-3 text-red-500";
