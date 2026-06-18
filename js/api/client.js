@@ -43,7 +43,7 @@ async function request(endpoint, options = {}) {
         try { data = await response.json(); } catch { data = null; }
 
         if (!response.ok) {
-            if (response.status === 401) {
+            if (response.status === 401 && token) {
                 clearSession();
                 window.location.href = "/login.html";
                 return;

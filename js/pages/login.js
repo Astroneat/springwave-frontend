@@ -30,6 +30,7 @@ function initLoginForm() {
         setStatus("Logging in", false);
         try {
             const data = await login(username, password);
+            if (!data) return;
             createSession(data.token, data.user);
             if (data.user && !data.user.emailVerified) {
                 showVerificationWarning(data.user.email);
@@ -78,17 +79,29 @@ function initLoginForm() {
         const baseUrl = API_BASE_URL;
         document.getElementById("resend-btn")?.addEventListener("click", async () => {
             const status = document.getElementById("resend-status");
-            status.textContent = "Sending...";
+            const btn = document.getElementById("resend-btn");
+            btn.disabled = true;
+            btn.textContent = "Sending...";
+            status.textContent = "";
             try {
                 const resp = await fetch(baseUrl + "/auth/resend-verification", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email }),
                 });
                 const data = await resp.json();
-                status.textContent = data.message || "Verification email sent!";
+                if (resp.ok) {
+                    status.textContent = data.message || "Verification email sent!";
+                    status.className = "text-sm mt-3 text-green-600";
+                } else {
+                    status.textContent = data.error || "Failed to resend.";
+                    status.className = "text-sm mt-3 text-red-500";
+                }
             } catch {
-                status.textContent = "Failed to send. Try again later.";
+                status.textContent = "Network error. Try again.";
+                status.className = "text-sm mt-3 text-red-500";
             }
+            btn.disabled = false;
+            btn.textContent = "Resend Verification Email";
         });
     }
 }
