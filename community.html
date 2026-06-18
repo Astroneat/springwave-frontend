@@ -198,6 +198,7 @@
         </div>
       </div>
       <div class="forum-post-modal-footer">
+        <div id="community-turnstile-container" class="flex-1 flex justify-center"></div>
         <button class="forum-post-btn-cancel" id="forumPostCancel" data-i18n="common.cancel">Cancel</button>
         <button class="forum-post-btn-publish disabled:opacity-50 disabled:cursor-not-allowed" id="forumPostPublish" data-i18n="community.publish">
           <span class="material-symbols-outlined text-lg">publish</span>
@@ -293,6 +294,7 @@
   <!-- CHATBOT -->
   <div id="chatbot-container"></div>
 
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <script type="module" src="js/pages/community.js"></script>
 </body>
 </html>

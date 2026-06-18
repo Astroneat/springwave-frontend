@@ -3,6 +3,7 @@ import { t } from "../lib/i18n.js";
 import { isAuthenticated, getUser, getToken, setUser } from "../lib/session.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
+import { TURNSTILE_SITE_KEY } from "../config.js";
 import {
   getTrendingDiscussions,
   getUniversityCommunities,
@@ -1703,6 +1704,7 @@ function initPostModal() {
   let closeTimer = null;
   let _allEvents = [];
   let _eventSearchTimeout = null;
+  let communityTurnstileWidgetId = null;
 
   function renderEventCards(events) {
     if (!postEventCards) return;
@@ -1833,6 +1835,20 @@ function initPostModal() {
     });
     document.body.style.overflow = "hidden";
 
+    if (typeof turnstile !== "undefined") {
+      const container = document.getElementById("community-turnstile-container");
+      if (container) {
+        if (communityTurnstileWidgetId !== null) {
+          turnstile.reset(communityTurnstileWidgetId);
+        } else {
+          communityTurnstileWidgetId = turnstile.render(container, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: "light",
+          });
+        }
+      }
+    }
+
     let cat = categorySelect?.value || "general";
     if (config?.eventTitle) {
       cat = "event";
@@ -1912,6 +1928,8 @@ function initPostModal() {
 
         const result = await createDiscussionWithScope({
           title, content, category, tags, relatedEvent, scope, communityId,
+          cfTurnstileResponse: (typeof turnstile !== "undefined" && communityTurnstileWidgetId !== null)
+            ? turnstile.getResponse(communityTurnstileWidgetId) : undefined,
         });
 
         if (result) {
@@ -1982,6 +2000,9 @@ function initPostModal() {
         }
       } finally {
         publishBtn.disabled = false;
+        if (typeof turnstile !== "undefined" && communityTurnstileWidgetId !== null) {
+          turnstile.reset(communityTurnstileWidgetId);
+        }
       }
     });
   }

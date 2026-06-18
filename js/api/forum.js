@@ -212,13 +212,14 @@ export async function getMyUniversity() {
   return null;
 }
 
-export async function createDiscussionWithScope({ title, content, category, tags, relatedEvent, scope, communityId }) {
+export async function createDiscussionWithScope({ title, content, category, tags, relatedEvent, scope, communityId, cfTurnstileResponse }) {
   try {
     const data = await post("/community/discussions", {
       title, content, category, tags: tags || [],
       relatedEvent: relatedEvent || undefined,
       scope: scope || "general",
       communityId: communityId || undefined,
+      cfTurnstileResponse: cfTurnstileResponse || undefined,
     });
     return data?.discussion || null;
   } catch {

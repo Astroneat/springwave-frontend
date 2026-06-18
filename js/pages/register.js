@@ -5,12 +5,27 @@ import { initI18n } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { getDeviceFingerprint } from "../lib/device.js";
+import { TURNSTILE_SITE_KEY } from "../config.js";
+
+let turnstileWidgetId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
     await loadSchools();
+    initTurnstile();
     initRegisterForm();
 });
+
+function initTurnstile() {
+    const container = document.getElementById("turnstile-container");
+    if (!container || typeof turnstile === "undefined") return;
+
+    turnstileWidgetId = turnstile.render(container, {
+        sitekey: TURNSTILE_SITE_KEY,
+        theme: "light",
+        callback: () => {},
+    });
+}
 
 async function loadSchools() {
     try {
@@ -69,6 +84,10 @@ function initRegisterForm() {
         data._ts = formTimestamp;
         data.deviceFingerprint = getDeviceFingerprint().deviceId;
 
+        if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+            data.cfTurnstileResponse = turnstile.getResponse(turnstileWidgetId);
+        }
+
         if(data.password.length < 6) {
             setStatus("Password must be at least 6 characters.", true);
             return;
@@ -85,6 +104,9 @@ function initRegisterForm() {
             window.location.href = "/login.html";
         } catch (err) {
             setStatus(err.message, true);
+            if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+                turnstile.reset(turnstileWidgetId);
+            }
         }
     }
 
