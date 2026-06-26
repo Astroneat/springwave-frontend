@@ -1,16 +1,31 @@
 import "../../src/style.css";
 import { login, googleLogin } from "../api/auth.js";
-import { createSession, isAuthenticated } from "../lib/session.js";
-import { GOOGLE_CLIENT_ID } from "../config.js";
+import { createSession, setSigningKey, isAuthenticated } from "../lib/session.js";
+import { ensureSession } from "../api/client.js";
+import { GOOGLE_CLIENT_ID, API_BASE_URL } from "../config.js";
 import { initI18n } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
-import { API_BASE_URL } from "../config.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+    if (isAuthenticated()) {
+        await ensureSession();
+    }
     await initI18n();
     initLoginForm();
     initGoogleLogin();
 });
+
+async function fetchSigningKey(token) {
+    try {
+        const resp = await fetch(`${API_BASE_URL}/auth/session/init`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            setSigningKey(data.signingKey);
+        }
+    } catch {}
+}
 
 function initLoginForm() {
     const form = document.getElementById("login-form");
@@ -32,6 +47,7 @@ function initLoginForm() {
             const data = await login(username, password);
             if (!data) return;
             createSession(data.token, data.user);
+            await fetchSigningKey(data.token);
             if (data.user && !data.user.emailVerified) {
                 showVerificationWarning(data.user.email);
             } else {
@@ -119,6 +135,7 @@ function initGoogleLogin() {
             console.log("Google login API response:", data);
 
             createSession(data.token, data.user);
+            await fetchSigningKey(data.token);
 
             if (data.needsProfile) {
                 window.location.href = "/complete-profile.html";

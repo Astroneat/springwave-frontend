@@ -1,5 +1,5 @@
 import { get, post, put, del } from "./client.js";
-import { getToken } from "../lib/session.js";
+import { getToken, getUser } from "../lib/session.js";
 import { formatDate } from "../lib/utils.js";
 
 const DISCUSSIONS_FALLBACK = [
@@ -119,7 +119,7 @@ export async function addComment(discussionId, content) {
     }
     return null;
   } catch {
-    const user = (() => { try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; } })();
+    const user = getUser() || {};
     const comment = { id: Date.now(), discussionId, author: user.fullname || "You", avatar: (user.fullname || "Y")[0], content, date: "Just now", likes: 0 };
     storeComment(discussionId, comment);
     return comment;
@@ -298,7 +298,7 @@ export async function addReply(discussionId, content, replyToId) {
     }
     return null;
   } catch {
-    const user = (() => { try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; } })();
+    const user = getUser() || {};
     const comment = { id: Date.now(), discussionId, author: user.fullname || "You", avatar: (user.fullname || "Y")[0], content, replyToId, date: "Just now", likes: 0, replyTo: { userId: replyToId } };
     storeComment(discussionId, comment);
     return comment;

@@ -1,10 +1,11 @@
 import { API_BASE_URL } from "../config.js";
-import { getToken, clearSession } from "../lib/session.js";
+import { getToken, getSigningKey, setToken, setSigningKey, clearSession } from "../lib/session.js";
 
 let requestQueue = 0;
 const MAX_CONCURRENT = 5;
 const requestTimestamps = [];
 const MIN_REQUEST_INTERVAL = 300;
+let refreshTimer = null;
 
 function checkRateLimit() {
     const now = Date.now();
@@ -17,7 +18,76 @@ function checkRateLimit() {
     requestTimestamps.push(now);
 }
 
+async function sha256(message) {
+    const enc = new TextEncoder();
+    const hash = await crypto.subtle.digest("SHA-256", enc.encode(message));
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function computeSignature(signingKey, method, path, bodyStr, timestamp, nonce) {
+    const bodyHash = await sha256(bodyStr || "");
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+        "raw", enc.encode(signingKey),
+        { name: "HMAC", hash: "SHA-256" },
+        false, ["sign"]
+    );
+    const msg = `${method}:${path}:${timestamp}:${nonce}:${bodyHash}`;
+    const sig = await crypto.subtle.sign("HMAC", key, enc.encode(msg));
+    return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function scheduleRefresh() {
+    if (refreshTimer) clearTimeout(refreshTimer);
+    const token = getToken();
+    if (!token) return;
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const expiresIn = payload.exp * 1000 - Date.now();
+        if (expiresIn <= 0) return;
+        const refreshAt = Math.max(expiresIn - 120000, 0);
+        refreshTimer = setTimeout(async () => {
+            try {
+                await refreshTokens();
+                scheduleRefresh();
+            } catch {
+                clearSession();
+            }
+        }, refreshAt);
+    } catch {
+        // invalid token format, ignore
+    }
+}
+
+async function refreshTokens() {
+    const resp = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+    });
+    if (!resp.ok) throw new Error("Refresh failed");
+    const data = await resp.json();
+    setToken(data.token);
+    setSigningKey(data.signingKey);
+}
+
+export async function ensureSession() {
+    const token = getToken();
+    if (!token) return false;
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.exp * 1000 - Date.now() < 180000) {
+            await refreshTokens();
+        }
+        scheduleRefresh();
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 async function request(endpoint, options = {}) {
+    await ensureSession();
     checkRateLimit();
 
     while (requestQueue >= MAX_CONCURRENT) {
@@ -26,24 +96,65 @@ async function request(endpoint, options = {}) {
     requestQueue++;
 
     const token = getToken();
+    const signingKey = getSigningKey();
     const headers = { ...options.headers };
+    const method = options.method || "GET";
+    const isFormData = options.body instanceof FormData;
 
-    if (!(options.body instanceof FormData)) {
+    if (!isFormData) {
         headers["Content-Type"] = "application/json";
     }
 
-    if(token) {
+    if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
 
+    if (token && signingKey && !isFormData) {
+        const timestamp = Date.now().toString();
+        const nonce = crypto.randomUUID();
+        const bodyStr = typeof options.body === "string" ? options.body : "";
+        const signature = await computeSignature(signingKey, method, endpoint, bodyStr, timestamp, nonce);
+        headers["X-Timestamp"] = timestamp;
+        headers["X-Nonce"] = nonce;
+        headers["X-Signature"] = signature;
+    }
+
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+        let response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options, headers, credentials: "include",
+        });
+
+        if (response.status === 401 && getToken() && !isFormData) {
+            try {
+                await refreshTokens();
+                scheduleRefresh();
+                const newToken = getToken();
+                const newSigningKey = getSigningKey();
+                headers.Authorization = `Bearer ${newToken}`;
+                if (newSigningKey) {
+                    const timestamp = Date.now().toString();
+                    const nonce = crypto.randomUUID();
+                    const bodyStr = typeof options.body === "string" ? options.body : "";
+                    const signature = await computeSignature(newSigningKey, method, endpoint, bodyStr, timestamp, nonce);
+                    headers["X-Timestamp"] = timestamp;
+                    headers["X-Nonce"] = nonce;
+                    headers["X-Signature"] = signature;
+                }
+                response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    ...options, headers, credentials: "include",
+                });
+            } catch {
+                clearSession();
+                window.location.href = "/login.html";
+                return;
+            }
+        }
 
         let data = null;
         try { data = await response.json(); } catch { data = null; }
 
         if (!response.ok) {
-            if (response.status === 401 && token) {
+            if (response.status === 401 && getToken()) {
                 clearSession();
                 window.location.href = "/login.html";
                 return;
@@ -53,7 +164,7 @@ async function request(endpoint, options = {}) {
                 return;
             }
             if (response.status === 429) {
-                const retryAfter = response.headers.get('Retry-After');
+                const retryAfter = response.headers.get("Retry-After");
                 const msg = data?.error || data?.message || "Too many requests. Please wait before trying again.";
                 throw { status: 429, message: msg, retryAfter: retryAfter ? parseInt(retryAfter) : null };
             }
