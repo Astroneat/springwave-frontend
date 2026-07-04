@@ -12,6 +12,7 @@
   <title data-i18n="explore.title">Explore Activities - SpringWave</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="/assets/style.css" />
 </head>
 
@@ -42,8 +43,55 @@
     <!-- SEARCH BAR -->
     <div class="explore-search-wrapper">
       <div class="explore-search-bar" id="floating-search">
-        <span class="material-symbols-outlined search-icon">search</span>
-        <input type="text" id="search-main" placeholder="Search activities, workshops, seminars..." data-i18n-placeholder="explore.search_placeholder" class="explore-search-input" />
+        
+        <!-- Location Zone -->
+        <div class="search-field-zone" id="zone-location">
+          <label for="search-location" data-i18n="explore.where">Where</label>
+          <div class="input-with-icon">
+            <input type="text" id="search-location" placeholder="Anywhere" data-i18n-placeholder="explore.anywhere" readonly />
+            <span class="material-symbols-outlined map-trigger-icon" id="mapTrigger" title="Open Map Selector">map</span>
+          </div>
+        </div>
+
+        <div class="search-zone-divider"></div>
+
+        <!-- Date Zone -->
+        <div class="search-field-zone" id="zone-date">
+          <span class="zone-label" data-i18n="explore.when">When</span>
+          <div class="dr-trigger" id="drTrigger">
+            <span class="dr-placeholder" id="drPlaceholder" data-i18n="explore.anytime">Anytime</span>
+            <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
+            <span class="dr-chevron">▾</span>
+          </div>
+          
+          <!-- Date range calendar picker dropdown -->
+          <div class="dr-dropdown" id="drDropdown" hidden>
+            <div class="dr-cal-header">
+              <button class="dr-nav" id="drPrev">‹</button>
+              <span class="dr-month-label" id="drMonthLabel">Month Year</span>
+              <button class="dr-nav" id="drNext">›</button>
+            </div>
+            <div class="dr-cal-grid" id="drCalGrid"></div>
+            <div class="dr-cal-footer">
+              <button class="dr-clear" id="drClear" data-i18n="explore.clear">Clear</button>
+              <button class="dr-close" id="drClose" data-i18n="explore.close">Close</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-zone-divider"></div>
+
+        <!-- Preferences Zone -->
+        <div class="search-field-zone" id="zone-pref">
+          <label for="search-pref" data-i18n="explore.preferences">Preferences</label>
+          <input type="text" id="search-pref" placeholder="Anything you'd like" data-i18n-placeholder="explore.anything_you_like" />
+        </div>
+
+        <!-- Search Execution Button -->
+        <button class="search-cta-btn" id="searchExecuteBtn" title="Run Search">
+          <span class="material-symbols-outlined">search</span>
+        </button>
+
       </div>
     </div>
 
@@ -160,8 +208,40 @@
     </div>
   </div>
 
+  <!-- MAP SELECTOR MODAL -->
+  <div class="map-modal-overlay" id="mapModalOverlay" hidden>
+    <div class="map-modal-backdrop" id="mapModalBackdrop"></div>
+    <div class="map-modal-container">
+      <div class="map-modal-header">
+        <h3 data-i18n="explore.select_location_title">Select Location</h3>
+        <button class="map-modal-close" id="mapModalClose">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="map-modal-body">
+        <div class="map-search-bar">
+          <input type="text" id="mapSearchInput" placeholder="Search location name (e.g. Da Nang)..." />
+          <button id="mapSearchBtn">
+            <span class="material-symbols-outlined">search</span>
+          </button>
+        </div>
+        <div id="leafletMap" class="leaflet-map-element"></div>
+        <div class="map-selected-address">
+          <strong>Selected Address:</strong>
+          <span id="selectedAddressText">None</span>
+        </div>
+      </div>
+      <div class="map-modal-footer">
+        <button class="map-btn-cancel" id="mapCancelBtn">Cancel</button>
+        <button class="map-btn-confirm" id="mapConfirmBtn">Confirm Location</button>
+      </div>
+    </div>
+  </div>
+
   <div id="chatbot-container"></div>
 
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script type="module" src="js/pages/explore.js"></script>
 </body>
 

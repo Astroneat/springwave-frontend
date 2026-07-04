@@ -103,10 +103,35 @@ function initUserDropdown() {
 }
 
 async function initExplore() {
-    initSearchDatePicker();
-    initSidebar();
-    await loadCards();
-    initSearchButton();
+    try {
+        initSearchDatePicker();
+    } catch (e) {
+        console.error("Failed to initialize search date picker:", e);
+    }
+    
+    try {
+        initSidebar();
+    } catch (e) {
+        console.error("Failed to initialize sidebar:", e);
+    }
+    
+    try {
+        await loadCards();
+    } catch (e) {
+        console.error("Failed to load activities cards:", e);
+    }
+    
+    try {
+        initSearchButton();
+    } catch (e) {
+        console.error("Failed to initialize search button handlers:", e);
+    }
+    
+    try {
+        initMapSelector();
+    } catch (e) {
+        console.error("Failed to initialize map selector:", e);
+    }
 }
 
 async function loadRecommendations() {
@@ -150,17 +175,26 @@ async function loadRecommendations() {
 }
 
 function initSearchButton() {
-    const searchInput = document.getElementById("search-main");
+    const searchLoc = document.getElementById("search-location");
+    const searchPref = document.getElementById("search-pref");
     const navbarInput = document.getElementById("search-navbar");
-    if (!searchInput) return;
+    const executeBtn = document.getElementById("searchExecuteBtn");
+
+    if (!searchPref && !navbarInput) return;
 
     let debounceTimeout = null;
 
-    const performSearch = async (val) => {
-        const keyword = val.trim();
+    const performSearch = async () => {
+        const location = searchLoc?.value.trim() || "";
+        const prefVal = searchPref?.value.trim() || "";
+        const navbarVal = navbarInput?.value.trim() || "";
         
-        // Sync inputs
-        if (searchInput) searchInput.value = keyword;
+        // Use either preferences input or navbar input as the main search term
+        const keyword = prefVal || navbarVal;
+        const dates = window.__searchDates || {};
+        
+        // Sync text inputs
+        if (searchPref) searchPref.value = keyword;
         if (navbarInput) navbarInput.value = keyword;
         
         // Clear active category filters when searching
@@ -172,11 +206,41 @@ function initSearchButton() {
         cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching")}</div>`;
 
         try {
-            const data = keyword
-                ? await searchSemantic({ q: keyword })
-                : await searchActivities({ keyword });
+            const params = {
+                location: location || undefined,
+                heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
+                heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
+            };
 
-            const activities = data?.activities || [];
+            const data = keyword
+                ? await searchSemantic({ q: keyword, ...params })
+                : await searchActivities({ keyword, ...params });
+
+            let activities = data?.activities || [];
+            
+            // Client-side filtering fallback to ensure exact matching
+            if (location) {
+                activities = activities.filter(a => 
+                    (a.location || "").toLowerCase().includes(location.toLowerCase())
+                );
+            }
+            if (dates.startDate && dates.endDate) {
+                activities = activities.filter(a => {
+                    const held = new Date(a.heldDate);
+                    return held >= dates.startDate && held <= dates.endDate;
+                });
+            } else if (dates.startDate) {
+                activities = activities.filter(a => new Date(a.heldDate) >= dates.startDate);
+            }
+            if (keyword) {
+                activities = activities.filter(a => 
+                    (a.title || "").toLowerCase().includes(keyword.toLowerCase()) ||
+                    (a.description || "").toLowerCase().includes(keyword.toLowerCase()) ||
+                    (a.type || "").toLowerCase().includes(keyword.toLowerCase()) ||
+                    (a.tags || []).some(t => t.toLowerCase().includes(keyword.toLowerCase()))
+                );
+            }
+
             if (activities.length === 0) {
                 cardsContainer.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#94a3b8"><span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px">search_off</span><p style="font-size:16px;font-weight:600">${t("explore.no_results")}</p></div>`;
                 document.getElementById("resultsCount").textContent = t("explore.results", { n: 0 });
@@ -188,17 +252,21 @@ function initSearchButton() {
         }
     };
 
-    const inputs = [searchInput, navbarInput].filter(Boolean);
+    // Click search button
+    executeBtn?.addEventListener("click", performSearch);
+
+    // Typing in either preferences or navbar search inputs triggers search with debounce
+    const inputs = [searchPref, navbarInput].filter(Boolean);
     inputs.forEach(input => {
         input.addEventListener("input", (e) => {
             clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => performSearch(e.target.value), 350);
+            debounceTimeout = setTimeout(performSearch, 350);
         });
 
         input.addEventListener("keyup", (e) => {
             if (e.key === "Enter") {
                 clearTimeout(debounceTimeout);
-                performSearch(e.target.value);
+                performSearch();
             }
         });
     });
@@ -310,10 +378,21 @@ function initSidebar() {
     });
 
     document.getElementById("clearFilters")?.addEventListener("click", async () => {
-        const searchInput = document.getElementById("search-main");
+        const searchInput = document.getElementById("search-pref");
         const navbarInput = document.getElementById("search-navbar");
+        const locInput = document.getElementById("search-location");
         if (searchInput) searchInput.value = "";
         if (navbarInput) navbarInput.value = "";
+        if (locInput) locInput.value = "";
+        if (window.__searchDates) {
+            window.__searchDates.startDate = null;
+            window.__searchDates.endDate = null;
+        }
+        const placeholder = document.getElementById("drPlaceholder");
+        const value = document.getElementById("drValue");
+        if (placeholder) placeholder.classList.remove("hidden");
+        if (value) value.classList.remove("visible");
+        
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";
@@ -721,7 +800,7 @@ function initParticipateButton(activityID) {
 }
 
 function initSearchDatePicker() {
-    const item = document.getElementById("searchDateItem");
+    const item = document.getElementById("zone-date");
     const trigger = document.getElementById("drTrigger");
     const placeholder = document.getElementById("drPlaceholder");
     const value = document.getElementById("drValue");
@@ -807,7 +886,7 @@ function initSearchDatePicker() {
         dropdown.classList.remove("active"); item.classList.remove("active");
         dropdown.style.top = ""; dropdown.style.left = ""; dropdown.style.transform = "";
         dropdown.setAttribute("hidden", "");
-        document.getElementById("searchDateItem")?.appendChild(dropdown);
+        document.getElementById("zone-date")?.appendChild(dropdown);
     }
 
     trigger.addEventListener("click", (e) => { e.stopPropagation(); dropdown.classList.contains("active") ? closeDropdown() : openDropdown(); });
@@ -818,6 +897,137 @@ function initSearchDatePicker() {
     document.addEventListener("click", (e) => { if (dropdown.classList.contains("active") && !dropdown.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) closeDropdown(); });
     dropdown.addEventListener("click", (e) => e.stopPropagation());
     formatDisplay();
+}
+
+function initMapSelector() {
+    const trigger = document.getElementById("mapTrigger");
+    const locInput = document.getElementById("search-location");
+    const overlay = document.getElementById("mapModalOverlay");
+    const backdrop = document.getElementById("mapModalBackdrop");
+    const closeBtn = document.getElementById("mapModalClose");
+    const cancelBtn = document.getElementById("mapCancelBtn");
+    const confirmBtn = document.getElementById("mapConfirmBtn");
+    const searchInput = document.getElementById("mapSearchInput");
+    const searchBtn = document.getElementById("mapSearchBtn");
+    const addressText = document.getElementById("selectedAddressText");
+
+    if (!trigger || !overlay) return;
+
+    let map = null;
+    let marker = null;
+    let selectedAddress = "";
+
+    const openModal = () => {
+        overlay.removeAttribute("hidden");
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+        
+        if (typeof L === "undefined") {
+            if (addressText) {
+                addressText.innerHTML = `<span style="color:#ef4444;font-weight:600">The map library (Leaflet) could not be loaded because unpkg.com is blocked or offline. Please check your network.</span>`;
+            }
+            return;
+        }
+        
+        if (!map) {
+            map = L.map("leafletMap").setView([16.0544, 108.2022], 13);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            map.on("click", async (e) => {
+                const { lat, lng } = e.latlng;
+                updateMarker(lat, lng);
+            });
+        }
+        
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+    };
+
+    const closeModal = () => {
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        setTimeout(() => {
+            overlay.setAttribute("hidden", "");
+        }, 300);
+    };
+
+    const updateMarker = async (lat, lng) => {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.on("dragend", async () => {
+                const pos = marker.getLatLng();
+                await reverseGeocode(pos.lat, pos.lng);
+            });
+        }
+        map.panTo([lat, lng]);
+        await reverseGeocode(lat, lng);
+    };
+
+    const searchAddress = async () => {
+        const query = searchInput.value.trim();
+        if (!query) return;
+        
+        searchBtn.disabled = true;
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                map.setView([lat, lon], 14);
+                updateMarker(lat, lon);
+            } else {
+                alert("Location not found. Try searching for a city or address.");
+            }
+        } catch (e) {
+            console.error("Geocoding failed:", e);
+        } finally {
+            searchBtn.disabled = false;
+        }
+    };
+
+    const reverseGeocode = async (lat, lng) => {
+        addressText.textContent = "Loading address details...";
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await res.json();
+            if (data && data.display_name) {
+                const parts = data.display_name.split(",");
+                selectedAddress = parts.slice(0, 3).join(",").trim();
+                addressText.textContent = selectedAddress;
+            } else {
+                selectedAddress = `Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                addressText.textContent = selectedAddress;
+            }
+        } catch (e) {
+            selectedAddress = `Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            addressText.textContent = selectedAddress;
+        }
+    };
+
+    trigger.addEventListener("click", openModal);
+    locInput.addEventListener("click", openModal);
+    
+    [closeBtn, cancelBtn, backdrop].filter(Boolean).forEach(el => {
+        el.addEventListener("click", closeModal);
+    });
+
+    searchBtn.addEventListener("click", searchAddress);
+    searchInput.addEventListener("keyup", (e) => {
+        if (e.key === "Enter") searchAddress();
+    });
+
+    confirmBtn.addEventListener("click", () => {
+        if (locInput && selectedAddress) {
+            locInput.value = selectedAddress;
+        }
+        closeModal();
+    });
 }
 
 /* =============================
