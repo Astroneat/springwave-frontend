@@ -7008,10 +7008,7 @@
    ========================================================================== */
 
 .explore-page-container {
-    background-color: #e8edf5; /* Charming soft sky/lavender background color */
-    background-image: url("/assets/images/explore-pattern.png");
-    background-repeat: repeat;
-    background-size: 48px 48px;
+    background: linear-gradient(135deg, #fcefe9 0%, #ebf1fa 50%, #e3e8f8 100%);
     min-height: 100vh;
     padding-bottom: 80px;
 }
