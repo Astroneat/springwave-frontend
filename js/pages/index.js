@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMatchBars();
   initSkillBars();
   initSmoothScroll();
+  initWordRotation();
 });
 
 async function loadFooter() {
@@ -21,14 +22,12 @@ async function loadFooter() {
 function initNavbarScroll() {
   const nav = document.getElementById("navbar");
   if (!nav) return;
-  const inner = nav.querySelector(".nav-landing");
-  if (!inner) return;
 
   const check = () => {
-    if (window.scrollY > 60) {
-      inner.classList.add("scrolled");
+    if (window.scrollY > 50) {
+      nav.classList.remove("navbar-hidden");
     } else {
-      inner.classList.remove("scrolled");
+      nav.classList.add("navbar-hidden");
     }
   };
   check();
@@ -108,4 +107,30 @@ function initSmoothScroll() {
       }
     });
   });
+}
+
+function initWordRotation() {
+  const words = document.querySelectorAll(".rotating-word");
+  if (!words.length) return;
+
+  let currentIndex = 0;
+
+  setInterval(() => {
+    const currentWord = words[currentIndex];
+    if (currentWord) {
+      currentWord.classList.remove("active");
+      currentWord.classList.add("exit");
+
+      setTimeout(() => {
+        currentWord.classList.remove("exit");
+      }, 450);
+    }
+
+    currentIndex = (currentIndex + 1) % words.length;
+
+    const nextWord = words[currentIndex];
+    if (nextWord) {
+      nextWord.classList.add("active");
+    }
+  }, 1500);
 }

@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="/assets/style.css" />
 </head>
 
-<body class="bg-background text-on-surface font-body-md">
+<body class="explore-page-container text-on-surface font-body-md">
 
   <div id="navbar-container"></div>
 
@@ -24,19 +24,13 @@
 
     <!-- INTRO -->
     <div class="max-w-container-max mx-auto px-gutter">
-      <div class="text-center mb-8 space-y-4 pt-8">
-        <span
-          class="inline-flex items-center gap-2 py-1.5 px-4 bg-primary-fixed text-on-primary-fixed-variant rounded-full font-label-md text-label-md">
-          <span class="material-symbols-outlined text-lg">search</span>
-          <span data-i18n="explore.discover_label">Discover Events</span>
-        </span>
-        <h1 class="font-headline-lg text-headline-lg" data-i18n="explore.find_adventure">Find Your Next Adventure</h1>
-        <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto" data-i18n="explore.explore_desc">Search through hundreds of
-          activities and events happening around you.</p>
+      <div class="text-center mb-8 space-y-2 pt-8">
+        <h1 class="explore-figma-title" data-i18n="explore.find_adventure">Find your next journey</h1>
+        <p class="explore-figma-desc" data-i18n="explore.explore_desc">Search through hundreds of activities and events happening around you.</p>
       </div>
     </div>
 
-    <!-- RECOMMENDATIONS -->
+    <!-- RECOMMENDATIONS (DYNAMIC) -->
     <div id="recommendations-section" class="max-w-container-max mx-auto px-gutter mb-6" style="display:none;">
       <div class="recommendations-header">
         <span class="material-symbols-outlined" style="color:#8B5CF6;font-size:22px;">auto_awesome</span>
@@ -46,94 +40,59 @@
     </div>
 
     <!-- SEARCH BAR -->
-    <div id="searchBarPlaceholder">
-      <div id="floating-search">
-        <div class="search-bar glass-search">
-          <div class="search-item">
-            <label for="search-1" data-i18n="explore.where">Where</label>
-            <input id="search-1" type="text" placeholder="Anywhere" data-i18n-placeholder="explore.anywhere" />
-          </div>
-          <div class="search-item search-item-date" id="searchDateItem">
-            <label for="search-2" data-i18n="explore.when">When</label>
-            <div class="dr-trigger" id="drTrigger">
-              <span class="dr-placeholder" id="drPlaceholder" data-i18n="explore.anytime">Anytime</span>
-              <span class="dr-value" id="drValue">dd/mm - dd/mm</span>
-              <span class="dr-chevron">▾</span>
-            </div>
-            <div class="dr-dropdown" id="drDropdown" hidden>
-              <div class="dr-cal-header">
-                <button class="dr-nav" id="drPrev">‹</button>
-                <span class="dr-month-label" id="drMonthLabel">Month Year</span>
-                <button class="dr-nav" id="drNext">›</button>
-              </div>
-              <div class="dr-cal-grid" id="drCalGrid"></div>
-              <div class="dr-cal-footer">
-                <button class="dr-clear" id="drClear" data-i18n="explore.clear">Clear</button>
-                <button class="dr-close" id="drClose" data-i18n="explore.close">Close</button>
-              </div>
-            </div>
-          </div>
-          <div class="search-item">
-            <label for="search-3" data-i18n="explore.preferences">Preferences</label>
-            <input id="search-3" type="text" placeholder="Anything you'd like" data-i18n-placeholder="explore.anything_you_like" />
-          </div>
-          <button class="search-btn">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span data-i18n="explore.search">Search</span>
-          </button>
-          <button class="refresh-btn" id="refresh-btn">
-            <i class="fa-solid fa-rotate"></i>
-          </button>
-        </div>
+    <div class="explore-search-wrapper">
+      <div class="explore-search-bar" id="floating-search">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text" id="search-main" placeholder="Search activities, workshops, seminars..." data-i18n-placeholder="explore.search_placeholder" class="explore-search-input" />
       </div>
+    </div>
 
-      <!-- SIDEBAR + CARDS -->
-      <div class="mx-auto px-gutter mt-8" style="max-width:1480px;">
-        <div class="explore-layout">
+    <!-- SIDEBAR + CARDS -->
+    <div class="mx-auto px-gutter mt-8" style="max-width:1480px;">
+      <div class="explore-layout">
 
-          <!-- LEFT SIDEBAR -->
-          <aside class="explore-sidebar" id="exploreSidebar">
-            <div class="sidebar-inner">
-              <div class="sidebar-section">
-                <h3 class="sidebar-title" data-i18n="explore.categories">Categories</h3>
-                <div class="category-list" id="categoryList">
-                  <button class="category-chip active" data-category="all" data-i18n="explore.all">All</button>
-                  <button class="category-chip" data-category="sport" data-i18n="explore.sports">Sports</button>
-                  <button class="category-chip" data-category="music" data-i18n="explore.music">Music</button>
-                  <button class="category-chip" data-category="education" data-i18n="explore.education">Education</button>
-                  <button class="category-chip" data-category="technology" data-i18n="explore.technology">Technology</button>
-                  <button class="category-chip" data-category="volunteering" data-i18n="explore.volunteering">Volunteering</button>
-                  <button class="category-chip" data-category="social" data-i18n="explore.social">Social</button>
-                  <button class="category-chip" data-category="art" data-i18n="explore.arts">Arts</button>
-                  <button class="category-chip" data-category="workshop" data-i18n="explore.workshop">Workshop</button>
-                  <button class="category-chip" data-category="seminar" data-i18n="explore.seminar">Seminar</button>
-                </div>
-              </div>
-
-              <div class="sidebar-section">
-                <h3 class="sidebar-title" data-i18n="explore.sort_by">Sort By</h3>
-                <div class="sort-list" id="sortList">
-                  <label class="sort-option active" data-sort="newest">
-                    <span class="sort-radio"></span>
-                    <span data-i18n="explore.newest">Newest</span>
-                  </label>
-                  <label class="sort-option" data-sort="popular">
-                    <span class="sort-radio"></span>
-                    <span data-i18n="explore.most_popular">Most Popular</span>
-                  </label>
-                  <label class="sort-option" data-sort="ending">
-                    <span class="sort-radio"></span>
-                    <span data-i18n="explore.ending_soon">Ending Soon</span>
-                  </label>
-                </div>
-              </div>
-
-              <button class="clear-filters-btn" id="clearFilters">
-                <span class="material-symbols-outlined text-lg">close</span>
-                <span data-i18n="explore.clear_filters">Clear Filters</span>
-              </button>
+        <!-- LEFT SIDEBAR -->
+        <aside class="explore-sidebar" id="exploreSidebar">
+          
+          <div class="sidebar-section-figma">
+            <h3 class="sidebar-title-figma" data-i18n="explore.categories">Categories</h3>
+            <div class="category-list-figma" id="categoryList">
+              <button class="category-chip-figma category-chip active" data-category="all" data-i18n="explore.all">All</button>
+              <button class="category-chip-figma category-chip" data-category="sport" data-i18n="explore.sports">Sports</button>
+              <button class="category-chip-figma category-chip" data-category="music" data-i18n="explore.music">Music</button>
+              <button class="category-chip-figma category-chip" data-category="education" data-i18n="explore.education">Education</button>
+              <button class="category-chip-figma category-chip" data-category="technology" data-i18n="explore.technology">Technology</button>
+              <button class="category-chip-figma category-chip" data-category="volunteering" data-i18n="explore.volunteering">Volunteering</button>
+              <button class="category-chip-figma category-chip" data-category="social" data-i18n="explore.social">Social</button>
+              <button class="category-chip-figma category-chip" data-category="art" data-i18n="explore.arts">Arts</button>
+              <button class="category-chip-figma category-chip" data-category="workshop" data-i18n="explore.workshop">Workshop</button>
+              <button class="category-chip-figma category-chip" data-category="seminar" data-i18n="explore.seminar">Seminar</button>
             </div>
-          </aside>
+          </div>
+
+          <div class="sidebar-section-figma">
+            <h3 class="sidebar-title-figma" data-i18n="explore.sort_by">Sort By</h3>
+            <div class="sort-list-figma" id="sortList">
+              <label class="sort-option-figma sort-option active" data-sort="newest">
+                <span class="sort-radio-figma"></span>
+                <span data-i18n="explore.newest">Newest</span>
+              </label>
+              <label class="sort-option-figma sort-option" data-sort="popular">
+                <span class="sort-radio-figma"></span>
+                <span data-i18n="explore.most_popular">Most Popular</span>
+              </label>
+              <label class="sort-option-figma sort-option" data-sort="ending">
+                <span class="sort-radio-figma"></span>
+                <span data-i18n="explore.ending_soon">Ending Soon</span>
+              </label>
+            </div>
+          </div>
+
+          <button class="clear-filters-btn-figma" id="clearFilters">
+            <span class="material-symbols-outlined text-lg">close</span>
+            <span data-i18n="explore.clear_filters">Clear Filters</span>
+          </button>
+        </aside>
 
           <!-- MAIN CONTENT -->
           <main class="explore-main">

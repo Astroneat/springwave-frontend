@@ -150,58 +150,50 @@ async function loadRecommendations() {
 }
 
 function initSearchButton() {
-    const btn = document.querySelector(".search-btn");
-    if (!btn) return;
+    const searchInput = document.getElementById("search-main");
+    if (!searchInput) return;
 
-    document.getElementById("refresh-btn")?.addEventListener("click", async () => {
-        document.getElementById("search-1").value = "";
-        document.getElementById("search-3").value = "";
-        if (window.__searchDates) {
-            window.__searchDates.startDate = null;
-            window.__searchDates.endDate = null;
-        }
-        const placeholder = document.getElementById("drPlaceholder");
-        const value = document.getElementById("drValue");
-        if (placeholder) placeholder.classList.remove("hidden");
-        if (value) value.classList.remove("visible");
-        await loadCards();
-    });
+    let debounceTimeout = null;
 
-    btn.addEventListener("click", async () => {
-        const location = document.getElementById("search-1")?.value.trim();
-        const keyword = document.getElementById("search-3")?.value.trim();
-        const dates = window.__searchDates || {};
-
+    const performSearch = async () => {
+        const keyword = searchInput.value.trim();
+        
+        // Clear active category filters when searching
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";
-        document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
-        document.querySelector(".sort-option[data-sort='newest']")?.classList.add("active");
-        currentSort = "newest";
-
+        
         const cardsContainer = document.getElementById("cards-container");
         cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching")}</div>`;
 
         try {
-            const params = {
-                location,
-                heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
-                heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
-            };
-
             const data = keyword
-                ? await searchSemantic({ q: keyword, ...params })
-                : await searchActivities({ keyword, ...params });
+                ? await searchSemantic({ q: keyword })
+                : await searchActivities({ keyword });
 
             const activities = data?.activities || [];
             if (activities.length === 0) {
-                cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.no_results")}</div>`;
+                cardsContainer.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#94a3b8"><span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px">search_off</span><p style="font-size:16px;font-weight:600">${t("explore.no_results")}</p></div>`;
                 document.getElementById("resultsCount").textContent = t("explore.results", { n: 0 });
                 return;
             }
             await renderCards(activities);
         } catch (e) {
             cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.search_error")}</div>`;
+        }
+    };
+
+    // Search on type with debounce (350ms)
+    searchInput.addEventListener("input", () => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(performSearch, 350);
+    });
+
+    // Search immediately on Enter key
+    searchInput.addEventListener("keyup", (e) => {
+        if (e.key === "Enter") {
+            clearTimeout(debounceTimeout);
+            performSearch();
         }
     });
 }
@@ -312,6 +304,8 @@ function initSidebar() {
     });
 
     document.getElementById("clearFilters")?.addEventListener("click", async () => {
+        const searchInput = document.getElementById("search-main");
+        if (searchInput) searchInput.value = "";
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";

@@ -1,4 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Bebas+Neue&family=Pacifico&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Aleo:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
+
 
 @theme {
     --color-bg-panel: #ffffff;
@@ -6601,3 +6603,623 @@
     @apply text-[14px] text-on-surface-variant font-semibold tracking-wide;
     transition: color 0.3s ease;
 }
+
+/* ==========================================================================
+   FIGMA HOMEPAGE HERO CUSTOM STYLES (REVISED - 80% SHRINK & SCROLL NAVBAR)
+   ========================================================================== */
+
+/* Navbar hidden class for scroll visibility transition */
+#navbar {
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+}
+
+#navbar.navbar-hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.figma-hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    min-height: 520px; /* 80% of 650px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+.figma-hero-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(10px);
+    opacity: 0.95;
+    pointer-events: none;
+    z-index: 1;
+    transform-origin: center;
+    scale: 1.06;
+}
+
+.figma-hero-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    max-width: 1200px; /* Increased width to prevent clipping */
+    width: 100%;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.figma-hero-title {
+    font-family: 'Aleo', 'Plus Jakarta Sans', serif;
+    font-weight: 800;
+    font-size: 4rem; /* 80% of 5rem */
+    line-height: 1.4;
+    color: #1c274c;
+    margin-bottom: 2.2rem;
+    letter-spacing: -0.02em;
+    text-align: center;
+    width: 100%;
+}
+
+.figma-hero-title-row {
+    display: block; /* standard block to allow native inline layout alignment */
+    text-align: center;
+    width: 100%;
+    margin-bottom: 0.2rem;
+}
+
+.figma-hero-title-suffix-row {
+    display: block;
+    text-align: center;
+    width: 100%;
+    font-family: 'Aleo', 'Plus Jakarta Sans', serif;
+    font-weight: 800;
+}
+
+@media (max-width: 1024px) {
+    .figma-hero-title {
+        font-size: 3.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .figma-hero-title {
+        font-size: 2.2rem;
+        line-height: 1.3;
+        margin-bottom: 1.6rem;
+    }
+    .figma-hero-title-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .figma-hero-title-suffix-row {
+        margin-top: 0.4rem;
+    }
+}
+
+.figma-explore-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* 80% of 12px */
+    background: #8cc9e2;
+    color: #1c274c;
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem; /* 80% of 1.5rem */
+    padding: 14px 35px; /* 80% of 18px 44px */
+    border-radius: 30px; /* 80% of 38px */
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: 0 6px 20px rgba(140, 201, 226, 0.4);
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.figma-explore-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 10px 25px rgba(140, 201, 226, 0.6);
+    background: #9dd7ef;
+}
+
+.figma-explore-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.figma-explore-btn img {
+    width: 22px; /* 80% of 28px */
+    height: 22px;
+    object-fit: contain;
+}
+
+/* ==========================================================================
+   DYNAMIC TEXT ROTATION CUSTOM STYLES
+   ========================================================================== */
+
+.rotating-word-container {
+    display: inline-grid;
+    grid-template-areas: "stack";
+    align-items: baseline;
+    vertical-align: baseline;
+    width: auto;
+    min-width: max-content; /* Dynamic width based on the longest word to prevent clipping */
+    text-align: left;
+    position: relative;
+    overflow: visible; /* Prevent clipping of ascenders or descenders */
+}
+
+@media (max-width: 768px) {
+    .rotating-word-container {
+        width: 100%;
+        max-width: 320px;
+        margin: 0.5rem auto 0 auto;
+        justify-items: center;
+        text-align: center;
+    }
+}
+
+.rotating-word {
+    grid-area: stack;
+    align-self: baseline;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+    white-space: nowrap;
+    text-align: left;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .rotating-word {
+        text-align: center;
+    }
+}
+
+.rotating-word.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.rotating-word.exit {
+    opacity: 0;
+    transform: translateY(-20px) !important;
+}
+
+/* Unique and Catching Fonts for rotating words - Baseline aligned */
+.font-seminar {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 700;
+    color: #2563eb; /* Classic royal blue */
+    text-shadow: 0 2px 10px rgba(37, 99, 235, 0.1);
+}
+
+.font-workshop {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    color: #0d9488; /* Tech teal */
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 10px rgba(13, 148, 136, 0.1);
+}
+
+.font-sport {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    font-size: 1.25em; /* uppercase condensed */
+    letter-spacing: 0.05em;
+    color: #dc2626; /* Sporty red */
+    text-shadow: 0 2px 10px rgba(220, 38, 38, 0.1);
+}
+
+.font-community {
+    font-family: 'Pacifico', cursive;
+    font-weight: 400;
+    font-size: 0.85em; /* script runs tall, scale down to match row height */
+    color: #8b5cf6; /* Friendly purple */
+    text-shadow: 0 2px 10px rgba(139, 92, 246, 0.1);
+}
+
+.font-opportunity {
+    font-family: 'Aleo', serif;
+    font-weight: 800;
+    font-size: 0.95em; /* slab-serif size calibration */
+    color: #0284c7; /* Sky blue */
+    text-shadow: 0 2px 10px rgba(2, 132, 199, 0.1);
+}
+
+/* Custom Visual Baseline Offsets when active to achieve visual line parity */
+.rotating-word.active.font-sport {
+    transform: translateY(3px); /* Shift tall Bebas Neue down to line up */
+}
+
+.rotating-word.active.font-community {
+    transform: translateY(4px); /* Shift Pacifico script down to align connectors */
+}
+
+.rotating-word.active.font-opportunity {
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   FIGMA NAVBAR CUSTOM STYLES
+   ========================================================================== */
+
+.figma-navbar-container {
+    padding: 12px 24px; /* Reduced vertical padding */
+    z-index: 50;
+    width: 100%;
+}
+
+.figma-navbar-inner {
+    background: rgba(52, 137, 225, 0.82); /* Premium medium royal blue (not too dark, not too white, very blue) */
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    height: 72px; /* Smaller navbar height */
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 12px 35px rgba(28, 39, 76, 0.1);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+#navbar.collapsed .figma-navbar-inner {
+    height: 60px; /* Thinner collapsed navbar */
+    border-radius: 12px;
+    background: rgba(52, 137, 225, 0.95); /* Solid medium royal blue on scroll */
+    box-shadow: 0 10px 25px rgba(28, 39, 76, 0.15);
+}
+
+.figma-navbar-brand {
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 2.1rem;
+    text-decoration: none;
+    letter-spacing: -0.03em;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block;
+}
+
+.figma-navbar-brand:hover {
+    transform: scale(1.04);
+}
+
+.figma-navbar-brand .brand-spring {
+    color: #ffffff; /* White half */
+    text-shadow: 0 2px 6px rgba(28, 39, 76, 0.2);
+}
+
+.figma-navbar-brand .brand-wave {
+    color: #cffafe; /* Light cyan/blue half for contrast */
+    text-shadow: 0 2px 6px rgba(28, 39, 76, 0.2);
+}
+
+.figma-navbar-menu {
+    position: relative; /* Setup relative position for absolute sliding indicator */
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.12); /* Translucent dark menu container */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    height: 48px; /* Thinner pill container */
+    border-radius: 110px;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    gap: 2px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+    width: 786px; /* Restored menu width to match search bar (786px) */
+}
+
+.nav-indicator-pill {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    width: 0;
+    background: #ffffff; /* Pure white sliding pill */
+    border-radius: 120px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+    z-index: -1; /* behind link text */
+    transition: all 0.58s cubic-bezier(0.25, 1, 0.25, 1);
+    pointer-events: none; /* pass mouse events through */
+    opacity: 0;
+}
+
+.figma-navbar-link {
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700; /* Bold font for better recognition */
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.8) !important; /* Soft white/grey text for high contrast on dark */
+    text-decoration: none;
+    padding: 8px 0; /* padding horizontal is handled by flex: 1 */
+    border-radius: 120px;
+    transition: color 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1; /* evenly distribute to fill the 786px width */
+}
+
+.figma-navbar-link:hover {
+    color: #ffffff !important; /* Bright white text on hover */
+}
+
+.figma-navbar-link.active,
+.figma-navbar-link.active-text {
+    color: #1c274c !important; /* Deep navy text on white active pill */
+}
+
+.figma-navbar-login-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff; /* High contrast pure white button */
+    color: #1e3a8a !important; /* Navy blue text */
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 8px 24px;
+    height: 42px;
+    border-radius: 38px;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: 0 4px 12px rgba(28, 39, 76, 0.15);
+    text-decoration: none;
+}
+
+.figma-navbar-login-btn:hover {
+    transform: translateY(-2px);
+    background: #f8fafc;
+    box-shadow: 0 6px 16px rgba(28, 39, 76, 0.25);
+}
+
+.figma-navbar-login-btn img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+/* Slide in panel for mobile menu */
+#mobileMenu.open #mobileOverlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#mobileMenu.open #mobilePanel {
+    transform: translateX(0);
+}
+
+/* ==========================================================================
+   FIGMA EXPLORE PAGE CUSTOM STYLES
+   ========================================================================== */
+
+.explore-page-container {
+    background-color: #e8edf5; /* Charming soft sky/lavender background color */
+    background-image: url("/assets/images/explore-pattern.png");
+    background-repeat: repeat;
+    background-size: 48px 48px;
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+.explore-figma-title {
+    font-family: 'Aleo', 'Plus Jakarta Sans', serif;
+    font-weight: 800;
+    font-size: 3rem; /* scaled down to 80% */
+    color: #1c274c;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.explore-figma-desc {
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: #5d6b98;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.explore-search-wrapper {
+    width: 100%;
+    max-width: 786px; /* Decreased by 20% from 983px */
+    margin: 0 auto 3rem auto;
+    padding: 0 24px;
+}
+
+.explore-search-bar {
+    background: #a5c8e9;
+    border: 9px solid #ffffff;
+    height: 69px;
+    border-radius: 110px;
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    gap: 16px;
+    box-shadow: 0 10px 30px rgba(165, 200, 233, 0.35);
+}
+
+.explore-search-bar .search-icon {
+    font-size: 30px;
+    color: #1c274c;
+    display: flex;
+    align-items: center;
+}
+
+.explore-search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: #1c274c;
+    width: 100%;
+}
+
+.explore-search-input::placeholder {
+    color: rgba(28, 39, 76, 0.6);
+}
+
+/* Sidebar Custom Classes */
+.explore-sidebar {
+    width: 236px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 38px; /* matching spacing */
+}
+
+.sidebar-section-figma {
+    background: #c7dbee;
+    border-radius: 20px;
+    padding: 24px 20px;
+    box-shadow: 0 8px 24px rgba(199, 219, 238, 0.25);
+}
+
+.sidebar-title-figma {
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 1.35rem; /* 24px */
+    color: #1c274c;
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.category-list-figma {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.category-chip-figma {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    height: 38px;
+    padding: 0 18px;
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem; /* 20px */
+    color: #1c274c;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.category-chip-figma:hover {
+    background: rgba(238, 243, 248, 0.5);
+}
+
+.category-chip-figma.active {
+    background: #eef3f8;
+    color: #3493fa;
+    box-shadow: 0 4px 12px rgba(238, 243, 248, 0.5);
+}
+
+.sort-list-figma {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sort-option-figma {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #1c274c;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+}
+
+.sort-option-figma:hover {
+    background: rgba(238, 243, 248, 0.4);
+}
+
+.sort-radio-figma {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #1c274c;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.sort-option-figma.active .sort-radio-figma {
+    border-color: #3493fa;
+    background: #3493fa;
+    box-shadow: 0 0 0 3px rgba(52, 147, 250, 0.25);
+}
+
+.clear-filters-btn-figma {
+    background: #eef3f8;
+    border: 1px solid rgba(28, 39, 76, 0.15);
+    border-radius: 12px;
+    height: 44px;
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1c274c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+}
+
+.clear-filters-btn-figma:hover {
+    background: #ffffff;
+    color: #3493fa;
+    border-color: #3493fa;
+    box-shadow: 0 6px 16px rgba(52, 147, 250, 0.15);
+}
+
+@media (max-width: 768px) {
+    .explore-search-wrapper {
+        margin-bottom: 2rem;
+    }
+    .explore-search-bar {
+        border-width: 4px;
+        height: 52px;
+        padding: 0 16px;
+    }
+    .explore-search-bar .search-icon {
+        font-size: 24px;
+    }
+    .explore-search-input {
+        font-size: 1.05rem;
+    }
+    .explore-sidebar {
+        width: 100%;
+        gap: 16px;
+    }
+}

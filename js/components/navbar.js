@@ -56,7 +56,12 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
                 }
             });
         } else {
-            authSection.innerHTML = `<a href="/login.html" class="login-btn" data-i18n="nav.login_btn">Login</a>`;
+            authSection.innerHTML = `
+                <a href="/login.html" class="figma-navbar-login-btn" data-i18n="nav.login_btn">
+                    <span data-i18n="nav.login">Login</span>
+                    <img src="/assets/images/icon-login.svg" alt="Login Icon" />
+                </a>
+            `;
             if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }
         }
     }
@@ -64,6 +69,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
     updateMobileMenu();
     await initI18n();
     initLangSwitcher();
+    initSlidingIndicator();
 
     return document.getElementById("navbar");
 }
@@ -78,7 +84,7 @@ export function initBasicScroll() {
 
 export function setActiveLink(section) {
     if (!section) return;
-    const navLinks = document.querySelectorAll(".nav-links a");
+    const navLinks = document.querySelectorAll(".nav-links a, .figma-navbar-link, #mobileMenu a");
     navLinks.forEach(link => {
         link.classList.remove("active");
         if (link.dataset.section === section) {
@@ -341,4 +347,82 @@ function initLangSwitcher() {
         setLang(next).then(updateLabel);
     });
     window.addEventListener("language-changed", updateLabel);
+}
+
+function initSlidingIndicator() {
+    const menu = document.getElementById("navLinks");
+    if (!menu) return;
+
+    let indicator = menu.querySelector(".nav-indicator-pill");
+    if (!indicator) {
+        indicator = document.createElement("div");
+        indicator.className = "nav-indicator-pill";
+        menu.appendChild(indicator);
+    }
+
+    const links = menu.querySelectorAll(".figma-navbar-link");
+
+    const moveIndicator = (targetLink) => {
+        if (!targetLink) {
+            indicator.style.opacity = "0";
+            return;
+        }
+        const menuRect = menu.getBoundingClientRect();
+        const linkRect = targetLink.getBoundingClientRect();
+
+        const left = linkRect.left - menuRect.left;
+        const width = linkRect.width;
+
+        // Reduce width of the indicator by 20% and shift left to center it
+        const reducedWidth = width * 0.8;
+        const centeredLeft = left + (width * 0.1);
+
+        indicator.style.left = `${centeredLeft}px`;
+        indicator.style.width = `${reducedWidth}px`;
+        indicator.style.opacity = "1";
+
+        links.forEach(l => {
+            if (l === targetLink) {
+                l.classList.add("active-text");
+            } else {
+                l.classList.remove("active-text");
+            }
+        });
+    };
+
+    const activeLink = menu.querySelector(".figma-navbar-link.active");
+
+    if (activeLink) {
+        // Initialize position instantly on page load without sliding animation
+        indicator.style.transition = "none";
+        moveIndicator(activeLink);
+
+        // Force browser layout update
+        indicator.offsetHeight;
+
+        // Restore transition for smooth hover movement
+        setTimeout(() => {
+            indicator.style.transition = "";
+        }, 50);
+    }
+
+    links.forEach((link) => {
+        link.addEventListener("mouseenter", () => moveIndicator(link));
+        link.addEventListener("mouseleave", () => {
+            const currentActive = menu.querySelector(".figma-navbar-link.active");
+            if (currentActive) {
+                moveIndicator(currentActive);
+            } else {
+                indicator.style.opacity = "0";
+                links.forEach(l => l.classList.remove("active-text"));
+            }
+        });
+    });
+
+    window.addEventListener("resize", () => {
+        const currentActive = menu.querySelector(".figma-navbar-link.active");
+        if (currentActive) {
+            moveIndicator(currentActive);
+        }
+    }, { passive: true });
 }
