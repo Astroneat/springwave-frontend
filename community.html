@@ -12,21 +12,15 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="/assets/style.css" />
 </head>
-<body class="bg-[#f8fafc] text-on-surface font-body-md">
+<body class="forum-page-container text-on-surface font-body-md">
 
   <div id="navbar-container"></div>
 
-  <!-- STATUS BAR -->
-  <div class="forum-status-bar">
-    <div class="forum-status-box" id="startDiscussionBtn">
-      <div class="forum-status-avatar" id="forumStatusAvatar">?</div>
-      <span class="forum-status-placeholder" data-i18n="community.what_mind">What's on your mind?</span>
-      <button class="forum-status-post-btn" data-i18n="community.post">
-        <span class="material-symbols-outlined" style="font-size:16px">edit_note</span>
-        Post
-      </button>
-    </div>
-  </div>
+  <!-- HERO BANNER -->
+  <header class="forum-hero-banner text-center pt-28 pb-4 px-4">
+    <h1 class="forum-title-figma" data-i18n="community.hero_title">SpringWave Forum</h1>
+    <p class="forum-desc-figma" data-i18n="community.hero_desc">Connect, collaborate, and share knowledge with your university community</p>
+  </header>
 
   <!-- MAIN LAYOUT -->
   <section class="forum-layout" id="forumLayout">
@@ -72,6 +66,31 @@
 
     <!-- MAIN CONTENT -->
     <main class="forum-main">
+      
+      <!-- STATUS BAR PUBLISHER CARD -->
+      <div class="forum-status-bar">
+        <div class="forum-status-box" id="startDiscussionBtn">
+          <div class="forum-status-avatar" id="forumStatusAvatar">?</div>
+          <span class="forum-status-placeholder" data-i18n="community.what_mind">What's on your mind?</span>
+          <button class="forum-status-post-btn" data-i18n="community.post">
+            <span class="material-symbols-outlined" style="font-size:16px">edit_note</span>
+            Post
+          </button>
+        </div>
+      </div>
+
+      <!-- FEED FILTER TABS -->
+      <div class="forum-feed-tabs" id="forumFeedTabs">
+        <button class="feed-tab active" data-sort="newest">
+          <span class="material-symbols-outlined">schedule</span>
+          <span data-i18n="community.tab_latest">Latest</span>
+        </button>
+        <button class="feed-tab" data-sort="popular">
+          <span class="material-symbols-outlined">local_fire_department</span>
+          <span data-i18n="community.tab_hot">Hot / Popular</span>
+        </button>
+      </div>
+
       <div class="forum-section" id="trending">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
@@ -140,12 +159,27 @@
           <input type="text" id="postTitle" placeholder="What's on your mind?" data-i18n="community.what_mind" />
         </div>
         <div class="forum-post-field">
-          <label for="postCategory" data-i18n="community.category_label">Category</label>
-          <select id="postCategory">
+          <label data-i18n="community.category_label">Category</label>
+          <!-- Keep hidden select for compatibility with existing change listeners -->
+          <select id="postCategory" style="display:none;">
             <option value="general" data-i18n="community.general">General</option>
             <option value="event" data-i18n="community.event_discussions">Event Discussion</option>
             <option value="skills" data-i18n="community.skill_development">Skill Development</option>
           </select>
+          <div class="forum-category-selector-pills" id="postCategoryPills">
+            <button type="button" class="category-select-pill active" data-category="general">
+              <span class="material-symbols-outlined">forum</span>
+              <span data-i18n="community.general">General</span>
+            </button>
+            <button type="button" class="category-select-pill" data-category="event">
+              <span class="material-symbols-outlined">event</span>
+              <span data-i18n="community.event_discussions">Event Discussion</span>
+            </button>
+            <button type="button" class="category-select-pill" data-category="skills">
+              <span class="material-symbols-outlined">school</span>
+              <span data-i18n="community.skill_development">Skill Development</span>
+            </button>
+          </div>
         </div>
         <div class="forum-post-field" id="postScopeField" style="display:none;">
           <label>Post to</label>

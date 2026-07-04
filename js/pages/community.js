@@ -288,38 +288,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   renderDiscussions(discussions, category);
+  initFeedTabs();
 
-  if (category === "all" || category === "uni") {
-    await renderUniGrid();
-    const user = getUser();
-    const addBtn = document.getElementById("forumAddUniBtn");
-    if (addBtn && user?.role === "admin") {
-      addBtn.style.display = "flex";
-      addBtn.addEventListener("click", () => {
-        openUniDialog(null, async (name, description, color) => {
-          const result = await createUniversity(name, description, color);
-          if (result) window.location.reload();
-        });
-      });
-    }
-    initUniDialog();
-  }
-  if (category === "all" || category === "skills") {
-    await renderTopicGrid();
-  }
-
+  // Register interactive click and modal handlers immediately so UI is instantly smooth
   initSidebarLinkClick();
   initEventDetailPopup();
   initDiscussionDetail();
   initDiscussionPopupClose();
-  await loadSidebar(category);
-  await initChatbot();
-  await loadFooter();
 
-  const discussionParam = getDiscussionParamFromURL();
-  if (discussionParam) {
-    setTimeout(() => openDiscussionDetail(discussionParam), 500);
-  }
+  // Load heavy network components concurrently in background
+  Promise.allSettled([
+    (category === "all" || category === "uni") ? renderUniGrid().then(() => {
+      const user = getUser();
+      const addBtn = document.getElementById("forumAddUniBtn");
+      if (addBtn && user?.role === "admin") {
+        addBtn.style.display = "flex";
+        addBtn.addEventListener("click", () => {
+          openUniDialog(null, async (name, description, color) => {
+            const result = await createUniversity(name, description, color);
+            if (result) window.location.reload();
+          });
+        });
+      }
+      initUniDialog();
+    }).catch(() => {}) : Promise.resolve(),
+    (category === "all" || category === "skills") ? renderTopicGrid().catch(() => {}) : Promise.resolve(),
+    loadSidebar(category).catch(() => {}),
+    initChatbot().catch(() => {}),
+    loadFooter().catch(() => {})
+  ]).then(() => {
+    // Open targeted discussion parameter if set in URL
+    const discussionParam = getDiscussionParamFromURL();
+    if (discussionParam) {
+      setTimeout(() => openDiscussionDetail(discussionParam), 200);
+    }
+  });
 
   const discussParam = urlParams.get("discuss");
   if (discussParam === "event") {
@@ -374,6 +377,26 @@ function initSidebarLinkClick() {
   document.querySelectorAll(".forum-category-item").forEach((link) => {
     link.addEventListener("click", () => {
       document.getElementById("forumSidebar")?.classList.remove("open");
+    });
+  });
+}
+
+function initFeedTabs() {
+  const tabs = document.querySelectorAll(".feed-tab");
+  tabs.forEach(tab => {
+    tab.addEventListener("click", async () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const sort = tab.dataset.sort;
+      currentSort = sort;
+      
+      let discussions = [...(window._currentDiscussions || [])];
+      if (sort === "newest") {
+        discussions.sort((a, b) => new Date(b.lastActivity || 0) - new Date(a.lastActivity || 0));
+      } else if (sort === "popular") {
+        discussions.sort((a, b) => (b.replies || 0) - (a.replies || 0));
+      }
+      renderDiscussions(discussions, getCategoryFromURL());
     });
   });
 }
@@ -729,6 +752,9 @@ async function openDiscussionDetail(id) {
   const overlay = document.getElementById("discussionPopupOverlay");
   const container = document.getElementById("discussionPopupContainer");
   if (!overlay || !container) return;
+
+  // Add the specific class for figma scrollable detailed modal sheets
+  container.className = "popup-container discussion-detail-modal-container";
 
   const chatbot = document.getElementById("chatbot-widget");
   if (chatbot) chatbot.style.display = "none";
@@ -1213,46 +1239,54 @@ function buildDiscussionDetailHTML(d, comments) {
         <button class="back-btn" id="discussion-back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
         ${topActions}
       </div>
-      <div class="discussion-detail-card">
-        <div class="forum-discussion-card-header">
-          <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
-            ${renderAvatar(d.avatar, d.author)}
+      
+      <!-- Scrollable Message & Comment Area -->
+      <div class="discussion-detail-scroll-area">
+        <div class="discussion-detail-card">
+          <div class="forum-discussion-card-header">
+            <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+              ${renderAvatar(d.avatar, d.author)}
+            </div>
+            <div class="forum-discussion-author-info">
+              <span class="forum-discussion-author-name">${d.author}</span>
+              <span class="forum-discussion-author-uni">${d.university || "SpringWave"}</span>
+            </div>
+            <span class="forum-discussion-time">${d.lastActivity}</span>
           </div>
-          <div class="forum-discussion-author-info">
-            <span class="forum-discussion-author-name">${d.author}</span>
-            <span class="forum-discussion-author-uni">${d.university || "SpringWave"}</span>
+          <h3 class="forum-discussion-title">${d.title}</h3>
+          <p class="forum-discussion-preview">${d.preview}</p>
+          ${eventRef}
+          <div class="forum-discussion-meta">
+            <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
+            <div class="forum-discussion-tags">
+            ${(Array.isArray(d.tags) ? d.tags : []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+            </div>
           </div>
-          <span class="forum-discussion-time">${d.lastActivity}</span>
+          <div class="forum-discussion-stats">
+            <span class="forum-discussion-stat">
+              <span class="material-symbols-outlined text-sm">chat_bubble</span>
+              ${d.replies || d.replyCount || comments.length} replies
+            </span>
+          </div>
         </div>
-        <h3 class="forum-discussion-title">${d.title}</h3>
-        <p class="forum-discussion-preview">${d.preview}</p>
-        ${eventRef}
-        <div class="forum-discussion-meta">
-          <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
-          <div class="forum-discussion-tags">
-          ${(Array.isArray(d.tags) ? d.tags : []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
-          </div>
+        
+        <div class="forum-comments-header">
+          <span class="forum-comments-count">${comments.length} comment${comments.length !== 1 ? "s" : ""}</span>
+          <select class="forum-comments-sort" id="forum-comments-sort">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="relevant">Most Relevant</option>
+          </select>
         </div>
-        <div class="forum-discussion-stats">
-          <span class="forum-discussion-stat">
-            <span class="material-symbols-outlined text-sm">chat_bubble</span>
-            ${d.replies || d.replyCount || comments.length} replies
-          </span>
+        
+        <div class="discussion-detail-comments" id="discussion-detail-comments">
+          ${comments.length === 0
+            ? buildEmptyState()
+            : (() => { const { roots, childMap } = groupComments(comments); return roots.map(c => renderCommentTree(c, childMap, user)).join(""); })()}
         </div>
       </div>
-      <div class="forum-comments-header">
-        <span class="forum-comments-count">${comments.length} comment${comments.length !== 1 ? "s" : ""}</span>
-        <select class="forum-comments-sort" id="forum-comments-sort">
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="relevant">Most Relevant</option>
-        </select>
-      </div>
-      <div class="discussion-detail-comments" id="discussion-detail-comments">
-        ${comments.length === 0
-          ? buildEmptyState()
-          : (() => { const { roots, childMap } = groupComments(comments); return roots.map(c => renderCommentTree(c, childMap, user)).join(""); })()}
-      </div>
+      
+      <!-- Floating Input form sits outside scroll area at absolute bottom -->
       <div class="discussion-detail-form">
         <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment..." data-reply-to-id="" />
         <button class="forum-comment-submit" id="discussion-submit-btn">
@@ -1779,6 +1813,13 @@ function initPostModal() {
     const isEvent = category === "event";
     const isSkills = category === "skills";
 
+    const categoryPills = document.getElementById("postCategoryPills");
+    if (categoryPills) {
+      categoryPills.querySelectorAll(".category-select-pill").forEach(p => {
+        p.classList.toggle("active", p.dataset.category === category);
+      });
+    }
+
     if (postEventCards) postEventCards.style.display = isEvent ? "" : "none";
     if (postEventLabel) {
       postEventLabel.style.display = (isEvent || isSkills) ? "" : "none";
@@ -1796,6 +1837,16 @@ function initPostModal() {
 
   if (categorySelect) {
     categorySelect.addEventListener("change", () => updateCategoryUI(categorySelect.value));
+  }
+
+  const categoryPills = document.getElementById("postCategoryPills");
+  if (categoryPills && categorySelect) {
+    categoryPills.querySelectorAll(".category-select-pill").forEach(pill => {
+      pill.addEventListener("click", () => {
+        categorySelect.value = pill.dataset.category;
+        categorySelect.dispatchEvent(new Event("change"));
+      });
+    });
   }
 
   if (postSkillPills) {
