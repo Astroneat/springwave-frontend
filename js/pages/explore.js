@@ -420,10 +420,15 @@ function initializePage() {
 function initStars() {
     document.querySelectorAll(".card .star").forEach(star => {
         star.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const card = star.closest(".card");
             const id = card?.dataset.id;
-            if (!id || !isAuthenticated()) return;
-            e.stopPropagation();
+            if (!id) return;
+            if (!isAuthenticated()) {
+                alert(t("explore.please_login") || "Please login first to favourite activities!");
+                return;
+            }
             const active = star.classList.contains("active");
             star.classList.toggle("active");
             try {
@@ -494,6 +499,10 @@ async function openPopup(activityID) {
     favoriteBtn?.addEventListener("click", async (event) => {
         event.preventDefault();
         event.stopPropagation();
+        if (!isAuthenticated()) {
+            alert(t("explore.please_login") || "Please login first to favourite activities!");
+            return;
+        }
         const isActive = favoriteBtn.classList.contains("active");
         favoriteBtn.classList.toggle("active");
         toggleCardStar(activityID, !isActive);
@@ -572,6 +581,10 @@ async function openPopup2(activityID, activityData) {
     favBtn?.addEventListener("click", async (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (!isAuthenticated()) {
+            alert(t("explore.please_login") || "Please login first to favourite activities!");
+            return;
+        }
         const active = favBtn.classList.contains("active");
         favBtn.classList.toggle("active");
         toggleCardStar(activityID, !active);

@@ -61,14 +61,14 @@
     --color-on-secondary: #ffffff;
     --color-on-background: #191b22;
 
-    --font-label-md: "Inter", sans-serif;
-    --font-caption: "Inter", sans-serif;
-    --font-headline-md: "Plus Jakarta Sans", sans-serif;
-    --font-body-lg: "Inter", sans-serif;
-    --font-headline-lg: "Plus Jakarta Sans", sans-serif;
-    --font-body-md: "Inter", sans-serif;
-    --font-display-lg-mobile: "Plus Jakarta Sans", sans-serif;
-    --font-display-lg: "Plus Jakarta Sans", sans-serif;
+    --font-label-md: "Aleo", serif;
+    --font-caption: "Aleo", serif;
+    --font-headline-md: "Aleo", serif;
+    --font-body-lg: "Aleo", serif;
+    --font-headline-lg: "Aleo", serif;
+    --font-body-md: "Aleo", serif;
+    --font-display-lg-mobile: "Aleo", serif;
+    --font-display-lg: "Aleo", serif;
 
     --text-label-md: 14px;
     --text-caption: 12px;
@@ -85,6 +85,10 @@
     --spacing-container-max: 1280px;
     --spacing-stack-sm: 0.5rem;
     --spacing-stack-md: 1rem;
+}
+
+html, body, button, input, select, textarea {
+    font-family: "Aleo", serif !important;
 }
 
 @layer utilities {
@@ -1484,9 +1488,18 @@
     transition: 0.3s ease;
 }
 
+.star.active {
+    background: #ffe08a !important;
+    border-color: #f0d58a !important;
+}
+
 .star i {
     @apply text-[#9b9b9b] text-[0.6rem];
     transition: 0.3s ease;
+}
+
+.star.active i {
+    color: #d4a017 !important;
 }
 
 .favorite-btn:hover .star {

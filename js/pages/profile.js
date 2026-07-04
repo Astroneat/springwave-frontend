@@ -177,6 +177,10 @@ async function openPopup(activityID) {
     const favoriteBtn = popupContainer.querySelector(".favorite-btn");
     favoriteBtn?.addEventListener("click", async (e) => {
         e.stopPropagation();
+        if (!isAuthenticated()) {
+            alert(t("profile.please_login") || "Please login first to favourite activities!");
+            return;
+        }
         const active = favoriteBtn.classList.contains("active");
         favoriteBtn.classList.toggle("active");
         try {
