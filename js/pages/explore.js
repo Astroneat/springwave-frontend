@@ -647,41 +647,90 @@ function buildPopupHTML(a, backText) {
     }).join("");
 
     return `
-    <div class="container">
-        <div class="top-bar">
-            <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${backText}</button>
-            <div class="top-actions">
-                <button class="icon-btn"><span class="material-symbols-outlined text-base">share</span> ${t("explore.share")}</button>
-                <button class="discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}"><span class="material-symbols-outlined text-lg">forum</span> Discuss</button>
-                <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite")}</span></button>
-            </div>
-        </div>
-        <div class="main-content">
-            <div class="left-panel">
-                <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
-                <div class="tag"><i class="fa-solid fa-tag"></i> ${type}</div>
-                <div class="details-card">
-                    <h2>${t("explore.details")}</h2>
-                    <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>${t("explore.location")}</span><p>${a.location}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>${t("explore.date")}</span><p>${heldDate}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>${t("explore.host")}</span><p>${a.hostName || a.createdByName || t("common.unknown")}</p></div></div>
-                    <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>${t("explore.type")}</span><p>${type}</p></div></div>
-                </div>
-            </div>
-            <div class="right-panel">
-                <h1 class="title">${a.title}</h1>
-                <a class="location-link" href="${googleMapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
-                <div class="info-boxes">
-                    <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>${t("explore.date")}</span><p>${heldDate}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>${t("explore.hosted_by")}</span><p>${a.hostName || a.createdByName || t("common.unknown")}</p></div></div>
-                </div>
-                <div class="description-panel">
-                    ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
-                </div>
-                ${filesHTML ? `<div class="files-box"><h3>${t("explore.attached_files")} (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
-            </div>
+    <div class="activity-popup-layout">
+        <!-- Hero Cover Section -->
+        <div class="popup-hero-cover">
+            <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
+            <div class="popup-hero-overlay"></div>
+            <button class="back-btn-floating" id="back-btn" title="${backText}"><i class="fa-solid fa-arrow-left"></i></button>
+            <span class="popup-category-badge"><i class="fa-solid fa-tag"></i> ${type}</span>
         </div>
 
+        <!-- Content Grid Section -->
+        <div class="popup-body-grid">
+            <div class="popup-body-main">
+                <h1 class="popup-main-title">${a.title}</h1>
+                <div class="popup-host-row">
+                    <div class="popup-host-avatar">${(a.hostName || a.createdByName || "U")[0].toUpperCase()}</div>
+                    <div class="popup-host-info">
+                        <span class="host-label">Hosted by</span>
+                        <h4 class="host-name">${a.hostName || a.createdByName || t("common.unknown")}</h4>
+                    </div>
+                </div>
+                <div class="popup-section-divider"></div>
+                <h3 class="popup-section-title">About this Activity</h3>
+                <div class="popup-description-text">
+                    ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+                </div>
+                ${filesHTML ? `
+                <div class="popup-section-divider"></div>
+                <div class="popup-attachments-section">
+                    <h3>${t("explore.attached_files")} (${(a.attachments || []).length})</h3>
+                    <div class="popup-files-list">${filesHTML}</div>
+                </div>` : ""}
+            </div>
+
+            <!-- Sticky Action Sidebar -->
+            <aside class="popup-sidebar">
+                <div class="popup-sidebar-card">
+                    <h3 class="sidebar-card-title">Activity Details</h3>
+                    <div class="sidebar-details-list">
+                        <div class="sidebar-detail-item">
+                            <i class="fa-regular fa-calendar"></i>
+                            <div>
+                                <span>Date & Time</span>
+                                <p>${heldDate}</p>
+                            </div>
+                        </div>
+                        <div class="sidebar-detail-item">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <div>
+                                <span>Location</span>
+                                <p><a href="${googleMapsLink}" target="_blank" class="sidebar-location-link">${a.location} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></p>
+                            </div>
+                        </div>
+                        <div class="sidebar-detail-item">
+                            <i class="fa-solid fa-tag"></i>
+                            <div>
+                                <span>Category</span>
+                                <p>${type}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-actions-group">
+                        <button class="action-btn participate" type="button">
+                            <i class="fa-solid fa-users"></i>
+                            <div>
+                                <h4 class="participate-header">${t("explore.participate")}</h4>
+                                <p class="participate-text">${t("explore.join_activity")}</p>
+                            </div>
+                        </button>
+                        <button class="action-btn discuss discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}" type="button">
+                            <i class="fa-solid fa-comments"></i>
+                            <div>
+                                <h4>DISCUSS</h4>
+                                <p>Join the thread</p>
+                            </div>
+                        </button>
+                        <div class="sidebar-minor-row">
+                            <button class="icon-btn minor-btn" type="button"><span class="material-symbols-outlined text-base">share</span> ${t("explore.share")}</button>
+                            <button type="button" class="favorite-btn minor-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite")}</span></button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
     </div>`;
 }
 

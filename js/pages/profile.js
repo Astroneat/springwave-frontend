@@ -153,6 +153,20 @@ async function openPopup(activityID) {
 
     document.getElementById("back-btn").addEventListener("click", closePopup);
 
+    popupContainer.querySelector(".icon-btn")?.addEventListener("click", () => {
+        const title = activity?.title || "SpringWave Event";
+        const url = `${window.location.origin}/explore.html?event=${activityID}`;
+        if (navigator.share) {
+            navigator.share({ title, url }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard!")).catch(() => {});
+        }
+    });
+
+    popupContainer.querySelector(".discuss-btn")?.addEventListener("click", () => {
+        window.location.href = `./community.html?event=${activityID}`;
+    });
+
     if (isAuthenticated()) {
         Promise.all([
             checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(); }),
@@ -256,45 +270,96 @@ function buildPopupHTML(a) {
     }).join("");
 
     return `
-    <div class="container">
-        <div class="top-bar">
-            <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${t("profile.back")}</button>
-            <div class="top-actions">
-                <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> ${t("profile.share")}</button>
-                <button class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("profile.favourite")}</span></button>
-            </div>
+    <div class="activity-popup-layout">
+        <!-- Hero Cover Section -->
+        <div class="popup-hero-cover">
+            <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
+            <div class="popup-hero-overlay"></div>
+            <button class="back-btn-floating" id="back-btn" title="${t("profile.back")}"><i class="fa-solid fa-arrow-left"></i></button>
+            <span class="popup-category-badge"><i class="fa-solid fa-tag"></i> ${type}</span>
         </div>
-        <div class="main-content">
-            <div class="left-panel">
-                <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
-                <div class="tag"><i class="fa-solid fa-tag"></i> ${type}</div>
-                <div class="details-card">
-                    <h2>${t("profile.details")}</h2>
-                    <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>${t("profile.location")}</span><p>${a.location}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>${t("profile.date")}</span><p>${heldDate}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>${t("profile.host")}</span><p>${a.hostName || t("profile.unknown")}</p></div></div>
-                    <div class="detail-item"><i class="fa-regular fa-clock"></i><div><span>${t("profile.apply_deadline")}</span><p>${deadline}</p></div></div>
-                    <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>${t("profile.type")}</span><p>${type}</p></div></div>
+
+        <!-- Content Grid Section -->
+        <div class="popup-body-grid">
+            <div class="popup-body-main">
+                <h1 class="popup-main-title">${a.title}</h1>
+                <div class="popup-host-row">
+                    <div class="popup-host-avatar">${(a.hostName || "U")[0].toUpperCase()}</div>
+                    <div class="popup-host-info">
+                        <span class="host-label">Hosted by</span>
+                        <h4 class="host-name">${a.hostName || t("profile.unknown")}</h4>
+                    </div>
                 </div>
-            </div>
-            <div class="right-panel">
-                <h1 class="title">${a.title}</h1>
-                <a class="location-link" href="${mapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
-                <div class="info-boxes">
-                    <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>${t("profile.date")}</span><p>${heldDate}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-clock"></i><div><span>${t("profile.apply_deadline")}</span><p>${deadline}</p></div></div>
-                    <div class="info-box"><i class="fa-regular fa-user"></i><div><span>${t("profile.hosted_by")}</span><p>${a.hostName || t("profile.unknown_host")}</p></div></div>
-                </div>
-                <div class="description-panel">
+                <div class="popup-section-divider"></div>
+                <h3 class="popup-section-title">About this Activity</h3>
+                <div class="popup-description-text">
                     ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
                 </div>
-                ${filesHTML ? `<div class="files-box"><h3>${t("profile.attached_files")} (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
+                ${filesHTML ? `
+                <div class="popup-section-divider"></div>
+                <div class="popup-attachments-section">
+                    <h3>${t("profile.attached_files")} (${(a.attachments || []).length})</h3>
+                    <div class="popup-files-list">${filesHTML}</div>
+                </div>` : ""}
             </div>
-        </div>
-        <div class="action-buttons">
-            <button class="action-btn discuss" type="button"><i class="fa-solid fa-comments"></i><div><h4>${t("profile.discuss")}</h4><p>${(a.comments || 0)} ${t("profile.comments")}</p></div></button>
-            <button class="action-btn participate" type="button"><i class="fa-solid fa-users"></i><div><h4 class="participate-header">${t("profile.participate")}</h4><p class="participate-text">${t("profile.join_activity")}</p></div></button>
-            <button class="action-btn report" type="button"><i class="fa-solid fa-flag"></i><div><h4>${t("profile.report")}</h4><p>${t("profile.report_activity")}</p></div></button>
+
+            <!-- Sticky Action Sidebar -->
+            <aside class="popup-sidebar">
+                <div class="popup-sidebar-card">
+                    <h3 class="sidebar-card-title">Activity Details</h3>
+                    <div class="sidebar-details-list">
+                        <div class="sidebar-detail-item">
+                            <i class="fa-regular fa-calendar"></i>
+                            <div>
+                                <span>Date & Time</span>
+                                <p>${heldDate}</p>
+                            </div>
+                        </div>
+                        <div class="sidebar-detail-item">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <div>
+                                <span>Location</span>
+                                <p><a href="${mapsLink}" target="_blank" class="sidebar-location-link">${a.location} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></p>
+                            </div>
+                        </div>
+                        <div class="sidebar-detail-item">
+                            <i class="fa-regular fa-clock"></i>
+                            <div>
+                                <span>Registration Deadline</span>
+                                <p>${deadline}</p>
+                            </div>
+                        </div>
+                        <div class="sidebar-detail-item">
+                            <i class="fa-solid fa-tag"></i>
+                            <div>
+                                <span>Category</span>
+                                <p>${type}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-actions-group">
+                        <button class="action-btn participate" type="button">
+                            <i class="fa-solid fa-users"></i>
+                            <div>
+                                <h4 class="participate-header">${t("profile.participate")}</h4>
+                                <p class="participate-text">${t("profile.join_activity")}</p>
+                            </div>
+                        </button>
+                        <button class="action-btn discuss discuss-btn" type="button">
+                            <i class="fa-solid fa-comments"></i>
+                            <div>
+                                <h4>${t("profile.discuss")}</h4>
+                                <p>${(a.comments || 0)} ${t("profile.comments")}</p>
+                            </div>
+                        </button>
+                        <div class="sidebar-minor-row">
+                            <button class="icon-btn minor-btn" type="button"><span class="material-symbols-outlined text-base">share</span> ${t("profile.share")}</button>
+                            <button type="button" class="favorite-btn minor-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("profile.favourite")}</span></button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>`;
 }
