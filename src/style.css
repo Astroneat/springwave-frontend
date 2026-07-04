@@ -6923,6 +6923,63 @@
     gap: 2px;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
     width: 786px; /* Restored menu width to match search bar (786px) */
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.figma-navbar-search {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%) translateY(40px);
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.12); /* Matching navbar pill glassmorphism */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    height: 48px;
+    border-radius: 110px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+    width: 786px;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.figma-navbar-search .search-icon {
+    font-size: 24px;
+    color: #ffffff;
+}
+
+.figma-navbar-search .explore-search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #ffffff;
+    width: 100%;
+}
+
+.figma-navbar-search .explore-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* State when search bar is merged into navbar */
+#navbar.merged #navLinks {
+    transform: translateY(-40px);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+#navbar.merged #navbarSearchContainer {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
 }
 
 .nav-indicator-pill {
@@ -7048,6 +7105,13 @@
     padding: 0 28px;
     gap: 16px;
     box-shadow: 0 10px 30px rgba(165, 200, 233, 0.35);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.explore-search-bar.merged {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
 }
 
 .explore-search-bar .search-icon {

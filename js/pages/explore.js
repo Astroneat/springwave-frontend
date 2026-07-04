@@ -151,12 +151,17 @@ async function loadRecommendations() {
 
 function initSearchButton() {
     const searchInput = document.getElementById("search-main");
+    const navbarInput = document.getElementById("search-navbar");
     if (!searchInput) return;
 
     let debounceTimeout = null;
 
-    const performSearch = async () => {
-        const keyword = searchInput.value.trim();
+    const performSearch = async (val) => {
+        const keyword = val.trim();
+        
+        // Sync inputs
+        if (searchInput) searchInput.value = keyword;
+        if (navbarInput) navbarInput.value = keyword;
         
         // Clear active category filters when searching
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
@@ -183,18 +188,19 @@ function initSearchButton() {
         }
     };
 
-    // Search on type with debounce (350ms)
-    searchInput.addEventListener("input", () => {
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(performSearch, 350);
-    });
-
-    // Search immediately on Enter key
-    searchInput.addEventListener("keyup", (e) => {
-        if (e.key === "Enter") {
+    const inputs = [searchInput, navbarInput].filter(Boolean);
+    inputs.forEach(input => {
+        input.addEventListener("input", (e) => {
             clearTimeout(debounceTimeout);
-            performSearch();
-        }
+            debounceTimeout = setTimeout(() => performSearch(e.target.value), 350);
+        });
+
+        input.addEventListener("keyup", (e) => {
+            if (e.key === "Enter") {
+                clearTimeout(debounceTimeout);
+                performSearch(e.target.value);
+            }
+        });
     });
 }
 
@@ -305,7 +311,9 @@ function initSidebar() {
 
     document.getElementById("clearFilters")?.addEventListener("click", async () => {
         const searchInput = document.getElementById("search-main");
+        const navbarInput = document.getElementById("search-navbar");
         if (searchInput) searchInput.value = "";
+        if (navbarInput) navbarInput.value = "";
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";
