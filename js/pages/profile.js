@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser, setUser } from "../lib/session.js";
-import { changeInfo, getFavourites, getUserContribution, uploadAvatar } from "../api/user.js";
+import { changeInfo, getFavourites, getUserContribution, uploadAvatar, getParticipatedActivities } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
 import { getMyProfile } from "../api/profile.js";
 import {
@@ -586,11 +586,12 @@ function calcContribLevel(score) {
   return { level: 1, current: 0, next: 100, progress: 0 };
 }
 
-function computeLocalBadges(user, c) {
+function computeLocalBadges(user, c, favoritesCount = 0, participationsCount = 0) {
   const badges = [];
   if (user && user.dob && user.school) badges.push("hello_world");
   if (c.repliesGiven >= 1) badges.push("talk_is_silver");
   if (c.discussionsStarted >= 1) badges.push("so_it_begins");
+  if (localStorage.getItem("springwave_quiz_completed") === "true") badges.push("self_discovery");
   if (c.discussionsStarted >= 5) badges.push("conversation_starter");
   if (c.repliesGiven >= 10) badges.push("helper");
   if (c.repliesGiven >= 50) badges.push("chatterbox");
@@ -603,6 +604,17 @@ function computeLocalBadges(user, c) {
   if (c.score >= 2000) badges.push("the_sage");
   if (c.repliesGiven > c.discussionsStarted * 10 && c.discussionsStarted > 0) badges.push("one_man_show");
   if (c.discussionsStarted <= 3 && c.discussionsStarted > 0 && c.likesReceived >= c.discussionsStarted * 5) badges.push("quality_over_quantity");
+
+  // Activity & Event Gamification
+  if (favoritesCount >= 5) badges.push("active_explorer");
+  if (participationsCount >= 1) badges.push("event_goer");
+  if (user && user.role === "host") {
+    badges.push("rising_host");
+    if (c.score >= 100 || favoritesCount >= 5) {
+      badges.push("grand_host");
+    }
+  }
+
   return badges;
 }
 
@@ -647,29 +659,55 @@ async function renderAIProfile() {
 
 const ALL_BADGES = [
   // ── Newbie Tier ──
-  { key: "hello_world",        label: "Hello World",        icon: "gesture",         desc: "Created your account — \"You exist. That's the first step.\"" },
-  { key: "talk_is_silver",     label: "Talk is Silver",     icon: "comment",         desc: "Wrote your first reply — \"You said something. The internet is proud.\"" },
-  { key: "so_it_begins",       label: "So It Begins",       icon: "rocket_launch",   desc: "Started your first discussion — \"Another thread joins the infinite void.\"" },
-  { key: "self_discovery",     label: "Self-Discovery",     icon: "psychology",      desc: "Completed the personality quiz — \"You stared into the quiz, and the quiz stared back.\"" },
+  { key: "hello_world",        label: "Hello World",        icon: "gesture",         desc: "Created your account — \"You exist. That's the first step.\"", tier: "newbie" },
+  { key: "talk_is_silver",     label: "Talk is Silver",     icon: "comment",         desc: "Wrote your first reply — \"You said something. The internet is proud.\"", tier: "newbie" },
+  { key: "so_it_begins",       label: "So It Begins",       icon: "rocket_launch",   desc: "Started your first discussion — \"Another thread joins the infinite void.\"", tier: "newbie" },
+  { key: "self_discovery",     label: "Self-Discovery",     icon: "psychology",      desc: "Completed the personality quiz — \"You stared into the quiz, and the quiz stared back.\"", tier: "newbie" },
+
+  // ── Activity Explorer Tier ──
+  { key: "active_explorer",    label: "Active Explorer",    icon: "explore",         desc: "Favourited 5 activities — \"Always hunting for the next big student event.\"", tier: "explorer" },
+  { key: "event_goer",         label: "Event Goer",         icon: "event_available", desc: "Participated in 1 activity — \"Made it to an event. Real world interaction unlocked!\"", tier: "explorer" },
+  { key: "rising_host",        label: "Rising Host",        icon: "campaign",        desc: "Hosted your first activity — \"Welcoming students, organizing schedules.\"", tier: "explorer" },
+  { key: "grand_host",         label: "Grand Host",         icon: "co_present",      desc: "Hosted 5 activities — \"A pillar of student life. You build communities.\"", tier: "explorer" },
 
   // ── Community Contributor ──
-  { key: "conversation_starter", label: "Conversation Starter", icon: "chat",       desc: "Started 5 discussions — \"You're basically a talk show host now.\"" },
-  { key: "helper",               label: "Helper",                icon: "forum",      desc: "Wrote 10 replies — \"Your keyboard should be a registered charity.\"" },
-  { key: "chatterbox",           label: "Chatterbox",            icon: "speaker_notes", desc: "Wrote 50 replies — \"Do you ever sleep? Do you ever stop typing?\"" },
-  { key: "respected",            label: "Respected",             icon: "thumb_up",   desc: "Received 20 likes — \"People approve of your existence. Digitally, at least.\"" },
-
-  // ── Community Leader ──
-  { key: "the_oracle",         label: "The Oracle",          icon: "auto_awesome",   desc: "Received 50 likes — \"You don't give advice. You drop prophecies.\"" },
-  { key: "trendsetter",        label: "Trendsetter",         icon: "waves",          desc: "Started 20 discussions — \"You're not following trends. You're creating them.\"" },
-  { key: "community_star",     label: "Community Star",      icon: "stars",          desc: "Reached 100 contribution score — \"You're basically the main character now.\"" },
-  { key: "keyboard_warrior",   label: "Keyboard Warrior",    icon: "keyboard",       desc: "Wrote 100 replies — \"Your keyboard has seen things. Horrible, wonderful things.\"" },
+  { key: "conversation_starter", label: "Conversation Starter", icon: "chat",       desc: "Started 5 discussions — \"You're basically a talk show host now.\"", tier: "contributor" },
+  { key: "helper",               label: "Helper",                icon: "forum",      desc: "Wrote 10 replies — \"Your keyboard should be a registered charity.\"", tier: "contributor" },
+  { key: "chatterbox",           label: "Chatterbox",            icon: "speaker_notes", desc: "Wrote 50 replies — \"Do you ever sleep? Do you ever stop typing?\"", tier: "contributor" },
+  { key: "respected",            label: "Respected",             icon: "thumb_up",   desc: "Received 20 likes — \"People approve of your existence. Digitally, at least.\"", tier: "contributor" },
 
   // ── Legendary ──
-  { key: "mentor",             label: "Mentor",              icon: "school",         desc: "Reached Level 5 — \"You have ascended. Use your power wisely.\"" },
-  { key: "the_sage",           label: "The Sage",            icon: "emoji_objects",  desc: "Reached Level 6 — \"You are the final boss of this community.\"" },
-  { key: "one_man_show",       label: "One-Man Show",        icon: "theater_comedy", desc: "10x more replies than discussions started — \"Ever considered podcasting?\"" },
-  { key: "quality_over_quantity", label: "Quality > Quantity", icon: "target",       desc: "Started ≤ 3 discussions yet each got 5+ likes — \"You barely speak, but when you do, people listen.\"" },
+  { key: "the_oracle",         label: "The Oracle",          icon: "auto_awesome",   desc: "Received 50 likes — \"You don't give advice. You drop prophecies.\"", tier: "legendary" },
+  { key: "trendsetter",        label: "Trendsetter",         icon: "waves",          desc: "Started 20 discussions — \"You're not following trends. You're creating them.\"", tier: "legendary" },
+  { key: "community_star",     label: "Community Star",      icon: "stars",          desc: "Reached 100 contribution score — \"You're basically the main character now.\"", tier: "legendary" },
+  { key: "keyboard_warrior",   label: "Keyboard Warrior",    icon: "keyboard",       desc: "Wrote 100 replies — \"Your keyboard has seen things. Horrible, wonderful things.\"", tier: "legendary" },
+  { key: "mentor",             label: "Mentor",              icon: "school",         desc: "Reached Level 5 — \"You have ascended. Use your power wisely.\"", tier: "legendary" },
+  { key: "the_sage",           label: "The Sage",            icon: "emoji_objects",  desc: "Reached Level 6 — \"You are the final boss of this community.\"", tier: "legendary" },
+  { key: "one_man_show",       label: "One-Man Show",        icon: "theater_comedy", desc: "10x more replies than discussions started — \"Ever considered podcasting?\"", tier: "legendary" },
+  { key: "quality_over_quantity", label: "Quality > Quantity", icon: "target",       desc: "Started ≤ 3 discussions yet each got 5+ likes — \"You barely speak, but when you do, people listen.\"", tier: "legendary" },
 ];
+
+function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
+  switch (key) {
+    case "talk_is_silver": return { current: c.repliesGiven, target: 1 };
+    case "so_it_begins": return { current: c.discussionsStarted, target: 1 };
+    case "conversation_starter": return { current: c.discussionsStarted, target: 5 };
+    case "helper": return { current: c.repliesGiven, target: 10 };
+    case "chatterbox": return { current: c.repliesGiven, target: 50 };
+    case "respected": return { current: c.likesReceived, target: 20 };
+    case "the_oracle": return { current: c.likesReceived, target: 50 };
+    case "trendsetter": return { current: c.discussionsStarted, target: 20 };
+    case "community_star": return { current: c.score, target: 100 };
+    case "keyboard_warrior": return { current: c.repliesGiven, target: 100 };
+    case "mentor": return { current: c.score, target: 1000 };
+    case "the_sage": return { current: c.score, target: 2000 };
+
+    // Activity progress
+    case "active_explorer": return { current: favoritesCount, target: 5 };
+    case "event_goer": return { current: participationsCount, target: 1 };
+    default: return null;
+  }
+}
 
 async function renderContribPanel() {
   const container = document.getElementById("exp-list");
@@ -682,10 +720,26 @@ async function renderContribPanel() {
     data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] } };
   }
 
+  // Fetch event activity metrics for gamification calculations
+  let favoritesCount = 0;
+  let participationsCount = 0;
+  try {
+    const { activities } = await getFavourites();
+    favoritesCount = (activities || []).length;
+  } catch (err) {
+    console.warn("Failed to fetch favorites count:", err);
+  }
+  try {
+    const { activities } = await getParticipatedActivities();
+    participationsCount = (activities || []).length;
+  } catch (err) {
+    console.warn("Failed to fetch participated activities count:", err);
+  }
+
   const c = data.contribution;
   const user = getUser();
   const serverBadges = c.badges || [];
-  const localBadges = computeLocalBadges(user, c);
+  const localBadges = computeLocalBadges(user, c, favoritesCount, participationsCount);
   const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
   const earnedKeys = new Set(mergedBadges);
 
@@ -746,10 +800,10 @@ async function renderContribPanel() {
     if (bar) bar.style.width = bar.dataset.pct + "%";
   });
 
-  renderBadgesPanel(earnedKeys);
+  renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount);
 }
 
-function renderBadgesPanel(earnedKeys) {
+function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount) {
   const grid = document.getElementById("badges-grid");
   if (!grid) return;
 
@@ -757,14 +811,36 @@ function renderBadgesPanel(earnedKeys) {
     <div class="badges-all">
       ${ALL_BADGES.map(b => {
         const earned = earnedKeys.has(b.key);
+        const progress = getBadgeProgress(b.key, c, user, favoritesCount, participationsCount);
+
+        let progressHtml = "";
+        if (!earned && progress) {
+          const pct = Math.min(100, Math.round((progress.current / progress.target) * 100));
+          const barColorMap = { newbie: "#0284c7", explorer: "#0d9488", contributor: "#7c3aed", legendary: "#d97706" };
+          const barColor = barColorMap[b.tier] || "#3b6fd4";
+          
+          progressHtml = `
+            <div class="badge-progress-container" style="margin-top: 8px; width: 100%;">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 2px;">
+                <span>Progress</span>
+                <span>${progress.current}/${progress.target}</span>
+              </div>
+              <div style="height: 4px; background: #e2e8f0; border-radius: 99px; overflow: hidden;">
+                <div style="height: 100%; background: ${barColor}; border-radius: 99px; width: ${pct}%; transition: width 0.3s ease;"></div>
+              </div>
+            </div>
+          `;
+        }
+
         return `
-          <div class="badge-card ${earned ? "earned" : "locked"}">
+          <div class="badge-card tier-${b.tier} ${earned ? "earned" : "locked"}">
             <div class="badge-icon-wrap ${earned ? "earned" : "locked"}">
               <span class="material-symbols-outlined badge-icon">${b.icon}</span>
             </div>
-            <div class="badge-info">
+            <div class="badge-info" style="flex: 1;">
               <span class="badge-label">${b.label}</span>
               <span class="badge-desc">${b.desc}</span>
+              ${progressHtml}
             </div>
             ${earned ? '<span class="badge-check material-symbols-outlined">check_circle</span>' : '<span class="badge-lock material-symbols-outlined">lock</span>'}
           </div>
