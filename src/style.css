@@ -2526,9 +2526,7 @@ html, body, button, input, select, textarea {
 }
 
 .card {
-    background: rgba(255, 255, 255, 0.65) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.92) !important;
     border: 1px solid rgba(255, 255, 255, 0.45) !important;
     border-radius: 20px !important;
     overflow: hidden;
@@ -2541,7 +2539,6 @@ html, body, button, input, select, textarea {
     box-shadow: 0 10px 25px rgba(28, 39, 76, 0.04) !important;
     transform: translateY(5px) scale(1.01);
     transition: opacity 0.8s cubic-bezier(.22, 1, .36, 1), transform 0.8s cubic-bezier(.22, 1, .36, 1), box-shadow 0.35s ease, border-color 0.3s ease;
-    will-change: opacity, transform;
 }
 
 .card.revealed {
@@ -7372,7 +7369,7 @@ html, body, button, input, select, textarea {
     font-weight: 600;
     font-size: 1.15rem;
     color: #5d6b98;
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
 }
 
@@ -8871,4 +8868,4 @@ html, body, button, input, select, textarea {
 
 .sidebar-minor-row .minor-btn.favorite-btn.active .star i {
     color: #d4a017 !important;
-}
+}
