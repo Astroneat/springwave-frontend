@@ -18,237 +18,187 @@
   <div id="navbar-container"></div>
 
   <!-- HERO -->
-  <section class="relative min-h-[70vh] flex items-center pt-20 overflow-hidden hero-bg" id="about-hero">
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-[0.04]"
-        style="background: radial-gradient(circle, #23499b, transparent 70%);"></div>
-      <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-[0.03]"
-        style="background: radial-gradient(circle, #3b6fd4, transparent 70%);"></div>
+  <section class="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-[#faf8ff] overflow-hidden" id="about-hero">
+    <!-- Soft Decorative Mesh Backdrops -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+      <div class="absolute -top-[10%] -left-[10%] w-[45%] h-[60%] rounded-full bg-blue-200/20 blur-[120px] animate-pulse" style="animation-duration: 8s;"></div>
+      <div class="absolute -bottom-[20%] -right-[10%] w-[40%] h-[55%] rounded-full bg-purple-200/20 blur-[100px] animate-pulse" style="animation-duration: 6s;"></div>
     </div>
 
     <div class="relative max-w-container-max mx-auto px-6 md:px-12 w-full">
-      <div class="max-w-3xl mx-auto text-center">
-        <span
-          class="inline-flex items-center gap-2 py-1.5 px-4 bg-primary-fixed text-on-primary-fixed-variant rounded-full font-label-md text-label-md mb-6">
-          <span class="material-symbols-outlined text-lg">groups</span>
-          <span data-i18n="about.hero_label">About Us</span>
-        </span>
-        <h1 class="font-headline-lg text-[40px] md:text-[56px] font-extrabold leading-tight mb-6"
-          style="background: linear-gradient(135deg, #23499b, #3b6fd4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-          <span data-i18n="about.hero_title">We Are SpringWave</span>
-        </h1>
-        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
-          data-i18n="about.hero_desc">
-          Built by students, for students — a platform that helps you discover opportunities, connect with communities, and grow beyond the classroom.
+      <div class="grid md:grid-cols-12 gap-8 items-start">
+        <div class="md:col-span-7">
+          <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-blue-50 border border-blue-100 text-[11px] font-bold text-[#3b6fd4] uppercase tracking-widest mb-4" data-i18n="about.hero_label">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#3b6fd4] animate-ping"></span>
+            About Us
+          </span>
+          <h1 class="font-headline-lg text-[44px] md:text-[64px] font-extrabold text-[#0f172a] leading-[1.1] tracking-tight">
+            We are <br>SpringWave.
+          </h1>
+        </div>
+        <div class="md:col-span-5 md:pt-10">
+          <p class="font-body-md text-[17px] text-[#475569] leading-relaxed mb-6" data-i18n="about.hero_desc">
+            Built by students, for students — a platform that helps you discover opportunities, connect with communities, and grow beyond the classroom.
+          </p>
+          <div class="w-12 h-[2px] bg-[#3b6fd4] rounded"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE NARRATIVE (WHY SPRINGWAVE) -->
+  <section class="py-20 md:py-28 bg-white border-t border-[rgba(15,23,42,0.06)]" id="why">
+    <div class="max-w-container-max mx-auto px-6 md:px-12">
+      <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-12">The Narrative</span>
+      
+      <div class="editorial-grid">
+        <!-- The Problem -->
+        <div class="editorial-story-block problem">
+          <span class="editorial-story-num">01 / The Problem</span>
+          <h3 class="editorial-story-title">Scattered information leaves students in the dark.</h3>
+          <p class="editorial-story-text">
+            Students often miss out on workshops, extracurricular activities, and academic opportunities simply because information is fragmented across dozens of Facebook pages, emails, and group chats.
+          </p>
+        </div>
+
+        <!-- The Solution -->
+        <div class="editorial-story-block solution">
+          <span class="editorial-story-num">02 / The Solution</span>
+          <h3 class="editorial-story-title">A single hub to discover your trajectory.</h3>
+          <p class="editorial-story-text">
+            SpringWave aggregates events, workshops, and student forums into a single, clean platform. Combined with personality quizzes and personalized recommendations, it helps students discover their next step with clarity.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE VALUES (WHAT WE BELIEVE) -->
+  <section class="py-20 md:py-28 bg-[#fafafa]" id="believe">
+    <div class="max-w-container-max mx-auto px-6 md:px-12">
+      <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-12" data-i18n="about.believe_title">What We Believe</span>
+      
+      <div class="values-editorial-grid">
+        <!-- Value 1 -->
+        <div class="value-card-editorial grad-violet">
+          <div class="value-card-num">01</div>
+          <h4 class="value-card-title">Unique Potential</h4>
+          <p class="value-card-desc" data-i18n="about.believe_1">Every student has unique potential waiting to be discovered.</p>
+        </div>
+
+        <!-- Value 2 -->
+        <div class="value-card-editorial grad-sky">
+          <div class="value-card-num">02</div>
+          <h4 class="value-card-title">Equal Access</h4>
+          <p class="value-card-desc" data-i18n="about.believe_2">Opportunities should never be limited by lack of information.</p>
+        </div>
+
+        <!-- Value 3 -->
+        <div class="value-card-editorial grad-emerald">
+          <div class="value-card-num">03</div>
+          <h4 class="value-card-title">AI Companionship</h4>
+          <p class="value-card-desc" data-i18n="about.believe_3">AI can be a companion that helps students make better choices.</p>
+        </div>
+
+        <!-- Value 4 -->
+        <div class="value-card-editorial grad-rose">
+          <div class="value-card-num">04</div>
+          <h4 class="value-card-title">Community First</h4>
+          <p class="value-card-desc" data-i18n="about.believe_4">Technology should serve people and community first.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM (MEET THE TEAM) -->
+  <section class="py-20 md:py-28 bg-white" id="team">
+    <div class="max-w-container-max mx-auto px-6 md:px-12">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
+        <div>
+          <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-4" data-i18n="about.team_title">Meet The Team</span>
+          <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]" data-i18n="about.team_desc">SpringWave is developed by RAH.</h2>
+        </div>
+        <p class="text-[14px] text-[#64748b] max-w-sm mt-4 md:mt-0" data-i18n="about.team_subtitle">
+          We are first-year students with a passion for technology, AI, and building real-world products.
+        </p>
+      </div>
+
+      <div class="team-grid-editorial">
+        <!-- Member 1 -->
+        <div class="team-card-editorial accent-blue">
+          <div class="team-avatar-editorial">
+            <img src="/assets/images/Dat.jpg" alt="Nguyễn Viết Thành Đạt" class="team-avatar-img-editorial" />
+          </div>
+          <h4 class="team-name-editorial" data-i18n="about.member_1">Nguyễn Viết Thành Đạt</h4>
+          <p class="team-role-editorial" data-i18n="about.member_1_role">Team Leader & Fullstack Developer</p>
+          <div class="team-socials-editorial">
+            <a href="#" class="team-social-link-editorial gh">Github</a>
+            <a href="#" class="team-social-link-editorial li">Linkedin</a>
+          </div>
+        </div>
+
+        <!-- Member 2 -->
+        <div class="team-card-editorial accent-emerald">
+          <div class="team-avatar-editorial">
+            <img src="/assets/images/Tai.jpg" alt="Nguyễn Đức Tài" class="team-avatar-img-editorial" />
+          </div>
+          <h4 class="team-name-editorial" data-i18n="about.member_2">Nguyễn Đức Tài</h4>
+          <p class="team-role-editorial" data-i18n="about.member_2_role">Fullstack Developer</p>
+          <div class="team-socials-editorial">
+            <a href="#" class="team-social-link-editorial gh">Github</a>
+            <a href="#" class="team-social-link-editorial li">Linkedin</a>
+          </div>
+        </div>
+
+        <!-- Member 3 -->
+        <div class="team-card-editorial accent-amber">
+          <div class="team-avatar-editorial">
+            <img src="/assets/images/Tuan.jpg" alt="Lê Đăng Anh Tuấn" class="team-avatar-img-editorial" />
+          </div>
+          <h4 class="team-name-editorial" data-i18n="about.member_3">Lê Đăng Anh Tuấn</h4>
+          <p class="team-role-editorial" data-i18n="about.member_3_role">Fullstack Developer</p>
+          <div class="team-socials-editorial">
+            <a href="#" class="team-social-link-editorial gh">Github</a>
+            <a href="#" class="team-social-link-editorial li">Linkedin</a>
+          </div>
+        </div>
+
+        <!-- Member 4 -->
+        <div class="team-card-editorial accent-violet">
+          <div class="team-avatar-editorial">
+            <img src="/assets/images/Truong.jpg" alt="Nguyễn Tiến Trường" class="team-avatar-img-editorial" />
+          </div>
+          <h4 class="team-name-editorial" data-i18n="about.member_4">Nguyễn Tiến Trường</h4>
+          <p class="team-role-editorial" data-i18n="about.member_4_role">UI/UX Designer</p>
+          <div class="team-socials-editorial">
+            <a href="#" class="team-social-link-editorial gh">Github</a>
+            <a href="#" class="team-social-link-editorial li">Linkedin</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-20 text-center max-w-3xl mx-auto border-t border-[rgba(15,23,42,0.06)] pt-12">
+        <p class="text-[15px] text-[#475569] leading-relaxed italic" data-i18n="about.journey">
+          "SpringWave is not just a school project — it is the beginning of a journey to create technology solutions that bring real value to the Vietnamese student community."
         </p>
       </div>
     </div>
   </section>
 
-  <!-- WHY SPRINGWAVE -->
-  <section class="py-20 md:py-28" id="why">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="max-w-4xl mx-auto">
-        <div class="text-center mb-16">
-          <span
-            class="inline-flex items-center gap-2 py-1.5 px-4 bg-[#e8f5e9] text-[#2e7d32] rounded-full font-label-md text-label-md mb-4">
-            <span class="material-symbols-outlined text-lg">psychology</span>
-            <span data-i18n="about.why_title">Why SpringWave?</span>
-          </span>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-8 items-center">
-          <div class="space-y-6">
-            <p class="text-[17px] leading-relaxed text-on-surface-variant" data-i18n="about.why_desc">
-              Students often miss out on opportunities because information about workshops, competitions, extracurricular activities, and academic programs is scattered across dozens of fanpages, Facebook groups, and websites. We built SpringWave to change that.
-            </p>
-            <div class="flex items-start gap-4 p-5 bg-white rounded-2xl shadow-sm border border-[#ecedfa]">
-              <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span class="material-symbols-outlined text-primary">target</span>
-              </div>
-              <div>
-                <h4 class="font-semibold text-[15px] text-[#1e293b] mb-1" data-i18n="about.why_title">Our Goal</h4>
-                <p class="text-[14px] text-on-surface-variant leading-relaxed" data-i18n="about.why_goal">
-                  A central platform where students can discover academic and extracurricular activities that match their interests, abilities, and personal growth direction.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid gap-4">
-            <div class="flex items-center gap-4 p-5 bg-white rounded-2xl shadow-sm border border-[#ecedfa] hover:border-primary/20 transition-all spring-ease">
-              <div class="w-11 h-11 rounded-xl bg-[#dbeafe] flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-[#2563eb]">search_insights</span>
-              </div>
-              <div>
-                <h4 class="font-semibold text-[14px] text-[#1e293b]">AI-Powered Discovery</h4>
-                <p class="text-[13px] text-on-surface-variant">Personalized recommendations based on your profile</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 p-5 bg-white rounded-2xl shadow-sm border border-[#ecedfa] hover:border-primary/20 transition-all spring-ease">
-              <div class="w-11 h-11 rounded-xl bg-[#fef3c7] flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-[#d97706]">communities</span>
-              </div>
-              <div>
-                <h4 class="font-semibold text-[14px] text-[#1e293b]">Community Driven</h4>
-                <p class="text-[13px] text-on-surface-variant">Connect with students across universities</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 p-5 bg-white rounded-2xl shadow-sm border border-[#ecedfa] hover:border-primary/20 transition-all spring-ease">
-              <div class="w-11 h-11 rounded-xl bg-[#fce7f3] flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-[#db2777]">auto_awesome</span>
-              </div>
-              <div>
-                <h4 class="font-semibold text-[14px] text-[#1e293b]">AI Profile & Quiz</h4>
-                <p class="text-[13px] text-on-surface-variant">Discover yourself through our personality quiz</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 p-5 bg-white rounded-2xl shadow-sm border border-[#ecedfa] hover:border-primary/20 transition-all spring-ease">
-              <div class="w-11 h-11 rounded-xl bg-[#e0f2fe] flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-[#0284c7]">forum</span>
-              </div>
-              <div>
-                <h4 class="font-semibold text-[14px] text-[#1e293b]">Student Forum</h4>
-                <p class="text-[13px] text-on-surface-variant">Discuss, share, and learn from peers</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- WHAT WE BELIEVE -->
-  <section class="py-20 md:py-28" style="background: linear-gradient(180deg, #faf8ff 0%, #f0f2ff 100%);" id="believe">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="max-w-4xl mx-auto">
-        <div class="text-center mb-16">
-          <span
-            class="inline-flex items-center gap-2 py-1.5 px-4 bg-[#f3e8ff] text-[#7c3aed] rounded-full font-label-md text-label-md mb-4">
-            <span class="material-symbols-outlined text-lg">favorite</span>
-            <span data-i18n="about.believe_title">What We Believe</span>
-          </span>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-5">
-          <div class="believe-card">
-            <div class="believe-number">01</div>
-            <p data-i18n="about.believe_1">Every student has unique potential waiting to be discovered.</p>
-          </div>
-          <div class="believe-card">
-            <div class="believe-number">02</div>
-            <p data-i18n="about.believe_2">Opportunities should never be limited by lack of information.</p>
-          </div>
-          <div class="believe-card">
-            <div class="believe-number">03</div>
-            <p data-i18n="about.believe_3">AI can be a companion that helps students make better choices.</p>
-          </div>
-          <div class="believe-card">
-            <div class="believe-number">04</div>
-            <p data-i18n="about.believe_4">Technology should serve people and community first.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TEAM -->
-  <section class="py-20 md:py-28" id="team">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="max-w-4xl mx-auto">
-        <div class="text-center mb-16">
-          <span
-            class="inline-flex items-center gap-2 py-1.5 px-4 bg-[#dbeafe] text-[#1d4ed8] rounded-full font-label-md text-label-md mb-4">
-            <span class="material-symbols-outlined text-lg">diversity_3</span>
-            <span data-i18n="about.team_title">Meet The Team</span>
-          </span>
-          <p class="text-[17px] text-on-surface-variant mt-4" data-i18n="about.team_desc">
-            SpringWave is developed by RAH — Really Awesome Human.
-          </p>
-          <p class="text-[14px] text-on-surface-variant mt-1" data-i18n="about.team_subtitle">
-            We are first-year students with a passion for technology, AI, and building real-world products.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
-          <div class="team-card">
-            <div class="team-card-accent" style="background: linear-gradient(90deg, #23499b, #3b6fd4);"></div>
-            <div class="team-avatar">
-              <img src="/assets/images/Dat.jpg" alt="Nguyễn Viết Thành Đạt" class="team-avatar-img" />
-            </div>
-            <h4 class="team-name" data-i18n="about.member_1">Nguyễn Viết Thành Đạt</h4>
-            <div class="team-role-line"></div>
-            <p class="team-role" data-i18n="about.member_1_role">Team Leader & Fullstack Developer</p>
-          </div>
-          <div class="team-card">
-            <div class="team-card-accent" style="background: linear-gradient(90deg, #059669, #34d399);"></div>
-            <div class="team-avatar">
-              <img src="/assets/images/Tai.jpg" alt="Nguyễn Đức Tài" class="team-avatar-img" />
-            </div>
-            <h4 class="team-name" data-i18n="about.member_2">Nguyễn Đức Tài</h4>
-            <div class="team-role-line"></div>
-            <p class="team-role" data-i18n="about.member_2_role">Fullstack Developer</p>
-          </div>
-          <div class="team-card">
-            <div class="team-card-accent" style="background: linear-gradient(90deg, #d97706, #f59e0b);"></div>
-            <div class="team-avatar">
-              <img src="/assets/images/Tuan.jpg" alt="Lê Đăng Anh Tuấn" class="team-avatar-img" />
-            </div>
-            <h4 class="team-name" data-i18n="about.member_3">Lê Đăng Anh Tuấn</h4>
-            <div class="team-role-line"></div>
-            <p class="team-role" data-i18n="about.member_3_role">Fullstack Developer</p>
-          </div>
-          <div class="team-card">
-            <div class="team-card-accent" style="background: linear-gradient(90deg, #7c3aed, #a78bfa);"></div>
-            <div class="team-avatar">
-              <img src="/assets/images/Truong.jpg" alt="Nguyễn Tiến Trường" class="team-avatar-img" />
-            </div>
-            <h4 class="team-name" data-i18n="about.member_4">Nguyễn Tiến Trường</h4>
-            <div class="team-role-line"></div>
-            <p class="team-role" data-i18n="about.member_4_role">UI/UX Designer</p>
-          </div>
-        </div>
-
-        <div class="mt-16 text-center max-w-3xl mx-auto">
-          <div class="p-8 md:p-10 bg-white rounded-3xl shadow-sm border border-[#ecedfa] relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-1" style="background: linear-gradient(90deg, #23499b, #3b6fd4, #7c3aed);"></div>
-            <span class="material-symbols-outlined text-[#23499b] text-4xl mb-4">auto_awesome</span>
-            <p class="text-[15px] text-on-surface-variant leading-relaxed italic" data-i18n="about.journey">
-              SpringWave is not just a school project — it is the beginning of a journey to create technology solutions that bring real value to the Vietnamese student community.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- CTA -->
-  <section class="py-20 md:py-28" style="background: linear-gradient(135deg, #faf8ff 0%, #eef2ff 100%);" id="cta">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="max-w-2xl mx-auto text-center">
-        <div class="p-10 md:p-14 rounded-3xl relative overflow-hidden"
-          style="background: linear-gradient(135deg, #23499b, #3b6fd4);">
-          <div class="absolute inset-0 pointer-events-none">
-            <div class="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
-              style="background: radial-gradient(circle, #ffffff, transparent 70%); transform: translate(30%, -30%);"></div>
-            <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10"
-              style="background: radial-gradient(circle, #ffffff, transparent 70%); transform: translate(-20%, 20%);"></div>
-          </div>
-          <div class="relative">
-            <h2 class="text-[28px] md:text-[36px] font-extrabold text-white mb-4" data-i18n="about.cta_title">
-              Ready to Start Your Journey?
-            </h2>
-            <p class="text-[15px] text-white/80 mb-8 max-w-lg mx-auto" data-i18n="about.cta_desc">
-              Join SpringWave today and discover opportunities that match who you are.
-            </p>
-            <a href="/register.html"
-              class="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-base bg-white text-[#23499b] hover:shadow-xl hover:scale-105 transition-all active:scale-95 spring-ease">
-              <span data-i18n="about.cta_btn">Get Started</span>
-              <span class="material-symbols-outlined text-lg">arrow_forward</span>
-            </a>
-          </div>
-        </div>
-      </div>
+  <section class="py-24 bg-[#0f172a]" id="cta">
+    <div class="max-w-container-max mx-auto px-6 md:px-12 text-center">
+      <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-6" data-i18n="about.cta_title">
+        Ready to Start Your Journey?
+      </h2>
+      <p class="text-[16px] text-slate-400 mb-10 max-w-lg mx-auto" data-i18n="about.cta_desc">
+        Join SpringWave today and discover opportunities that match who you are.
+      </p>
+      <a href="/register.html"
+        class="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-base bg-white text-[#0f172a] hover:bg-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all active:translate-y-0 duration-300">
+        <span data-i18n="about.cta_btn">Get Started</span>
+        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+      </a>
     </div>
   </section>
 

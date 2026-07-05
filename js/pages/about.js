@@ -17,7 +17,7 @@ async function loadFooter() {
 }
 
 function initScrollReveal() {
-  const els = document.querySelectorAll(".believe-card, .team-card");
+  const els = document.querySelectorAll(".editorial-story-block, .value-card-editorial, .team-card-editorial");
   if (!els.length) return;
 
   const observer = new IntersectionObserver(
@@ -30,13 +30,13 @@ function initScrollReveal() {
         }
       });
     },
-    { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+    { threshold: 0.1, rootMargin: "0px 0px -20px 0px" }
   );
 
   els.forEach((el) => {
     el.style.opacity = "0";
-    el.style.transform = "translateY(24px)";
-    el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+    el.style.transform = "translateY(16px)";
+    el.style.transition = "opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)";
     observer.observe(el);
   });
 }
