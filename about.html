@@ -13,105 +13,267 @@
   <link rel="stylesheet" href="/assets/style.css" />
 </head>
 
-<body style="background: #faf8ff; color: #0f172a; font-family: 'Inter', sans-serif;">
+<body style="background: #faf8ff; color: #0f172a; font-family: 'Aleo', serif;">
 
   <div id="navbar-container"></div>
 
   <!-- HERO -->
-  <section class="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-[#faf8ff] overflow-hidden" id="about-hero">
-    <!-- Soft Decorative Mesh Backdrops -->
+  <section class="relative pt-24 pb-8 overflow-hidden bg-[#faf8ff]" id="about-hero">
+    <!-- Animated Glowing Background Blobs -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-[10%] -left-[10%] w-[45%] h-[60%] rounded-full bg-blue-200/20 blur-[120px] animate-pulse" style="animation-duration: 8s;"></div>
-      <div class="absolute -bottom-[20%] -right-[10%] w-[40%] h-[55%] rounded-full bg-purple-200/20 blur-[100px] animate-pulse" style="animation-duration: 6s;"></div>
+      <div class="mesh-blob-1 absolute top-[10%] left-[10%] w-[350px] h-[350px] rounded-full bg-blue-500/10 blur-[100px]"></div>
+      <div class="mesh-blob-2 absolute bottom-[20%] right-[10%] w-[300px] h-[300px] rounded-full bg-purple-500/10 blur-[100px]"></div>
     </div>
 
-    <div class="relative max-w-container-max mx-auto px-6 md:px-12 w-full">
-      <div class="grid md:grid-cols-12 gap-8 items-start">
-        <div class="md:col-span-7">
-          <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-blue-50 border border-blue-100 text-[11px] font-bold text-[#3b6fd4] uppercase tracking-widest mb-4" data-i18n="about.hero_label">
+    <div class="relative max-w-container-max mx-auto px-6 md:px-12 w-full z-10">
+      <div class="grid md:grid-cols-12 gap-12 items-center">
+        <!-- Text Hero column -->
+        <div class="md:col-span-7 text-left">
+          <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-blue-50 border border-blue-100 text-[11px] font-bold text-[#3b6fd4] uppercase tracking-widest mb-4">
             <span class="w-1.5 h-1.5 rounded-full bg-[#3b6fd4] animate-ping"></span>
-            About Us
+            WE BUILD THE FUTURE OF STUDENT LIFE
           </span>
-          <h1 class="font-headline-lg text-[44px] md:text-[64px] font-extrabold text-[#0f172a] leading-[1.1] tracking-tight">
-            We are <br>SpringWave.
+          <h1 class="font-headline-lg text-[36px] md:text-[52px] font-extrabold text-[#0f172a] leading-[1.05] tracking-tight mb-4">
+            Discover.<br>Connect.<br>Grow.
           </h1>
-        </div>
-        <div class="md:col-span-5 md:pt-10">
-          <p class="font-body-md text-[17px] text-[#475569] leading-relaxed mb-6" data-i18n="about.hero_desc">
-            Built by students, for students — a platform that helps you discover opportunities, connect with communities, and grow beyond the classroom.
+          <p class="font-body-md text-[17px] text-[#475569] leading-relaxed max-w-lg mb-4">
+            SpringWave is a unified digital ecosystem built by students, for students. We integrate academic, social, and professional discovery into one beautiful, fluid platform.
           </p>
-          <div class="w-12 h-[2px] bg-[#3b6fd4] rounded"></div>
+        </div>
+
+        <!-- 3D Orb Artwork Column -->
+        <div class="md:col-span-5 flex justify-center items-center">
+          <div class="orb-container">
+            <div class="orb-sphere"></div>
+            <div class="orb-ring r1"></div>
+            <div class="orb-ring r2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Statistics -->
+      <div class="about-stats-row border-t border-slate-200/50 pt-8 mt-12">
+        <div class="about-stat-badge">
+          <div class="about-stat-num text-[#0f172a]" data-val="4">4</div>
+          <div class="about-stat-label text-[#64748b]">Team Members</div>
+        </div>
+        <div class="about-stat-badge">
+          <div class="about-stat-num text-[#0f172a]" data-val="20">20+</div>
+          <div class="about-stat-label text-[#64748b]">Features</div>
+        </div>
+        <div class="about-stat-badge">
+          <div class="about-stat-num text-[#0f172a]" data-val="1">1</div>
+          <div class="about-stat-label text-[#64748b]">Mission</div>
+        </div>
+        <div class="about-stat-badge">
+          <div class="about-stat-num text-[#0f172a]" data-val="9999">∞</div>
+          <div class="about-stat-label text-[#64748b]">Possibilities</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- THE NARRATIVE (WHY SPRINGWAVE) -->
+  <!-- THE NARRATIVE TIMELINE FLOWCHART -->
   <section class="py-20 md:py-28 bg-white border-t border-[rgba(15,23,42,0.06)]" id="why">
     <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-12">The Narrative</span>
-      
-      <div class="editorial-grid">
-        <!-- The Problem -->
-        <div class="editorial-story-block problem">
-          <span class="editorial-story-num">01 / The Problem</span>
-          <h3 class="editorial-story-title">Scattered information leaves students in the dark.</h3>
-          <p class="editorial-story-text">
-            Students often miss out on workshops, extracurricular activities, and academic opportunities simply because information is fragmented across dozens of Facebook pages, emails, and group chats.
-          </p>
+      <div class="text-center mb-16">
+        <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-3">The Problem & The Pitch</span>
+        <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]">Why SpringWave was Born</h2>
+      </div>
+
+      <div class="pain-flow-container">
+        <!-- Node 1: Pain -->
+        <div class="pain-flow-node">
+          <span class="text-xs font-bold text-rose-500 uppercase tracking-wider block mb-2">Fragmented Info</span>
+          <h4 class="font-bold text-[17px] text-[#0f172a] mb-2">Facebook, Email, Chats</h4>
+          <p class="text-[15px] text-slate-500 leading-relaxed">Students miss workshops & events because announcements are scattered across dozens of platforms.</p>
         </div>
 
-        <!-- The Solution -->
-        <div class="editorial-story-block solution">
-          <span class="editorial-story-num">02 / The Solution</span>
-          <h3 class="editorial-story-title">A single hub to discover your trajectory.</h3>
-          <p class="editorial-story-text">
-            SpringWave aggregates events, workshops, and student forums into a single, clean platform. Combined with personality quizzes and personalized recommendations, it helps students discover their next step with clarity.
-          </p>
+        <!-- Connection -->
+        <div class="pain-flow-arrow"><span class="material-symbols-outlined">arrow_forward</span></div>
+
+        <!-- Node 2: Arrow -->
+        <div class="pain-flow-node" style="border-color: rgba(59,111,212,0.25);">
+          <span class="text-xs font-bold text-blue-500 uppercase tracking-wider block mb-2">The SpringWave Core</span>
+          <h4 class="font-bold text-[17px] text-[#0f172a] mb-2">Unified Central Platform</h4>
+          <p class="text-[15px] text-slate-500 leading-relaxed">Gathering, cataloging, and structuring every student event into one single, clean database.</p>
+        </div>
+
+        <!-- Connection -->
+        <div class="pain-flow-arrow"><span class="material-symbols-outlined">arrow_forward</span></div>
+
+        <!-- Node 3: Result -->
+        <div class="pain-flow-node">
+          <span class="text-xs font-bold text-emerald-500 uppercase tracking-wider block mb-2">Total Clarity</span>
+          <h4 class="font-bold text-[17px] text-[#0f172a] mb-2">Everything Organized</h4>
+          <p class="text-[15px] text-slate-500 leading-relaxed">Students navigate their growth trajectory, connect with clubs, and find events without hassle.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CORE VALUES (WHAT WE BELIEVE) -->
-  <section class="py-20 md:py-28 bg-[#fafafa]" id="believe">
+  <!-- INTERACTIVE MISSION DIAGRAM -->
+  <section class="py-20 md:py-28 bg-[#fafafa]" id="mission-diagram">
     <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-12" data-i18n="about.believe_title">What We Believe</span>
-      
-      <div class="values-editorial-grid">
-        <!-- Value 1 -->
-        <div class="value-card-editorial grad-violet">
-          <div class="value-card-num">01</div>
-          <h4 class="value-card-title">Unique Potential</h4>
-          <p class="value-card-desc" data-i18n="about.believe_1">Every student has unique potential waiting to be discovered.</p>
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-4">Mission Visualization</span>
+          <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a] mb-6">Our Interconnected Roster</h2>
+          <p class="font-body-md text-[15px] text-slate-600 leading-relaxed mb-6">
+            SpringWave doesn't just display events. We link core modules together to build a complete developmental cycle. Hover or click on the nodes in the diagram to inspect how they connect.
+          </p>
+          
+          <!-- Interactive Description Box -->
+          <div class="p-6 bg-white rounded-2xl border border-[rgba(15,23,42,0.06)] shadow-sm min-h-[120px] transition-all duration-300" id="node-info-card">
+            <h4 class="font-bold text-[#0f172a] text-[17px] mb-2" id="node-info-title">Interactive Core</h4>
+            <p class="text-[15px] text-slate-500 leading-relaxed" id="node-info-text">Select any of the outer nodes surrounding SpringWave in the diagram to view detailed descriptions of their role inside our system.</p>
+          </div>
         </div>
 
-        <!-- Value 2 -->
-        <div class="value-card-editorial grad-sky">
-          <div class="value-card-num">02</div>
-          <h4 class="value-card-title">Equal Access</h4>
-          <p class="value-card-desc" data-i18n="about.believe_2">Opportunities should never be limited by lack of information.</p>
-        </div>
+        <!-- Map Drawing Column -->
+        <div class="flex justify-center">
+          <div class="mission-map" id="interactive-map">
+            <!-- Center Node -->
+            <div class="map-center">
+              <span class="map-center-title">SpringWave</span>
+              <span class="map-center-desc" id="map-inner-desc">Core Hub</span>
+            </div>
 
-        <!-- Value 3 -->
-        <div class="value-card-editorial grad-emerald">
-          <div class="value-card-num">03</div>
-          <h4 class="value-card-title">AI Companionship</h4>
-          <p class="value-card-desc" data-i18n="about.believe_3">AI can be a companion that helps students make better choices.</p>
-        </div>
+            <!-- SVG Lines -->
+            <svg class="map-svg" viewBox="0 0 600 380">
+              <line class="map-line line-ai" x1="300" y1="190" x2="300" y2="30"></line>
+              <line class="map-line line-comm" x1="300" y1="190" x2="550" y2="145"></line>
+              <line class="map-line line-events" x1="300" y1="190" x2="480" y2="340"></line>
+              <line class="map-line line-quiz" x1="300" y1="190" x2="120" y2="340"></line>
+              <line class="map-line line-growth" x1="300" y1="190" x2="50" y2="145"></line>
+            </svg>
 
-        <!-- Value 4 -->
-        <div class="value-card-editorial grad-rose">
-          <div class="value-card-num">04</div>
-          <h4 class="value-card-title">Community First</h4>
-          <p class="value-card-desc" data-i18n="about.believe_4">Technology should serve people and community first.</p>
+            <!-- Outer Nodes -->
+            <div class="map-node node-ai active" data-node="ai" title="AI Recommendation System">
+              <span class="material-symbols-outlined text-[#7c3aed]">auto_awesome</span>
+            </div>
+            <div class="map-node node-comm" data-node="comm" title="Cross-University Community Network">
+              <span class="material-symbols-outlined text-[#0ea5e9]">groups</span>
+            </div>
+            <div class="map-node node-events" data-node="events" title="Unified Activities Roster">
+              <span class="material-symbols-outlined text-[#10b981]">event</span>
+            </div>
+            <div class="map-node node-quiz" data-node="quiz" title="Personality Quiz Module">
+              <span class="material-symbols-outlined text-[#f43f5e]">psychology</span>
+            </div>
+            <div class="map-node node-growth" data-node="growth" title="Growth Analytics Dashboard">
+              <span class="material-symbols-outlined text-[#f59e0b]">trending_up</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- TEAM (MEET THE TEAM) -->
-  <section class="py-20 md:py-28 bg-white" id="team">
+  <!-- BENTO GRID CORE VALUES -->
+  <section class="py-20 md:py-28 bg-white border-t border-[rgba(15,23,42,0.06)]" id="believe">
+    <div class="max-w-container-max mx-auto px-6 md:px-12">
+      <div class="text-center mb-16">
+        <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-3" data-i18n="about.believe_title">What We Believe</span>
+        <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]">Our Core Values</h2>
+      </div>
+
+      <!-- Bento Grid Layout -->
+      <div class="bento-values-grid">
+        <!-- Card 1 (Community First - Double Width) -->
+        <div class="bento-value-card v1">
+          <div class="bento-value-icon text-[#7c3aed]">
+            <span class="material-symbols-outlined">groups</span>
+          </div>
+          <div>
+            <h4>Community First</h4>
+            <p>Technology should serve people and community first. We design features that build meaningful university bridges rather than isolating users.</p>
+          </div>
+        </div>
+
+        <!-- Card 2 (Accessibility - Single Width) -->
+        <div class="bento-value-card v2">
+          <div class="bento-value-icon text-[#0ea5e9]">
+            <span class="material-symbols-outlined">map</span>
+          </div>
+          <div>
+            <h4>Equal Access</h4>
+            <p>Opportunities should never be limited by lack of information. We democratize access to academic growth.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento-values-grid-row-2">
+        <!-- Card 3 (AI Co-pilot - Single Width) -->
+        <div class="bento-value-card v3">
+          <div class="bento-value-icon text-[#10b981]">
+            <span class="material-symbols-outlined">auto_awesome</span>
+          </div>
+          <div>
+            <h4>AI Companion</h4>
+            <p>AI should be a co-pilot, not a replacement, helping students parse interests and discover opportunities organically.</p>
+          </div>
+        </div>
+
+        <!-- Card 4 (Potential - Double Width) -->
+        <div class="bento-value-card v4">
+          <div class="bento-value-icon text-[#f43f5e]">
+            <span class="material-symbols-outlined">rocket_launch</span>
+          </div>
+          <div>
+            <h4>Unique Potential</h4>
+            <p>Every student has unique potential waiting to be discovered. We build tools that make this exploration engaging, rewarding, and fun.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECHNOLOGY SHOWCASE -->
+  <section class="py-20 md:py-28 bg-[#fafafa]" id="tech-stack">
+    <div class="max-w-container-max mx-auto px-6 md:px-12">
+      <div class="text-center mb-16">
+        <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-3">Our Platform Architecture</span>
+        <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]">The Technologies Behind SpringWave</h2>
+      </div>
+
+      <div class="tech-glass-grid">
+        <!-- React -->
+        <div class="tech-glass-card">
+          <div class="tech-logo-placeholder text-[#61dafb] bg-[#61dafb]/5"><i class="fa-brands fa-react"></i></div>
+          <span class="text-sm font-bold text-slate-800">React</span>
+        </div>
+        <!-- Node.js -->
+        <div class="tech-glass-card">
+          <div class="tech-logo-placeholder text-[#339933] bg-[#339933]/5"><i class="fa-brands fa-node-js"></i></div>
+          <span class="text-sm font-bold text-slate-800">Node.js</span>
+        </div>
+        <!-- MongoDB -->
+        <div class="tech-glass-card">
+          <div class="tech-logo-placeholder text-[#47a248] bg-[#47a248]/5"><span class="material-symbols-outlined">database</span></div>
+          <span class="text-sm font-bold text-slate-800">MongoDB</span>
+        </div>
+        <!-- Gemini API -->
+        <div class="tech-glass-card">
+          <div class="tech-logo-placeholder text-[#7c3aed] bg-[#7c3aed]/5"><span class="material-symbols-outlined">auto_awesome</span></div>
+          <span class="text-sm font-bold text-slate-800">Gemini AI</span>
+        </div>
+        <!-- Tailwind CSS -->
+        <div class="tech-glass-card">
+          <div class="tech-logo-placeholder text-[#38bdf8] bg-[#38bdf8]/5"><i class="fa-brands fa-css3-alt"></i></div>
+          <span class="text-sm font-bold text-slate-800">Tailwind CSS</span>
+        </div>
+        <!-- Express -->
+        <div class="tech-glass-card">
+          <div class="tech-logo-placeholder text-[#1e293b] bg-[#1e293b]/5"><span class="material-symbols-outlined">api</span></div>
+          <span class="text-sm font-bold text-slate-800">Express</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM (MEET THE TEAM - KEEPING ALL PORTRAITS AND CARDS) -->
+  <section class="py-20 md:py-28 bg-white border-t border-[rgba(15,23,42,0.06)]" id="team">
     <div class="max-w-container-max mx-auto px-6 md:px-12">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
         <div>
@@ -123,56 +285,109 @@
         </p>
       </div>
 
+      <!-- Upgraded Team Grid (Retains Roster, Adds Social/Skill Drawers) -->
       <div class="team-grid-editorial">
-        <!-- Member 1 -->
+        <!-- Member 1: Dat -->
         <div class="team-card-editorial accent-blue">
-          <div class="team-avatar-editorial">
-            <img src="/assets/images/Dat.jpg" alt="Nguyễn Viết Thành Đạt" class="team-avatar-img-editorial" />
+          <div class="team-card-inner">
+            <div class="team-avatar-editorial">
+              <img src="/assets/images/Dat.jpg" alt="Nguyễn Viết Thành Đạt" class="team-avatar-img-editorial" />
+            </div>
+            <h4 class="team-name-editorial" data-i18n="about.member_1">Nguyễn Viết Thành Đạt</h4>
+            <p class="team-role-editorial" data-i18n="about.member_1_role">Team Leader & Fullstack Developer</p>
           </div>
-          <h4 class="team-name-editorial" data-i18n="about.member_1">Nguyễn Viết Thành Đạt</h4>
-          <p class="team-role-editorial" data-i18n="about.member_1_role">Team Leader & Fullstack Developer</p>
-          <div class="team-socials-editorial">
-            <a href="#" class="team-social-link-editorial gh">Github</a>
-            <a href="#" class="team-social-link-editorial li">Linkedin</a>
+          
+          <!-- Slide-up Drawer Details overlay -->
+          <div class="team-drawer-details">
+            <div class="team-skills-row">
+              <span class="team-skill-tag">Next.js</span>
+              <span class="team-skill-tag">Node</span>
+              <span class="team-skill-tag">AI Integration</span>
+            </div>
+            <p class="team-personal-quote">"Building product experiences that students genuinely love to use every day."</p>
+            <div class="team-fav-tech">Fav Tech: <span>Gemini AI</span></div>
+            <div class="team-socials-editorial">
+              <a href="#" class="team-social-link-editorial">Github</a>
+              <a href="#" class="team-social-link-editorial">Linkedin</a>
+            </div>
           </div>
         </div>
 
-        <!-- Member 2 -->
+        <!-- Member 2: Tai -->
         <div class="team-card-editorial accent-emerald">
-          <div class="team-avatar-editorial">
-            <img src="/assets/images/Tai.jpg" alt="Nguyễn Đức Tài" class="team-avatar-img-editorial" />
+          <div class="team-card-inner">
+            <div class="team-avatar-editorial">
+              <img src="/assets/images/Tai.jpg" alt="Nguyễn Đức Tài" class="team-avatar-img-editorial" />
+            </div>
+            <h4 class="team-name-editorial" data-i18n="about.member_2">Nguyễn Đức Tài</h4>
+            <p class="team-role-editorial" data-i18n="about.member_2_role">Fullstack Developer</p>
           </div>
-          <h4 class="team-name-editorial" data-i18n="about.member_2">Nguyễn Đức Tài</h4>
-          <p class="team-role-editorial" data-i18n="about.member_2_role">Fullstack Developer</p>
-          <div class="team-socials-editorial">
-            <a href="#" class="team-social-link-editorial gh">Github</a>
-            <a href="#" class="team-social-link-editorial li">Linkedin</a>
+
+          <!-- Slide-up Drawer Details overlay -->
+          <div class="team-drawer-details">
+            <div class="team-skills-row">
+              <span class="team-skill-tag">Express</span>
+              <span class="team-skill-tag">MongoDB</span>
+              <span class="team-skill-tag">System Design</span>
+            </div>
+            <p class="team-personal-quote">"Optimizing databases and securing APIs to make SpringWave blazing fast."</p>
+            <div class="team-fav-tech">Fav Tech: <span>MongoDB</span></div>
+            <div class="team-socials-editorial">
+              <a href="#" class="team-social-link-editorial">Github</a>
+              <a href="#" class="team-social-link-editorial">Linkedin</a>
+            </div>
           </div>
         </div>
 
-        <!-- Member 3 -->
+        <!-- Member 3: Tuan -->
         <div class="team-card-editorial accent-amber">
-          <div class="team-avatar-editorial">
-            <img src="/assets/images/Tuan.jpg" alt="Lê Đăng Anh Tuấn" class="team-avatar-img-editorial" />
+          <div class="team-card-inner">
+            <div class="team-avatar-editorial">
+              <img src="/assets/images/Tuan.jpg" alt="Lê Đăng Anh Tuấn" class="team-avatar-img-editorial" />
+            </div>
+            <h4 class="team-name-editorial" data-i18n="about.member_3">Lê Đăng Anh Tuấn</h4>
+            <p class="team-role-editorial" data-i18n="about.member_3_role">Fullstack Developer</p>
           </div>
-          <h4 class="team-name-editorial" data-i18n="about.member_3">Lê Đăng Anh Tuấn</h4>
-          <p class="team-role-editorial" data-i18n="about.member_3_role">Fullstack Developer</p>
-          <div class="team-socials-editorial">
-            <a href="#" class="team-social-link-editorial gh">Github</a>
-            <a href="#" class="team-social-link-editorial li">Linkedin</a>
+
+          <!-- Slide-up Drawer Details overlay -->
+          <div class="team-drawer-details">
+            <div class="team-skills-row">
+              <span class="team-skill-tag">Node</span>
+              <span class="team-skill-tag">REST APIs</span>
+              <span class="team-skill-tag">DevOps</span>
+            </div>
+            <p class="team-personal-quote">"Designing clean architecture patterns and automating continuous deployments."</p>
+            <div class="team-fav-tech">Fav Tech: <span>Express.js</span></div>
+            <div class="team-socials-editorial">
+              <a href="#" class="team-social-link-editorial">Github</a>
+              <a href="#" class="team-social-link-editorial">Linkedin</a>
+            </div>
           </div>
         </div>
 
-        <!-- Member 4 -->
+        <!-- Member 4: Truong -->
         <div class="team-card-editorial accent-violet">
-          <div class="team-avatar-editorial">
-            <img src="/assets/images/Truong.jpg" alt="Nguyễn Tiến Trường" class="team-avatar-img-editorial" />
+          <div class="team-card-inner">
+            <div class="team-avatar-editorial">
+              <img src="/assets/images/Truong.jpg" alt="Nguyễn Tiến Trường" class="team-avatar-img-editorial" />
+            </div>
+            <h4 class="team-name-editorial" data-i18n="about.member_4">Nguyễn Tiến Trường</h4>
+            <p class="team-role-editorial" data-i18n="about.member_4_role">UI/UX Designer</p>
           </div>
-          <h4 class="team-name-editorial" data-i18n="about.member_4">Nguyễn Tiến Trường</h4>
-          <p class="team-role-editorial" data-i18n="about.member_4_role">UI/UX Designer</p>
-          <div class="team-socials-editorial">
-            <a href="#" class="team-social-link-editorial gh">Github</a>
-            <a href="#" class="team-social-link-editorial li">Linkedin</a>
+
+          <!-- Slide-up Drawer Details overlay -->
+          <div class="team-drawer-details">
+            <div class="team-skills-row">
+              <span class="team-skill-tag">Figma</span>
+              <span class="team-skill-tag">Framer</span>
+              <span class="team-skill-tag">Tailwind</span>
+            </div>
+            <p class="team-personal-quote">"Focusing on alignment, grids, typography, and motion details."</p>
+            <div class="team-fav-tech">Fav Tech: <span>Figma</span></div>
+            <div class="team-socials-editorial">
+              <a href="#" class="team-social-link-editorial">Github</a>
+              <a href="#" class="team-social-link-editorial">Linkedin</a>
+            </div>
           </div>
         </div>
       </div>
@@ -185,11 +400,58 @@
     </div>
   </section>
 
+  <!-- DEVELOPMENT TIMELINE JOURNEY -->
+  <section class="py-20 md:py-28 bg-[#fafafa] border-t border-[rgba(15,23,42,0.06)]" id="timeline">
+    <div class="max-w-container-max mx-auto px-6 md:px-12">
+      <div class="text-center mb-16">
+        <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-3">Our History</span>
+        <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]">The Journey of RAH</h2>
+      </div>
+
+      <div class="journey-timeline">
+        <!-- Interactive progress bar -->
+        <div class="journey-timeline-progress" id="timeline-progress"></div>
+
+        <!-- Step 1 -->
+        <div class="journey-step active">
+          <div class="journey-step-title">The Idea (March 2026)</div>
+          <p class="journey-step-desc">Brainstorming solutions to resolve fragmentation of college extracurricular activities.</p>
+        </div>
+        <!-- Step 2 -->
+        <div class="journey-step">
+          <div class="journey-step-title">Research & Interviews (April 2026)</div>
+          <p class="journey-step-desc">Talking to student leaders and university administrators to identify core catalog requirements.</p>
+        </div>
+        <!-- Step 3 -->
+        <div class="journey-step">
+          <div class="journey-step-title">Interactive Prototyping (May 2026)</div>
+          <p class="journey-step-desc">Building and refining low-fidelity Figma drafts and defining recommendation loops.</p>
+        </div>
+        <!-- Step 4 -->
+        <div class="journey-step">
+          <div class="journey-step-title">System Development (June 2026)</div>
+          <p class="journey-step-desc">Writing Node.js routers, MongoDB schemas, Gemini recommendation integrations, and Tailwind styling.</p>
+        </div>
+        <!-- Step 5 -->
+        <div class="journey-step">
+          <div class="journey-step-title">Launch & Beyond (Future)</div>
+          <p class="journey-step-desc">Exposing SpringWave to initial university campuses and scaling communities nationwide.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
-  <section class="py-24 bg-[#0f172a]" id="cta">
-    <div class="max-w-container-max mx-auto px-6 md:px-12 text-center">
-      <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-6" data-i18n="about.cta_title">
-        Ready to Start Your Journey?
+  <section class="py-24 bg-[#090d16] relative overflow-hidden" id="cta">
+    <!-- Soft Decorative Mesh Backdrops -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+      <div class="mesh-blob-1 absolute -top-[10%] -left-[10%] w-[320px] h-[320px] rounded-full bg-blue-500/10 blur-[90px]"></div>
+      <div class="mesh-blob-2 absolute -bottom-[10%] -right-[10%] w-[320px] h-[320px] rounded-full bg-purple-500/10 blur-[90px]"></div>
+    </div>
+
+    <div class="relative max-w-container-max mx-auto px-6 md:px-12 text-center z-10">
+      <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-6">
+        Ready?<br>Let's build the future together.
       </h2>
       <p class="text-[16px] text-slate-400 mb-10 max-w-lg mx-auto" data-i18n="about.cta_desc">
         Join SpringWave today and discover opportunities that match who you are.
