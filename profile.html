@@ -19,34 +19,50 @@
 <body class="bg-background font-body-md">
   <div id="navbar-container"></div>
 
-  <div class="profile-page">
+  <!-- Animated Glowing Background Blobs -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="mesh-blob-1 absolute top-[15%] left-[5%] w-[400px] h-[400px] rounded-full bg-blue-500/5 blur-[120px]"></div>
+    <div class="mesh-blob-2 absolute bottom-[25%] right-[5%] w-[350px] h-[350px] rounded-full bg-purple-500/5 blur-[120px]"></div>
+  </div>
+
+  <div class="profile-page relative z-10">
     <div class="profile-header">
-      <div class="profile-avatar" id="avatar-placeholder">
-        <img id="avatar-image" class="profile-avatar-img" style="display:none;" alt="avatar"/>
-        <span id="avatar-initial">?</span>
-        <label class="avatar-upload-overlay" id="avatarUploadLabel">
-          <span class="material-symbols-outlined text-white">photo_camera</span>
-          <input type="file" id="avatarUploadInput" accept="image/*" style="display:none;"/>
-        </label>
-      </div>
-      <div class="profile-info">
-        <div class="profile-name-row">
-          <h1 class="profile-name" id="profile-name">Loading...</h1>
-          <span class="profile-role" id="profile-role">Student</span>
-        </div>
-        <div class="profile-details" id="profile-details">
-          <div class="profile-detail-item"><i class="fa-regular fa-envelope"></i> <span id="profile-email">-</span>
+      <!-- Decorative Cover Banner -->
+      <div class="profile-header-cover"></div>
+      
+      <div class="profile-header-content">
+        <div class="profile-avatar-container">
+          <div class="profile-avatar-glow"></div>
+          <div class="profile-avatar" id="avatar-placeholder">
+            <img id="avatar-image" class="profile-avatar-img" style="display:none;" alt="avatar"/>
+            <span id="avatar-initial">?</span>
+            <label class="avatar-upload-overlay" id="avatarUploadLabel">
+              <span class="material-symbols-outlined text-white">photo_camera</span>
+              <input type="file" id="avatarUploadInput" accept="image/*" style="display:none;"/>
+            </label>
           </div>
-          <div class="profile-detail-item"><i class="fa-solid fa-phone"></i> <span id="profile-phone">-</span></div>
-          <div class="profile-detail-item"><i class="fa-regular fa-cake-candles"></i> <span id="profile-dob">-</span>
+        </div>
+        
+        <div class="profile-info">
+          <div class="profile-name-row">
+            <h1 class="profile-name" id="profile-name">Loading...</h1>
+            <span class="profile-role" id="profile-role">Student</span>
           </div>
-          <div class="profile-detail-item"><i class="fa-solid fa-school"></i> <span id="profile-school">-</span></div>
-          <div class="profile-detail-item"><i class="fa-regular fa-user"></i> <span id="profile-username">-</span></div>
+          <div class="profile-details-grid" id="profile-details">
+            <div class="profile-detail-chip"><i class="fa-regular fa-envelope"></i> <span id="profile-email">-</span></div>
+            <div class="profile-detail-chip"><i class="fa-solid fa-phone"></i> <span id="profile-phone">-</span></div>
+            <div class="profile-detail-chip"><i class="fa-regular fa-cake-candles"></i> <span id="profile-dob">-</span></div>
+            <div class="profile-detail-chip"><i class="fa-solid fa-school"></i> <span id="profile-school">-</span></div>
+            <div class="profile-detail-chip"><i class="fa-regular fa-user"></i> <span id="profile-username">-</span></div>
+          </div>
+        </div>
+        
+        <div class="profile-actions">
+          <button class="edit-profile-btn" id="edit-profile-btn" data-i18n="profile.edit_profile">
+            <i class="fa-regular fa-pen-to-square"></i> Edit Profile
+          </button>
         </div>
       </div>
-      <button class="edit-profile-btn" id="edit-profile-btn" data-i18n="profile.edit_profile">
-        <i class="fa-regular fa-pen-to-square"></i> Edit Profile
-      </button>
     </div>
 
     <div class="profile-layout">

@@ -395,6 +395,7 @@ async function finishQuiz() {
     }
   }
 
+  localStorage.setItem("springwave_quiz_completed", "true");
   setTimeout(() => renderResults(scores), 600);
 }
 
