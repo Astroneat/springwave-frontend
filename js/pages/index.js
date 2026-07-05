@@ -23,15 +23,26 @@ function initNavbarScroll() {
   const nav = document.getElementById("navbar");
   if (!nav) return;
 
-  const check = () => {
-    if (window.scrollY > 50) {
+  let mouseNearTop = false;
+  const HOVER_THRESHOLD = 100;
+
+  const update = () => {
+    if (window.scrollY > 50 || mouseNearTop) {
       nav.classList.remove("navbar-hidden");
     } else {
       nav.classList.add("navbar-hidden");
     }
   };
-  check();
-  window.addEventListener("scroll", check, { passive: true });
+
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("mousemove", (e) => {
+    const near = e.clientY <= HOVER_THRESHOLD;
+    if (near !== mouseNearTop) {
+      mouseNearTop = near;
+      update();
+    }
+  }, { passive: true });
 }
 
 function initScrollReveal() {
