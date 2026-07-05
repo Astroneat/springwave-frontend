@@ -2372,7 +2372,7 @@ html, body, button, input, select, textarea {
 #floating-search {
     @apply sticky top-[5px] w-full px-8 mb-8 opacity-100 z-[900];
     transform: none;
-    pointer-events: none;
+    pointer-events: auto;
 }
 
 #floating-search .search-bar,
@@ -7653,7 +7653,7 @@ html, body, button, input, select, textarea {
     top: calc(100% + 12px);
     left: 50%;
     transform: translateX(-50%);
-    z-index: 50;
+    z-index: 1000;
     background: #ffffff;
     border-radius: 16px;
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -7666,7 +7666,7 @@ html, body, button, input, select, textarea {
 .map-modal-overlay {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 11000;
     display: flex;
     align-items: center;
     justify-content: center;

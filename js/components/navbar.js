@@ -110,6 +110,9 @@ function initNotifications() {
     bell.addEventListener("click", (e) => {
         e.stopPropagation();
         dropdown.classList.toggle("active");
+        if (dropdown.classList.contains("active")) {
+            document.querySelector(".user-menu")?.classList.remove("active");
+        }
     });
 
     document.addEventListener("click", (e) => {
@@ -317,6 +320,9 @@ function initUserDropdown(onFavouritesClick) {
     userChip.addEventListener("click", (e) => {
         e.stopPropagation();
         userMenu.classList.toggle("active");
+        if (userMenu.classList.contains("active")) {
+            document.getElementById("notif-dropdown")?.classList.remove("active");
+        }
     });
     document.addEventListener("click", () => userMenu.classList.remove("active"));
     userMenu.addEventListener("click", (e) => e.stopPropagation());

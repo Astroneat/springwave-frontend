@@ -189,8 +189,17 @@ function initSearchButton() {
         const prefVal = searchPref?.value.trim() || "";
         const navbarVal = navbarInput?.value.trim() || "";
         
-        // Use either preferences input or navbar input as the main search term
-        const keyword = prefVal || navbarVal;
+        // Determine the keyword by looking at which input is currently being typed in.
+        // This prevents deleted text in one input from being restored by the other's synced value.
+        let keyword = "";
+        if (navbarInput && document.activeElement === navbarInput) {
+            keyword = navbarVal;
+        } else if (searchPref && document.activeElement === searchPref) {
+            keyword = prefVal;
+        } else {
+            keyword = prefVal || navbarVal;
+        }
+        
         const dates = window.__searchDates || {};
         
         // Sync text inputs
@@ -934,21 +943,14 @@ function initSearchDatePicker() {
     }
 
     function openDropdown() {
-        const rect = trigger.getBoundingClientRect();
-        dropdown.style.top = (rect.bottom + 8) + "px";
-        dropdown.style.left = (rect.left + rect.width / 2) + "px";
-        dropdown.style.transform = "translateX(-50%) scale(1)";
         dropdown.removeAttribute("hidden");
-        document.body.appendChild(dropdown);
         const today = new Date(); currentMonth = today.getMonth(); currentYear = today.getFullYear();
         renderCalendar(); dropdown.classList.add("active"); item.classList.add("active");
     }
 
     function closeDropdown() {
         dropdown.classList.remove("active"); item.classList.remove("active");
-        dropdown.style.top = ""; dropdown.style.left = ""; dropdown.style.transform = "";
         dropdown.setAttribute("hidden", "");
-        document.getElementById("zone-date")?.appendChild(dropdown);
     }
 
     trigger.addEventListener("click", (e) => { e.stopPropagation(); dropdown.classList.contains("active") ? closeDropdown() : openDropdown(); });
