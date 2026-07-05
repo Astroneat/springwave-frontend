@@ -1,5 +1,6 @@
 import "../../src/style.css";
 import { isAuthenticated } from "../lib/session.js";
+import { checkAndGrantActivityBadges } from "../lib/notifications.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities, searchSemantic } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { getRecommendations, explainRecommendation } from "../api/recommendations.js";
@@ -436,6 +437,7 @@ function initStars() {
                     await removeFavourite(id);
                 } else {
                     await addFavourite(id);
+                    checkAndGrantActivityBadges().catch(() => {});
                 }
             } catch (err) {
                 star.classList.toggle("active");
@@ -511,6 +513,7 @@ async function openPopup(activityID) {
                 await removeFavourite(activityID);
             } else {
                 await addFavourite(activityID);
+                checkAndGrantActivityBadges().catch(() => {});
             }
         } catch (err) {
             favoriteBtn.classList.toggle("active");
@@ -850,6 +853,7 @@ function initParticipateButton(activityID) {
                 button.classList.add("active");
                 button.querySelector(".participate-header").textContent = t("explore.participated");
                 button.querySelector(".participate-text").textContent = t("explore.joined_activity");
+                checkAndGrantActivityBadges().catch(() => {});
             }
         } catch (err) {
             console.error("Participate error:", err);
