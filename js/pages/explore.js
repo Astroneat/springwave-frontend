@@ -50,7 +50,7 @@ async function loadNavbar() {
 }
 
 function initScrollMerge() {
-    const searchBar = document.getElementById("floating-search");
+    const searchBar = document.querySelector(".explore-search-bar");
     const navbar = document.getElementById("navbar");
     if (!searchBar || !navbar) return;
 
