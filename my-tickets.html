@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tickets - SpringWave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body class="bg-background font-body-md">
+  <div id="navbar-container"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-4 py-8">
+    <div class="flex items-center gap-3 mb-8">
+      <span class="w-10 h-10 rounded-xl bg-[#ecedfa] flex items-center justify-center text-[#1755ba]">
+        <span class="material-symbols-outlined">confirmation_number</span>
+      </span>
+      <div>
+        <h1 class="text-2xl font-bold text-[#191b22]">My Tickets</h1>
+        <p class="text-sm text-[#64748b]">Your registered events and QR codes</p>
+      </div>
+    </div>
+
+    <div id="tickets-list" class="space-y-4">
+      <div class="text-center py-12 text-[#64748b]">Loading...</div>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/my-tickets.js"></script>
+</body>
+</html>

@@ -4,6 +4,10 @@ export function getParticipatedActivities() {
     return get("/user/participated");
 }
 
+export function getMyTickets() {
+    return get("/tickets/mine");
+}
+
 export function changeInfo(data) {
     return put("/user/changeInfo", data);
 }
