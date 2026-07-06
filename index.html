@@ -50,10 +50,16 @@
         </div>
       </h1>
       
-      <a href="./explore.html" class="figma-explore-btn" data-node-id="12:52">
-        <img src="/assets/images/icon-rocket.svg" alt="Rocket Icon" data-node-id="14:4" />
-        <span data-i18n="index.hero_figma_explore" data-node-id="11:43">Let’s explore</span>
-      </a>
+      <div class="hero-actions">
+        <a href="./explore.html" class="figma-explore-btn" data-node-id="12:52">
+          <img src="/assets/images/icon-rocket.svg" alt="Rocket Icon" data-node-id="14:4" />
+          <span data-i18n="index.hero_figma_explore" data-node-id="11:43">Let’s explore</span>
+        </a>
+        <a href="./quiz.html" class="hero-quiz-btn">
+          <span class="material-symbols-outlined text-lg">psychology</span>
+          <span data-i18n="index.hero_take_quiz">Take AI Quiz</span>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -246,79 +252,80 @@
   </section>
   <!-- DASHBOARD SHOWCASE -->
   <section class="landing-section relative overflow-hidden" id="dashboard-showcase">
-    <div class="landing-container dashboard-grid">
-      
-      <div class="reveal active">
-        <div class="section-label">
-          <span class="material-symbols-outlined text-base">dashboard</span>
-          <span>Gamified Companion</span>
-        </div>
-        <h2 class="section-title text-left mb-6">Your Gamified Growth Dashboard</h2>
-        <p class="section-subtitle text-left mb-6">
-          Track your extracurricular progress, levels, and badge milestones in real-time. Our AI Companion keeps you motivated and recommends opportunities based on your skills.
-        </p>
-        <div class="flex flex-col gap-4 mt-6">
-          <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined text-accent text-xl bg-accent/10 p-1.5 rounded-lg">military_tech</span>
-            <div>
-              <h4 class="font-bold text-slate-800 text-sm">Earn Colorful Badges</h4>
-              <p class="text-xs text-slate-500">Unlock newbie, explorer, and legendary badges as you engage in student life.</p>
+    <div class="landing-container">
+      <div class="dashboard-showcase-card dashboard-grid">
+        
+        <div class="reveal active showcase-text-content">
+          <div class="section-label">
+            <span class="material-symbols-outlined text-base">dashboard</span>
+            <span>Gamified Companion</span>
+          </div>
+          <h2 class="section-title text-left mb-6">Your Gamified Growth Dashboard</h2>
+          <p class="section-subtitle text-left mb-6">
+            Track your extracurricular progress, levels, and badge milestones in real-time. Our AI Companion keeps you motivated and recommends opportunities based on your skills.
+          </p>
+          <div class="flex flex-col gap-4 mt-6">
+            <div class="flex items-start gap-3">
+              <span class="material-symbols-outlined text-accent text-xl bg-accent/10 p-1.5 rounded-lg">military_tech</span>
+              <div>
+                <h4 class="font-bold text-slate-800 text-sm">Earn Colorful Badges</h4>
+                <p class="text-xs text-slate-500">Unlock newbie, explorer, and legendary badges as you engage in student life.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="material-symbols-outlined text-emerald-600 text-xl bg-emerald-50/70 p-1.5 rounded-lg">trending_up</span>
+              <div>
+                <h4 class="font-bold text-slate-800 text-sm">Real-time Level Progression</h4>
+                <p class="text-xs text-slate-500">Gain contribution score points for writing replies, starting threads, and participating in workshops.</p>
+              </div>
             </div>
           </div>
-          <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined text-emerald-600 text-xl bg-emerald-50/70 p-1.5 rounded-lg">trending_up</span>
-            <div>
-              <h4 class="font-bold text-slate-800 text-sm">Real-time Level Progression</h4>
-              <p class="text-xs text-slate-500">Gain contribution score points for writing replies, starting threads, and participating in workshops.</p>
-            </div>
-          </div>
         </div>
-      </div>
 
-      <div class="flex justify-center reveal active">
-        <div class="hero-mockup-wrapper">
-          <div class="hero-mockup-card" id="hero-mockup" style="transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1);">
-            <!-- Card Header -->
-            <div class="mockup-header">
-              <div class="mockup-header-left">
-                <span class="mockup-logo">SW</span>
-                <div>
-                  <h4>SpringWave AI</h4>
-                  <p class="mockup-status">Active Companion</p>
-                </div>
-              </div>
-              <div class="mockup-badge">Level 4</div>
-            </div>
-            <!-- Card Content: XP Progress -->
-            <div class="mockup-section">
-              <div class="mockup-section-header">
-                <span>Growth Milestone</span>
-                <span>750 / 1000 XP</span>
-              </div>
-              <div class="mockup-progress-bar">
-                <div class="mockup-progress-fill" style="width: 75%;"></div>
-              </div>
-            </div>
-            <!-- Card Content: AI Matches -->
-            <div class="mockup-section">
-              <p class="mockup-subheading">Recommended for You</p>
-              <div class="mockup-list">
-                <div class="mockup-item">
-                  <div class="mockup-item-left">
-                    <span class="material-symbols-outlined mockup-item-icon color-blue">code</span>
-                    <div>
-                      <h5>AI Hackathon</h5>
-                      <p>Software Engineering</p>
-                    </div>
+        <div class="flex justify-center reveal active showcase-card-content">
+          <div class="hero-mockup-wrapper">
+            <div class="hero-mockup-card" id="hero-mockup" style="transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1);">
+              <!-- Card Header -->
+              <div class="mockup-header">
+                <div class="mockup-header-left">
+                  <span class="mockup-logo">SW</span>
+                  <div>
+                    <h4>SpringWave AI</h4>
+                    <p class="mockup-status">Active Companion</p>
                   </div>
-                  <span class="mockup-tag match-98">98% Match</span>
                 </div>
-                <div class="mockup-item">
-                  <div class="mockup-item-left">
-                    <span class="material-symbols-outlined mockup-item-icon color-green">forum</span>
-                    <div>
-                      <h5>Leadership Forum</h5>
-                      <p>Communication</p>
+                <div class="mockup-badge">Level 4</div>
+              </div>
+              <!-- Card Content: XP Progress -->
+              <div class="mockup-section">
+                <div class="mockup-section-header">
+                  <span>Growth Milestone</span>
+                  <span>750 / 1000 XP</span>
+                </div>
+                <div class="mockup-progress-bar">
+                  <div class="mockup-progress-fill" style="width: 75%;"></div>
+                </div>
+              </div>
+              <!-- Card Content: AI Matches -->
+              <div class="mockup-section">
+                <p class="mockup-subheading">Recommended for You</p>
+                <div class="mockup-list">
+                  <div class="mockup-item">
+                    <div class="mockup-item-left">
+                      <span class="material-symbols-outlined mockup-item-icon color-blue">code</span>
+                      <div>
+                        <h5>AI Hackathon</h5>
+                        <p>Software Engineering</p>
+                      </div>
+                    </div>
+                    <span class="mockup-tag match-98">98% Match</span>
+                  </div>
+                  <div class="mockup-item">
+                    <div class="mockup-item-left">
+                      <span class="material-symbols-outlined mockup-item-icon color-green">forum</span>
+                      <div>
+                        <h5>Leadership Forum</h5>
+                        <p>Communication</p>
                     </div>
                   </div>
                   <span class="mockup-tag match-95">95% Match</span>
@@ -337,7 +344,8 @@
       </div>
 
     </div>
-  </section>
+  </div>
+</section>
 
 
 
