@@ -7341,6 +7341,95 @@ html, body, button, input, select, textarea {
     pointer-events: none;
 }
 
+/* ==========================================================================
+   NAVBAR HINT — soft top glow + "hover to open menu" prompt (homepage)
+   ========================================================================== */
+#navbar-hint {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    z-index: 45;
+    pointer-events: none;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#navbar-hint.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.navbar-hint-glow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 620px;
+    max-width: 90vw;
+    height: 150px;
+    background:
+        radial-gradient(60% 100% at 50% 0%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.45) 35%, rgba(255, 255, 255, 0) 70%),
+        radial-gradient(60% 100% at 50% 0%, rgba(59, 111, 212, 0.22) 0%, rgba(59, 111, 212, 0) 60%);
+    filter: blur(2px);
+    animation: navbar-hint-glow 3.5s ease-in-out infinite;
+    will-change: opacity, transform;
+}
+
+.navbar-hint-text {
+    position: relative;
+    z-index: 1;
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    background: rgba(28, 39, 76, 0.78);
+    color: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 18px rgba(28, 39, 76, 0.18);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: navbar-hint-bob 3.5s ease-in-out infinite;
+}
+
+.navbar-hint-text i {
+    font-size: 0.78rem;
+    animation: navbar-hint-arrow 3.5s ease-in-out infinite;
+}
+
+@keyframes navbar-hint-glow {
+    0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+}
+
+@keyframes navbar-hint-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+}
+
+@keyframes navbar-hint-arrow {
+    0%, 100% { transform: translateY(2px); opacity: 0.7; }
+    50% { transform: translateY(-3px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .navbar-hint-glow,
+    .navbar-hint-text,
+    .navbar-hint-text i {
+        animation: none;
+    }
+}
+
 .figma-hero {
     position: relative;
     width: 100%;

@@ -21,16 +21,23 @@ async function loadFooter() {
 
 function initNavbarScroll() {
   const nav = document.getElementById("navbar");
+  const hint = document.getElementById("navbar-hint");
   if (!nav) return;
 
   let mouseNearTop = false;
+  let hintDismissed = false;
   const HOVER_THRESHOLD = 100;
 
   const update = () => {
-    if (window.scrollY > 50 || mouseNearTop) {
+    const navVisible = window.scrollY > 50 || mouseNearTop;
+    if (navVisible) {
       nav.classList.remove("navbar-hidden");
+      hintDismissed = true;
     } else {
       nav.classList.add("navbar-hidden");
+    }
+    if (hint) {
+      hint.classList.toggle("visible", navVisible ? false : !hintDismissed);
     }
   };
 
