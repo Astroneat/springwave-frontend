@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
-        .sidenav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; transition: all 0.2s; font-family: var(--font-label-md), 'Inter', sans-serif; font-size: var(--text-label-md); cursor: pointer; }
+        .sidenav-link { display: flex; align-items: center; gap: 12px; padding: 11px 15px; border-radius: 12px; border: 1px solid transparent; transition: all 0.2s; font-family: var(--font-label-md), 'Inter', sans-serif; font-size: var(--text-label-md); cursor: pointer; }
         .sidenav-link:hover { background: var(--color-surface-container); }
-        .sidenav-link.active { background: var(--color-surface-container-low); color: var(--color-primary); font-weight: 700; border-right: 4px solid var(--color-primary); box-shadow: 0 0 15px rgba(59,111,212,0.15); }
+        .sidenav-link.active { background: var(--color-surface-container-low); color: var(--color-primary); font-weight: 700; border-color: var(--color-primary); box-shadow: 0 0 15px rgba(59,111,212,0.15); }
         .tab-btn { padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .tab-btn:active { transform: scale(0.95); }
         .tab-btn.active { background: #1755ba; color: #fff; box-shadow: 0 4px 12px rgba(23,85,186,0.2); }
@@ -451,13 +451,50 @@
                 <!-- Side-by-side scanner & greeting -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                     <!-- Scanner Panel (Left) -->
-                    <div class="flex flex-col justify-center bg-slate-50 border border-slate-200/60 p-4 rounded-2xl relative min-h-[280px]">
+                    <div class="flex flex-col justify-between bg-slate-50 border border-slate-200/60 p-4 rounded-2xl relative min-h-[380px]">
                         <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#1755ba]/10 text-[#1755ba] flex items-center gap-1 uppercase tracking-wider select-none z-10">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live Scanner
                         </span>
                         <!-- Camera frame with custom scanner viewfinder -->
-                        <div class="relative w-full max-w-[340px] mx-auto rounded-xl overflow-hidden shadow-inner border border-slate-200 bg-black">
-                            <div id="qr-reader" class="w-full"></div>
+                        <div id="scanner-viewfinder-container" class="relative w-full max-w-[340px] mx-auto rounded-xl overflow-hidden shadow-inner border border-slate-200 bg-black mt-6 aspect-square flex items-center justify-center transition-all duration-300">
+                            <video id="qr-video" class="w-full h-full object-cover rounded-xl transition-all duration-300" playsinline></video>
+                            <div id="scanner-viewfinder" class="absolute inset-0 border-[3px] border-dashed border-primary/40 rounded-xl pointer-events-none m-8 animate-pulse transition-all duration-300"></div>
+                        </div>
+                        
+                        <!-- Camera controls (Camera switch, exposure, zoom) -->
+                        <div class="mt-4 space-y-3" id="camera-controls-container">
+                            <!-- Camera Select Dropdown -->
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Select Camera</label>
+                                <div class="flex gap-2">
+                                    <select id="scanner-camera-select" class="flex-grow px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-primary">
+                                        <option value="">Detecting cameras...</option>
+                                    </select>
+                                    <button id="scanner-mirror-btn" title="Toggle Mirror View" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[#64748b] hover:bg-slate-50 hover:text-primary spring-ease flex items-center justify-center cursor-pointer">
+                                        <span class="material-symbols-outlined text-sm">flip</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Sliders Grid -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <!-- Zoom Slider -->
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex justify-between items-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <span>Zoom</span>
+                                        <span id="zoom-value" class="font-mono text-slate-400">N/A</span>
+                                    </div>
+                                    <input type="range" id="scanner-zoom-slider" min="1" max="5" step="0.1" value="1" disabled class="w-full accent-primary h-1 rounded-lg cursor-pointer bg-slate-200" />
+                                </div>
+                                <!-- Exposure Slider -->
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex justify-between items-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <span>Exposure</span>
+                                        <span id="exposure-value" class="font-mono text-slate-400">N/A</span>
+                                    </div>
+                                    <input type="range" id="scanner-exposure-slider" min="-3" max="3" step="0.5" value="0" disabled class="w-full accent-primary h-1 rounded-lg cursor-pointer bg-slate-200" />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -575,7 +612,7 @@
     </div>
 
     <div id="chatbot-container"></div>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script type="module" src="./js/pages/org-dashboard.js"></script>
 </body>
 </html>

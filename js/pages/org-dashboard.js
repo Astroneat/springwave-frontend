@@ -533,8 +533,9 @@ async function loadAttendance(eventId) {
 }
 
 function initQRScan() {
-  let html5QrCode = null;
+  let activeStream = null;
   let isScanning = false;
+  let isMirrored = false;
   let lastScannedCode = "";
   let lastScannedTime = 0;
   let feedbackTimer = null;
@@ -690,43 +691,255 @@ function initQRScan() {
     `).join("");
   }
 
-  async function startScanner() {
-    if (typeof Html5Qrcode === "undefined") return;
-    try {
-      html5QrCode = new Html5Qrcode("qr-reader");
-      const config = { 
-        fps: 30,
-        qrbox: { width: 260, height: 260 },
-        aspectRatio: 1.0,
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true
+  const cameraSelect = document.getElementById("scanner-camera-select");
+  const mirrorBtn = document.getElementById("scanner-mirror-btn");
+  const zoomSlider = document.getElementById("scanner-zoom-slider");
+  const zoomVal = document.getElementById("zoom-value");
+  const expSlider = document.getElementById("scanner-exposure-slider");
+  const expVal = document.getElementById("exposure-value");
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+  function updateVideoMirrorStyle() {
+    const video = document.getElementById("qr-video");
+    if (!video) return;
+    if (isMirrored) {
+      video.style.transform = "scaleX(-1)";
+      if (mirrorBtn) {
+        mirrorBtn.classList.add("bg-primary/10", "border-primary", "text-primary");
+        mirrorBtn.classList.remove("bg-white", "text-[#64748b]");
+      }
+    } else {
+      video.style.transform = "none";
+      if (mirrorBtn) {
+        mirrorBtn.classList.remove("bg-primary/10", "border-primary", "text-primary");
+        mirrorBtn.classList.add("bg-white", "text-[#64748b]");
+      }
+    }
+  }
+
+  if (mirrorBtn) {
+    mirrorBtn.addEventListener("click", () => {
+      isMirrored = !isMirrored;
+      updateVideoMirrorStyle();
+    });
+  }
+
+  if (cameraSelect) {
+    cameraSelect.addEventListener("change", async (e) => {
+      const selectedId = e.target.value;
+      if (selectedId && isScanning) {
+        await stopScanner();
+        await startScanner(selectedId);
+      }
+    });
+  }
+
+  if (zoomSlider && zoomVal) {
+    zoomSlider.addEventListener("input", async (e) => {
+      const val = parseFloat(e.target.value);
+      zoomVal.textContent = `${val.toFixed(1)}x`;
+      if (activeStream && isScanning) {
+        try {
+          const track = activeStream.getVideoTracks()[0];
+          if (track) {
+            await track.applyConstraints({
+              advanced: [{ zoom: val }]
+            });
+          }
+        } catch (err) {
+          console.warn("Failed to apply zoom:", err);
         }
+      }
+    });
+  }
+
+  if (expSlider && expVal) {
+    expSlider.addEventListener("input", async (e) => {
+      const val = parseFloat(e.target.value);
+      expVal.textContent = val > 0 ? `+${val.toFixed(1)}` : val.toFixed(1);
+      if (activeStream && isScanning) {
+        try {
+          const track = activeStream.getVideoTracks()[0];
+          if (track) {
+            await track.applyConstraints({
+              advanced: [{ exposureCompensation: val }]
+            });
+          }
+        } catch (err) {
+          console.warn("Failed to apply exposure compensation:", err);
+        }
+      }
+    });
+  }
+
+  function scanFrame() {
+    if (!isScanning) return;
+    const video = document.getElementById("qr-video");
+    if (!video) return;
+
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      // Downscale the entire video frame to a fixed width of 640px for maximum speed and field-of-view
+      const targetWidth = 640;
+      const targetHeight = Math.round((video.videoHeight / video.videoWidth) * targetWidth);
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, targetWidth, targetHeight);
+
+      try {
+        const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+        if (typeof jsQR !== "undefined") {
+          // Attempt both normal and inverted colors to increase detection rates at tilted angles, reflections, or screens
+          const code = jsQR(imageData.data, targetWidth, targetHeight, {
+            inversionAttempts: "attemptBoth"
+          });
+          if (code && code.data) {
+            onScanSuccess(code.data);
+          }
+        }
+      } catch (err) {
+        // Suppress canvas reading noise
+      }
+    }
+    requestAnimationFrame(scanFrame);
+  }
+
+  async function startScanner(cameraId = null) {
+    const video = document.getElementById("qr-video");
+    if (!video) return;
+
+    try {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === "videoinput");
+        if (videoDevices.length && cameraSelect) {
+          cameraSelect.innerHTML = videoDevices.map(d => `<option value="${d.deviceId}">${d.label || `Camera ${d.deviceId}`}</option>`).join("");
+          if (cameraId) {
+            cameraSelect.value = cameraId;
+          } else {
+            cameraId = videoDevices[0].deviceId;
+            cameraSelect.value = cameraId;
+          }
+        }
+      } catch {}
+
+      const constraints = {
+        video: cameraId ? { deviceId: { exact: cameraId } } : { facingMode: "environment" }
       };
-      await html5QrCode.start(
-        { 
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        config,
-        onScanSuccess,
-        () => {}
-      );
+
+      constraints.video.width = { min: 640, ideal: 1280, max: 1920 };
+      constraints.video.height = { min: 480, ideal: 720, max: 1080 };
+
+      activeStream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = activeStream;
+      await video.play();
+
       isScanning = true;
+      requestAnimationFrame(scanFrame);
+
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === "videoinput");
+        if (videoDevices.length && cameraSelect) {
+          cameraSelect.innerHTML = videoDevices.map(d => `<option value="${d.deviceId}">${d.label || `Camera ${d.deviceId}`}</option>`).join("");
+          const track = activeStream.getVideoTracks()[0];
+          const settings = track?.getSettings ? track.getSettings() : {};
+          if (settings.deviceId) {
+            cameraSelect.value = settings.deviceId;
+          } else if (cameraId && typeof cameraId === "string") {
+            cameraSelect.value = cameraId;
+          }
+
+          const label = track?.label?.toLowerCase() || "";
+          const isFrontCamera = settings.facingMode === "user" || label.includes("front") || label.includes("user") || label.includes("selfie");
+          isMirrored = isFrontCamera;
+          updateVideoMirrorStyle();
+        }
+      } catch {}
+
+      setupCameraCapabilities();
     } catch (err) {
-      console.error("Camera scan error:", err);
+      console.error("Camera start error:", err);
     }
   }
 
   async function stopScanner() {
-    if (html5QrCode && isScanning) {
+    isScanning = false;
+    if (activeStream) {
       try {
-        await html5QrCode.stop();
-        html5QrCode.clear();
+        activeStream.getTracks().forEach(t => t.stop());
       } catch {}
-      isScanning = false;
-      html5QrCode = null;
+      activeStream = null;
     }
+    const video = document.getElementById("qr-video");
+    if (video) {
+      video.srcObject = null;
+    }
+    isMirrored = false;
+    updateVideoMirrorStyle();
+    if (zoomSlider) zoomSlider.disabled = true;
+    if (zoomVal) zoomVal.textContent = "N/A";
+    if (expSlider) expSlider.disabled = true;
+    if (expVal) expVal.textContent = "N/A";
+  }
+
+  function setupCameraCapabilities() {
+    try {
+      if (!activeStream) return;
+      const track = activeStream.getVideoTracks()[0];
+      if (!track) return;
+      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+
+      if (zoomSlider && zoomVal) {
+        if (capabilities.zoom) {
+          zoomSlider.disabled = false;
+          zoomSlider.min = capabilities.zoom.min;
+          zoomSlider.max = capabilities.zoom.max;
+          zoomSlider.step = capabilities.zoom.step || 0.1;
+          const currentSettings = track.getSettings ? track.getSettings() : {};
+          zoomSlider.value = currentSettings.zoom || capabilities.zoom.min;
+          zoomVal.textContent = `${parseFloat(zoomSlider.value).toFixed(1)}x`;
+        } else {
+          zoomSlider.disabled = true;
+          zoomVal.textContent = "N/A";
+        }
+      }
+
+      if (expSlider && expVal) {
+        if (capabilities.exposureCompensation) {
+          expSlider.disabled = false;
+          expSlider.min = capabilities.exposureCompensation.min;
+          expSlider.max = capabilities.exposureCompensation.max;
+          expSlider.step = capabilities.exposureCompensation.step || 0.5;
+          const currentSettings = track.getSettings ? track.getSettings() : {};
+          expSlider.value = currentSettings.exposureCompensation || 0;
+          expVal.textContent = parseFloat(expSlider.value).toFixed(1);
+        } else {
+          expSlider.disabled = true;
+          expVal.textContent = "N/A";
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to set up camera capabilities:", err);
+    }
+  }
+
+  function triggerScanSuccessAnimation() {
+    const container = document.getElementById("scanner-viewfinder-container");
+    const viewfinder = document.getElementById("scanner-viewfinder");
+    if (!container || !viewfinder) return;
+
+    container.classList.add("!border-emerald-500", "shadow-[0_0_20px_rgba(16,185,129,0.45)]", "scale-[1.02]");
+    viewfinder.classList.add("!border-emerald-500", "!border-solid", "scale-105");
+    viewfinder.classList.remove("animate-pulse", "border-primary/40");
+
+    setTimeout(() => {
+      container.classList.remove("!border-emerald-500", "shadow-[0_0_20px_rgba(16,185,129,0.45)]", "scale-[1.02]");
+      viewfinder.classList.remove("!border-emerald-500", "!border-solid", "scale-105");
+      viewfinder.classList.add("animate-pulse", "border-primary/40");
+    }, 600);
   }
 
   async function onScanSuccess(decodedText) {
@@ -737,6 +950,8 @@ function initQRScan() {
     }
     lastScannedCode = decodedText;
     lastScannedTime = now;
+
+    triggerScanSuccessAnimation();
 
     // Process check-in continuously WITHOUT stopping the camera feed
     await processCheckIn(decodedText);
