@@ -288,9 +288,6 @@ html, body, button, input, select, textarea {
 
 
 /* ===== USER CHIP ===== */
-.user-menu {
-    @apply relative;
-}
 
 .user-chip {
     @apply cursor-pointer flex items-center justify-center w-[44px] h-[44px] rounded-full relative;
@@ -343,18 +340,26 @@ html, body, button, input, select, textarea {
 
 /* ===== USER DROPDOWN ===== */
 .user-dropdown {
-    @apply fixed top-[72px] right-10 w-[220px] p-2 rounded-[18px] bg-white/95 z-[1100];
+    position: fixed;
+    right: 40px;
+    width: 220px;
+    padding: 8px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+    z-index: 1200;
     opacity: 0;
-    transform: translateY(12px) scale(0.96);
-    @apply pointer-events-none;
-    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(.22, 1, .36, 1), top 0.3s cubic-bezier(.22, 1, .36, 1);
+    pointer-events: none;
+    top: 88px;
+    transition: opacity 0.25s ease, top 0.3s cubic-bezier(.22, 1, .36, 1);
 }
 
 .user-menu.active .user-dropdown {
-    @apply opacity-100 translate-y-0 scale-100 pointer-events-auto;
+    opacity: 1;
+    top: 76px;
+    pointer-events: auto;
 }
 
 .dropdown-item {
@@ -377,21 +382,28 @@ html, body, button, input, select, textarea {
 
 /* collapsed state adjusts */
 #navbar.collapsed .user-dropdown {
-    @apply top-16;
+    top: 64px;
 }
 
 /* ===== RESPONSIVE: 768px ===== */
 @media (max-width: 768px) {
     .user-dropdown {
-        @apply right-4 top-16 w-52;
+        right: 16px;
+        width: 208px;
+        top: 64px;
     }
 
     #navbar.collapsed .user-dropdown {
-        @apply top-14;
+        top: 64px;
     }
 
+    #notif-dropdown {
+        top: 64px;
+    }
 
-
+    #navbar.collapsed #notif-dropdown {
+        top: 64px;
+    }
 }
 
 /* ===== SPRING TRANSITION ===== */
@@ -6241,15 +6253,16 @@ html, body, button, input, select, textarea {
    ========================= */
 
 #notif-dropdown {
-    @apply hidden;
-    position: absolute;
-    top: calc(100% + 4px);
+    display: none;
+    position: fixed;
+    top: 76px;
     right: 80px;
-    z-index: 9999;
+    z-index: 1200;
+    transition: top 0.3s cubic-bezier(.22, 1, .36, 1);
 }
 
 #notif-dropdown.active {
-    @apply block;
+    display: block;
 }
 
 .notif-dropdown-menu {
