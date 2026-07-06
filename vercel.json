@@ -13,7 +13,12 @@
     { "source": "/community", "destination": "/community.html" },
     { "source": "/register-host", "destination": "/register-host.html" },
     { "source": "/org-dashboard", "destination": "/org-dashboard.html" },
-    { "source": "/org-profile", "destination": "/org-profile.html" }
+    { "source": "/org-profile", "destination": "/org-profile.html" },
+    { "source": "/my-tickets", "destination": "/my-tickets.html" },
+    { "source": "/verify-email", "destination": "/verify-email.html" },
+    { "source": "/quiz", "destination": "/quiz.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/admin-host", "destination": "/admin-host.html" }
   ],
   "headers": [
     {
