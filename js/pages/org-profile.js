@@ -6,7 +6,7 @@ import { get } from "../api/client.js";
 import { getUser } from "../lib/session.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await loadNavbar({ activeSection: 'explore' });
+    await loadNavbar();
     await fetchContent("./components/footer.html").then(html => {
         const footerContainer = document.getElementById("footer-container");
         if (footerContainer) footerContainer.innerHTML = html;

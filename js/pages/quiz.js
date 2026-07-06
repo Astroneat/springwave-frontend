@@ -183,7 +183,7 @@ if (!isAuthenticated()) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadNavbar({ activeSection: "home" });
+  await loadNavbar();
   await initChatbot();
   loadFooter();
   await loadQuestions();

@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     } catch {}
 
-    await loadNavbar({ activeSection: 'host' });
+    await loadNavbar();
     await fetchContent("./components/footer.html").then(html => {
         const footerContainer = document.getElementById("footer-container");
         if (footerContainer) footerContainer.innerHTML = html;
