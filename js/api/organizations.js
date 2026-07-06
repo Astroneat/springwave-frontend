@@ -1,4 +1,4 @@
-import { get, put, post, del } from "./client.js";
+import { get, put, post, del, uploadFormData } from "./client.js";
 
 export function getMyOrganizations() {
   return get("/organizations/my");
@@ -43,4 +43,16 @@ export function removeManager(orgId, userId) {
 
 export function transferOwnership(orgId, email) {
   return put(`/organizations/${orgId}/transfer-owner`, { email });
+}
+
+export function uploadOrgAvatar(id, file) {
+  const formData = new FormData();
+  formData.append("avatar", file);
+  return uploadFormData(`/organizations/${id}/avatar`, formData);
+}
+
+export function uploadOrgCover(id, file) {
+  const formData = new FormData();
+  formData.append("cover", file);
+  return uploadFormData(`/organizations/${id}/cover`, formData);
 }

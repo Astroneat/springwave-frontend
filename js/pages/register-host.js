@@ -20,18 +20,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         if (!createMode && !isHost) {
             const statusData = await getMyHostStatus();
-            if (statusData.status === 'approved') {
-                const url = statusData.orgId ? `/org-dashboard.html?orgId=${statusData.orgId}` : "/org-dashboard.html";
-                window.location.href = url;
-                return;
-            }
             if (statusData.status === 'pending') {
                 alert("Your host registration is pending review. Please wait for approval.");
                 window.location.href = "/";
                 return;
             }
+            if (statusData.status === 'rejected') {
+                const canCreate = confirm("Your previous host registration was rejected. Would you like to create a new one?");
+                if (!canCreate) {
+                    window.location.href = "/";
+                    return;
+                }
+                params.set("createMode", "true");
+                window.history.replaceState({}, "", `?${params}`);
+            }
         }
-    } catch {}
+    } catch { }
 
     await loadNavbar();
     await fetchContent("./components/footer.html").then(html => {
