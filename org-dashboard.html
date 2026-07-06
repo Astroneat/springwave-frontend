@@ -1,179 +1,480 @@
 <!DOCTYPE html>
-
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Manage Events - SpringWave Org Manager</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&amp;family=satoshi:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-<link rel="stylesheet" href="/assets/style.css" />
-<style>
-        body {
-            background-color: #faf8ff;
-            color: #191b22;
-            -webkit-font-smoothing: antialiased;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .active-tab-glow {
-            box-shadow: 0 0 15px rgba(59, 111, 212, 0.15);
-        }
-        .hover-scale {
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .hover-scale:hover {
-            transform: translateY(-4px) scale(1.02);
-        }
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Host Dashboard — SpringWave</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+        .sidenav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; transition: all 0.2s; font-family: var(--font-label-md), 'Inter', sans-serif; font-size: var(--text-label-md); cursor: pointer; }
+        .sidenav-link:hover { background: var(--color-surface-container); }
+        .sidenav-link.active { background: var(--color-surface-container-low); color: var(--color-primary); font-weight: 700; border-right: 4px solid var(--color-primary); box-shadow: 0 0 15px rgba(59,111,212,0.15); }
+        .tab-btn { padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .tab-btn:active { transform: scale(0.95); }
+        .tab-btn.active { background: #1755ba; color: #fff; box-shadow: 0 4px 12px rgba(23,85,186,0.2); }
+        .tab-btn:not(.active) { background: transparent; color: #64748b; }
+        .tab-btn:not(.active):hover { background: #f1f5f9; }
+        .hover-scale { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .hover-scale:hover { transform: translateY(-4px) scale(1.02); }
     </style>
 </head>
-<body class="font-body-md text-body-md overflow-x-hidden">
-<!-- NAVBAR -->
-<div id="navbar-container"></div>
-<!-- SideNavBar Shell -->
-<aside class="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[220px] bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant dark:border-outline shadow-sm flex flex-col py-base z-40">
-<div class="px-6 py-8">
-<h1 class="font-headline-md text-headline-md font-extrabold text-primary dark:text-primary-fixed-dim">SpringWave</h1>
-<p id="org-slug" class="text-caption font-caption text-on-surface-variant opacity-70">Org Manager</p>
-</div>
-<nav class="flex-1 px-3 space-y-1">
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant dark:text-outline-variant font-label-lg text-label-lg" href="#">
-<span class="material-symbols-outlined">dashboard</span>
-<span>Dashboard</span>
-</a>
-<!-- Active Tab: Manage Events -->
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary dark:text-primary-fixed-dim font-bold border-r-4 border-primary dark:border-primary-fixed-dim bg-surface-container-low dark:bg-surface-variant active-tab-glow font-label-lg text-label-lg" href="#">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
-<span>Manage Events</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant dark:text-outline-variant font-label-lg text-label-lg" href="#">
-<span class="material-symbols-outlined">group</span>
-<span>Members</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant dark:text-outline-variant font-label-lg text-label-lg" href="#">
-<span class="material-symbols-outlined">workspace_premium</span>
-<span>Certificates</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant dark:text-outline-variant font-label-lg text-label-lg" href="#">
-<span class="material-symbols-outlined">settings</span>
-<span>Settings</span>
-</a>
-</nav>
-<div class="p-4 mt-auto">
-<div class="p-4 bg-primary/5 rounded-2xl border border-primary/10">
-<p class="text-caption font-caption text-primary mb-2">Need Help?</p>
-<button class="w-full py-2 bg-primary text-white rounded-full font-label-md text-label-md hover:bg-secondary transition-all">Support Center</button>
-</div>
-</div>
-</aside>
-<!-- Main Content Canvas -->
-<main class="pt-[100px] pl-[252px] pr-8 pb-12 min-h-screen">
-<!-- Main Area Header -->
-<div class="flex justify-between items-end mb-8">
-<div>
-<h2 class="font-headline-lg text-headline-lg text-on-surface">Manage Events</h2>
-<p class="text-body-md text-on-surface-variant mt-1">Organize, track, and optimize your upcoming campus activities.</p>
-</div>
-<button class="bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end text-white px-8 py-4 rounded-full font-label-lg text-label-lg flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
-<span class="material-symbols-outlined">add</span>
-                Create New Event
-            </button>
-</div>
-<!-- Overview Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-<!-- Total Events -->
-<div class="glass-card p-6 rounded-3xl hover-scale">
-<div class="flex justify-between items-start mb-4">
-<div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-<span class="material-symbols-outlined text-primary">event_available</span>
-</div>
-<span class="text-caption font-caption text-primary flex items-center gap-1 font-bold">
-<span class="material-symbols-outlined text-[16px]">trending_up</span> +8%
-                    </span>
-</div>
-<h3 class="text-on-surface-variant font-label-lg text-label-lg">Total Events</h3>
-<p class="text-display-lg-mobile md:text-[32px] font-headline-lg text-primary mt-1">12</p>
-</div>
-<!-- Total Participants -->
-<div class="glass-card p-6 rounded-3xl hover-scale">
-<div class="flex justify-between items-start mb-4">
-<div class="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center">
-<span class="material-symbols-outlined text-secondary">groups</span>
-</div>
-<span class="text-caption font-caption text-secondary flex items-center gap-1 font-bold">
-<span class="material-symbols-outlined text-[16px]">trending_up</span> +12%
-                    </span>
-</div>
-<h3 class="text-on-surface-variant font-label-lg text-label-lg">Total Participants</h3>
-<p class="text-display-lg-mobile md:text-[32px] font-headline-lg text-primary mt-1">1,402</p>
-</div>
-<!-- Pending Approvals -->
-<div class="glass-card p-6 rounded-3xl hover-scale">
-<div class="flex justify-between items-start mb-4">
-<div class="w-12 h-12 bg-tertiary/10 rounded-2xl flex items-center justify-center">
-<span class="material-symbols-outlined text-tertiary">pending_actions</span>
-</div>
-</div>
-<h3 class="text-on-surface-variant font-label-lg text-label-lg">Pending Approvals</h3>
-<p class="text-display-lg-mobile md:text-[32px] font-headline-lg text-primary mt-1">5</p>
-</div>
-</div>
-<!-- Events Data Table Section -->
-<div class="glass-card rounded-[32px] overflow-hidden border border-outline-variant/30">
-<div class="px-8 py-6 flex justify-between items-center border-b border-outline-variant/20">
-<h3 class="font-headline-md text-headline-md text-on-surface">Event List</h3>
-<div class="flex gap-3">
-<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-label-md font-label-md hover:bg-surface-container-low transition-all">
-<span class="material-symbols-outlined text-[18px]">filter_list</span>
-                        Filter
+<body class="bg-[#faf8ff] text-[#191b22] font-body-md antialiased min-h-screen">
+    <div id="navbar-container"></div>
+
+    <!-- Sidebar -->
+    <aside class="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[220px] bg-white border-r border-[#ecedfa] shadow-sm z-40 hidden md:flex flex-col">
+        <div class="px-6 py-8">
+            <h2 class="font-headline-md text-xl font-bold text-primary" id="org-name-sidebar">SpringWave</h2>
+            <p class="text-xs text-[#64748b] mt-1" id="org-role-sidebar">Host Dashboard</p>
+        </div>
+        <nav class="flex-1 px-3 space-y-1" id="sidenav">
+            <div class="sidenav-link active" data-section="dashboard">
+                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                <span>Dashboard</span>
+            </div>
+            <div class="sidenav-link" data-section="events">
+                <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+                <span>Events</span>
+            </div>
+            <div class="sidenav-link" data-section="participants">
+                <span class="material-symbols-outlined text-[20px]">groups</span>
+                <span>Participants</span>
+            </div>
+            <div class="sidenav-link" data-section="attendance">
+                <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+                <span>Attendance</span>
+            </div>
+            <div class="sidenav-link" data-section="managers">
+                <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+                <span>Managers</span>
+            </div>
+            <div class="sidenav-link" data-section="certificates">
+                <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
+                <span>Certificates</span>
+            </div>
+            <div class="sidenav-link" data-section="settings">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+                <span>Settings</span>
+            </div>
+        </nav>
+        <div class="p-4 mt-auto">
+            <div class="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                <p class="text-xs text-primary mb-2 font-semibold">Need help?</p>
+                <a href="/about.html" class="block w-full py-2 bg-primary text-white text-center rounded-full text-xs font-semibold hover:bg-primary/90 transition-all">Support</a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="pt-[100px] md:pl-[252px] pr-4 md:pr-8 pb-12 px-4">
+        <!-- Org Selector (for multi-org) -->
+        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <select id="org-selector" class="px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm font-semibold text-[#191b22] outline-none focus:border-primary cursor-pointer max-w-[280px]"></select>
+                    <button id="create-org-btn" class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-primary hover:bg-[#dae1ff] transition-all spring-ease" title="Create Organization">
+                        <i class="fa-solid fa-plus text-sm"></i>
                     </button>
-<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-label-md font-label-md hover:bg-surface-container-low transition-all">
-<span class="material-symbols-outlined text-[18px]">download</span>
-                        Export
+                </div>
+                <p class="text-xs text-[#64748b] mt-1.5" id="org-meta"></p>
+            </div>
+        </div>
+
+        <!-- Section: Dashboard -->
+        <div id="section-dashboard" class="section-content">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Dashboard</h2>
+                    <p class="text-[#64748b] mt-1">Overview of your organization's activity</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8" id="dashboard-stats">
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm hover-scale">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary"><i class="fa-regular fa-calendar text-lg"></i></div>
+                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Total Events</span>
+                    </div>
+                    <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-events">0</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm hover-scale">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#d1fae5] flex items-center justify-center text-[#059669]"><i class="fa-solid fa-users text-lg"></i></div>
+                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Participants</span>
+                    </div>
+                    <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-participants">0</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm hover-scale">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#fef3c7] flex items-center justify-center text-[#d97706]"><i class="fa-solid fa-clock text-lg"></i></div>
+                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Upcoming</span>
+                    </div>
+                    <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-upcoming">0</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm hover-scale">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#fee2e2] flex items-center justify-center text-[#dc2626]"><i class="fa-solid fa-eye text-lg"></i></div>
+                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Total Views</span>
+                    </div>
+                    <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-views">0</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-[#ecedfa] flex items-center justify-between">
+                    <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Recent Events</h3>
+                    <button class="text-sm text-primary font-semibold hover:underline" id="goto-events">View All</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Event</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Date</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Participants</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-events-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Events -->
+        <div id="section-events" class="section-content hidden">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Events</h2>
+                    <p class="text-[#64748b] mt-1">Manage your organization's events</p>
+                </div>
+                <button id="create-event-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
+                    <i class="fa-solid fa-plus"></i> Create Event
+                </button>
+            </div>
+            <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
+                <button class="tab-btn active" data-events-tab="all">All</button>
+                <button class="tab-btn" data-events-tab="published">Published</button>
+                <button class="tab-btn" data-events-tab="draft">Draft</button>
+            </div>
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Event</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Date</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Participants</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden lg:table-cell">Type</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
+                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="events-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="events-empty" class="hidden text-center py-16 text-[#94a3b8]">
+                    <i class="fa-solid fa-calendar text-4xl mb-3 block"></i>
+                    <p class="text-base font-semibold">No events yet</p>
+                    <p class="text-sm mt-1">Create your first event to get started</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Participants -->
+        <div id="section-participants" class="section-content hidden">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+                <div>
+                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Participants</h2>
+                    <p class="text-[#64748b] mt-1">View participants per event</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <select id="participant-event-select" class="px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary min-w-[200px]">
+                        <option value="">Select an event...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-[#ecedfa]">
+                    <h3 class="font-headline-md text-lg font-bold text-[#191b22]">
+                        <span id="participant-count">0</span> Participant(s)
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">User</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Email</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Joined</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participants-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="participants-empty" class="hidden text-center py-16 text-[#94a3b8]">
+                    <i class="fa-solid fa-users text-4xl mb-3 block"></i>
+                    <p class="text-base font-semibold">Select an event to view participants</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Attendance -->
+        <div id="section-attendance" class="section-content hidden">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+                <div>
+                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Attendance</h2>
+                    <p class="text-[#64748b] mt-1">Check in participants via QR code or manually</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <select id="attendance-event-select" class="px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary min-w-[200px]">
+                        <option value="">Select an event...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- QR Scanner Modal Trigger -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary"><i class="fa-solid fa-qrcode text-lg"></i></div>
+                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">QR Scan</span>
+                    </div>
+                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-present">0</p>
+                    <p class="text-xs text-[#64748b] mt-1">Checked in</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#fee2e2] flex items-center justify-center text-[#dc2626]"><i class="fa-solid fa-clock text-lg"></i></div>
+                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Absent</span>
+                    </div>
+                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-absent">0</p>
+                    <p class="text-xs text-[#64748b] mt-1">Not checked in</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#d1fae5] flex items-center justify-center text-[#059669]"><i class="fa-solid fa-users text-lg"></i></div>
+                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Total</span>
+                    </div>
+                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-total-att">0</p>
+                    <p class="text-xs text-[#64748b] mt-1">Registered</p>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mb-6">
+                <button id="scan-qr-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
+                    <i class="fa-solid fa-camera"></i> Scan QR Code
+                </button>
+                <button id="init-attendance-btn" class="py-2.5 px-5 rounded-full border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95">
+                    <i class="fa-solid fa-rotate"></i> Init Attendance
+                </button>
+            </div>
+
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-[#ecedfa] flex items-center justify-between">
+                    <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Attendance List</h3>
+                    <span class="text-sm text-[#64748b]" id="attendance-count">0 records</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">User</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Email</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Check-in Time</th>
+                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="attendance-empty" class="hidden text-center py-16 text-[#94a3b8]">
+                    <i class="fa-solid fa-qrcode text-4xl mb-3 block"></i>
+                    <p class="text-base font-semibold">Select an event to view attendance</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Managers -->
+        <div id="section-managers" class="section-content hidden">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Managers</h2>
+                    <p class="text-[#64748b] mt-1">Add or remove organization managers</p>
+                </div>
+                <button id="add-manager-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
+                    <i class="fa-solid fa-user-plus"></i> Add Manager
+                </button>
+            </div>
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Name</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Email</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Role</th>
+                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="managers-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="managers-empty" class="hidden text-center py-16 text-[#94a3b8]">
+                    <i class="fa-solid fa-user-shield text-4xl mb-3 block"></i>
+                    <p class="text-base font-semibold">No managers added yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Certificates -->
+        <div id="section-certificates" class="section-content hidden">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+                <div>
+                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Certificates</h2>
+                    <p class="text-[#64748b] mt-1">Issue and manage certificates for events</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <select id="cert-event-select" class="px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary min-w-[200px]">
+                        <option value="">Select an event...</option>
+                    </select>
+                    <button id="issue-certs-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
+                        <i class="fa-solid fa-award"></i> Issue Certificates
                     </button>
-</div>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left">
-<thead>
-<tr class="bg-surface-container-low/50">
-<th class="px-8 py-4 font-label-lg text-label-lg text-on-surface-variant">Event Title</th>
-<th class="px-8 py-4 font-label-lg text-label-lg text-on-surface-variant">Date</th>
-<th class="px-8 py-4 font-label-lg text-label-lg text-on-surface-variant">Status</th>
-<th class="px-8 py-4 font-label-lg text-label-lg text-on-surface-variant text-right">Actions</th>
-</tr>
-</thead>
-<tbody id="event-list" class="divide-y divide-outline-variant/20">
-    <!-- Events will be populated dynamically here -->
-</tbody>
-</table>
-</div>
-<div class="px-8 py-6 border-t border-outline-variant/20 flex justify-between items-center">
-<span class="text-caption font-caption text-on-surface-variant">Showing 3 of 12 events</span>
-<div class="flex gap-2">
-<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-low disabled:opacity-50" disabled="">
-<span class="material-symbols-outlined">chevron_left</span>
-</button>
-<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-low">
-<span class="material-symbols-outlined">chevron_right</span>
-</button>
-</div>
-</div>
-</div>
-</main>
-<div class="popup-overlay" id="popup-overlay" hidden="">
-    <div class="popup-backdrop"></div>
-    <div class="popup-container" id="popup-container"></div>
-</div>
-<div id="chatbot-container"></div>
-<script type="module" src="./js/pages/org-dashboard.js"></script>
+                </div>
+            </div>
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">User</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Certificate Code</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Issued At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="certs-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="certs-empty" class="hidden text-center py-16 text-[#94a3b8]">
+                    <i class="fa-solid fa-award text-4xl mb-3 block"></i>
+                    <p class="text-base font-semibold">Select an event to view certificates</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Settings -->
+        <div id="section-settings" class="section-content hidden">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Settings</h2>
+                    <p class="text-[#64748b] mt-1">Update your organization information</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm p-8 max-w-[640px]">
+                <form id="org-settings-form" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Organization Name</label>
+                        <input id="settings-name" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Description</label>
+                        <textarea id="settings-desc" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary resize-y" rows="4"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Contact Phone</label>
+                            <input id="settings-phone" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Contact Email</label>
+                            <input id="settings-email" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                        </div>
+                    </div>
+                    <div class="pt-4 flex gap-3">
+                        <button type="submit" class="py-2.5 px-6 rounded-full bg-primary text-white text-sm font-semibold border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">Save Changes</button>
+                        <button type="button" id="delete-org-btn" class="py-2.5 px-6 rounded-full border border-red-200 text-red-500 text-sm font-semibold cursor-pointer spring-ease hover:bg-red-50 active:scale-95">Delete Organization</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- QR Scan Modal -->
+    <div class="popup-overlay" hidden id="scan-overlay">
+        <div class="popup-backdrop" id="scan-backdrop"></div>
+        <div class="popup-container !max-w-[520px] !p-0 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
+                <h2 class="text-xl font-bold text-[#191b22]">Scan QR Code</h2>
+                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] spring-ease" id="scan-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- Camera scanner -->
+                <div id="qr-reader" class="w-full max-w-[400px] mx-auto rounded-xl overflow-hidden border border-[#ecedfa]"></div>
+                <div id="qr-reader-results" class="text-center text-sm text-[#64748b] hidden">
+                    <div class="spinner mx-auto mb-2"></div>
+                    <span>Processing QR code...</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-[#64748b]">
+                    <span class="flex-1 h-px bg-[#ecedfa]"></span>
+                    <span>or enter code manually</span>
+                    <span class="flex-1 h-px bg-[#ecedfa]"></span>
+                </div>
+                <div class="flex gap-2">
+                    <input id="manual-ticket-input" class="flex-1 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary font-mono" placeholder="Paste ticket code..." />
+                    <button id="manual-checkin-btn" class="py-2.5 px-5 rounded-xl bg-primary text-white text-sm font-semibold border-none cursor-pointer spring-ease hover:bg-primary/90">Check In</button>
+                </div>
+                <button class="w-full py-2 rounded-full border border-[#e2e2eb] text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc]" id="scan-cancel">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Manager Modal -->
+    <div class="popup-overlay" hidden id="manager-overlay">
+        <div class="popup-backdrop" id="manager-backdrop"></div>
+        <div class="popup-container !max-w-[420px] !p-8 text-center">
+            <div class="w-16 h-16 rounded-full bg-[#dae1ff] flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-user-plus text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2">Add Manager</h3>
+            <p class="text-sm text-[#64748b] mb-6">Enter the email of the user to add as a manager</p>
+            <input id="manager-email-input" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary mb-4" placeholder="user@example.com" />
+            <div class="flex gap-3">
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="manager-cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="manager-confirm">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Org Modal -->
+    <div class="popup-overlay" hidden id="create-org-overlay">
+        <div class="popup-backdrop" id="create-org-backdrop"></div>
+        <div class="popup-container !max-w-[420px] !p-8">
+            <h3 class="text-xl font-bold text-[#191b22] mb-2">Create Organization</h3>
+            <p class="text-sm text-[#64748b] mb-6">Register a new organization (this will submit a host registration request)</p>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-sm font-semibold text-[#64748b] mb-1">Organization Name</label>
+                    <input id="create-org-name" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary" placeholder="e.g. Student Club" />
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="create-org-cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="create-org-confirm">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatbot-container"></div>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script type="module" src="./js/pages/org-dashboard.js"></script>
 </body>
 </html>

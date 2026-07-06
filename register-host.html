@@ -85,27 +85,32 @@
 <div class="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
 <span class="material-symbols-outlined">person_outline</span>
 </div>
-<h2 class="font-headline-md text-headline-md text-on-surface">Owner Details</h2>
-</div>
-<div class="space-y-6">
-<div>
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="representativeName">Representative Full Name</label>
-<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="representativeName" name="representativeName" placeholder="Full name as per ID" required="" type="text"/>
-</div>
-<div>
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Upload ID Card (Front &amp; Back)</label>
-<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden">
-<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2">cloud_upload</span>
-<p class="font-body-md text-on-surface-variant mb-1 text-center">Click to upload or drag and drop</p>
-<p class="font-caption text-outline text-center">PNG, JPG or PDF up to 10MB</p>
-<input class="absolute inset-0 opacity-0 cursor-pointer" id="cccdImage" name="cccdImage" required="" accept="image/*" type="file"/>
-<!-- Secure Badge -->
-<div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-<span class="material-symbols-outlined text-[16px]">lock</span>
-<span class="text-[10px] font-bold tracking-wider uppercase">Secure Encryption</span>
-</div>
-</div>
-</div>
+                        <h2 class="font-headline-md text-headline-md text-on-surface">Owner Details</h2>
+                        </div>
+                        <div class="space-y-6">
+                        <div>
+                        <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="representativeName">Representative Full Name</label>
+                        <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="representativeName" name="representativeName" placeholder="Full name as per ID" required="" type="text"/>
+                        </div>
+                        <div>
+                        <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="cccdNumber">CCCD / Citizen ID Number</label>
+                        <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="cccdNumber" name="cccdNumber" placeholder="e.g. 123456789" type="text"/>
+                        </div>
+                        <div>
+                        <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Upload ID Card (Front &amp; Back)</label>
+                        <div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden">
+                        <span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="cccdIcon">cloud_upload</span>
+                        <p class="font-body-md text-on-surface-variant mb-1 text-center" id="cccdLabel">Click to upload or drag and drop</p>
+                        <p class="font-caption text-outline text-center" id="cccdHint">PNG, JPG or PDF up to 10MB</p>
+                        <input class="absolute inset-0 opacity-0 cursor-pointer" id="cccdImage" name="cccdImage" accept="image/*,application/pdf" type="file"/>
+                        <!-- Secure Badge -->
+                        <div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
+                        <span class="material-symbols-outlined text-[16px]">lock</span>
+                        <span class="text-[10px] font-bold tracking-wider uppercase">Secure Encryption</span>
+                        </div>
+                        </div>
+                        <div id="cccdPreview" class="mt-2 hidden"></div>
+                        </div>
 </div>
 </div>
 <div class="h-px w-full bg-outline-variant/30 mb-12"></div>
@@ -125,29 +130,32 @@
 <div>
 <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Supporting Documents</label>
 <div class="space-y-4">
-<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
-<div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
-<span class="material-symbols-outlined">description</span>
-</div>
-<div class="flex-grow">
-<h4 class="font-label-lg text-on-surface">Legal Papers / Certificates</h4>
-<p class="font-caption text-outline">Upload official registration documents</p>
-</div>
-<button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors relative overflow-hidden" type="button">
-    Upload
-    <input type="file" id="credibility" name="credibility" accept="image/*" multiple class="absolute inset-0 opacity-0 cursor-pointer"/>
-</button>
-</div>
-<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
-<div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
-<span class="material-symbols-outlined">link</span>
-</div>
-<div class="flex-grow">
-<h4 class="font-label-lg text-on-surface">Social Links / Website</h4>
-<p class="font-caption text-outline">Evidence of active online presence</p>
-</div>
-<button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors" type="button">Add Links</button>
-</div>
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
+                        <div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
+                        <span class="material-symbols-outlined">description</span>
+                        </div>
+                        <div class="flex-grow">
+                        <h4 class="font-label-lg text-on-surface">Legal Papers / Certificates</h4>
+                        <p class="font-caption text-outline">Upload official registration documents</p>
+                        </div>
+                        <button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors relative overflow-hidden" type="button">
+                            Upload
+                            <input type="file" id="credibility" name="credibility" accept="image/*,application/pdf" multiple class="absolute inset-0 opacity-0 cursor-pointer"/>
+                        </button>
+                        </div>
+                        <div id="credibilityPreview" class="flex flex-wrap gap-2 mt-2"></div>
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
+                        <div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
+                        <span class="material-symbols-outlined">link</span>
+                        </div>
+                        <div class="flex-grow">
+                        <h4 class="font-label-lg text-on-surface">Social Links / Website</h4>
+                        <p class="font-caption text-outline">Evidence of active online presence</p>
+                        </div>
+                        <button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors" id="addLinkBtn" type="button">Add Links</button>
+                        </div>
+                        <div id="linksContainer" class="space-y-3 mt-2"></div>
+                        <div id="linksList" class="flex flex-wrap gap-2 mt-2"></div>
 </div>
 </div>
 </div>

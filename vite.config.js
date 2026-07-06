@@ -19,8 +19,9 @@ export default defineConfig({
         community: resolve(__dirname, "community.html"),
         quiz: resolve(__dirname, "quiz.html"),
         about: resolve(__dirname, "about.html"),
-        registerHost: resolve(__dirname, "register-host.html"),
+        adminHost: resolve(__dirname, "admin-host.html"),
         orgDashboard: resolve(__dirname, "org-dashboard.html"),
+        registerHost: resolve(__dirname, "register-host.html"),
         orgProfile: resolve(__dirname, "org-profile.html"),
       },
       output: {
