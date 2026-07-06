@@ -125,6 +125,68 @@ function initNotifications() {
         renderNotifCount();
         renderNotifDropdown();
     });
+
+    window.addEventListener("badge-earned", (e) => {
+        const { badgeKey, badgeLabel } = e.detail;
+        showGlobalBadgeToast(badgeKey, badgeLabel);
+    });
+}
+
+const BADGE_ICONS = {
+  hello_world: "gesture",
+  talk_is_silver: "comment",
+  so_it_begins: "rocket_launch",
+  self_discovery: "psychology",
+  active_explorer: "explore",
+  event_goer: "event_available",
+  rising_host: "campaign",
+  grand_host: "co_present",
+  conversation_starter: "chat",
+  helper: "forum",
+  chatterbox: "speaker_notes",
+  respected: "thumb_up",
+  the_oracle: "auto_awesome",
+  trendsetter: "waves",
+  community_star: "stars",
+  keyboard_warrior: "keyboard",
+  mentor: "school",
+  the_sage: "emoji_objects",
+  one_man_show: "theater_comedy",
+  quality_over_quantity: "target"
+};
+
+function showGlobalBadgeToast(badgeKey, badgeLabel) {
+    if (window.location.pathname.includes("profile.html")) return;
+
+    const icon = BADGE_ICONS[badgeKey] || "military_tech";
+    const existing = document.querySelectorAll(".badge-toast");
+    const offset = existing.length * 80;
+
+    const toast = document.createElement("div");
+    toast.className = "badge-toast";
+    toast.style.bottom = `${24 + offset}px`;
+    toast.innerHTML = `
+      <div class="badge-toast-icon">
+        <span class="material-symbols-outlined">${icon}</span>
+      </div>
+      <div class="badge-toast-body">
+        <span class="badge-toast-heading">New Badge Earned!</span>
+        <span class="badge-toast-label">${badgeLabel}</span>
+      </div>
+    `;
+
+    toast.addEventListener("click", () => {
+        window.location.href = "/profile.html";
+    });
+
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add("show"));
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 400);
+    }, 4500);
 }
 
 function renderNotifCount() {
