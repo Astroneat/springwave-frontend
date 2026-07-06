@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Google Developer Student Clubs (GDSC) | SpringWave</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&amp;family=satoshi:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/style.css" />
+<!-- Tailwind Theme Configuration -->
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .nav-scrolled {
+            background: rgba(255, 255, 255, 0.9) !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .hover-lift {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- NAVBAR -->
+<div id="navbar-container"></div>
+<main class="min-h-screen">
+<!-- Hero Section -->
+<section class="relative w-full">
+<div class="h-64 md:h-[400px] w-full relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" data-alt="A wide panoramic aerial view of a vibrant university campus during sunrise, with modern glass buildings reflecting soft golden light. The atmosphere is academic and innovative, featuring a color palette dominated by sophisticated royal blue and warm off-white tones, captured in a clean and high-fidelity architectural photography style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDZFZKk2KTYiN2GUNrThSpTDsDcfpcPxbLnTrwWbCQwF6fPQSzQyYYxgDfD5nIbCjBsUouQ1i0gXHTXRidpWirtZQd2FpbNcLY5j8kO_W1Lu6pcfctHvGcR_PCAQWIZKDq78E1XIMXvAoQxesUhg2fdvrGYT_7Ttap83SRnJe-irQdSCTdRxTtaN-5dqZfA6yVmgkL0O4cZ4eJGkTXKsBEuBJ1H2uToUrl2pLuyCZaGPVq4eQ7kyTch4L_eH9gSjaC_SHzrui3S')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+<div class="max-w-[1200px] mx-auto px-8 relative">
+<div class="flex flex-col md:flex-row items-end gap-6 -mt-16 md:-mt-24">
+<div class="relative group">
+<div class="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-background bg-white overflow-hidden shadow-xl">
+<img class="w-full h-full object-cover" data-alt="A professional circular logo for Google Developer Student Clubs, featuring the iconic minimalist Google colors of red, blue, yellow, and green arranged in a clean, geometric developer-centric emblem. The lighting is flat and modern, set against a pristine white background with a soft studio glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVUSuAR3BZCkV250w6m6eao7xGuzTofidBI4GRoFVl4aGSZR7uRM04iF0ACMK6DkFA6UgrAXU3szrV3AIQYKMFFsIiCW9Msfq3RUT0q8ultJIYSlNn6X5QVVWoX4zv1nzsZDZce3xp0lpEz-UwAB5GEZRsP4zOxGDqEs-mpWSZNV2hwoGdfPhq018v50Vzzv732wdrrDZc_nZlbnFA8309795oqynxmD9-Xn8PQRRazp3LDoEAHsW5c-cr2HcVS7LsxLhhbG7Z"/>
+</div>
+<div class="absolute bottom-2 right-2 w-6 h-6 md:w-8 md:h-8 bg-green-500 border-2 border-white rounded-full"></div>
+</div>
+<div class="flex-1 pb-4 flex flex-col md:flex-row justify-between items-start md:items-end w-full gap-4">
+<div>
+<h1 id="org-name" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Organization Name</h1>
+<p class="font-label-lg text-label-lg text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">verified</span>
+                                Official University Community
+                            </p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 font-label-lg text-label-lg bg-primary text-white px-8 py-3 rounded-full shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-md">add</span>
+                                Follow
+                            </button>
+<button class="material-symbols-outlined p-3 rounded-full border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors">share</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Content Grid -->
+<section class="max-w-[1200px] mx-auto px-8 py-16">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+<!-- Main Content (Left Column) -->
+<div class="lg:col-span-8 space-y-16">
+<!-- About Section -->
+<div class="glass-card p-6 rounded-3xl shadow-sm">
+<h2 class="font-headline-md text-headline-md text-primary mb-4">About GDSC</h2>
+<p id="org-bio" class="font-body-lg text-body-lg text-on-surface-variant mb-8 leading-relaxed">
+                            Loading organization details...
+                        </p>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">mail</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Email Contact</p>
+<p class="font-label-lg text-label-lg text-on-surface">gdsc.leads@university.edu</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">public</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Chapter Website</p>
+<p class="font-label-lg text-label-lg text-on-surface">developers.google.com/gdsc</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<p class="font-label-lg text-label-lg text-on-surface">Connect with us:</p>
+<div class="flex gap-2">
+<a class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant text-on-surface-variant hover:text-[#0077b5] hover:border-[#0077b5] transition-all" href="#">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path></svg>
+</a>
+<a class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant text-on-surface-variant hover:text-[#1877f2] hover:border-[#1877f2] transition-all" href="#">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
+</a>
+<a class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant text-on-surface-variant hover:text-[#1da1f2] hover:border-[#1da1f2] transition-all" href="#">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path></svg>
+</a>
+</div>
+</div>
+</div>
+<!-- Upcoming Events -->
+<div id="events-section">
+<div class="flex justify-between items-end mb-8">
+<h2 class="font-headline-md text-headline-md text-on-surface">Upcoming Events</h2>
+<a class="text-primary font-label-lg text-label-lg flex items-center gap-1 hover:underline" href="#">
+                                View Calendar
+                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Event Card 1 -->
+<div class="glass-card rounded-3xl overflow-hidden hover-lift shadow-sm">
+<div class="h-48 relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="A vibrant digital illustration representing Cloud Computing, with glowing blue data nodes and abstract circuitry interconnected over a stylized campus. The lighting is electric and high-tech, using GDSC brand colors like royal blue and energetic yellow to convey a sense of learning and innovation." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDFUbG7VzIlHMPLq8IrXHW4WPcUgiVGdmgGK0mEZJG_DOJrmP933_tMZkWdqdH40JyinyAJRG4mel48ncKkACfUeGgGtnlO_1pYUaSyfwEH3Mp5V6x8H1RzoSRUFKRVEKQMXLILewQ2836w99aaFswOMtyOLNMS2py7AasFGSehvTkxkFjmB4d4rmUpnMIbvutRSr0WcAmU1o7tb9mcz950--cJQKBbEB-aR0jprQtvNPO19oILr0eFrfoe1MSk8ZGiNWbfRjsK')"></div>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary text-white text-label-md font-label-md px-3 py-1 rounded-full uppercase tracking-wider">Cloud Study</span>
+</div>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 mb-3">
+<div class="flex items-center gap-1 bg-primary-container/10 text-primary px-2 py-1 rounded-lg text-[10px] font-bold">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+                                            HOSTED BY GDSC
+                                        </div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Cloud Study Jam: Google Cloud Basics</h3>
+<div class="space-y-2 text-on-surface-variant font-label-lg text-label-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-md">calendar_today</span>
+                                            October 15, 2024 • 4:00 PM
+                                        </div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-md">location_on</span>
+                                            Tech Innovation Hub, Hall B
+                                        </div>
+</div>
+<button class="w-full mt-6 py-3 rounded-xl border border-primary text-primary font-label-lg text-label-lg hover:bg-primary hover:text-white transition-all">RSVP Now</button>
+</div>
+</div>
+<!-- Event Card 2 -->
+<div class="glass-card rounded-3xl overflow-hidden hover-lift shadow-sm">
+<div class="h-48 relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="A group of diverse students collaborating in a modern workshop setting, with laptops open showing code and sticky notes on a glass wall. The environment is bright and energetic, with warm lighting and soft blue shadows, emphasizing teamwork and creative problem-solving for a global challenge." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDfb089CeqQ8D6Ft1y8at7PAQwoKb2wv8iEq7nzoY1530Usq_0Nu7OzspwFyW36hrTnKZi7RRaYpAQXaX4GK6lBOsj7-olTbb2Q1BTCBZs1jTuS8J3A3D3onI8qkZ2a285zi6btsPwu3WE5EyCsGvDmm9ZsdzPSjw4Jx3xJJFFDGRvEybrRwH2eIPinuVyCUPE_fGowCX-N05uwqBM2P0Jw_gfZ6tqg25d9EBKAtIrkuh4Dt5G565fMJ3lAGzKXX8qJQwD2zKGe')"></div>
+<div class="absolute top-4 left-4">
+<span class="bg-tertiary-container text-on-tertiary-container text-label-md font-label-md px-3 py-1 rounded-full uppercase tracking-wider">Workshop</span>
+</div>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 mb-3">
+<div class="flex items-center gap-1 bg-primary-container/10 text-primary px-2 py-1 rounded-lg text-[10px] font-bold">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+                                            HOSTED BY GDSC
+                                        </div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Solution Challenge Kickoff Workshop</h3>
+<div class="space-y-2 text-on-surface-variant font-label-lg text-label-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-md">calendar_today</span>
+                                            October 22, 2024 • 5:30 PM
+                                        </div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-md">location_on</span>
+                                            Engineering Building Room 402
+                                        </div>
+</div>
+<button class="w-full mt-6 py-3 rounded-xl border border-primary text-primary font-label-lg text-label-lg hover:bg-primary hover:text-white transition-all">RSVP Now</button>
+</div>
+</div>
+<!-- Event Card 3 -->
+<div class="glass-card rounded-3xl overflow-hidden hover-lift shadow-sm">
+<div class="h-48 relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="A futuristic AI brain concept glowing with electric blue and yellow light, surrounded by neural network patterns. The visual is crisp and modern, set against a clean white and soft grey background to emphasize a technologically advanced yet student-friendly AI mentor persona." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBDY8gLYRUMWTgLYxuHzNUjSogAMvbm3sAc05pdsxVWVN1rUgC8rnof34hiQFCM_8WSUdBBRA--EPqnS4n3Yv4CuUYFEohEj7h9OEhRYyUlABShyOFvNztXMAYhyy9HARRe-nCDkdT_ixZ3aMgncrH41QpZFGncGXuXXmJDtEnOtLcXXopTFoIgypT4r31_ajRd-vziJuU0f5IUCgsc8mhTWbuULje0qapwkMQVCgWC5P_X0zVWsQocfVR84uKlmRxK4q2kODFM')"></div>
+<div class="absolute top-4 left-4">
+<span class="bg-primary text-white text-label-md font-label-md px-3 py-1 rounded-full uppercase tracking-wider">AI/ML</span>
+</div>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 mb-3">
+<div class="flex items-center gap-1 bg-primary-container/10 text-primary px-2 py-1 rounded-lg text-[10px] font-bold">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+                                            HOSTED BY GDSC
+                                        </div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Introduction to Gemini Pro &amp; Vertex AI</h3>
+<div class="space-y-2 text-on-surface-variant font-label-lg text-label-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-md">calendar_today</span>
+                                            November 02, 2024 • 6:00 PM
+                                        </div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-md">location_on</span>
+                                            Online via Google Meet
+                                        </div>
+</div>
+<button class="w-full mt-6 py-3 rounded-xl border border-primary text-primary font-label-lg text-label-lg hover:bg-primary hover:text-white transition-all">Join Session</button>
+</div>
+</div>
+<!-- Event Card 4 -->
+<div class="glass-card rounded-3xl overflow-hidden hover-lift shadow-sm">
+<div class="h-48 relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="A dynamic shot of students networking in a modern cafe-style lounge, with soft bokeh lights and clean minimalist furniture. The lighting is warm and welcoming, capturing the 'Intelligent Youthfulness' of the brand with high-key whites and deep royal blue accents in the decor." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAGWyqTiGZ0AF-fwfgebZ9XElKz2rh-tWMFihfyFCrkkMkfsAddk6NxedEcVmhpPUWDkFpQqMLSmy_Ti_BfYW4yBy3VJipynbMOlDK39LQBPcGUa0AmLCK0EBcwifRceuP7xAsSa2K6ioXlQ0gnV8wSNj7oFkDbv44tuyQR2-t_pJbH0eXJVx9vvAg0QBmm5x11T5fCgOdLDm9GHUdp5w1AwODB-Kg3Lap8GX8MTaU6Vz7Qc2S-J2w0bxncy1Fy9QSppbE2Kygd')"></div>
+<div class="absolute top-4 left-4">
+<span class="bg-error-container text-on-error-container text-label-md font-label-md px-3 py-1 rounded-full uppercase tracking-wider">Community</span>
+</div>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 mb-3">
+<div class="flex items-center gap-1 bg-primary-container/10 text-primary px-2 py-1 rounded-lg text-[10px] font-bold">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+                                            HOSTED BY GDSC
+                                        </div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">DevFest On Campus: Networking Mixer</h3>
+<div class="space-y-2 text-on-surface-variant font-label-lg text-label-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-md">calendar_today</span>
+                                            November 15, 2024 • 2:00 PM
+                                        </div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-md">location_on</span>
+                                            Student Union Ballroom
+                                        </div>
+</div>
+<button class="w-full mt-6 py-3 rounded-xl border border-primary text-primary font-label-lg text-label-lg hover:bg-primary hover:text-white transition-all">Get Invitation</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar (Right Column) -->
+<aside class="lg:col-span-4 space-y-6">
+<!-- Stats Card -->
+<div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-l-primary">
+<div class="space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-display-lg text-[40px] text-primary">12</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Events Hosted</span>
+</div>
+<div class="w-14 h-14 rounded-2xl bg-primary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">event_available</span>
+</div>
+</div>
+<div class="h-px bg-outline-variant/30 w-full"></div>
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-display-lg text-[40px] text-primary">1.2k</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Followers</span>
+</div>
+<div class="w-14 h-14 rounded-2xl bg-primary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">group</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Faculty Advisor Card -->
+<div class="glass-card p-6 rounded-3xl shadow-sm">
+<h3 class="font-label-lg text-label-lg text-on-surface-variant mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-md">school</span>
+                            Faculty Advisor
+                        </h3>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Professional headshot of a middle-aged academic professor with a friendly expression. The background is a blurred university library, with soft natural lighting creating a warm and approachable faculty advisor persona. High-end, clean academic photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARLXWcjmL-PFhJloKuIBgHfqOWXyLIZj0u5uw4FPmk1UbDw5JkAZQzqt3YLLbXgQTqZLQyod9H4C7laGdgAKzbJCPlvYQ3Mhlck5WgeaYwJZ3CSOEKu2AXVQc2af4hgh9s4pplz9KrQPzyFNBeYLO-LRZp0SoWhg5P9H7IvCC_5BPlxK41SZsuj8J8hRHMVy5v3d-F7ZUC1YB8Uz7FxQ4lRYnI619Qm3wvQ1rMNxLJEPzQwvi9yb7cEkF77bJw8Xvp_DLtT4r4"/>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Dr. Sarah Jenkins</p>
+<p class="text-caption text-on-surface-variant">Dept. of Computer Science</p>
+</div>
+</div>
+</div>
+<!-- AI Mentor Insight (Fixed Widget style) -->
+<div class="bg-gradient-to-br from-primary-container to-primary p-6 rounded-3xl shadow-xl text-white relative overflow-hidden">
+<div class="absolute -top-8 -right-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-lg text-label-lg opacity-90">AI INSIGHT</span>
+</div>
+<p class="font-body-md text-body-md leading-relaxed mb-4">
+                                "This GDSC chapter is highly active in <strong>Cloud Computing</strong> and <strong>AI</strong>. Members here have a 45% higher engagement rate in the annual Solution Challenge."
+                            </p>
+<div class="flex gap-2">
+<span class="bg-white/20 px-2 py-1 rounded text-[10px] font-bold">MOST ACTIVE</span>
+<span class="bg-white/20 px-2 py-1 rounded text-[10px] font-bold">TECH-SAVVY</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</section>
+</main>
+<!-- FOOTER -->
+<div id="footer-container"></div>
+
+<div class="popup-overlay" id="popup-overlay" hidden>
+    <div class="popup-backdrop"></div>
+    <div class="popup-container" id="popup-container"></div>
+</div>
+<div id="chatbot-container"></div>
+<script type="module" src="./js/pages/org-profile.js"></script>
+</body>
+</html>

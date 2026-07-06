@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manage Events - SpringWave Org Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&amp;family=satoshi:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/style.css" />
+<style>
+        body {
+            background-color: #faf8ff;
+            color: #191b22;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab-glow {
+            box-shadow: 0 0 15px rgba(59, 111, 212, 0.15);
+        }
+        .hover-scale {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .hover-scale:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- NAVBAR -->
+<div id="navbar-container"></div>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[220px] bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant dark:border-outline shadow-sm flex flex-col py-base z-40">
+<div class="px-6 py-8">
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary dark:text-primary-fixed-dim">SpringWave</h1>
+<p id="org-slug" class="text-caption font-caption text-on-surface-variant opacity-70">Org Manager</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant dark:text-outline-variant font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Active Tab: Manage Events -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary dark:text-primary-fixed-dim font-bold border-r-4 border-primary dark:border-primary-fixed-dim bg-surface-container-low dark:bg-surface-variant active-tab-glow font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span>Manage Events</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant dark:text-outline-variant font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Members</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant dark:text-outline-variant font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">workspace_premium</span>
+<span>Certificates</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant dark:text-outline-variant font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="p-4 mt-auto">
+<div class="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+<p class="text-caption font-caption text-primary mb-2">Need Help?</p>
+<button class="w-full py-2 bg-primary text-white rounded-full font-label-md text-label-md hover:bg-secondary transition-all">Support Center</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-[100px] pl-[252px] pr-8 pb-12 min-h-screen">
+<!-- Main Area Header -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Manage Events</h2>
+<p class="text-body-md text-on-surface-variant mt-1">Organize, track, and optimize your upcoming campus activities.</p>
+</div>
+<button class="bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end text-white px-8 py-4 rounded-full font-label-lg text-label-lg flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+                Create New Event
+            </button>
+</div>
+<!-- Overview Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<!-- Total Events -->
+<div class="glass-card p-6 rounded-3xl hover-scale">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">event_available</span>
+</div>
+<span class="text-caption font-caption text-primary flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +8%
+                    </span>
+</div>
+<h3 class="text-on-surface-variant font-label-lg text-label-lg">Total Events</h3>
+<p class="text-display-lg-mobile md:text-[32px] font-headline-lg text-primary mt-1">12</p>
+</div>
+<!-- Total Participants -->
+<div class="glass-card p-6 rounded-3xl hover-scale">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">groups</span>
+</div>
+<span class="text-caption font-caption text-secondary flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +12%
+                    </span>
+</div>
+<h3 class="text-on-surface-variant font-label-lg text-label-lg">Total Participants</h3>
+<p class="text-display-lg-mobile md:text-[32px] font-headline-lg text-primary mt-1">1,402</p>
+</div>
+<!-- Pending Approvals -->
+<div class="glass-card p-6 rounded-3xl hover-scale">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-tertiary/10 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary">pending_actions</span>
+</div>
+</div>
+<h3 class="text-on-surface-variant font-label-lg text-label-lg">Pending Approvals</h3>
+<p class="text-display-lg-mobile md:text-[32px] font-headline-lg text-primary mt-1">5</p>
+</div>
+</div>
+<!-- Events Data Table Section -->
+<div class="glass-card rounded-[32px] overflow-hidden border border-outline-variant/30">
+<div class="px-8 py-6 flex justify-between items-center border-b border-outline-variant/20">
+<h3 class="font-headline-md text-headline-md text-on-surface">Event List</h3>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-label-md font-label-md hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filter
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-label-md font-label-md hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Export
+                    </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-8 py-4 font-label-lg text-label-lg text-on-surface-variant">Event Title</th>
+<th class="px-8 py-4 font-label-lg text-label-lg text-on-surface-variant">Date</th>
+<th class="px-8 py-4 font-label-lg text-label-lg text-on-surface-variant">Status</th>
+<th class="px-8 py-4 font-label-lg text-label-lg text-on-surface-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody id="event-list" class="divide-y divide-outline-variant/20">
+    <!-- Events will be populated dynamically here -->
+</tbody>
+</table>
+</div>
+<div class="px-8 py-6 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="text-caption font-caption text-on-surface-variant">Showing 3 of 12 events</span>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-low disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-low">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<div class="popup-overlay" id="popup-overlay" hidden="">
+    <div class="popup-backdrop"></div>
+    <div class="popup-container" id="popup-container"></div>
+</div>
+<div id="chatbot-container"></div>
+<script type="module" src="./js/pages/org-dashboard.js"></script>
+</body>
+</html>

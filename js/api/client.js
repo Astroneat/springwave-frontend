@@ -109,7 +109,7 @@ async function request(endpoint, options = {}) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    if (token && signingKey && !isFormData) {
+    if (token && signingKey) {
         const timestamp = Date.now().toString();
         const nonce = crypto.randomUUID();
         const bodyStr = typeof options.body === "string" ? options.body : "";
@@ -124,7 +124,7 @@ async function request(endpoint, options = {}) {
             ...options, headers, credentials: "include",
         });
 
-        if (response.status === 401 && getToken() && !isFormData) {
+        if (response.status === 401 && getToken()) {
             try {
                 await refreshTokens();
                 scheduleRefresh();

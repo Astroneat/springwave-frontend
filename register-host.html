@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Register Your Organization | SpringWave</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&amp;family=satoshi:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/style.css" />
+
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .accent-shadow {
+            box-shadow: 0 10px 30px -5px rgba(35, 73, 155, 0.1), 0 4px 12px -2px rgba(35, 73, 155, 0.05);
+        }
+        .input-focus-glow:focus {
+            box-shadow: 0 0 0 4px rgba(59, 111, 212, 0.14);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-background min-h-screen flex flex-col">
+<!-- NAVBAR -->
+<div id="navbar-container"></div>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-32 pb-20 px-4 md:px-0">
+<div class="max-w-[800px] mx-auto">
+<!-- Hero Section -->
+<section class="text-center mb-12">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed mb-4">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+<span class="font-label-md text-label-md">Official Host Registration</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-4">Register Your Organization</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto">
+                    Join SpringWave as a host to share opportunities and connect with talented students across Vietnam.
+                </p>
+</section>
+<!-- Registration Form Card -->
+<form action="#" class="bg-surface-container-lowest rounded-xl p-8 md:p-12 accent-shadow border border-outline-variant/30" method="POST">
+<!-- Section 1: Organization Details -->
+<div class="mb-12">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">corporate_fare</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Organization Details</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="md:col-span-2">
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="orgName">Organization Name</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="orgName" name="orgName" placeholder="e.g., Vietnam Student Association" required="" type="text"/>
+</div>
+<div class="md:col-span-2">
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyName">Third Party Sponsor / Reference (Optional)</label>
+<div class="relative flex items-center">
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="thirdPartyName" name="thirdPartyName" placeholder="e.g. University Admin" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyPhone">Reference Phone Number</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="thirdPartyPhone" name="thirdPartyPhone" placeholder="+84 000 000 000" type="tel"/>
+</div>
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="phoneNo">Your Phone Number</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="phoneNo" name="phoneNo" placeholder="+84 000 000 000" required="" type="tel"/>
+</div>
+</div>
+</div>
+<div class="h-px w-full bg-outline-variant/30 mb-12"></div>
+<!-- Section 2: Owner Details -->
+<div class="mb-12">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined">person_outline</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Owner Details</h2>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="representativeName">Representative Full Name</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="representativeName" name="representativeName" placeholder="Full name as per ID" required="" type="text"/>
+</div>
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Upload ID Card (Front &amp; Back)</label>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden">
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2">cloud_upload</span>
+<p class="font-body-md text-on-surface-variant mb-1 text-center">Click to upload or drag and drop</p>
+<p class="font-caption text-outline text-center">PNG, JPG or PDF up to 10MB</p>
+<input class="absolute inset-0 opacity-0 cursor-pointer" id="cccdImage" name="cccdImage" required="" accept="image/*" type="file"/>
+<!-- Secure Badge -->
+<div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="text-[10px] font-bold tracking-wider uppercase">Secure Encryption</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-px w-full bg-outline-variant/30 mb-12"></div>
+<!-- Section 3: Verification -->
+<div class="mb-12">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Verification</h2>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyRelation">Third Party Relation</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="thirdPartyRelation" name="thirdPartyRelation" placeholder="e.g. Dean of Faculty" type="text"/>
+</div>
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Supporting Documents</label>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
+<div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-label-lg text-on-surface">Legal Papers / Certificates</h4>
+<p class="font-caption text-outline">Upload official registration documents</p>
+</div>
+<button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors relative overflow-hidden" type="button">
+    Upload
+    <input type="file" id="credibility" name="credibility" accept="image/*" multiple class="absolute inset-0 opacity-0 cursor-pointer"/>
+</button>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
+<div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">link</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-label-lg text-on-surface">Social Links / Website</h4>
+<p class="font-caption text-outline">Evidence of active online presence</p>
+</div>
+<button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors" type="button">Add Links</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary CTA -->
+<div class="mt-16 flex flex-col items-center gap-6">
+<p class="font-caption text-outline text-center max-w-[500px]">
+                        By clicking Submit, you agree to our Host Terms of Service and Privacy Policy. Our team will review your application within 2-3 business days.
+                    </p>
+<button class="w-full h-14 rounded-full bg-gradient-to-r from-primary-container to-secondary text-white font-headline-md text-label-lg flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group" type="submit">
+<span>Submit for Approval</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">send</span>
+</button>
+<button class="px-8 py-3 rounded-full border border-primary text-primary font-label-lg hover:bg-primary-fixed/30 transition-colors" type="button">
+                        Save as Draft
+                    </button>
+</div>
+</form>
+</div>
+</main>
+<!-- FOOTER -->
+<div id="footer-container"></div>
+
+<div class="popup-overlay" id="popup-overlay" hidden>
+    <div class="popup-backdrop"></div>
+    <div class="popup-container" id="popup-container"></div>
+</div>
+<div id="chatbot-container"></div>
+<script type="module" src="./js/pages/register-host.js"></script>
+</body>
+</html>

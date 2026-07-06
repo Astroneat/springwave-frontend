@@ -294,6 +294,9 @@ function createMobileUserHTML(user) {
         <a href="/profile.html" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-on-surface-variant hover:bg-primary-fixed/20 hover:text-primary font-headline-md text-lg font-medium spring-ease">
             <span class="material-symbols-outlined">person</span> <span data-i18n="nav.profile">Profile</span>
         </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-on-surface-variant hover:bg-primary-fixed/20 hover:text-primary font-headline-md text-lg font-medium spring-ease" id="mobile-become-host-btn">
+            <span class="material-symbols-outlined">corporate_fare</span> <span data-i18n="nav.become_host">Become a Host</span>
+        </a>
         <button class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-600 hover:bg-red-50 font-headline-md text-lg font-medium spring-ease w-full text-left" id="mobileLogoutBtn">
             <span class="material-symbols-outlined">logout</span> <span data-i18n="nav.logout">Logout</span>
         </button>
@@ -331,6 +334,23 @@ function initUserDropdown(onFavouritesClick) {
         logout();
         window.location.href = "/login.html";
     });
+
+    const hostCheck = (e) => {
+        e.preventDefault();
+        const u = getUser();
+        if (!u.dob || !u.school || !u.class || !u.major || !u.phoneNo) {
+            alert("Vui lòng cập nhật đầy đủ thông tin cá nhân (Ngày sinh, Trường, Lớp, Ngành, SĐT) trong Profile trước khi đăng ký làm Host.");
+            window.location.href = "/profile.html";
+        } else {
+            window.location.href = "/register-host.html";
+        }
+    };
+
+    const desktopHostBtn = document.getElementById("desktop-become-host-btn");
+    if (desktopHostBtn) desktopHostBtn.addEventListener("click", hostCheck);
+
+    const mobileHostBtn = document.getElementById("mobile-become-host-btn");
+    if (mobileHostBtn) mobileHostBtn.addEventListener("click", hostCheck);
 
     const favBtn = document.getElementById("favourites-btn");
     favBtn?.addEventListener("click", (e) => {
