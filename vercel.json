@@ -10,7 +10,10 @@
     { "source": "/hostActivity", "destination": "/hostActivity.html" },
     { "source": "/complete-profile", "destination": "/complete-profile.html" },
     { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/community", "destination": "/community.html" }
+    { "source": "/community", "destination": "/community.html" },
+    { "source": "/register-host", "destination": "/register-host.html" },
+    { "source": "/org-dashboard", "destination": "/org-dashboard.html" },
+    { "source": "/org-profile", "destination": "/org-profile.html" }
   ],
   "headers": [
     {
