@@ -19,10 +19,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
   const user = getUser();
-  if (user?.role !== "host" && user?.role !== "admin") {
-    window.location.href = "/";
-    return;
-  }
 
   await loadNavbar({ activeSection: "dashboard" });
   await initChatbot();
@@ -32,6 +28,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadOrgs();
   initSettingsForm();
   initCreateOrg();
+
+  // Nút mở profile của tổ chức
+  document.getElementById("view-profile-btn")?.addEventListener("click", () => {
+    if (currentOrgId) {
+      window.open(`/org-profile.html?id=${currentOrgId}`, "_blank");
+    }
+  });
+
   if (isAdminUser()) {
     const createBtn = document.getElementById("create-org-btn");
     if (createBtn) createBtn.style.display = "none";
@@ -58,13 +62,15 @@ async function loadOrgs() {
   try {
     const data = isAdminUser() ? await getAllOrganizations() : await getMyOrganizations();
     currentOrgs = data.organizations || [];
+    
     renderOrgDropdown();
-
     if (currentOrgs.length) {
       await selectOrg(currentOrgs[0]._id);
     }
   } catch (err) {
     console.error("Failed to load orgs:", err);
+    currentOrgs = [];
+    renderOrgDropdown();
   }
 }
 
@@ -233,8 +239,8 @@ async function loadDashboard() {
           <td class="py-3 px-4 text-[#64748b] hidden md:table-cell">${formatDate(e.heldDate)}</td>
           <td class="py-3 px-4 text-[#64748b] hidden sm:table-cell">${e.participants?.length || 0}</td>
           <td class="py-3 px-4">${e.status === "published"
-            ? '<span class="badge-approved" style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Published</span>'
-            : '<span class="badge-pending" style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Draft</span>'}</td>
+          ? '<span class="badge-approved" style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Published</span>'
+          : '<span class="badge-pending" style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Draft</span>'}</td>
         </tr>`).join("")
       : `<tr><td colspan="4" class="text-center py-8 text-[#94a3b8]">No events yet</td></tr>`;
   } catch (err) {
@@ -288,9 +294,9 @@ function renderEventsTable() {
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-[#ecedfa] overflow-hidden shrink-0">
             ${e.thumbnail
-              ? `<img src="${e.thumbnail}" class="w-full h-full object-cover" />`
-              : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-sm"></i></div>`
-            }
+      ? `<img src="${e.thumbnail}" class="w-full h-full object-cover" />`
+      : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-sm"></i></div>`
+    }
           </div>
           <div class="min-w-0">
             <p class="font-semibold text-[#191b22] truncate max-w-[200px]">${e.title}</p>
@@ -301,8 +307,8 @@ function renderEventsTable() {
       <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${e.participants?.length || 0}</td>
       <td class="py-3.5 px-4 text-[#64748b] hidden lg:table-cell">${capitalize(e.type || "")}</td>
       <td class="py-3.5 px-4">${e.status === "published"
-        ? '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Published</span>'
-        : '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Draft</span>'}</td>
+      ? '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Published</span>'
+      : '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Draft</span>'}</td>
       <td class="py-3.5 px-4 text-right">
         <div class="flex items-center justify-end gap-1.5">
           <button class="view-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary transition-all spring-ease" title="View">
@@ -397,8 +403,8 @@ async function loadParticipants(eventId) {
           <td class="py-3.5 px-4">
             <div class="flex items-center gap-3">
               ${p.avatar
-                ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover" />`
-                : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(p.fullname?.[0] || "?").toUpperCase()}</div>`}
+          ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover" />`
+          : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(p.fullname?.[0] || "?").toUpperCase()}</div>`}
               <span class="font-semibold">${p.fullname || "Unknown"}</span>
             </div>
           </td>
@@ -415,7 +421,7 @@ async function loadParticipants(eventId) {
           <td class="py-3.5 px-4">
             <div class="flex items-center gap-3">
               ${u.avatar ? `<img src="${u.avatar}" class="w-8 h-8 rounded-full object-cover" />`
-                : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(u.fullname?.[0] || "?").toUpperCase()}</div>`}
+          : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(u.fullname?.[0] || "?").toUpperCase()}</div>`}
               <span class="font-semibold">${u.fullname || "Unknown"}</span>
             </div>
           </td>
@@ -480,8 +486,8 @@ async function loadAttendance(eventId) {
           <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${user.email || "—"}</td>
           <td class="py-3.5 px-4">
             ${isPresent
-              ? '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>'
-              : '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>'}
+          ? '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>'
+          : '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>'}
           </td>
           <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${r.checkedInAt ? formatDate(r.checkedInAt) : "—"}</td>
           <td class="py-3.5 px-4 text-right">
@@ -522,7 +528,7 @@ function initQRScan() {
         { facingMode: "environment" },
         config,
         onScanSuccess,
-        () => {}
+        () => { }
       );
       isScanning = true;
     } catch (err) {
@@ -535,7 +541,7 @@ function initQRScan() {
       try {
         await html5QrCode.stop();
         html5QrCode.clear();
-      } catch {}
+      } catch { }
       isScanning = false;
       html5QrCode = null;
     }
