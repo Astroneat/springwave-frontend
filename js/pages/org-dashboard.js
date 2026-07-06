@@ -518,17 +518,171 @@ async function loadAttendance(eventId) {
 function initQRScan() {
   let html5QrCode = null;
   let isScanning = false;
+  let lastScannedCode = "";
+  let lastScannedTime = 0;
+  let feedbackTimer = null;
+  let sessionHistory = [];
+
+  function playBeep(success) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (success) {
+        // High double-beep for check-in success
+        osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+
+        setTimeout(() => {
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.frequency.setValueAtTime(1174.66, ctx.currentTime); // D6
+          gain2.gain.setValueAtTime(0.06, ctx.currentTime);
+          osc2.start();
+          osc2.stop(ctx.currentTime + 0.12);
+        }, 90);
+      } else {
+        // Low buzz for check-in error
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(130, ctx.currentTime); // C3
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      }
+    } catch (e) {
+      console.error("Audio synthesis error:", e);
+    }
+  }
+
+  function showScanFeedback(state, message = "", user = null, ticketCode = "") {
+    const container = document.getElementById("scan-feedback-container");
+    const defaultView = document.getElementById("scan-feedback-default");
+    const successView = document.getElementById("scan-feedback-success");
+    const errorView = document.getElementById("scan-feedback-error");
+
+    if (!container || !defaultView || !successView || !errorView) return;
+
+    defaultView.classList.add("hidden");
+    successView.classList.add("hidden");
+    errorView.classList.add("hidden");
+
+    // Remove status classes
+    container.classList.remove("border-emerald-200", "bg-emerald-50/30", "border-rose-200", "bg-rose-50/30", "border-slate-200/60", "bg-slate-50");
+
+    if (state === "default") {
+      defaultView.classList.remove("hidden");
+      container.classList.add("border-slate-200/60", "bg-slate-50");
+      const textEl = defaultView.querySelector("p");
+      if (textEl) textEl.textContent = "Position the attendee's ticket QR code inside the camera viewfinder.";
+    } else if (state === "loading") {
+      defaultView.classList.remove("hidden");
+      container.classList.add("border-slate-200/60", "bg-slate-50");
+      const textEl = defaultView.querySelector("p");
+      if (textEl) textEl.textContent = message || "Processing check-in...";
+    } else if (state === "success" && user) {
+      successView.classList.remove("hidden");
+      container.classList.add("border-emerald-200", "bg-emerald-50/30");
+
+      const nameEl = document.getElementById("scan-feedback-name");
+      const usernameEl = document.getElementById("scan-feedback-username");
+      const emailEl = document.getElementById("scan-feedback-email");
+      const codeEl = document.getElementById("scan-feedback-code");
+      const avatarEl = document.getElementById("scan-feedback-avatar");
+      const placeholderEl = document.getElementById("scan-feedback-avatar-placeholder");
+
+      if (nameEl) nameEl.textContent = user.fullname || "Unknown Attendee";
+      if (usernameEl) usernameEl.textContent = user.username ? `@${user.username}` : "";
+      if (emailEl) emailEl.textContent = user.email || "";
+      if (codeEl) codeEl.textContent = ticketCode ? ticketCode.toUpperCase() : "N/A";
+
+      if (avatarEl && placeholderEl) {
+        if (user.avatar) {
+          avatarEl.src = user.avatar;
+          avatarEl.classList.remove("hidden");
+          placeholderEl.classList.add("hidden");
+        } else {
+          avatarEl.classList.add("hidden");
+          placeholderEl.classList.remove("hidden");
+        }
+      }
+    } else if (state === "error") {
+      errorView.classList.remove("hidden");
+      container.classList.add("border-rose-200", "bg-rose-50/30");
+
+      const errorMsgEl = document.getElementById("scan-feedback-error-message");
+      if (errorMsgEl) errorMsgEl.textContent = message || "Invalid or expired ticket code.";
+    }
+  }
+
+  function setFeedbackWithTimeout(state, message = "", user = null, ticketCode = "") {
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    showScanFeedback(state, message, user, ticketCode);
+
+    if (state === "success" || state === "error") {
+      feedbackTimer = setTimeout(() => {
+        showScanFeedback("default");
+      }, 4000);
+    }
+  }
+
+  function addToHistory(user, ticketCode) {
+    const historyList = document.getElementById("scan-history-list");
+    const countEl = document.getElementById("history-count");
+    if (!historyList) return;
+
+    const timeStr = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+    const newItem = {
+      fullname: user.fullname || "Unknown Attendee",
+      avatar: user.avatar || "",
+      ticketCode: ticketCode,
+      time: timeStr
+    };
+
+    sessionHistory.unshift(newItem);
+    if (sessionHistory.length > 5) sessionHistory.pop();
+
+    if (countEl) countEl.textContent = `${sessionHistory.length} Checked In`;
+
+    historyList.innerHTML = sessionHistory.map(item => `
+      <div class="flex items-center justify-between p-3 text-xs bg-white hover:bg-slate-50 transition-colors">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-7 h-7 rounded-full overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center border border-slate-200">
+            ${item.avatar
+              ? `<img src="${item.avatar}" class="w-full h-full object-cover" />`
+              : `<span class="material-symbols-outlined text-base text-slate-400">person</span>`
+            }
+          </div>
+          <div class="min-w-0">
+            <p class="font-semibold text-slate-800 truncate">${item.fullname}</p>
+            <p class="text-[10px] text-slate-400 font-mono uppercase">${item.ticketCode}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9px] font-semibold">SUCCESS</span>
+          <span class="text-[10px] text-slate-400 font-mono">${item.time}</span>
+        </div>
+      </div>
+    `).join("");
+  }
 
   async function startScanner() {
     if (typeof Html5Qrcode === "undefined") return;
     try {
       html5QrCode = new Html5Qrcode("qr-reader");
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      const config = { fps: 15, qrbox: { width: 220, height: 220 } };
       await html5QrCode.start(
         { facingMode: "environment" },
         config,
         onScanSuccess,
-        () => { }
+        () => {}
       );
       isScanning = true;
     } catch (err) {
@@ -541,14 +695,22 @@ function initQRScan() {
       try {
         await html5QrCode.stop();
         html5QrCode.clear();
-      } catch { }
+      } catch {}
       isScanning = false;
       html5QrCode = null;
     }
   }
 
   async function onScanSuccess(decodedText) {
-    await stopScanner();
+    const now = Date.now();
+    if (decodedText === lastScannedCode && now - lastScannedTime < 3000) {
+      // Cooldown to avoid duplicate scanning of the same code
+      return;
+    }
+    lastScannedCode = decodedText;
+    lastScannedTime = now;
+
+    // Process check-in continuously WITHOUT stopping the camera feed
     await processCheckIn(decodedText);
   }
 
@@ -564,6 +726,19 @@ function initQRScan() {
 
   function closeScan() {
     stopScanner();
+
+    // Reset scanner UI state
+    sessionHistory = [];
+    const historyList = document.getElementById("scan-history-list");
+    if (historyList) {
+      historyList.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 italic">No scans recorded in this session.</div>`;
+    }
+    const countEl = document.getElementById("history-count");
+    if (countEl) countEl.textContent = "0 Checked In";
+
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    showScanFeedback("default");
+
     const overlay = document.getElementById("scan-overlay");
     overlay.classList.remove("active");
     document.body.style.overflow = "";
@@ -574,29 +749,43 @@ function initQRScan() {
   document.getElementById("scan-close").addEventListener("click", closeScan);
   document.getElementById("scan-cancel").addEventListener("click", closeScan);
 
-  document.getElementById("manual-checkin-btn").addEventListener("click", async () => {
-    const ticketCode = document.getElementById("manual-ticket-input").value.trim();
+  const manualInput = document.getElementById("manual-ticket-input");
+  const manualBtn = document.getElementById("manual-checkin-btn");
+
+  const handleManualCheckIn = async () => {
+    const ticketCode = manualInput.value.trim();
+    if (!ticketCode) return;
     await processCheckIn(ticketCode);
-  });
+  };
+
+  if (manualBtn && manualInput) {
+    manualBtn.addEventListener("click", handleManualCheckIn);
+    manualInput.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        await handleManualCheckIn();
+      }
+    });
+  }
 
   async function processCheckIn(ticketCode) {
     const eventId = document.getElementById("attendance-event-select").value;
-    if (!ticketCode) return alert("Enter or scan a ticket code");
+    if (!ticketCode) return;
     if (!eventId) return alert("Select an event first");
 
-    document.getElementById("qr-reader-results")?.classList.remove("hidden");
+    setFeedbackWithTimeout("loading", "Processing check-in...");
 
     try {
-      await scanAttendance(eventId, ticketCode);
-      document.getElementById("qr-reader-results")?.classList.add("hidden");
-      document.getElementById("manual-ticket-input").value = "";
-      closeScan();
+      const response = await scanAttendance(eventId, ticketCode);
+      playBeep(true);
+      setFeedbackWithTimeout("success", "", response.user, ticketCode);
+      addToHistory(response.user || {}, ticketCode);
+
+      if (manualInput) manualInput.value = "";
       await loadAttendance(eventId);
     } catch (err) {
-      document.getElementById("qr-reader-results")?.classList.add("hidden");
-      alert(err.message || "Check-in failed");
-      // Re-start scanner on failure
-      setTimeout(startScanner, 1000);
+      playBeep(false);
+      setFeedbackWithTimeout("error", err.message || "Check-in failed");
     }
   }
 }

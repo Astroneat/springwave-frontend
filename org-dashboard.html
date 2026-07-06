@@ -432,30 +432,108 @@
     <!-- QR Scan Modal -->
     <div class="popup-overlay" hidden id="scan-overlay">
         <div class="popup-backdrop" id="scan-backdrop"></div>
-        <div class="popup-container !max-w-[520px] !p-0 max-h-[90vh] overflow-y-auto">
+        <div class="popup-container !max-w-[850px] !p-0 max-h-[95vh] overflow-y-auto">
             <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
-                <h2 class="text-xl font-bold text-[#191b22]">Scan QR Code</h2>
-                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] spring-ease" id="scan-close">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">qr_code_scanner</span>
+                    </span>
+                    <div>
+                        <h2 class="text-lg font-bold text-[#191b22] leading-tight">Check-In Console</h2>
+                        <p class="text-xs text-[#64748b]">Continuous attendance QR scanning</p>
+                    </div>
+                </div>
+                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] spring-ease cursor-pointer" id="scan-close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-4">
-                <!-- Camera scanner -->
-                <div id="qr-reader" class="w-full max-w-[400px] mx-auto rounded-xl overflow-hidden border border-[#ecedfa]"></div>
-                <div id="qr-reader-results" class="text-center text-sm text-[#64748b] hidden">
-                    <div class="spinner mx-auto mb-2"></div>
-                    <span>Processing QR code...</span>
+            <div class="p-6 space-y-6">
+                <!-- Side-by-side scanner & greeting -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                    <!-- Scanner Panel (Left) -->
+                    <div class="flex flex-col justify-center bg-slate-50 border border-slate-200/60 p-4 rounded-2xl relative min-h-[280px]">
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#1755ba]/10 text-[#1755ba] flex items-center gap-1 uppercase tracking-wider select-none z-10">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live Scanner
+                        </span>
+                        <!-- Camera frame with custom scanner viewfinder -->
+                        <div class="relative w-full max-w-[340px] mx-auto rounded-xl overflow-hidden shadow-inner border border-slate-200 bg-black">
+                            <div id="qr-reader" class="w-full"></div>
+                        </div>
+                    </div>
+
+                    <!-- Greeting & Scan Feedback Panel (Right) -->
+                    <div id="scan-feedback-container" class="flex flex-col items-center justify-center p-6 border border-slate-200/60 bg-slate-50 rounded-2xl min-h-[280px] text-center transition-all duration-300">
+                        <!-- Default view -->
+                        <div id="scan-feedback-default" class="space-y-3">
+                            <span class="material-symbols-outlined text-5xl text-slate-400 select-none animate-pulse">qr_code_scanner</span>
+                            <div>
+                                <h3 class="font-bold text-slate-700 text-lg">Ready to Scan</h3>
+                                <p class="text-xs text-slate-500 mt-1">Position the attendee's ticket QR code inside the camera viewfinder.</p>
+                            </div>
+                        </div>
+
+                        <!-- Success view (Greeting panel - Hidden by default) -->
+                        <div id="scan-feedback-success" class="hidden w-full space-y-4">
+                            <div class="relative inline-flex">
+                                <div id="scan-feedback-avatar-container" class="w-20 h-20 rounded-full border-4 border-emerald-400 overflow-hidden shadow-md mx-auto bg-slate-200 flex items-center justify-center">
+                                    <img id="scan-feedback-avatar" src="" class="w-full h-full object-cover hidden" alt="Avatar" />
+                                    <span id="scan-feedback-avatar-placeholder" class="material-symbols-outlined text-4xl text-slate-400">person</span>
+                                </div>
+                                <span class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow">
+                                    <span class="material-symbols-outlined text-base font-bold">check</span>
+                                </span>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-wider">Checked In Successfully</span>
+                                <h3 id="scan-feedback-name" class="font-extrabold text-2xl text-slate-800 tracking-tight leading-tight">Full Name</h3>
+                                <p id="scan-feedback-username" class="text-xs text-slate-400">@username</p>
+                                <p id="scan-feedback-email" class="text-xs text-slate-500 truncate max-w-[250px] mx-auto">email@example.com</p>
+                            </div>
+                            <div class="pt-2 border-t border-slate-200/60 text-xs text-slate-400 font-mono">
+                                TICKET CODE: <span id="scan-feedback-code" class="font-semibold text-slate-700">SW-XXXXX</span>
+                            </div>
+                        </div>
+
+                        <!-- Error view (Hidden by default) -->
+                        <div id="scan-feedback-error" class="hidden w-full space-y-3">
+                            <div class="w-16 h-16 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-500 shadow-sm animate-bounce">
+                                <span class="material-symbols-outlined text-3xl font-bold">warning</span>
+                            </div>
+                            <div class="space-y-1 px-4">
+                                <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-100 text-[10px] font-bold uppercase tracking-wider">Scan Failed</span>
+                                <h4 id="scan-feedback-error-title" class="font-bold text-lg text-slate-800 leading-tight mt-1">Check-in Error</h4>
+                                <p id="scan-feedback-error-message" class="text-xs text-rose-500 font-medium">Invalid or expired ticket code.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-3 text-sm text-[#64748b]">
-                    <span class="flex-1 h-px bg-[#ecedfa]"></span>
-                    <span>or enter code manually</span>
-                    <span class="flex-1 h-px bg-[#ecedfa]"></span>
+
+                <!-- Manual Code entry section -->
+                <div class="bg-white border border-[#ecedfa] p-4 rounded-xl space-y-3 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg text-[#1755ba]">keyboard</span>
+                        <h4 class="text-sm font-bold text-slate-700">Manual Code Entry</h4>
+                    </div>
+                    <div class="flex gap-2">
+                        <input id="manual-ticket-input" class="flex-1 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-slate-50 text-sm outline-none focus:border-primary font-mono focus:bg-white transition-all uppercase" placeholder="Enter short ticket code..." />
+                        <button id="manual-checkin-btn" class="py-2.5 px-6 rounded-xl bg-primary text-white text-sm font-semibold border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-[0.98]">Submit</button>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <input id="manual-ticket-input" class="flex-1 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary font-mono" placeholder="Paste ticket code..." />
-                    <button id="manual-checkin-btn" class="py-2.5 px-5 rounded-xl bg-primary text-white text-sm font-semibold border-none cursor-pointer spring-ease hover:bg-primary/90">Check In</button>
+
+                <!-- Recent Check-ins History (Bottom) -->
+                <div class="border border-[#ecedfa] rounded-xl overflow-hidden bg-white shadow-sm">
+                    <div class="bg-slate-50 px-4 py-2.5 border-b border-[#ecedfa] flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Session Activity Log</span>
+                        <span class="text-[10px] text-slate-400 font-medium font-mono" id="history-count">0 Checked In</span>
+                    </div>
+                    <div id="scan-history-list" class="divide-y divide-[#ecedfa] max-h-[160px] overflow-y-auto">
+                        <div class="p-4 text-center text-xs text-slate-400 italic">No scans recorded in this session.</div>
+                    </div>
                 </div>
-                <button class="w-full py-2 rounded-full border border-[#e2e2eb] text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc]" id="scan-cancel">Close</button>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-[#ecedfa]">
+                    <button class="px-5 py-2.5 rounded-xl border border-[#e2e2eb] text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc]" id="scan-cancel">Close Console</button>
+                </div>
             </div>
         </div>
     </div>
