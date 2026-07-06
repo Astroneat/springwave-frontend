@@ -29,7 +29,8 @@ function initNavbarScroll() {
   const HOVER_THRESHOLD = 100;
 
   const update = () => {
-    const navVisible = window.scrollY > 50 || mouseNearTop;
+    const dropdownOpen = !!document.querySelector(".user-menu.active") || !!document.querySelector("#notif-dropdown.active");
+    const navVisible = dropdownOpen || window.scrollY > 50 || mouseNearTop;
     if (navVisible) {
       nav.classList.remove("navbar-hidden");
       hintDismissed = true;
@@ -50,6 +51,14 @@ function initNavbarScroll() {
       update();
     }
   }, { passive: true });
+  document.addEventListener("click", (e) => {
+    const clickOutsideUserMenu = !e.target.closest(".user-menu");
+    const clickOutsideNotifDropdown = !e.target.closest("#notif-dropdown");
+    if (clickOutsideUserMenu && clickOutsideNotifDropdown) {
+      mouseNearTop = e.clientY <= HOVER_THRESHOLD;
+      update();
+    }
+  });
 }
 
 function initScrollReveal() {
