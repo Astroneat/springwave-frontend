@@ -23,8 +23,43 @@
       </div>
     </div>
 
+    <!-- FILTER BAR -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 hidden" id="filter-bar">
+      <div class="flex items-center gap-2">
+        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/50" id="active-count-badge">
+          0 Active
+        </span>
+        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/50" id="expired-count-badge">
+          0 Expired
+        </span>
+      </div>
+      <button id="toggle-expired-btn" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-[0.98] text-sm font-semibold text-slate-700 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-lg" id="toggle-expired-icon">visibility</span>
+        <span id="toggle-expired-text">Show Expired Tickets</span>
+      </button>
+    </div>
+
     <div id="tickets-list" class="space-y-4">
       <div class="text-center py-12 text-[#64748b]">Loading...</div>
+    </div>
+  </div>
+
+  <!-- QR Modal -->
+  <div id="qr-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl scale-95 transition-transform duration-300 relative" id="qr-modal-content">
+      <button id="close-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <div class="text-center mt-2">
+        <h4 id="modal-event-title" class="font-bold text-lg text-slate-900 mb-2 truncate">Event Title</h4>
+        <div class="inline-block p-3 bg-slate-50 border border-slate-100 rounded-2xl mb-4">
+          <img id="modal-qr-img" src="" alt="Ticket QR Code" class="w-56 h-56 mx-auto rounded-xl shadow-inner bg-white" />
+        </div>
+        <p class="text-xs text-slate-500 font-mono mb-4" id="modal-qr-code">CODE</p>
+        <a id="modal-download-btn" href="" download="" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1755ba] hover:bg-[#1755ba]/90 text-white font-semibold text-sm shadow-md transition-all">
+          <span class="material-symbols-outlined text-[18px]">download</span> Download Ticket QR
+        </a>
+      </div>
     </div>
   </div>
 

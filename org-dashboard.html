@@ -73,16 +73,36 @@
 
     <!-- Main Content -->
     <main class="pt-[100px] md:pl-[252px] pr-4 md:pr-8 pb-12 px-4">
-        <!-- Org Selector (for multi-org) -->
+        <!-- Org Selector -->
         <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-3">
-                    <select id="org-selector" class="px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm font-semibold text-[#191b22] outline-none focus:border-primary cursor-pointer max-w-[280px]"></select>
+                    <div id="org-selector-wrapper" class="relative">
+                        <button id="org-selector-btn" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm font-semibold text-[#191b22] outline-none hover:border-primary transition-all spring-ease min-w-[240px] text-left">
+                            <span class="w-8 h-8 rounded-lg bg-[#ecedfa] flex items-center justify-center text-[#64748b] shrink-0">
+                                <i class="fa-solid fa-building"></i>
+                            </span>
+                            <span class="flex-1 truncate" id="org-selector-label">Select organization...</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-[#94a3b8] transition-transform duration-200" id="org-chevron"></i>
+                        </button>
+                        <div id="org-dropdown" class="absolute top-full left-0 mt-1 w-[420px] max-h-[360px] overflow-y-auto rounded-2xl bg-white border border-[#e2e2eb] shadow-xl z-50 hidden">
+                            <div class="sticky top-0 bg-white border-b border-[#ecedfa] p-3">
+                                <div class="relative">
+                                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8] text-xs"></i>
+                                    <input id="org-search" type="text" placeholder="Search organizations..." class="w-full pl-8 pr-3 py-2 rounded-lg border border-[#ecedfa] bg-[#f8f9fc] text-sm outline-none focus:border-primary">
+                                </div>
+                            </div>
+                            <div id="org-list" class="p-2 space-y-1"></div>
+                        </div>
+                    </div>
                     <button id="create-org-btn" class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-primary hover:bg-[#dae1ff] transition-all spring-ease" title="Create Organization">
                         <i class="fa-solid fa-plus text-sm"></i>
                     </button>
                 </div>
-                <p class="text-xs text-[#64748b] mt-1.5" id="org-meta"></p>
+                <div class="flex items-center gap-2 mt-1.5">
+                    <span class="text-xs text-[#64748b]" id="org-meta"></span>
+                    <span id="admin-badge" class="hidden text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Impersonating</span>
+                </div>
             </div>
         </div>
 

@@ -31,13 +31,9 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
                     avatarInitial.style.display = "";
                 }
             }
-            const adminBtn = document.getElementById("admin-btn");
-            if (adminBtn) {
-                adminBtn.style.display = user?.role === "admin" ? "" : "none";
-            }
-            const adminHostBtn = document.getElementById("admin-host-btn");
-            if (adminHostBtn) {
-                adminHostBtn.style.display = user?.role === "admin" ? "" : "none";
+            const adminDashboardBtn = document.getElementById("admin-dashboard-btn");
+            if (adminDashboardBtn) {
+                adminDashboardBtn.style.display = user?.role === "admin" ? "" : "none";
             }
             initUserDropdown(onFavouritesClick);
             if (bellIcon) {

@@ -4,7 +4,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
-import { getMyOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager } from "../api/organizations.js";
+import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager } from "../api/organizations.js";
 import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
 
@@ -28,9 +28,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initChatbot();
 
   initSideNav();
+  initOrgSelector();
   await loadOrgs();
   initSettingsForm();
   initCreateOrg();
+  if (isAdminUser()) {
+    const createBtn = document.getElementById("create-org-btn");
+    if (createBtn) createBtn.style.display = "none";
+  }
   initAddManager();
   initQRScan();
   initAttendanceButtons();
@@ -44,26 +49,106 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // ─── Org Loading ───
 
+function isAdminUser() {
+  const u = getUser();
+  return u?.role === "admin";
+}
+
 async function loadOrgs() {
   try {
-    const data = await getMyOrganizations();
+    const data = isAdminUser() ? await getAllOrganizations() : await getMyOrganizations();
     currentOrgs = data.organizations || [];
-    const selector = document.getElementById("org-selector");
-    selector.innerHTML = currentOrgs.length
-      ? currentOrgs.map(o => `<option value="${o._id}">${o.name}</option>`).join("")
-      : `<option value="">No organizations</option>`;
+    renderOrgDropdown();
 
     if (currentOrgs.length) {
-      selector.value = currentOrgs[0]._id;
       await selectOrg(currentOrgs[0]._id);
     }
-
-    selector.addEventListener("change", async () => {
-      if (selector.value) await selectOrg(selector.value);
-    });
   } catch (err) {
     console.error("Failed to load orgs:", err);
   }
+}
+
+function renderOrgDropdown() {
+  const list = document.getElementById("org-list");
+  if (!list) return;
+  if (!currentOrgs.length) {
+    list.innerHTML = `<div class="text-center py-8 text-[#94a3b8] text-sm">No organizations found</div>`;
+    return;
+  }
+  list.innerHTML = currentOrgs.map(o => {
+    const ownerName = o.owner?.fullname || o.owner?.email || "Unknown";
+    return `
+      <button class="org-option w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#f8f9fc] transition-colors text-left ${o._id === currentOrgId ? "bg-[#ecedfa] ring-1 ring-primary/20" : ""}" data-id="${o._id}">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#dae1ff] to-[#ecedfa] flex items-center justify-center text-primary font-bold text-sm shrink-0">
+          ${(o.name?.[0] || "?").toUpperCase()}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-sm text-[#191b22] truncate">${o.name}</div>
+          <div class="text-[11px] text-[#64748b] truncate" data-org-meta="1">${ownerName}${o.eventCount !== undefined ? ` · ${o.eventCount} events` : ""}</div>
+        </div>
+        ${o._id === currentOrgId ? '<i class="fa-solid fa-check text-primary text-xs"></i>' : ""}
+      </button>
+    `;
+  }).join("");
+
+  list.querySelectorAll(".org-option").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      if (id) {
+        switchOrg(id);
+        closeOrgDropdown();
+      }
+    });
+  });
+}
+
+function switchOrg(orgId) {
+  const org = currentOrgs.find(o => o._id === orgId);
+  if (!org) return;
+  currentOrgId = orgId;
+  document.getElementById("org-selector-label").textContent = org.name;
+  renderOrgDropdown();
+  selectOrg(orgId);
+}
+
+function closeOrgDropdown() {
+  document.getElementById("org-dropdown")?.classList.add("hidden");
+  document.getElementById("org-chevron")?.classList.remove("rotate-180");
+}
+
+function initOrgSelector() {
+  const btn = document.getElementById("org-selector-btn");
+  const dropdown = document.getElementById("org-dropdown");
+  const search = document.getElementById("org-search");
+  const chevron = document.getElementById("org-chevron");
+  if (!btn || !dropdown) return;
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = !dropdown.classList.contains("hidden");
+    dropdown.classList.toggle("hidden");
+    if (chevron) chevron.classList.toggle("rotate-180");
+    if (!isOpen && search) { search.value = ""; search.focus(); filterOrgs(""); }
+  });
+
+  search?.addEventListener("input", (e) => filterOrgs(e.target.value));
+
+  document.addEventListener("click", (e) => {
+    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+      closeOrgDropdown();
+    }
+  });
+}
+
+function filterOrgs(query) {
+  const list = document.getElementById("org-list");
+  if (!list) return;
+  const q = query.toLowerCase().trim();
+  list.querySelectorAll(".org-option").forEach(btn => {
+    const name = btn.querySelector(".font-semibold")?.textContent?.toLowerCase() || "";
+    const meta = btn.querySelector("[data-org-meta]")?.textContent?.toLowerCase() || "";
+    btn.style.display = (!q || name.includes(q) || meta.includes(q)) ? "" : "none";
+  });
 }
 
 async function selectOrg(orgId) {
@@ -71,9 +156,17 @@ async function selectOrg(orgId) {
   const org = currentOrgs.find(o => o._id === orgId);
   if (org) {
     document.getElementById("org-name-sidebar").textContent = org.name;
-    document.getElementById("org-role-sidebar").textContent = `Role: ${org.membershipRole || "owner"}`;
-    document.getElementById("org-meta").textContent =
-      org.membershipRole === "owner" ? "You are the owner" : "You are a manager";
+    const roleLabel = isAdminUser() ? "Admin" : (org.membershipRole || "owner");
+    document.getElementById("org-role-sidebar").textContent = `Role: ${roleLabel}`;
+
+    const badge = document.getElementById("admin-badge");
+    if (isAdminUser() && badge) {
+      badge.classList.remove("hidden");
+    }
+
+    document.getElementById("org-meta").textContent = isAdminUser()
+      ? `Impersonating · Owner: ${org.owner?.fullname || org.owner?.email || "Unknown"}`
+      : (org.membershipRole === "owner" ? "You are the owner" : "You are a manager");
   }
   await loadDashboard();
   await loadEvents();
