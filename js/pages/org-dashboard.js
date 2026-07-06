@@ -119,8 +119,8 @@ function switchSection(section) {
 async function loadDashboard() {
   if (!currentOrgId) return;
   try {
-    const { activities = [] } = await getOrgActivities(currentOrgId);
-    const events = activities.filter(a => a._id);
+    const { events: rawEvents = [] } = await getOrgActivities(currentOrgId);
+    const events = rawEvents.filter(a => a._id);
 
     const totalParticipants = events.reduce((s, e) => s + (e.participants?.length || 0), 0);
     const upcoming = events.filter(e => e.heldDate && new Date(e.heldDate) > new Date()).length;
@@ -167,8 +167,8 @@ function initEventsTabs() {
 async function loadEvents() {
   if (!currentOrgId) return;
   try {
-    const { activities = [] } = await getOrgActivities(currentOrgId);
-    currentEvents = activities.filter(a => a._id);
+    const { events: rawEvents = [] } = await getOrgActivities(currentOrgId);
+    currentEvents = rawEvents.filter(a => a._id);
     renderEventsTable();
     populateEventSelects();
   } catch (err) {
