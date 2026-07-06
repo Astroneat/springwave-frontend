@@ -50,25 +50,37 @@ async function loadNavbar() {
 }
 
 function initScrollMerge() {
-    const searchBar = document.getElementById("floating-search");
+    const searchBar = document.querySelector(".explore-search-bar");
     const navbar = document.getElementById("navbar");
     if (!searchBar || !navbar) return;
 
     const isMobile = () => window.innerWidth < 768;
 
-    window.addEventListener("scroll", () => {
+    let navbarH = navbar.offsetHeight;
+    let ticking = false;
+
+    const update = () => {
+        ticking = false;
         if (isMobile()) {
             searchBar.classList.remove("merged");
             navbar.classList.remove("merged");
             return;
         }
         const rect = searchBar.getBoundingClientRect();
-        const m = rect.top < navbar.offsetHeight;
+        const m = rect.top < navbarH;
         searchBar.classList.toggle("merged", m);
         navbar.classList.toggle("merged", m);
+    };
+
+    window.addEventListener("scroll", () => {
+        if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(update);
+        }
     }, { passive: true });
 
     window.addEventListener("resize", () => {
+        navbarH = navbar.offsetHeight;
         if (isMobile()) {
             searchBar.classList.remove("merged");
             navbar.classList.remove("merged");
@@ -344,6 +356,7 @@ async function renderCardsDirect(activities) {
     }
 
     cardsContainer.innerHTML = "";
+    const frag = document.createDocumentFragment();
     activities.forEach(activity => {
         const card = cachedTemplate.cloneNode(true);
         card.classList.add("revealed");
@@ -353,18 +366,19 @@ async function renderCardsDirect(activities) {
             image.alt = activity.title;
         }
         card.querySelector(".card-title").textContent = activity.title;
-        card.querySelectorAll(".info span")[0].textContent = activity.location || t("explore.unknown_location");
-        card.querySelectorAll(".info span")[1].textContent = formatDate(activity.heldDate);
-        card.querySelectorAll(".info span")[2].textContent = capitalize(activity.type || "Activity");
+        const infoSpans = card.querySelectorAll(".info span");
+        infoSpans[0].textContent = activity.location || t("explore.unknown_location");
+        infoSpans[1].textContent = formatDate(activity.heldDate);
+        infoSpans[2].textContent = capitalize(activity.type || "Activity");
         card.dataset.id = activity.activityID;
-        cardsContainer.appendChild(card);
+        frag.appendChild(card);
     });
+    cardsContainer.appendChild(frag);
 
     document.getElementById("resultsCount").textContent = activities.length === 1 ? t("explore.result_singular", { n: activities.length }) : t("explore.results", { n: activities.length });
 
     await syncCardFavourites();
     initCardClickHandlers();
-    initStars();
 }
 
 function initSidebar() {
@@ -424,34 +438,6 @@ function initSidebar() {
 function initializePage() {
     initDetailButtons();
     initCardReveal();
-}
-
-function initStars() {
-    document.querySelectorAll(".card .star").forEach(star => {
-        star.addEventListener("click", async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const card = star.closest(".card");
-            const id = card?.dataset.id;
-            if (!id) return;
-            if (!isAuthenticated()) {
-                alert(t("explore.please_login") || "Please login first to favourite activities!");
-                return;
-            }
-            const active = star.classList.contains("active");
-            star.classList.toggle("active");
-            try {
-                if (active) {
-                    await removeFavourite(id);
-                } else {
-                    await addFavourite(id);
-                }
-            } catch (err) {
-                star.classList.toggle("active");
-                console.error("Failed to toggle favourite:", err);
-            }
-        });
-    });
 }
 
 const popupOverlay = document.getElementById("popup-overlay");
@@ -620,29 +606,70 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closePopup(); closePopup2(); }
 });
 
-function initCardClickHandlers() {
-    const buttons = document.querySelectorAll(".details-btn");
-    buttons.forEach(button => {
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const card = button.closest(".card");
-            if (card) openPopup(card.dataset.id);
-        });
-    });
+let cardDelegationBound = false;
+let favReqInFlight = null;
+let cachedFavIds = null;
 
-    const cards = document.querySelectorAll(".card");
-    cards.forEach(card => {
-        card.addEventListener("click", async () => {
+function initCardClickHandlers() {
+    if (cardDelegationBound) return;
+    const container = document.getElementById("cards-container");
+    if (!container) return;
+    cardDelegationBound = true;
+
+    container.addEventListener("click", async (e) => {
+        const star = e.target.closest(".star");
+        if (star) {
+            e.preventDefault();
+            e.stopPropagation();
+            const card = star.closest(".card");
+            const id = card?.dataset.id;
+            if (!id) return;
+            if (!isAuthenticated()) {
+                alert(t("explore.please_login") || "Please login first to favourite activities!");
+                return;
+            }
+            const active = star.classList.contains("active");
+            star.classList.toggle("active");
+            if (cachedFavIds) {
+                if (active) cachedFavIds.delete(id);
+                else cachedFavIds.add(id);
+            }
+            try {
+                if (active) await removeFavourite(id);
+                else await addFavourite(id);
+            } catch (err) {
+                star.classList.toggle("active");
+                if (cachedFavIds) {
+                    if (active) cachedFavIds.add(id);
+                    else cachedFavIds.delete(id);
+                }
+                console.error("Failed to toggle favourite:", err);
+            }
+            return;
+        }
+
+        const card = e.target.closest(".card");
+        if (card?.dataset.id) {
             await openPopup(card.dataset.id);
-        });
+        }
     });
 }
 
 async function syncCardFavourites() {
     if (!isAuthenticated()) return;
     try {
-        const { activities } = await getFavourites();
-        (activities || []).forEach(a => toggleCardStar(a.activityID, true));
+        let activities;
+        if (favReqInFlight) {
+            const res = await favReqInFlight;
+            activities = res.activities || [];
+        } else {
+            favReqInFlight = getFavourites();
+            const res = await favReqInFlight;
+            favReqInFlight = null;
+            activities = res.activities || [];
+        }
+        cachedFavIds = new Set(activities.map(a => a.activityID));
+        cachedFavIds.forEach(id => toggleCardStar(id, true));
     } catch (err) {
         console.error("Failed to sync favourites:", err);
     }

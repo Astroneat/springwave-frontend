@@ -21,17 +21,35 @@ async function loadFooter() {
 
 function initNavbarScroll() {
   const nav = document.getElementById("navbar");
+  const hint = document.getElementById("navbar-hint");
   if (!nav) return;
 
-  const check = () => {
-    if (window.scrollY > 50) {
+  let mouseNearTop = false;
+  let hintDismissed = false;
+  const HOVER_THRESHOLD = 100;
+
+  const update = () => {
+    const navVisible = window.scrollY > 50 || mouseNearTop;
+    if (navVisible) {
       nav.classList.remove("navbar-hidden");
+      hintDismissed = true;
     } else {
       nav.classList.add("navbar-hidden");
     }
+    if (hint) {
+      hint.classList.toggle("visible", navVisible ? false : !hintDismissed);
+    }
   };
-  check();
-  window.addEventListener("scroll", check, { passive: true });
+
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("mousemove", (e) => {
+    const near = e.clientY <= HOVER_THRESHOLD;
+    if (near !== mouseNearTop) {
+      mouseNearTop = near;
+      update();
+    }
+  }, { passive: true });
 }
 
 function initScrollReveal() {
