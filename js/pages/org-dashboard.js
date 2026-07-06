@@ -4,7 +4,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
-import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager } from "../api/organizations.js";
+import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership } from "../api/organizations.js";
 import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
 
@@ -64,8 +64,23 @@ async function loadOrgs() {
     currentOrgs = data.organizations || [];
     
     renderOrgDropdown();
-    if (currentOrgs.length) {
-      await selectOrg(currentOrgs[0]._id);
+    if (currentOrgs.length === 1) {
+      const singleOrg = currentOrgs[0];
+      document.getElementById("org-selector-label").textContent = singleOrg.name;
+      await selectOrg(singleOrg._id);
+    } else if (currentOrgs.length > 1) {
+      const savedOrgId = sessionStorage.getItem("selected_org_id") || localStorage.getItem("selected_org_id");
+      const matchedOrg = currentOrgs.find(o => o._id === savedOrgId);
+      if (matchedOrg) {
+        document.getElementById("org-selector-label").textContent = matchedOrg.name;
+        await selectOrg(matchedOrg._id);
+      } else {
+        const dropdown = document.getElementById("org-dropdown");
+        if (dropdown) {
+          dropdown.classList.remove("hidden");
+          document.getElementById("org-chevron")?.classList.add("rotate-180");
+        }
+      }
     }
   } catch (err) {
     console.error("Failed to load orgs:", err);
@@ -113,6 +128,8 @@ function switchOrg(orgId) {
   if (!org) return;
   currentOrgId = orgId;
   document.getElementById("org-selector-label").textContent = org.name;
+  sessionStorage.setItem("selected_org_id", orgId);
+  localStorage.setItem("selected_org_id", orgId);
   renderOrgDropdown();
   selectOrg(orgId);
 }
@@ -677,9 +694,20 @@ function initQRScan() {
     if (typeof Html5Qrcode === "undefined") return;
     try {
       html5QrCode = new Html5Qrcode("qr-reader");
-      const config = { fps: 15, qrbox: { width: 220, height: 220 } };
+      const config = { 
+        fps: 30,
+        qrbox: { width: 260, height: 260 },
+        aspectRatio: 1.0,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
+      };
       await html5QrCode.start(
-        { facingMode: "environment" },
+        { 
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
         config,
         onScanSuccess,
         () => {}
@@ -877,16 +905,26 @@ async function loadManagers() {
     }
     empty.classList.add("hidden");
 
-    tbody.innerHTML = managers.map(m => `
-      <tr class="border-b border-[#ecedfa]">
-        <td class="py-3.5 px-4"><span class="font-semibold">${m.fullname || "Unknown"}</span></td>
-        <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${m.email || "—"}</td>
-        <td class="py-3.5 px-4"><span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#dae1ff;color:#1755ba">Manager</span></td>
-        <td class="py-3.5 px-4 text-right">
-          <button class="remove-manager-btn text-sm text-red-500 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${m._id}">Remove</button>
-        </td>
-      </tr>
-    `).join("");
+    const u = getUser();
+    const currentOrg = currentOrgs.find(o => o._id === currentOrgId);
+    const isOwner = currentOrg && u && (currentOrg.owner?._id === u._id || currentOrg.owner === u._id);
+
+    tbody.innerHTML = managers.map(m => {
+      const transferBtn = isOwner
+        ? `<button class="transfer-owner-btn text-sm text-[#1755ba] font-semibold hover:underline bg-transparent border-none cursor-pointer mr-4" data-user-id="${m._id}" data-fullname="${m.fullname || m.username || 'this user'}" data-email="${m.email}">Transfer Ownership</button>`
+        : "";
+      return `
+        <tr class="border-b border-[#ecedfa]">
+          <td class="py-3.5 px-4"><span class="font-semibold">${m.fullname || "Unknown"}</span></td>
+          <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${m.email || "—"}</td>
+          <td class="py-3.5 px-4"><span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#dae1ff;color:#1755ba">Manager</span></td>
+          <td class="py-3.5 px-4 text-right">
+            ${transferBtn}
+            <button class="remove-manager-btn text-sm text-red-500 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${m._id}">Remove</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
 
     tbody.querySelectorAll(".remove-manager-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
@@ -896,6 +934,22 @@ async function loadManagers() {
           await loadManagers();
         } catch (err) {
           alert(err.message || "Failed to remove manager");
+        }
+      });
+    });
+
+    tbody.querySelectorAll(".transfer-owner-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const fullname = btn.dataset.fullname;
+        const email = btn.dataset.email;
+        if (!email) return alert("This manager does not have an email address set.");
+        if (!confirm(`Are you sure you want to transfer ownership of this organization to ${fullname} (${email})? You will become a manager instead and lose owner privileges.`)) return;
+        try {
+          await transferOwnership(currentOrgId, email);
+          alert("Ownership transferred successfully!");
+          window.location.reload();
+        } catch (err) {
+          alert(err.message || "Failed to transfer ownership");
         }
       });
     });
@@ -1007,6 +1061,6 @@ function initCreateOrg() {
     const name = document.getElementById("create-org-name").value.trim();
     if (!name) return alert("Enter an organization name");
     close();
-    window.location.href = `/register-host.html?orgName=${encodeURIComponent(name)}`;
+    window.location.href = `/register-host.html?orgName=${encodeURIComponent(name)}&createMode=true`;
   });
 }

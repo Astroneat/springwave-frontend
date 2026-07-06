@@ -40,3 +40,7 @@ export function addManager(orgId, email) {
 export function removeManager(orgId, userId) {
   return del(`/organizations/${orgId}/managers/${userId}`);
 }
+
+export function transferOwnership(orgId, email) {
+  return put(`/organizations/${orgId}/transfer-owner`, { email });
+}

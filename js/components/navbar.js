@@ -1,9 +1,21 @@
-import { isAuthenticated, getUser, logout } from "../lib/session.js";
+import { isAuthenticated, getUser, setUser, logout } from "../lib/session.js";
 import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificationPolling, stopNotificationPolling } from "../lib/notifications.js";
 import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
 
 export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
+    if (isAuthenticated()) {
+        try {
+            const { getCurrentUser } = await import("../api/auth.js");
+            const res = await getCurrentUser();
+            if (res && res.user) {
+                setUser(res.user);
+            }
+        } catch (err) {
+            console.warn("Sync session on navbar load failed:", err);
+        }
+    }
+
     const html = await fetchContent("/components/navbar.html");
     document.getElementById("navbar-container").innerHTML = html;
 
@@ -314,6 +326,22 @@ function escapeHtml(str) {
    USER DROPDOWN
    ========================= */
 
+export function updateHostBtn() {
+    const u = getUser();
+    if (u?.role !== 'host' && u?.role !== 'admin') return;
+    const desktopBtn = document.getElementById("desktop-become-host-btn");
+    const mobileBtn = document.getElementById("mobile-become-host-btn");
+    [desktopBtn, mobileBtn].forEach(btn => {
+        if (!btn) return;
+        const span = btn.querySelector('span');
+        if (span) span.textContent = 'Host Dashboard';
+        const iconI = btn.querySelector('i');
+        if (iconI) iconI.className = 'fa-solid fa-gauge-high';
+        const iconSpan = btn.querySelector('span.material-symbols-outlined');
+        if (iconSpan) iconSpan.textContent = 'dashboard';
+    });
+}
+
 function initUserDropdown(onFavouritesClick) {
     const userMenu = document.querySelector(".user-menu");
     const userChip = document.getElementById("user-chip");
@@ -335,25 +363,23 @@ function initUserDropdown(onFavouritesClick) {
         window.location.href = "/login.html";
     });
 
-    function updateHostBtn() {
-        const u = getUser();
-        if (u?.role !== 'host' && u?.role !== 'admin') return;
-        const desktopBtn = document.getElementById("desktop-become-host-btn");
-        const mobileBtn = document.getElementById("mobile-become-host-btn");
-        [desktopBtn, mobileBtn].forEach(btn => {
-            if (!btn) return;
-            const span = btn.querySelector('span');
-            if (span) span.textContent = 'Host Dashboard';
-            const iconI = btn.querySelector('i');
-            if (iconI) iconI.className = 'fa-solid fa-gauge-high';
-            const iconSpan = btn.querySelector('span.material-symbols-outlined');
-            if (iconSpan) iconSpan.textContent = 'dashboard';
-        });
-    }
     updateHostBtn();
 
     const hostCheck = async (e) => {
         e.preventDefault();
+
+        // Dynamic check with backend user session state to avoid forced logouts
+        try {
+            const { getCurrentUser } = await import("../api/auth.js");
+            const res = await getCurrentUser();
+            if (res && res.user) {
+                setUser(res.user);
+                updateHostBtn();
+            }
+        } catch (err) {
+            console.warn("Failed to check updated host role:", err);
+        }
+
         const u = getUser();
         if (u?.role === 'host' || u?.role === 'admin') {
             const { getMyHostStatus } = await import("../api/host.js");

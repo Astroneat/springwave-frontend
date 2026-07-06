@@ -1,21 +1,25 @@
 import { getNotifications as fetchServerNotifications, getUnreadNotificationCount, markNotificationRead, markAllNotificationsRead } from "../api/forum.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 
-const STORAGE_KEY = "springwave_notifications";
 const NOTIF_POLL_INTERVAL = 30000;
 
 let pollTimer = null;
 
+function getStorageKey() {
+  const user = getUser();
+  return user ? `springwave_notifications_${user._id}` : "springwave_notifications_guest";
+}
+
 function load() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return JSON.parse(localStorage.getItem(getStorageKey()) || "[]");
   } catch {
     return [];
   }
 }
 
 function save(list) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  localStorage.setItem(getStorageKey(), JSON.stringify(list));
 }
 
 export function getNotifications() {
