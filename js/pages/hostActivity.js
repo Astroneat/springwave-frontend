@@ -4,7 +4,7 @@ import { getFavourites } from "../api/user.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
-import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit, initAttachmentLinks } from "../lib/hostForm.js";
+import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit, initAttachmentLinks, initOrgSelector } from "../lib/hostForm.js";
 
 /* =========================
    PAGE LOAD
@@ -105,9 +105,12 @@ function initializeHostActivityPage() {
     initThumbnailPreview();
     initFileUpload();
     initAttachmentLinks();
+    initOrgSelector(orgId);
     initMapPicker();
     initDateValidation();
-    initFormSubmit(orgId);
+    initFormSubmit(orgId, () => {
+        window.location.href = orgId ? `./org-dashboard.html` : `./index.html`;
+    });
 }
 
 /* =========================

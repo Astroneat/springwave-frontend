@@ -1,6 +1,8 @@
 import { createActivity } from "../api/activities.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
+import { getMyOrganizations } from "../api/organizations.js";
+import { getUser } from "../lib/session.js";
 
 const MAX_FILES = 10;
 
@@ -519,7 +521,7 @@ function createDatePicker(config) {
     return api;
 }
 
-export function initFormSubmit(orgId, onSuccess) {
+export function initFormSubmit(urlOrgId, onSuccess) {
     const form = document.getElementById("activity-form");
     const statusMsg = document.getElementById("status-msg");
     if (!form) return;
@@ -549,13 +551,16 @@ export function initFormSubmit(orgId, onSuccess) {
             return;
         }
 
+        const orgId = document.getElementById("org-id-value")?.value || urlOrgId;
+        const hostNameValue = document.getElementById("org-name-display")?.value || hostName;
+
         const formData = new FormData();
         formData.append("title", title);
         formData.append("description", description);
         formData.append("location", location);
         formData.append("type", type);
         formData.append("heldDate", heldDate);
-        if (hostName) formData.append("hostName", hostName);
+        if (hostNameValue) formData.append("hostName", hostNameValue);
         if (orgId) formData.append("organization", orgId);
         if (registrationLink) formData.append("registrationLink", registrationLink);
         const lat = document.getElementById("locationLat")?.value;
@@ -642,6 +647,70 @@ export function initAttachmentLinks() {
         container.appendChild(row);
         row.querySelector("input[type='url']").focus();
     });
+}
+
+export async function initOrgSelector(urlOrgId) {
+    const container = document.getElementById("org-selector-content");
+    const hint = document.getElementById("org-field-hint");
+    if (!container) return;
+
+    const user = getUser();
+    let orgs = [];
+    try {
+        const data = await getMyOrganizations();
+        orgs = data.organizations || [];
+    } catch {}
+
+    const matchedOrg = urlOrgId ? orgs.find(o => o._id === urlOrgId) : null;
+
+    if (user?.role === 'admin') {
+        if (matchedOrg) {
+            container.innerHTML = `
+                <input type="text" class="input" id="org-name-display" value="${matchedOrg.name}" readonly/>
+                <input type="hidden" id="org-id-value" value="${matchedOrg._id}"/>`;
+            hint.textContent = `Hosting as ${matchedOrg.name}`;
+        }
+        return;
+    }
+
+    if (orgs.length === 1) {
+        const org = matchedOrg || orgs[0];
+        container.innerHTML = `
+            <input type="text" class="input" id="org-name-display" value="${org.name}" readonly/>
+            <input type="hidden" id="org-id-value" value="${org._id}"/>`;
+        hint.textContent = `Hosting as ${org.name}`;
+        return;
+    }
+
+    if (orgs.length > 1) {
+        const options = orgs.map(o =>
+            `<option value="${o._id}" ${matchedOrg?._id === o._id ? "selected" : ""}>${o.name}</option>`
+        ).join("");
+        container.innerHTML = `
+            <select id="org-id-value" class="input" style="appearance:auto;cursor:pointer">
+                <option value="">Select an organization...</option>
+                ${options}
+            </select>
+            <input type="hidden" id="org-name-display" value=""/>`;
+        const sel = document.getElementById("org-id-value");
+        sel.addEventListener("change", () => {
+            const selected = orgs.find(o => o._id === sel.value);
+            hint.textContent = selected ? `Hosting as ${selected.name}` : '';
+        });
+        if (matchedOrg) {
+            sel.value = matchedOrg._id;
+            document.getElementById("org-name-display").value = matchedOrg.name;
+            hint.textContent = `Hosting as ${matchedOrg.name}`;
+        }
+        return;
+    }
+
+    if (urlOrgId) {
+        container.innerHTML = `
+            <input type="text" class="input" id="org-name-display" value="Organization" readonly/>
+            <input type="hidden" id="org-id-value" value="${urlOrgId}"/>`;
+        hint.textContent = 'Event linked to organization';
+    }
 }
 
 function setStatus(msg, isError, el) {

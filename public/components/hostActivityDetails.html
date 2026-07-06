@@ -188,11 +188,13 @@
                 <input id="registrationLink" name="registrationLink" type="url" class="input" placeholder="https://forms.example.com/register">
             </div>
 
-            <!-- HOST -->
-            <div style="margin-bottom: 25px;">
-                <label class="label" data-i18n="host.host_name">Host</label>
-                <input id="hostName" name="hostName" type="text" class="input" placeholder="Select or type host name" list="schoolList">
-                <datalist id="schoolList"></datalist>
+            <!-- ORGANIZATION -->
+            <div style="margin-bottom: 25px;" id="org-field-container">
+                <label class="label">Organization</label>
+                <div id="org-selector-content">
+                    <input id="hostName" name="hostName" type="text" class="input" placeholder="Organization name">
+                </div>
+                <p class="sub-text" id="org-field-hint">The organization hosting this event.</p>
             </div>
 
             <!-- LOCATION -->

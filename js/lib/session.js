@@ -1,38 +1,40 @@
+const STORAGE = window.localStorage;
+
 export function setToken(token) {
-    sessionStorage.setItem("token", token);
+    STORAGE.setItem("token", token);
 }
 
 export function getToken() {
-    return sessionStorage.getItem("token");
+    return STORAGE.getItem("token");
 }
 
 export function removeToken() {
-    sessionStorage.removeItem("token");
+    STORAGE.removeItem("token");
 }
 
 export function setSigningKey(key) {
-    sessionStorage.setItem("signingKey", key);
+    STORAGE.setItem("signingKey", key);
 }
 
 export function getSigningKey() {
-    return sessionStorage.getItem("signingKey");
+    return STORAGE.getItem("signingKey");
 }
 
 export function removeSigningKey() {
-    sessionStorage.removeItem("signingKey");
+    STORAGE.removeItem("signingKey");
 }
 
 export function setUser(user) {
-    sessionStorage.setItem("user", JSON.stringify(user));
+    STORAGE.setItem("user", JSON.stringify(user));
 }
 
 export function getUser() {
-    const user = sessionStorage.getItem("user");
+    const user = STORAGE.getItem("user");
     return user ? JSON.parse(user) : null;
 }
 
 export function removeUser() {
-    sessionStorage.removeItem("user");
+    STORAGE.removeItem("user");
 }
 
 export function createSession(token, user) {
