@@ -13,18 +13,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const user = getUser();
+    const params = new URLSearchParams(window.location.search);
+    const createMode = params.get("createMode") === "true";
+    const isHost = user && user.role === "host";
 
     try {
-        const statusData = await getMyHostStatus();
-        if (statusData.status === 'approved') {
-            const url = statusData.orgId ? `/org-dashboard.html?orgId=${statusData.orgId}` : "/org-dashboard.html";
-            window.location.href = url;
-            return;
-        }
-        if (statusData.status === 'pending') {
-            alert("Your host registration is pending review. Please wait for approval.");
-            window.location.href = "/";
-            return;
+        if (!createMode && !isHost) {
+            const statusData = await getMyHostStatus();
+            if (statusData.status === 'approved') {
+                const url = statusData.orgId ? `/org-dashboard.html?orgId=${statusData.orgId}` : "/org-dashboard.html";
+                window.location.href = url;
+                return;
+            }
+            if (statusData.status === 'pending') {
+                alert("Your host registration is pending review. Please wait for approval.");
+                window.location.href = "/";
+                return;
+            }
         }
     } catch {}
 
@@ -35,7 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     await initChatbot();
 
-    const params = new URLSearchParams(window.location.search);
     const orgNameParam = params.get("orgName");
     if (orgNameParam) {
         const orgInput = document.getElementById("orgName");

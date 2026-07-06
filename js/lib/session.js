@@ -43,6 +43,12 @@ export function createSession(token, user) {
 }
 
 export function clearSession() {
+    const user = getUser();
+    if (user && user._id) {
+        STORAGE.removeItem(`springwave_notifications_${user._id}`);
+    }
+    STORAGE.removeItem("springwave_notifications");
+    STORAGE.removeItem("springwave_notifications_guest");
     removeToken();
     removeSigningKey();
     removeUser();

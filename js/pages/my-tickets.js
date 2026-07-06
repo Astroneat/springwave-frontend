@@ -117,30 +117,30 @@ function renderTickets() {
         </div>
 
         <!-- Ticket Details -->
-        <div class="flex-grow p-5 flex flex-col justify-between">
-          <div>
+        <div class="flex-grow p-5 flex flex-col justify-between min-w-0">
+          <div class="min-w-0">
             <div class="hidden md:flex items-center justify-between gap-2 mb-2">
               ${statusBadge}
               ${t.expiresAt ? `<span class="text-[11px] text-[#64748b] bg-slate-50 px-2 py-0.5 rounded border border-slate-100 font-medium">Expires: ${new Date(t.expiresAt).toLocaleDateString("vi-VN")}</span>` : ""}
             </div>
             <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2" title="${event.title || 'Unknown Event'}">${event.title || "Unknown Event"}</h3>
             
-            <div class="space-y-1.5 text-sm text-[#64748b]">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px] text-[#1755ba]">calendar_today</span>
-                <span>${eventDate}</span>
+            <div class="space-y-1.5 text-sm text-[#64748b] min-w-0">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="material-symbols-outlined text-[18px] text-[#1755ba] shrink-0">calendar_today</span>
+                <span class="truncate">${eventDate}</span>
               </div>
               ${event.location ? `
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px] text-[#1755ba]">location_on</span>
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="material-symbols-outlined text-[18px] text-[#1755ba] shrink-0">location_on</span>
                 <span class="truncate" title="${event.location}">${event.location}</span>
               </div>` : ''}
             </div>
           </div>
 
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-3 text-xs text-[#64748b]">
-            <span>Ticket ID: <strong class="text-[#191b22] font-mono">${t.qrCode ? t.qrCode.slice(0, 8).toUpperCase() + "..." : "N/A"}</strong></span>
-            <div class="md:hidden flex items-center gap-2">
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-3 text-xs text-[#64748b] min-w-0">
+            <span class="truncate">Ticket ID: <strong class="text-[#191b22] font-mono">${t.qrCode ? t.qrCode.slice(0, 8).toUpperCase() + "..." : "N/A"}</strong></span>
+            <div class="md:hidden flex items-center gap-2 flex-shrink-0">
               ${t.expiresAt ? `<span class="text-[11px] font-medium">Expires: ${new Date(t.expiresAt).toLocaleDateString("vi-VN")}</span>` : ""}
             </div>
           </div>
