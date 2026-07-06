@@ -6158,14 +6158,9 @@ html, body, button, input, select, textarea {
     z-index: 9999;
     transform: translateX(120%);
     opacity: 0;
-    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, box-shadow 0.2s ease;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
     border-left: 4px solid #23499b;
     min-width: 260px;
-    cursor: pointer;
-}
-
-.badge-toast:hover {
-    box-shadow: 0 8px 32px rgba(35, 73, 155, 0.2);
 }
 
 .badge-toast.show {

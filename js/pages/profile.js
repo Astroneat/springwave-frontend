@@ -895,12 +895,6 @@ function showBadgeToast(badge) {
       <span class="badge-toast-label">${badge.label}</span>
     </div>
   `;
-  
-  toast.addEventListener("click", () => {
-    const grid = document.getElementById("badges-grid");
-    if (grid) grid.scrollIntoView({ behavior: "smooth" });
-  });
-
   document.body.appendChild(toast);
 
   requestAnimationFrame(() => toast.classList.add("show"));

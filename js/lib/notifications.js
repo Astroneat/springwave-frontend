@@ -1,6 +1,5 @@
 import { getNotifications as fetchServerNotifications, getUnreadNotificationCount, markNotificationRead, markAllNotificationsRead } from "../api/forum.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
-import { getFavourites, getParticipatedActivities } from "../api/user.js";
 
 const STORAGE_KEY = "springwave_notifications";
 const NOTIF_POLL_INTERVAL = 30000;
@@ -40,7 +39,6 @@ export function addBadgeNotification(badgeKey, badgeLabel) {
     read: false,
   });
   save(list);
-  window.dispatchEvent(new CustomEvent("badge-earned", { detail: { badgeKey, badgeLabel } }));
   window.dispatchEvent(new CustomEvent("notifications-updated"));
 }
 
@@ -95,21 +93,11 @@ export async function pollServerNotifications() {
         read: n.read,
         discussionId: n.discussionId,
         actorName: n.actorName,
-        badgeKey: n.badgeKey,
       }));
     if (newNotifs.length > 0) {
       localList.unshift(...newNotifs);
       if (localList.length > 100) localList.length = 100;
       save(localList);
-
-      newNotifs.forEach(n => {
-        if (n.type === "badge") {
-          const key = n.badgeKey || "hello_world";
-          const label = n.message.replace('You earned the "', '').replace('" badge!', '');
-          window.dispatchEvent(new CustomEvent("badge-earned", { detail: { badgeKey: key, badgeLabel: label } }));
-        }
-      });
-
       window.dispatchEvent(new CustomEvent("notifications-updated"));
     }
     return serverNotifs;
@@ -128,24 +116,5 @@ export function stopNotificationPolling() {
   if (pollTimer) {
     clearInterval(pollTimer);
     pollTimer = null;
-  }
-}
-
-export async function checkAndGrantActivityBadges() {
-  if (!isAuthenticated()) return;
-  try {
-    const { activities: favs } = await getFavourites().catch(() => ({ activities: [] }));
-    const favsCount = (favs || []).length;
-    if (favsCount >= 5) {
-      addBadgeNotification("active_explorer", "Active Explorer");
-    }
-
-    const { activities: parts } = await getParticipatedActivities().catch(() => ({ activities: [] }));
-    const partsCount = (parts || []).length;
-    if (partsCount >= 1) {
-      addBadgeNotification("event_goer", "Event Goer");
-    }
-  } catch (err) {
-    console.warn("Failed to check activity badges:", err);
   }
 }
