@@ -519,7 +519,7 @@ function createDatePicker(config) {
     return api;
 }
 
-export function initFormSubmit(onSuccess) {
+export function initFormSubmit(orgId, onSuccess) {
     const form = document.getElementById("activity-form");
     const statusMsg = document.getElementById("status-msg");
     if (!form) return;
@@ -540,6 +540,7 @@ export function initFormSubmit(onSuccess) {
         const type = form.querySelector('input[name="type"]:checked')?.value;
         const hostName = sanitizeHtml(document.getElementById("hostName")?.value.trim());
         const heldDate = document.getElementById("heldDate")?.value;
+        const registrationLink = sanitizeHtml(document.getElementById("registrationLink")?.value.trim());
         const thumbnailFile = document.getElementById("thumbnail-upload")?.files?.[0];
         const attachmentFiles = document.getElementById("attachment-upload")?.files;
 
@@ -555,6 +556,8 @@ export function initFormSubmit(onSuccess) {
         formData.append("type", type);
         formData.append("heldDate", heldDate);
         if (hostName) formData.append("hostName", hostName);
+        if (orgId) formData.append("organization", orgId);
+        if (registrationLink) formData.append("registrationLink", registrationLink);
         const lat = document.getElementById("locationLat")?.value;
         const lng = document.getElementById("locationLng")?.value;
         if (lat) formData.append("locationLat", lat);
@@ -562,6 +565,10 @@ export function initFormSubmit(onSuccess) {
         if (thumbnailFile) formData.append("thumbnail", thumbnailFile);
         if (attachmentFiles && attachmentFiles.length > 0) {
             for (const file of attachmentFiles) formData.append("attachments", file);
+        }
+        const linkData = window.__attachmentLinks;
+        if (linkData && linkData.length > 0) {
+            formData.append("attachmentLinks", JSON.stringify(linkData));
         }
 
         setStatus("Creating activity...", false, statusMsg);
@@ -579,6 +586,61 @@ export function initFormSubmit(onSuccess) {
         } catch (err) {
             setStatus(err.message || "Failed to create activity.", true, statusMsg);
         }
+    });
+}
+
+export function initAttachmentLinks() {
+    const btn = document.getElementById("addAttachmentLinkBtn");
+    const container = document.getElementById("attachmentLinksContainer");
+    const list = document.getElementById("attachmentLinksList");
+    if (!btn || !container || !list) return;
+    const links = [];
+
+    function render() {
+        list.innerHTML = links.map((link, i) =>
+            `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#ecedfa] text-[#191b22] text-sm">
+                <span class="material-symbols-outlined text-[14px]">link</span>
+                ${link.url}
+                <button type="button" class="text-red-500 hover:text-red-700 ml-1" data-idx="${i}">&times;</button>
+            </span>`
+        ).join("");
+        list.querySelectorAll("button[data-idx]").forEach(b => {
+            b.addEventListener("click", () => {
+                const idx = parseInt(b.dataset.idx);
+                links.splice(idx, 1);
+                window.__attachmentLinks = links;
+                render();
+            });
+        });
+    }
+
+    btn.addEventListener("click", () => {
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-3 p-3 rounded-xl bg-white border border-[#ecedfa]";
+        row.innerHTML = `
+            <input type="url" placeholder="https://..." class="flex-grow h-10 px-3 rounded-lg border border-[#ecedfa] bg-[#f8f9fc] text-sm"/>
+            <input type="text" placeholder="Description (optional)" class="w-36 h-10 px-3 rounded-lg border border-[#ecedfa] bg-[#f8f9fc] text-sm"/>
+            <button type="button" class="px-3 py-1.5 rounded-lg bg-[#1755ba] text-white text-sm font-medium hover:bg-[#1755ba]/90">Add</button>
+            <button type="button" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+            </button>
+        `;
+        const closeBtn = row.querySelector("button:last-child");
+        closeBtn.addEventListener("click", () => row.remove());
+        const addBtn = row.querySelector("button:first-of-type");
+        addBtn.addEventListener("click", () => {
+            const url = row.querySelector("input[type='url']").value.trim();
+            const desc = row.querySelector("input[type='text']").value.trim();
+            if (!url) { alert("Enter a URL"); return; }
+            links.push({ url, description: desc });
+            window.__attachmentLinks = links;
+            render();
+            row.remove();
+            if (container.children.length === 0) container.classList.add("hidden");
+        });
+        container.classList.remove("hidden");
+        container.appendChild(row);
+        row.querySelector("input[type='url']").focus();
     });
 }
 

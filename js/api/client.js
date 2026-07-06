@@ -113,7 +113,8 @@ async function request(endpoint, options = {}) {
         const timestamp = Date.now().toString();
         const nonce = crypto.randomUUID();
         const bodyStr = typeof options.body === "string" ? options.body : "";
-        const signature = await computeSignature(signingKey, method, endpoint, bodyStr, timestamp, nonce);
+        const pathOnly = endpoint.split('?')[0];
+        const signature = await computeSignature(signingKey, method, pathOnly, bodyStr, timestamp, nonce);
         headers["X-Timestamp"] = timestamp;
         headers["X-Nonce"] = nonce;
         headers["X-Signature"] = signature;
@@ -135,7 +136,8 @@ async function request(endpoint, options = {}) {
                     const timestamp = Date.now().toString();
                     const nonce = crypto.randomUUID();
                     const bodyStr = typeof options.body === "string" ? options.body : "";
-                    const signature = await computeSignature(newSigningKey, method, endpoint, bodyStr, timestamp, nonce);
+                    const pathOnly = endpoint.split('?')[0];
+                    const signature = await computeSignature(newSigningKey, method, pathOnly, bodyStr, timestamp, nonce);
                     headers["X-Timestamp"] = timestamp;
                     headers["X-Nonce"] = nonce;
                     headers["X-Signature"] = signature;

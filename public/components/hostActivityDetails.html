@@ -182,6 +182,12 @@
                     placeholder="Provide a detailed overview of what participants can expect..."></textarea>
             </div>
 
+            <!-- REGISTRATION LINK -->
+            <div style="margin-bottom: 25px;">
+                <label class="label">Registration Link (optional)</label>
+                <input id="registrationLink" name="registrationLink" type="url" class="input" placeholder="https://forms.example.com/register">
+            </div>
+
             <!-- HOST -->
             <div style="margin-bottom: 25px;">
                 <label class="label" data-i18n="host.host_name">Host</label>
@@ -271,6 +277,21 @@
             </label>
 
             <div id="file-list" class="file-list"></div>
+
+            <br>
+
+            <div class="flex items-center gap-4 p-4 rounded-xl bg-[#f8f9fc] border border-[#ecedfa]">
+                <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-[#64748b]">
+                    <span class="material-symbols-outlined">link</span>
+                </div>
+                <div class="flex-grow">
+                    <h4 class="font-semibold text-sm">Link Attachments</h4>
+                    <p class="text-xs text-[#64748b]">Add reference links, Google Docs, etc.</p>
+                </div>
+                <button class="px-4 py-2 bg-white rounded-lg border border-[#ecedfa] text-sm font-medium text-[#1755ba] hover:bg-[#ecedfa] transition-colors" id="addAttachmentLinkBtn" type="button">Add Link</button>
+            </div>
+            <div id="attachmentLinksContainer" class="space-y-3 mt-2 hidden"></div>
+            <div id="attachmentLinksList" class="flex flex-wrap gap-2 mt-2"></div>
         </section>
 
 

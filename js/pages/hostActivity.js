@@ -4,7 +4,7 @@ import { getFavourites } from "../api/user.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
-import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit } from "../lib/hostForm.js";
+import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit, initAttachmentLinks } from "../lib/hostForm.js";
 
 /* =========================
    PAGE LOAD
@@ -20,7 +20,7 @@ document.addEventListener(
         }
 
         const user = getUser();
-        if (user?.role !== 'admin') {
+        if (user?.role !== 'admin' && user?.role !== 'host') {
             window.location.href = "./index.html";
             return;
         }
@@ -94,16 +94,20 @@ async function loadFooter() {
 ========================= */
 
 function initializeHostActivityPage() {
+    const params = new URLSearchParams(window.location.search);
+    const orgId = params.get("org");
+    const user = getUser();
+    if (!orgId && user?.role === 'host') {
+        window.location.href = "/org-dashboard.html";
+        return;
+    }
 
     initThumbnailPreview();
-
     initFileUpload();
-
+    initAttachmentLinks();
     initMapPicker();
-
     initDateValidation();
-
-    initFormSubmit();
+    initFormSubmit(orgId);
 }
 
 /* =========================

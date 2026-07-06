@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="admin_host.title">Host Registrations — SpringWave Admin</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+        .tab-btn { padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .tab-btn:active { transform: scale(0.95); }
+        .tab-btn.active { background: #1755ba; color: #fff; box-shadow: 0 4px 12px rgba(23,85,186,0.2); }
+        .tab-btn:not(.active) { background: transparent; color: #64748b; }
+        .tab-btn:not(.active):hover { background: #f1f5f9; }
+        .evidence-img { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1px solid #ecedfa; cursor: pointer; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .evidence-img:hover { transform: scale(1.05); }
+        .stat-card { background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #ecedfa; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .badge-pending { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #fef3c7; color: #d97706; }
+        .badge-approved { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #d1fae5; color: #059669; }
+        .badge-rejected { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body class="bg-[#faf8ff] text-[#191b22] font-body-md antialiased min-h-screen">
+    <div id="navbar-container"></div>
+
+    <main class="pt-[120px] max-w-[1280px] mx-auto px-6 md:px-10 pb-16">
+
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+            <div>
+                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]" data-i18n="admin_host.title">Host Registrations</h1>
+                <p class="text-[#64748b] text-base mt-1" data-i18n="admin_host.desc">Review and approve host applications</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-sm"></i>
+                    <input type="text" id="search-input" placeholder="Search by org name..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[200px] outline-none focus:border-primary transition-colors" data-i18n="admin_host.search" />
+                </div>
+                <button id="refresh-btn" class="w-10 h-10 rounded-full border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f1f5f9] transition-all spring-ease" title="Refresh">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="stats">
+            <div class="stat-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary">
+                        <i class="fa-solid fa-file-pen text-lg"></i>
+                    </div>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_host.total">Total</span>
+                </div>
+                <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-total">—</p>
+            </div>
+            <div class="stat-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#fef3c7] flex items-center justify-center text-[#d97706]">
+                        <i class="fa-solid fa-clock text-lg"></i>
+                    </div>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_host.pending">Pending</span>
+                </div>
+                <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-pending">—</p>
+            </div>
+            <div class="stat-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#d1fae5] flex items-center justify-center text-[#059669]">
+                        <i class="fa-solid fa-check-circle text-lg"></i>
+                    </div>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_host.approved">Approved</span>
+                </div>
+                <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-approved">—</p>
+            </div>
+            <div class="stat-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#fee2e2] flex items-center justify-center text-[#dc2626]">
+                        <i class="fa-solid fa-ban text-lg"></i>
+                    </div>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_host.rejected">Rejected</span>
+                </div>
+                <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-rejected">—</p>
+            </div>
+        </div>
+
+        <!-- ADMIN NAV -->
+        <div class="flex gap-3 mb-6">
+            <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
+                <i class="fa-solid fa-calendar-days mr-1.5"></i> Events
+            </a>
+            <a href="/admin-host.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md">
+                <i class="fa-solid fa-users-gear mr-1.5"></i> Host Registrations
+            </a>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
+            <button class="tab-btn active" data-tab="all">All</button>
+            <button class="tab-btn" data-tab="pending">Pending</button>
+            <button class="tab-btn" data-tab="approved">Approved</button>
+            <button class="tab-btn" data-tab="rejected">Rejected</button>
+        </div>
+
+        <!-- TABLE -->
+        <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[#ecedfa]">
+                <h2 class="font-headline-md text-xl font-bold text-[#191b22]" id="table-title" data-i18n="admin_host.registrations">Registrations</h2>
+                <span class="text-sm text-[#64748b] font-medium" id="table-count">0 registrations</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Organization</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell">Representative</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell">Contact</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell">Submitted</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Status</th>
+                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+            <div id="table-empty" class="hidden text-center py-16 text-[#94a3b8]">
+                <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
+                <p class="text-base font-semibold" data-i18n="admin_host.no_registrations">No registrations found</p>
+            </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-6 text-sm text-[#64748b]" id="pagination" hidden>
+            <span id="pagination-info"></span>
+            <div class="flex gap-2">
+                <button id="prev-page" class="px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] spring-ease disabled:opacity-40" disabled>Previous</button>
+                <button id="next-page" class="px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] spring-ease disabled:opacity-40">Next</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- DETAIL POPUP -->
+    <div class="popup-overlay" hidden id="detail-overlay">
+        <div class="popup-backdrop" id="detail-backdrop"></div>
+        <div class="popup-container !max-w-[720px] !p-0 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
+                <h2 class="text-xl font-bold text-[#191b22]" id="detail-title">Registration Details</h2>
+                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] spring-ease" id="detail-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6" id="detail-body">
+                <div class="flex items-center justify-center py-16 text-[#94a3b8]">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPROVE POPUP -->
+    <div class="popup-overlay" hidden id="approve-overlay">
+        <div class="popup-backdrop" id="approve-backdrop"></div>
+        <div class="popup-container !max-w-[420px] !p-8 text-center">
+            <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-check text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_host.approve_title">Approve Registration</h3>
+            <p class="text-sm text-[#64748b] mb-6">Approve <strong id="approve-org-name">this organization</strong> to become a host?</p>
+            <div class="flex gap-3">
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="approve-cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-[#059669] text-white font-semibold text-sm spring-ease hover:bg-[#047857] active:scale-95" id="approve-confirm">
+                    <i class="fa-solid fa-check mr-1.5"></i> Approve
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REJECT POPUP -->
+    <div class="popup-overlay" hidden id="reject-overlay">
+        <div class="popup-backdrop" id="reject-backdrop"></div>
+        <div class="popup-container !max-w-[420px] !p-8 text-center">
+            <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-ban text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_host.reject_title">Reject Registration</h3>
+            <p class="text-sm text-[#64748b] mb-4">Reject <strong id="reject-org-name">this organization</strong>?</p>
+            <textarea id="reject-note" class="w-full px-4 py-3 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm resize-none mb-4" rows="3" placeholder="Reason for rejection (optional)"></textarea>
+            <div class="flex gap-3">
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="reject-cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="reject-confirm">
+                    <i class="fa-solid fa-ban mr-1.5"></i> Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-container"></div>
+    <div id="chatbot-container"></div>
+
+    <script type="module" src="./js/pages/admin-host.js"></script>
+</body>
+</html>

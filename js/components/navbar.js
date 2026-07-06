@@ -35,6 +35,10 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
             if (adminBtn) {
                 adminBtn.style.display = user?.role === "admin" ? "" : "none";
             }
+            const adminHostBtn = document.getElementById("admin-host-btn");
+            if (adminHostBtn) {
+                adminHostBtn.style.display = user?.role === "admin" ? "" : "none";
+            }
             initUserDropdown(onFavouritesClick);
             if (bellIcon) {
                 bellIcon.classList.remove("hidden");
@@ -335,9 +339,50 @@ function initUserDropdown(onFavouritesClick) {
         window.location.href = "/login.html";
     });
 
-    const hostCheck = (e) => {
+    function updateHostBtn() {
+        const u = getUser();
+        if (u?.role !== 'host' && u?.role !== 'admin') return;
+        const desktopBtn = document.getElementById("desktop-become-host-btn");
+        const mobileBtn = document.getElementById("mobile-become-host-btn");
+        [desktopBtn, mobileBtn].forEach(btn => {
+            if (!btn) return;
+            const span = btn.querySelector('span');
+            if (span) span.textContent = 'Host Dashboard';
+            const iconI = btn.querySelector('i');
+            if (iconI) iconI.className = 'fa-solid fa-gauge-high';
+            const iconSpan = btn.querySelector('span.material-symbols-outlined');
+            if (iconSpan) iconSpan.textContent = 'dashboard';
+        });
+    }
+    updateHostBtn();
+
+    const hostCheck = async (e) => {
         e.preventDefault();
         const u = getUser();
+        if (u?.role === 'host' || u?.role === 'admin') {
+            const { getMyHostStatus } = await import("../api/host.js");
+            try {
+                const data = await getMyHostStatus();
+                const url = data.orgId ? `/org-dashboard.html?orgId=${data.orgId}` : "/org-dashboard.html";
+                window.location.href = url;
+            } catch {
+                window.location.href = "/org-dashboard.html";
+            }
+            return;
+        }
+        try {
+            const { getMyHostStatus } = await import("../api/host.js");
+            const data = await getMyHostStatus();
+            if (data.status === 'approved') {
+                const url = data.orgId ? `/org-dashboard.html?orgId=${data.orgId}` : "/org-dashboard.html";
+                window.location.href = url;
+                return;
+            }
+            if (data.status === 'pending') {
+                alert("Your host registration is pending review. Please wait for approval.");
+                return;
+            }
+        } catch {}
         if (!u.dob || !u.school || !u.class || !u.major || !u.phoneNo) {
             alert("Vui lòng cập nhật đầy đủ thông tin cá nhân (Ngày sinh, Trường, Lớp, Ngành, SĐT) trong Profile trước khi đăng ký làm Host.");
             window.location.href = "/profile.html";
