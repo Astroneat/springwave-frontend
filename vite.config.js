@@ -21,7 +21,6 @@ export default defineConfig({
         registerHost: resolve(__dirname, "register-host.html"),
         orgDashboard: resolve(__dirname, "org-dashboard.html"),
         orgProfile: resolve(__dirname, "org-profile.html"),
-        myTickets: resolve(__dirname, "my-tickets.html"),
       },
       output: {
         assetFileNames: "assets/[name][extname]",
