@@ -627,7 +627,10 @@ async function renderAIProfile() {
     const data = await getMyProfile();
     card.style.display = "block";
 
-    if (!data?.profile) {
+    const p = data?.profile;
+    const hasProfile = p && (p.major || p.goal || p.description || (p.skills && p.skills.length > 0));
+
+    if (!hasProfile) {
       card.querySelector("h2").innerHTML = `
         <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span>
         <span data-i18n="profile.ai_profile">${t("profile.ai_profile")}</span>
@@ -643,8 +646,6 @@ async function renderAIProfile() {
       `;
       return;
     }
-
-    const p = data.profile;
     
     // Add Retake button to the header
     card.querySelector("h2").innerHTML = `
