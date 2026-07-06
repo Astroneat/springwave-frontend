@@ -17,6 +17,32 @@ let allActivities = [];
 let currentCategory = "all";
 let currentSort = "newest";
 let cachedTemplate = null;
+let participateQueue = [];
+let activeParticipations = 0;
+const MAX_CONCURRENT_PARTICIPATIONS = 3;
+
+async function enqueueParticipate(fn) {
+    return new Promise((resolve, reject) => {
+        participateQueue.push({ fn, resolve, reject });
+        processParticipateQueue();
+    });
+}
+
+async function processParticipateQueue() {
+    while (activeParticipations < MAX_CONCURRENT_PARTICIPATIONS && participateQueue.length > 0) {
+        const item = participateQueue.shift();
+        activeParticipations++;
+        try {
+            const result = await item.fn();
+            item.resolve(result);
+        } catch (err) {
+            item.reject(err);
+        } finally {
+            activeParticipations--;
+            processParticipateQueue();
+        }
+    }
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
@@ -867,14 +893,38 @@ function buildFavouritesHTML(activities) {
     return `<div class="container"><div class="top-bar"><button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${t("explore.back")}</button><h2 style="font-size:22px;font-weight:700;">${t("explore.favourite_activities")}</h2></div><div style="margin-top:20px;">${items}</div></div>`;
 }
 
+function setParticipateLoading(button, loading) {
+    if (loading) {
+        button.classList.add("loading");
+        button.disabled = true;
+        const icon = button.querySelector("i");
+        if (icon) {
+            icon.className = "fa-solid fa-spinner fa-spin";
+        }
+        button.querySelector(".participate-header").textContent = "Processing...";
+        button.querySelector(".participate-text").textContent = "Generating QR code";
+    } else {
+        button.classList.remove("loading");
+        button.disabled = false;
+        const icon = button.querySelector("i");
+        if (icon) {
+            icon.className = "fa-solid fa-users";
+        }
+    }
+}
+
 function initParticipateButton(activityID) {
     const participateBtn = document.querySelector(".participate");
     if (!participateBtn) return;
     participateBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const button = e.currentTarget;
+        if (button.disabled) return;
         const isActive = button.classList.contains("active");
         if (!isAuthenticated()) return;
+        if (!isActive) {
+            setParticipateLoading(button, true);
+        }
         try {
             if (isActive) {
                 await unparticipateActivity(activityID);
@@ -882,13 +932,16 @@ function initParticipateButton(activityID) {
                 button.querySelector(".participate-header").textContent = t("explore.participate");
                 button.querySelector(".participate-text").textContent = t("explore.join_activity");
             } else {
-                await participateActivity(activityID);
+                await enqueueParticipate(() => participateActivity(activityID));
+                setParticipateLoading(button, false);
                 button.classList.add("active");
                 button.querySelector(".participate-header").textContent = t("explore.participated");
                 button.querySelector(".participate-text").textContent = t("explore.joined_activity");
             }
         } catch (err) {
+            setParticipateLoading(button, false);
             console.error("Participate error:", err);
+            button.querySelector(".participate-header").textContent = t("explore.participate");
             button.querySelector(".participate-text").textContent = err.message || t("common.error");
             setTimeout(() => {
                 button.querySelector(".participate-text").textContent = button.classList.contains("active") ? t("explore.joined_activity") : t("explore.join_activity");

@@ -5,7 +5,7 @@ export function getParticipatedActivities() {
 }
 
 export function getMyTickets() {
-    return get("/tickets/mine");
+    return get("/events/tickets/mine");
 }
 
 export function changeInfo(data) {

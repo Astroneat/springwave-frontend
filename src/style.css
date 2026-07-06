@@ -1820,6 +1820,21 @@ html, body, button, input, select, textarea {
     color: #ffffff !important;
 }
 
+.action-btn.participate.loading {
+    pointer-events: none !important;
+    opacity: 0.7 !important;
+    animation: pulse-loading 1.5s ease-in-out infinite !important;
+}
+
+.action-btn.participate.loading i {
+    animation: spin 1s linear infinite !important;
+}
+
+@keyframes pulse-loading {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
 .action-btn.report {
     border: 1px solid rgba(239, 68, 68, 0.2) !important;
     color: #ef4444 !important;
