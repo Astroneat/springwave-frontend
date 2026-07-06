@@ -625,13 +625,40 @@ async function renderAIProfile() {
 
   try {
     const data = await getMyProfile();
+    card.style.display = "block";
+
     if (!data?.profile) {
-      card.style.display = "none";
+      card.querySelector("h2").innerHTML = `
+        <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span>
+        <span data-i18n="profile.ai_profile">${t("profile.ai_profile")}</span>
+      `;
+      container.innerHTML = `
+        <div class="py-4 text-center">
+          <p class="text-sm text-text-secondary mb-4" data-i18n="profile.no_ai_profile_desc">${t("profile.no_ai_profile_desc")}</p>
+          <a href="/quiz.html" class="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-600 text-white text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/20 active:scale-95 transition-all spring-ease">
+            <span class="material-symbols-outlined !text-[18px] animate-pulse">auto_awesome</span>
+            <span data-i18n="profile.take_ai_quiz">${t("profile.take_ai_quiz")}</span>
+          </a>
+        </div>
+      `;
       return;
     }
 
     const p = data.profile;
-    card.style.display = "block";
+    
+    // Add Retake button to the header
+    card.querySelector("h2").innerHTML = `
+      <div class="w-full flex items-center justify-between">
+        <span class="flex items-center gap-2">
+          <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span>
+          <span data-i18n="profile.ai_profile">${t("profile.ai_profile")}</span>
+        </span>
+        <a href="/quiz.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#8B5CF6]/10 text-[#8B5CF6] hover:bg-[#8B5CF6]/20 text-xs font-semibold active:scale-95 transition-all spring-ease">
+          <span class="material-symbols-outlined !text-[14px]">replay</span>
+          <span data-i18n="profile.retake_quiz">${t("profile.retake_quiz")}</span>
+        </a>
+      </div>
+    `;
 
     container.innerHTML = `
       <div class="ai-profile-section">
@@ -652,7 +679,8 @@ async function renderAIProfile() {
         ${p.description ? `<div class="ai-profile-field"><span class="ai-profile-label">About</span><p class="ai-profile-desc">${p.description}</p></div>` : ''}
       </div>
     `;
-  } catch {
+  } catch (error) {
+    console.error("Failed to load AI profile:", error);
     card.style.display = "none";
   }
 }
