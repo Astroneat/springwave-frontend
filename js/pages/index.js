@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSkillBars();
   initSmoothScroll();
   initWordRotation();
+  initHeroMockupParallax();
 });
 
 async function loadFooter() {
@@ -160,4 +161,30 @@ function initWordRotation() {
       nextWord.classList.add("active");
     }
   }, 1500);
+}
+
+function initHeroMockupParallax() {
+  const card = document.getElementById("hero-mockup");
+  if (!card) return;
+
+  const container = card.parentElement;
+  if (!container) return;
+
+  container.addEventListener("mousemove", (e) => {
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotateX = -(y - centerY) / 15;
+    const rotateY = (x - centerX) / 15;
+
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+  });
+
+  container.addEventListener("mouseleave", () => {
+    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+  });
 }

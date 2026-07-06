@@ -244,144 +244,214 @@
       </div>
     </div>
   </section>
+  <!-- DASHBOARD SHOWCASE -->
+  <section class="landing-section relative overflow-hidden" id="dashboard-showcase">
+    <div class="landing-container dashboard-grid">
+      
+      <div class="reveal active">
+        <div class="section-label">
+          <span class="material-symbols-outlined text-base">dashboard</span>
+          <span>Gamified Companion</span>
+        </div>
+        <h2 class="section-title text-left mb-6">Your Gamified Growth Dashboard</h2>
+        <p class="section-subtitle text-left mb-6">
+          Track your extracurricular progress, levels, and badge milestones in real-time. Our AI Companion keeps you motivated and recommends opportunities based on your skills.
+        </p>
+        <div class="flex flex-col gap-4 mt-6">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-accent text-xl bg-accent/10 p-1.5 rounded-lg">military_tech</span>
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm">Earn Colorful Badges</h4>
+              <p class="text-xs text-slate-500">Unlock newbie, explorer, and legendary badges as you engage in student life.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-emerald-600 text-xl bg-emerald-50/70 p-1.5 rounded-lg">trending_up</span>
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm">Real-time Level Progression</h4>
+              <p class="text-xs text-slate-500">Gain contribution score points for writing replies, starting threads, and participating in workshops.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-center reveal active">
+        <div class="hero-mockup-wrapper">
+          <div class="hero-mockup-card" id="hero-mockup" style="transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1);">
+            <!-- Card Header -->
+            <div class="mockup-header">
+              <div class="mockup-header-left">
+                <span class="mockup-logo">SW</span>
+                <div>
+                  <h4>SpringWave AI</h4>
+                  <p class="mockup-status">Active Companion</p>
+                </div>
+              </div>
+              <div class="mockup-badge">Level 4</div>
+            </div>
+            <!-- Card Content: XP Progress -->
+            <div class="mockup-section">
+              <div class="mockup-section-header">
+                <span>Growth Milestone</span>
+                <span>750 / 1000 XP</span>
+              </div>
+              <div class="mockup-progress-bar">
+                <div class="mockup-progress-fill" style="width: 75%;"></div>
+              </div>
+            </div>
+            <!-- Card Content: AI Matches -->
+            <div class="mockup-section">
+              <p class="mockup-subheading">Recommended for You</p>
+              <div class="mockup-list">
+                <div class="mockup-item">
+                  <div class="mockup-item-left">
+                    <span class="material-symbols-outlined mockup-item-icon color-blue">code</span>
+                    <div>
+                      <h5>AI Hackathon</h5>
+                      <p>Software Engineering</p>
+                    </div>
+                  </div>
+                  <span class="mockup-tag match-98">98% Match</span>
+                </div>
+                <div class="mockup-item">
+                  <div class="mockup-item-left">
+                    <span class="material-symbols-outlined mockup-item-icon color-green">forum</span>
+                    <div>
+                      <h5>Leadership Forum</h5>
+                      <p>Communication</p>
+                    </div>
+                  </div>
+                  <span class="mockup-tag match-95">95% Match</span>
+                </div>
+              </div>
+            </div>
+            <!-- Floating overlay elements for parallax depth -->
+            <div class="mockup-overlay-badge mockup-badge-1 floating-up">
+              <span class="material-symbols-outlined text-sm">stars</span> Community Star
+            </div>
+            <div class="mockup-overlay-badge mockup-badge-2 floating-down">
+              <span class="material-symbols-outlined text-sm">auto_awesome</span> 95% Match
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
 
 
 
-  <!-- COMMUNITY -->
-  <section class="landing-section" id="community">
+  <!-- SOCIAL PROOF -->
+  <section class="landing-section" id="social-proof">
     <div class="landing-container">
-      <div class="text-center mb-16 reveal">
+      <div class="text-center mb-16 reveal active">
         <div class="section-label">
           <span class="material-symbols-outlined text-base">forum</span>
           <span data-i18n="index.community_title">Community</span>
         </div>
         <h2 class="section-title" data-i18n="index.community_heading">Connect Across Universities</h2>
-        <p class="section-subtitle mx-auto" data-i18n="index.community_desc">Join discussions with students from Da Nang's top universities. Share
-          insights, ask questions, and grow together.</p>
+        <p class="section-subtitle mx-auto" data-i18n="index.community_desc">Join discussions with students from Da Nang's top universities. Share insights, ask questions, and grow together.</p>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-6 reveal">
-        <div class="discussion-card">
-          <div class="discussion-header">
-            <div class="discussion-avatar" style="background: linear-gradient(135deg, #23499b, #3b6fd4);">M</div>
-            <div>
-              <p class="discussion-user">Minh Anh</p>
-              <p class="discussion-uni">University of Da Nang</p>
-            </div>
+      <!-- Bento Grid Layout -->
+      <div class="bento-grid reveal active">
+        
+        <!-- Bento Card 1: Main Testimonial (Large) -->
+        <div class="bento-card bento-large testimonial-card">
+          <div class="testimonial-stars mb-4">
+            <span class="material-symbols-outlined text-sm">star</span>
+            <span class="material-symbols-outlined text-sm">star</span>
+            <span class="material-symbols-outlined text-sm">star</span>
+            <span class="material-symbols-outlined text-sm">star</span>
+            <span class="material-symbols-outlined text-sm">star</span>
           </div>
-          <p class="discussion-text">"Anyone joining the AI Hackathon next month? Looking for team members interested in
-            NLP."</p>
-          <div class="discussion-footer">
-            <span><span class="material-symbols-outlined text-sm">chat_bubble</span> 12 replies</span>
-            <span><span class="material-symbols-outlined text-sm">schedule</span> 2h ago</span>
-          </div>
-        </div>
-
-        <div class="discussion-card reveal reveal-delay-1">
-          <div class="discussion-header">
-            <div class="discussion-avatar" style="background: linear-gradient(135deg, #059669, #10b981);">T</div>
-            <div>
-              <p class="discussion-user">Thanh Trung</p>
-              <p class="discussion-uni">Duy Tan University</p>
-            </div>
-          </div>
-          <p class="discussion-text">"Best volunteering programs this month? Looking for something meaningful to do on
-            weekends."</p>
-          <div class="discussion-footer">
-            <span><span class="material-symbols-outlined text-sm">chat_bubble</span> 8 replies</span>
-            <span><span class="material-symbols-outlined text-sm">schedule</span> 5h ago</span>
-          </div>
-        </div>
-
-        <div class="discussion-card reveal reveal-delay-2">
-          <div class="discussion-header">
-            <div class="discussion-avatar" style="background: linear-gradient(135deg, #d97706, #f59e0b);">H</div>
-            <div>
-              <p class="discussion-user">Huy Nguyen</p>
-              <p class="discussion-uni">University of Education</p>
-            </div>
-          </div>
-          <p class="discussion-text">"How useful was the Startup Networking Night? Considering joining the next one."
+          <p class="testimonial-quote text-lg font-medium leading-relaxed mb-6">
+            "SpringWave recommended a UX workshop that completely changed my career direction. I found my passion for product design, collaborated with tech mentors, and secured an internship within months!"
           </p>
-          <div class="discussion-footer">
-            <span><span class="material-symbols-outlined text-sm">chat_bubble</span> 24 replies</span>
-            <span><span class="material-symbols-outlined text-sm">schedule</span> 1d ago</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section class="landing-section" id="testimonials" style="background: #f1f5f9;">
-    <div class="landing-container">
-      <div class="text-center mb-16 reveal">
-        <div class="section-label">
-          <span class="material-symbols-outlined text-base">format_quote</span>
-          <span data-i18n="index.testimonial_title">Testimonials</span>
-        </div>
-        <h2 class="section-title" data-i18n="index.testimonial_heading">Loved by Students</h2>
-        <p class="section-subtitle mx-auto" data-i18n="index.testimonial_desc">Hear from students who transformed their university experience with
-          SpringWave.</p>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-6 reveal">
-        <div class="testimonial-card">
-          <div class="testimonial-stars">
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-          </div>
-          <p class="testimonial-quote">"SpringWave recommended a UX workshop that completely changed my career
-            direction. I found my passion for product design."</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">L</div>
+          <div class="testimonial-author mt-auto">
+            <div class="testimonial-avatar" style="background: #a5c8e9; color: #1c274c;">LC</div>
             <div>
-              <p class="testimonial-name">Linh Chi</p>
-              <p class="testimonial-role">University of Economics, Da Nang</p>
+              <p class="testimonial-name font-bold">Linh Chi</p>
+              <p class="testimonial-role text-xs">University of Economics, Da Nang</p>
             </div>
           </div>
         </div>
 
-        <div class="testimonial-card reveal reveal-delay-1">
-          <div class="testimonial-stars">
+        <!-- Bento Card 2: Community Post (Medium) -->
+        <div class="bento-card bento-medium discussion-card">
+          <div class="discussion-header mb-4">
+            <div class="discussion-avatar" style="background: linear-gradient(135deg, #23499b, #3b6fd4);">MA</div>
+            <div>
+              <p class="discussion-user font-bold">Minh Anh</p>
+              <p class="discussion-uni text-xs">University of Da Nang</p>
+            </div>
+          </div>
+          <h4 class="font-bold text-base mb-2">Hackathon Team Building</h4>
+          <p class="discussion-text text-sm leading-relaxed mb-4">
+            "Anyone joining the AI Hackathon next month? Looking for team members interested in NLP."
+          </p>
+          <div class="discussion-footer mt-auto flex items-center justify-between text-xs text-slate-400">
+            <span><span class="material-symbols-outlined text-sm align-middle mr-1">chat_bubble</span> 12 replies</span>
+            <span><span class="material-symbols-outlined text-sm align-middle mr-1">schedule</span> 2h ago</span>
+          </div>
+        </div>
+
+        <!-- Bento Card 3: Small Stats Highlight -->
+        <div class="bento-card bento-small stats-highlight-card">
+          <div class="stars-icon-wrap mb-3">
+            <span class="material-symbols-outlined text-3xl text-amber-500">workspace_premium</span>
+          </div>
+          <h4 class="font-extrabold text-2xl text-slate-800">4.9 / 5.0</h4>
+          <p class="text-xs text-slate-500 mt-1">Average workshop rating from 1,200+ feedback surveys.</p>
+        </div>
+
+        <!-- Bento Card 4: Community Post (Medium) -->
+        <div class="bento-card bento-medium discussion-card">
+          <div class="discussion-header mb-4">
+            <div class="discussion-avatar" style="background: linear-gradient(135deg, #059669, #10b981);">TT</div>
+            <div>
+              <p class="discussion-user font-bold">Thanh Trung</p>
+              <p class="discussion-uni text-xs">Duy Tan University</p>
+            </div>
+          </div>
+          <h4 class="font-bold text-base mb-2">Volunteering Opportunities</h4>
+          <p class="discussion-text text-sm leading-relaxed mb-4">
+            "Best volunteering programs this month? Looking for something meaningful to do on weekends."
+          </p>
+          <div class="discussion-footer mt-auto flex items-center justify-between text-xs text-slate-400">
+            <span><span class="material-symbols-outlined text-sm align-middle mr-1">chat_bubble</span> 8 replies</span>
+            <span><span class="material-symbols-outlined text-sm align-middle mr-1">schedule</span> 5h ago</span>
+          </div>
+        </div>
+
+        <!-- Bento Card 5: Testimonial (Medium) -->
+        <div class="bento-card bento-medium testimonial-card">
+          <div class="testimonial-stars mb-4">
             <span class="material-symbols-outlined text-sm">star</span>
             <span class="material-symbols-outlined text-sm">star</span>
             <span class="material-symbols-outlined text-sm">star</span>
             <span class="material-symbols-outlined text-sm">star</span>
             <span class="material-symbols-outlined text-sm">star</span>
           </div>
-          <p class="testimonial-quote">"SpringWave helped me realize my goal of becoming a Product Manager was
-            achievable. The roadmap was incredibly accurate."</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">K</div>
+          <p class="testimonial-quote text-sm leading-relaxed mb-4">
+            "SpringWave helped me realize my goal of becoming a Product Manager was achievable. The AI roadmap was incredibly accurate."
+          </p>
+          <div class="testimonial-author mt-auto">
+            <div class="testimonial-avatar" style="background: #cffafe; color: #0d9488;">KN</div>
             <div>
-              <p class="testimonial-name">Khoa Nguyen</p>
-              <p class="testimonial-role">University of Science and Technology</p>
+              <p class="testimonial-name font-bold">Khoa Nguyen</p>
+              <p class="testimonial-role text-xs">University of Science and Technology</p>
             </div>
           </div>
         </div>
 
-        <div class="testimonial-card reveal reveal-delay-2">
-          <div class="testimonial-stars">
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star_half</span>
-          </div>
-          <p class="testimonial-quote">"I joined a volunteering program through SpringWave and built skills I never knew
-            I had. The AI insights helped me identify my growth areas."</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">P</div>
-            <div>
-              <p class="testimonial-name">Phuong Anh</p>
-              <p class="testimonial-role">University of Foreign Languages</p>
-            </div>
-          </div>
+        <!-- Bento Card 6: Small Interactive Widget -->
+        <div class="bento-card bento-small ai-tag-card">
+          <span class="material-symbols-outlined text-3xl text-purple-600 mb-2">auto_awesome</span>
+          <h4 class="font-bold text-base text-slate-800">Smart Connect</h4>
+          <p class="text-xs text-slate-500 mt-1">Cross-uni study buddies matched dynamically by skill set.</p>
         </div>
+
       </div>
     </div>
   </section>
