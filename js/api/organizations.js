@@ -4,6 +4,10 @@ export function getMyOrganizations() {
   return get("/organizations/my");
 }
 
+export function getAllOrganizations() {
+  return get("/organizations/all");
+}
+
 export function getOrganizationById(id) {
   return get(`/organizations/${id}`);
 }
