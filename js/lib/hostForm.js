@@ -1,5 +1,5 @@
 import { createActivity } from "../api/activities.js";
-import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
+import { canPerformAction, markActionPerformed, resetCooldown, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { getMyOrganizations, getOrganizationById } from "../api/organizations.js";
 import { getUser } from "../lib/session.js";
@@ -568,7 +568,6 @@ export function initFormSubmit(urlOrgId, onSuccess) {
             setStatus(`Please wait ${check.remaining} seconds before posting again.`, true, statusMsg);
             return;
         }
-        markActionPerformed('createEvent');
 
         const title = sanitizeHtml(document.getElementById("title")?.value.trim());
         const description = sanitizeHtml(document.getElementById("description")?.value.trim());
@@ -627,6 +626,8 @@ export function initFormSubmit(urlOrgId, onSuccess) {
 
         setStatus("Creating activity...", false, statusMsg);
 
+        markActionPerformed('createEvent');
+
         try {
             const result = await createActivity(formData);
             setStatus("Activity created successfully!", false, statusMsg);
@@ -638,6 +639,7 @@ export function initFormSubmit(urlOrgId, onSuccess) {
                 }, 1500);
             }
         } catch (err) {
+            resetCooldown('createEvent');
             if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
                 turnstile.reset(turnstileWidgetId);
             }

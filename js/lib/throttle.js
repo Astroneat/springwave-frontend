@@ -30,6 +30,10 @@ export function markActionPerformed(action) {
   actionCooldowns.set(key, Date.now());
 }
 
+export function resetCooldown(action) {
+  actionCooldowns.delete(action);
+}
+
 export function getCooldownMs(action) {
   return COOLDOWNS[action] || 3000;
 }
