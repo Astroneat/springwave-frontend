@@ -621,7 +621,14 @@ export function initFormSubmit(urlOrgId, onSuccess) {
         }
 
         if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
-            formData.append("cfTurnstileResponse", turnstile.getResponse(turnstileWidgetId));
+            if (!turnstileToken) {
+                turnstile.reset(turnstileWidgetId);
+                await new Promise(r => setTimeout(r, 1000));
+            }
+            if (!turnstileToken) {
+                turnstileToken = turnstile.getResponse(turnstileWidgetId);
+            }
+            formData.append("cfTurnstileResponse", turnstileToken || "");
         }
 
         setStatus("Creating activity...", false, statusMsg);
@@ -643,10 +650,13 @@ export function initFormSubmit(urlOrgId, onSuccess) {
             if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
                 turnstile.reset(turnstileWidgetId);
             }
+            turnstileToken = null;
             setStatus(err.message || "Failed to create activity.", true, statusMsg);
         }
     });
 }
+
+let turnstileToken = null;
 
 export function initTurnstile() {
     const container = document.getElementById("turnstile-container");
@@ -658,8 +668,18 @@ export function initTurnstile() {
     if (turnstileWidgetId !== null) {
         turnstile.remove(turnstileWidgetId);
     }
+    turnstileToken = null;
     turnstileWidgetId = turnstile.render(container, {
         sitekey: TURNSTILE_SITE_KEY,
+        callback: (token) => {
+            turnstileToken = token;
+        },
+        'expired-callback': () => {
+            turnstileToken = null;
+        },
+        'error-callback': () => {
+            turnstileToken = null;
+        },
     });
 }
 
