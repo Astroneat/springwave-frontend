@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3643";
+  import.meta.env.VITE_API_URL || "http://api.springwave.io.vn";
 export const CDN_DOMAIN =
   import.meta.env.VITE_CDN_DOMAIN || "https://cdn.springwave.io.vn";
 export const GOOGLE_CLIENT_ID =
