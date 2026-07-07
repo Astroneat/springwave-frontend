@@ -260,6 +260,37 @@ export function initMapPicker() {
     return { map, marker, setMarker, reverseGeocode };
 }
 
+export function initCheckinRulesToggle() {
+    const checkbox = document.getElementById("enableCheckinRules");
+    const fields = document.getElementById("checkin-rules-fields");
+    if (!checkbox || !fields) return;
+    checkbox.addEventListener("change", () => {
+        fields.classList.toggle("hidden", !checkbox.checked);
+    });
+}
+
+export function initTimePicker() {
+    const hourSel = document.getElementById("heldHour");
+    const minSel = document.getElementById("heldMinute");
+    if (!hourSel || !minSel) return;
+
+    if (hourSel.options.length === 0) {
+        for (let i = 0; i < 24; i++) {
+            const v = String(i).padStart(2, '0');
+            hourSel.appendChild(new Option(v, v));
+        }
+    }
+    if (minSel.options.length === 0) {
+        for (let i = 0; i < 60; i++) {
+            const v = String(i).padStart(2, '0');
+            minSel.appendChild(new Option(v, v));
+        }
+    }
+    const now = new Date();
+    hourSel.value = String(now.getHours()).padStart(2, '0');
+    minSel.value = String(now.getMinutes()).padStart(2, '0');
+}
+
 export function initDateValidation() {
     const heldDate = createDatePicker({
         triggerId: "heldDateInput", dropdownId: "heldDateDropdown",
@@ -270,6 +301,7 @@ export function initDateValidation() {
     });
 
     loadSchoolList();
+    initTimePicker();
 
     return { heldDate };
 }
@@ -544,6 +576,8 @@ export function initFormSubmit(urlOrgId, onSuccess) {
         const type = form.querySelector('input[name="type"]:checked')?.value;
         const hostName = sanitizeHtml(document.getElementById("hostName")?.value.trim());
         const heldDate = document.getElementById("heldDate")?.value;
+        const heldHour = document.getElementById("heldHour")?.value || '00';
+        const heldMinute = document.getElementById("heldMinute")?.value || '00';
         const registrationLink = sanitizeHtml(document.getElementById("registrationLink")?.value.trim());
         const thumbnailFile = document.getElementById("thumbnail-upload")?.files?.[0];
         const attachmentFiles = document.getElementById("attachment-upload")?.files;
@@ -561,12 +595,19 @@ export function initFormSubmit(urlOrgId, onSuccess) {
         formData.append("description", description);
         formData.append("location", location);
         formData.append("type", type);
-        formData.append("heldDate", heldDate);
+        formData.append("heldDate", `${heldDate}T${heldHour}:${heldMinute}:00`);
         if (hostNameValue) formData.append("hostName", hostNameValue);
         if (orgId) formData.append("organization", orgId);
         if (registrationLink) formData.append("registrationLink", registrationLink);
         const hasCertificate = document.getElementById("hasCertificate")?.checked;
         formData.append("hasCertificate", hasCertificate ? "true" : "false");
+        const enableCheckinRules = document.getElementById("enableCheckinRules")?.checked;
+        if (enableCheckinRules) {
+            const lateMin = parseInt(document.getElementById("lateCheckinMinutes")?.value, 10) || 0;
+            const expiredMin = parseInt(document.getElementById("expiredCheckinMinutes")?.value, 10) || 0;
+            formData.append("lateCheckinMinutes", String(lateMin));
+            formData.append("expiredCheckinMinutes", String(expiredMin));
+        }
         const lat = document.getElementById("locationLat")?.value;
         const lng = document.getElementById("locationLng")?.value;
         if (lat) formData.append("locationLat", lat);

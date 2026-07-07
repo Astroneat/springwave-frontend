@@ -5,7 +5,7 @@ import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { t } from "../lib/i18n.js";
-import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit, initAttachmentLinks, initOrgSelector } from "../lib/hostForm.js";
+import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit, initAttachmentLinks, initOrgSelector, initCheckinRulesToggle } from "../lib/hostForm.js";
 
 let currentTab = "pending";
 let pendingEvents = [];
@@ -714,6 +714,7 @@ function initManualAdd() {
             if (mapInstance?.map) setTimeout(() => mapInstance.map.resize(), 100);
         }, 400);
         initDateValidation();
+        initCheckinRulesToggle();
         initFormSubmit(null, () => {
             close();
             loadData();

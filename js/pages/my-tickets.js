@@ -7,11 +7,13 @@ import { formatDate } from "../lib/utils.js";
 let allTickets = [];
 let showExpired = false;
 
-function checkIsExpired(t) {
-  const now = new Date();
-  const isTicketExpired = t.expiresAt && new Date(t.expiresAt) < now;
-  const isEventPassed = t.event && t.event.heldDate && new Date(t.event.heldDate) < now;
-  return isTicketExpired || isEventPassed || !t.isActive;
+function getTicketStatus(t) {
+  return t.ticketStatus || 'active';
+}
+
+function isInactive(t) {
+  const s = getTicketStatus(t);
+  return s === 'expired' || s === 'cancelled' || s === 'checked_in';
 }
 
 window.zoomTicketQR = function(imageUrl, eventTitle, qrCodeText) {
@@ -58,20 +60,35 @@ function initModal() {
   });
 }
 
+function statusBadgeHTML(status) {
+  const map = {
+    active: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
+    checked_in: 'bg-sky-50 text-sky-700 border-sky-200/50',
+    expired: 'bg-amber-50 text-amber-700 border-amber-200/50',
+    cancelled: 'bg-rose-50 text-rose-700 border-rose-200/50',
+  };
+  const labels = {
+    active: 'Active',
+    checked_in: 'Checked In',
+    expired: 'Expired',
+    cancelled: 'Cancelled',
+  };
+  const cls = map[status] || 'bg-slate-50 text-slate-600 border-slate-200/50';
+  return `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${cls} border">${labels[status] || status}</span>`;
+}
+
 function renderTickets() {
   const list = document.getElementById("tickets-list");
   if (!list) return;
 
-  const activeTickets = allTickets.filter(t => !checkIsExpired(t));
-  const expiredTickets = allTickets.filter(t => checkIsExpired(t));
+  const activeTickets = allTickets.filter(t => !isInactive(t));
+  const inactiveTickets = allTickets.filter(t => isInactive(t));
 
-  // Update badges
   const activeBadge = document.getElementById("active-count-badge");
   const expiredBadge = document.getElementById("expired-count-badge");
   if (activeBadge) activeBadge.textContent = `${activeTickets.length} Active`;
-  if (expiredBadge) expiredBadge.textContent = `${expiredTickets.length} Inactive & Expired`;
+  if (expiredBadge) expiredBadge.textContent = `${inactiveTickets.length} Inactive & Expired`;
 
-  // Filter tickets to display
   const ticketsToDisplay = showExpired ? allTickets : activeTickets;
 
   if (!ticketsToDisplay || ticketsToDisplay.length === 0) {
@@ -90,19 +107,25 @@ function renderTickets() {
     const eventDate = event.heldDate
       ? new Date(event.heldDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
       : "TBD";
-    const isExpired = checkIsExpired(t);
+    const status = getTicketStatus(t);
+    const showQR = status === 'active';
 
-    let statusBadge = "";
-    if (!t.isActive) {
-      statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/50">Cancelled</span>`;
-    } else if (isExpired) {
-      statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/50">Expired</span>`;
-    } else {
-      statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/50">Active</span>`;
+    let checkInInfo = '';
+    if (t.checkIn && (t.checkIn.status === 'present' || t.checkIn.status === 'late')) {
+      const time = t.checkIn.checkedInAt
+        ? new Date(t.checkIn.checkedInAt).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })
+        : '';
+      const label = t.checkIn.status === 'late' ? 'Checked in (late)' : 'Checked in';
+      checkInInfo = `
+        <div class="flex items-center gap-1.5 text-xs ${t.checkIn.status === 'late' ? 'text-amber-600' : 'text-emerald-600'}">
+          <span class="material-symbols-outlined text-[16px]">check_circle</span>
+          <span class="font-medium">${label}</span>
+          ${time ? `<span class="text-slate-400">• ${time}</span>` : ''}
+        </div>`;
     }
 
     return `
-      <div class="group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${t.isActive && !isExpired ? "" : "opacity-75 bg-slate-50/50"}">
+      <div class="group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${isInactive(t) ? "opacity-75 bg-slate-50/50" : ""}">
         
         <!-- Event Thumbnail / Cover -->
         <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden">
@@ -110,9 +133,8 @@ function renderTickets() {
                alt="${event.title || 'Event'}" 
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:hidden"></div>
-          <!-- Overlay status badge on mobile cover -->
           <div class="absolute top-3 left-3 md:hidden">
-            ${statusBadge}
+            ${statusBadgeHTML(status)}
           </div>
         </div>
 
@@ -120,7 +142,7 @@ function renderTickets() {
         <div class="flex-grow p-5 flex flex-col justify-between min-w-0">
           <div class="min-w-0">
             <div class="hidden md:flex items-center justify-between gap-2 mb-2">
-              ${statusBadge}
+              ${statusBadgeHTML(status)}
               ${t.expiresAt ? `<span class="text-[11px] text-[#64748b] bg-slate-50 px-2 py-0.5 rounded border border-slate-100 font-medium">Expires: ${new Date(t.expiresAt).toLocaleDateString("vi-VN")}</span>` : ""}
             </div>
             <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2" title="${event.title || 'Unknown Event'}">${event.title || "Unknown Event"}</h3>
@@ -135,6 +157,7 @@ function renderTickets() {
                 <span class="material-symbols-outlined text-[18px] text-[#1755ba] shrink-0">location_on</span>
                 <span class="truncate" title="${event.location}">${event.location}</span>
               </div>` : ''}
+              ${checkInInfo ? `<div class="flex items-center gap-2 min-w-0">${checkInInfo}</div>` : ''}
             </div>
           </div>
 
@@ -146,7 +169,7 @@ function renderTickets() {
           </div>
         </div>
 
-        <!-- Tear Line / Ticket Stub Separator (Dashed) -->
+        <!-- Tear Line -->
         <div class="hidden md:flex flex-col justify-between items-center py-3 my-2 flex-shrink-0 w-[1px]">
           <div class="w-3 h-3 rounded-full bg-[#f8f9fc] -mt-5 -ml-1.5 border-b border-l border-r border-[#ecedfa]"></div>
           <div class="h-full border-l border-dashed border-slate-200"></div>
@@ -158,7 +181,7 @@ function renderTickets() {
 
         <!-- Right stub: QR Code & Action -->
         <div class="w-full md:w-44 p-5 flex flex-col items-center justify-center bg-slate-50/50 md:bg-transparent flex-shrink-0">
-          ${t.qrImageUrl && !isExpired && t.isActive
+          ${showQR && t.qrImageUrl
             ? `
             <div class="relative group/qr cursor-zoom-in" onclick="window.zoomTicketQR('${t.qrImageUrl}', '${(event.title || 'Event').replace(/'/g, "\\'")}', '${t.qrCode}')">
               <img src="${t.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1 hover:shadow-md transition-all duration-300" />
@@ -172,8 +195,8 @@ function renderTickets() {
             `
             : `
             <div class="w-24 h-24 rounded-xl bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-400 gap-1 select-none">
-              <span class="material-symbols-outlined text-3xl">qr_code_2</span>
-              <span class="text-[9px] font-bold uppercase tracking-wider">${!t.isActive ? 'Cancelled' : 'Expired'}</span>
+              <span class="material-symbols-outlined text-3xl">${status === 'checked_in' ? 'check_circle' : 'qr_code_2'}</span>
+              <span class="text-[9px] font-bold uppercase tracking-wider">${status === 'checked_in' ? 'Done' : (status === 'cancelled' ? 'Cancelled' : 'Expired')}</span>
             </div>
             `
           }
@@ -221,9 +244,9 @@ async function loadPage() {
       filterBar.classList.remove("hidden");
     }
 
-    const expiredTickets = allTickets.filter(t => checkIsExpired(t));
+    const inactiveTickets = allTickets.filter(t => isInactive(t));
     if (toggleBtn) {
-      if (expiredTickets.length === 0) {
+      if (inactiveTickets.length === 0) {
         toggleBtn.classList.add("hidden");
       } else {
         toggleBtn.classList.remove("hidden");

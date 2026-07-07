@@ -661,10 +661,27 @@ function initAttendanceEventSelect() {
 
 async function loadAttendance(eventId) {
   try {
-    const [attData, statsData] = await Promise.all([
+    const [attData, statsData, eventData] = await Promise.all([
       getAttendance(eventId).catch(() => ({ attendance: [] })),
       getAttendanceStats(eventId).catch(() => ({ stats: { totalParticipants: 0, present: 0, absent: 0 } })),
+      get(`/events/${eventId}`).catch(() => ({ event: {} })),
     ]);
+    const event = eventData.event || {};
+    const lateMin = event.lateCheckinMinutes || 0;
+    const expiredMin = event.expiredCheckinMinutes || 0;
+    const rulesEl = document.getElementById("checkin-rules-display");
+    if (rulesEl) {
+      if (lateMin > 0 || expiredMin > 0) {
+        const parts = [];
+        if (lateMin > 0) parts.push(`Late after <strong>${lateMin} min</strong>`);
+        if (expiredMin > 0) parts.push(`Expire after <strong>${expiredMin} min</strong>`);
+        rulesEl.innerHTML = 'Check-in Rules: ' + parts.join(' &middot; ');
+        rulesEl.className = "text-xs text-[#64748b] mt-1";
+      } else {
+        rulesEl.innerHTML = "Check-in Rules: disabled (all check-ins accepted)";
+        rulesEl.className = "text-xs text-[#64748b] mt-1";
+      }
+    }
     const records = attData.attendance || [];
     const stats = statsData.stats || {};
 
@@ -685,7 +702,16 @@ async function loadAttendance(eventId) {
 
     tbody.innerHTML = records.map(r => {
       const user = r.user || {};
-      const isPresent = r.status === "present";
+      const status = r.status || "absent";
+      let badge = '';
+      if (status === 'present') {
+        badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>';
+      } else if (status === 'late') {
+        badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Late</span>';
+      } else {
+        badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>';
+      }
+      const isCheckedIn = status === 'present' || status === 'late';
       return `
         <tr class="border-b border-[#ecedfa]">
           <td class="py-3.5 px-4">
@@ -694,15 +720,11 @@ async function loadAttendance(eventId) {
             </div>
           </td>
           <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${user.email || "—"}</td>
-          <td class="py-3.5 px-4">
-            ${isPresent
-          ? '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>'
-          : '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>'}
-          </td>
+          <td class="py-3.5 px-4">${badge}</td>
           <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${r.checkedInAt ? formatDate(r.checkedInAt) : "—"}</td>
           <td class="py-3.5 px-4 text-right">
-            ${isPresent 
-              ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Mark Absent</button>` 
+            ${isCheckedIn
+              ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Mark Absent</button>`
               : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Check In</button>`}
           </td>
         </tr>
@@ -789,7 +811,7 @@ function initQRScan() {
     }
   }
 
-  function showScanFeedback(state, message = "", user = null, ticketCode = "") {
+  function showScanFeedback(state, message = "", user = null, ticketCode = "", isLate = false) {
     const container = document.getElementById("scan-feedback-container");
     const defaultView = document.getElementById("scan-feedback-default");
     const successView = document.getElementById("scan-feedback-success");
@@ -801,8 +823,7 @@ function initQRScan() {
     successView.classList.add("hidden");
     errorView.classList.add("hidden");
 
-    // Remove status classes
-    container.classList.remove("border-emerald-200", "bg-emerald-50/30", "border-rose-200", "bg-rose-50/30", "border-slate-200/60", "bg-slate-50");
+    container.classList.remove("border-emerald-200", "bg-emerald-50/30", "border-amber-200", "bg-amber-50/30", "border-rose-200", "bg-rose-50/30", "border-slate-200/60", "bg-slate-50");
 
     if (state === "default") {
       defaultView.classList.remove("hidden");
@@ -816,7 +837,9 @@ function initQRScan() {
       if (textEl) textEl.textContent = message || "Processing check-in...";
     } else if (state === "success" && user) {
       successView.classList.remove("hidden");
-      container.classList.add("border-emerald-200", "bg-emerald-50/30");
+      const borderClass = isLate ? "border-amber-200" : "border-emerald-200";
+      const bgClass = isLate ? "bg-amber-50/30" : "bg-emerald-50/30";
+      container.classList.add(borderClass, bgClass);
 
       const nameEl = document.getElementById("scan-feedback-name");
       const usernameEl = document.getElementById("scan-feedback-username");
@@ -824,11 +847,18 @@ function initQRScan() {
       const codeEl = document.getElementById("scan-feedback-code");
       const avatarEl = document.getElementById("scan-feedback-avatar");
       const placeholderEl = document.getElementById("scan-feedback-avatar-placeholder");
+      const statusLabel = document.getElementById("scan-feedback-status-label");
 
       if (nameEl) nameEl.textContent = user.fullname || "Unknown Attendee";
       if (usernameEl) usernameEl.textContent = user.username ? `@${user.username}` : "";
       if (emailEl) emailEl.textContent = user.email || "";
       if (codeEl) codeEl.textContent = ticketCode ? ticketCode.toUpperCase() : "N/A";
+      if (statusLabel) {
+        statusLabel.textContent = isLate ? "Checked in (late)" : "Checked in";
+        statusLabel.className = isLate
+          ? "text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full"
+          : "text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full";
+      }
 
       if (avatarEl && placeholderEl) {
         if (user.avatar) {
@@ -849,9 +879,9 @@ function initQRScan() {
     }
   }
 
-  function setFeedbackWithTimeout(state, message = "", user = null, ticketCode = "") {
+  function setFeedbackWithTimeout(state, message = "", user = null, ticketCode = "", isLate = false) {
     if (feedbackTimer) clearTimeout(feedbackTimer);
-    showScanFeedback(state, message, user, ticketCode);
+    showScanFeedback(state, message, user, ticketCode, isLate);
 
     if (state === "success" || state === "error") {
       feedbackTimer = setTimeout(() => {
@@ -860,7 +890,7 @@ function initQRScan() {
     }
   }
 
-  function addToHistory(user, ticketCode) {
+  function addToHistory(user, ticketCode, isLate = false) {
     const historyList = document.getElementById("scan-history-list");
     const countEl = document.getElementById("history-count");
     if (!historyList) return;
@@ -871,7 +901,8 @@ function initQRScan() {
       fullname: user.fullname || "Unknown Attendee",
       avatar: user.avatar || "",
       ticketCode: ticketCode,
-      time: timeStr
+      time: timeStr,
+      isLate
     };
 
     sessionHistory.unshift(newItem);
@@ -894,7 +925,7 @@ function initQRScan() {
           </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9px] font-semibold">SUCCESS</span>
+          <span class="px-2 py-0.5 rounded ${item.isLate ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'} border text-[9px] font-semibold">${item.isLate ? 'LATE' : 'SUCCESS'}</span>
           <span class="text-[10px] text-slate-400 font-mono">${item.time}</span>
         </div>
       </div>
@@ -1231,8 +1262,9 @@ function initQRScan() {
     try {
       const response = await scanAttendance(eventId, ticketCode);
       playBeep(true);
-      setFeedbackWithTimeout("success", "", response.user, ticketCode);
-      addToHistory(response.user || {}, ticketCode);
+      const isLate = response.message?.includes('late');
+      setFeedbackWithTimeout("success", response.message || "", response.user, ticketCode, isLate);
+      addToHistory(response.user || {}, ticketCode, isLate);
 
       if (manualInput) manualInput.value = "";
       await loadAttendance(eventId);

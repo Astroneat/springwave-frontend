@@ -299,6 +299,7 @@
                     <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Attendance List</h3>
                     <span class="text-sm text-[#64748b]" id="attendance-count">0 records</span>
                 </div>
+                <div class="px-6 pt-3" id="checkin-rules-display"></div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
@@ -515,7 +516,7 @@
                                 </span>
                             </div>
                             <div class="space-y-1">
-                                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-wider">Checked In Successfully</span>
+                                <span id="scan-feedback-status-label" class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-wider">Checked In Successfully</span>
                                 <h3 id="scan-feedback-name" class="font-extrabold text-2xl text-slate-800 tracking-tight leading-tight">Full Name</h3>
                                 <p id="scan-feedback-username" class="text-xs text-slate-400">@username</p>
                                 <p id="scan-feedback-email" class="text-xs text-slate-500 truncate max-w-[250px] mx-auto">email@example.com</p>
