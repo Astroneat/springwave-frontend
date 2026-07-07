@@ -46,6 +46,7 @@ import { getActivityById, getActivities } from "../api/activities.js";
 import { grantContribution } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
 import { addBadgeNotification } from "../lib/notifications.js";
+import { getPublicOrganizations, toggleFollowOrganization, getOrganizationPublicEvents, getMyOrganizations } from "../api/organizations.js";
 import { CDN_DOMAIN } from "../config.js";
 
 const CATEGORIES = {
@@ -313,6 +314,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       initUniDialog();
     }).catch(() => {}) : Promise.resolve(),
     (category === "all" || category === "skills") ? renderTopicGrid().catch(() => {}) : Promise.resolve(),
+    (category === "all" || category === "org") ? renderOrgGrid().catch(() => {}) : Promise.resolve(),
     loadSidebar(category).catch(() => {}),
     initChatbot().catch(() => {}),
     loadFooter().catch(() => {})
@@ -1867,6 +1869,37 @@ function initPostModal() {
     postScopeField.style.display = myUniId ? "" : "none";
   }
 
+  async function checkPostIdentity() {
+    const postIdentityField = document.getElementById("postIdentityField");
+    const postIdentitySelect = document.getElementById("postIdentitySelect");
+    if (!postIdentityField || !postIdentitySelect) return;
+    
+    if (!isAuthenticated()) {
+      postIdentityField.classList.add("hidden");
+      return;
+    }
+
+    try {
+      const data = await getMyOrganizations();
+      const orgs = data?.organizations || [];
+      if (orgs.length > 0) {
+        postIdentityField.classList.remove("hidden");
+        postIdentitySelect.innerHTML = '<option value="personal">Personal (Me)</option>';
+        orgs.forEach(org => {
+          const opt = document.createElement("option");
+          opt.value = `org-${org._id}`;
+          opt.textContent = `Organization: ${org.name}`;
+          postIdentitySelect.appendChild(opt);
+        });
+      } else {
+        postIdentityField.classList.add("hidden");
+      }
+    } catch (err) {
+      console.error("Failed to fetch user organizations for post identity:", err);
+      postIdentityField.classList.add("hidden");
+    }
+  }
+
   function open(config) {
     const user = getUser();
     if (user && !isProfileComplete(user)) {
@@ -1880,6 +1913,8 @@ function initPostModal() {
     selectedEventId = null;
     _selectedEventData = null;
     selectedSkill = "";
+    checkScope();
+    checkPostIdentity();
     overlay.style.display = "flex";
     requestAnimationFrame(() => {
       overlay.classList.add("active");
@@ -1983,10 +2018,17 @@ function initPostModal() {
           communityId = myUni?._id || myUni?.id;
         }
 
+        const identitySelect = document.getElementById("postIdentitySelect");
+        const identityVal = identitySelect?.value || "personal";
+        const postAsOrg = identityVal.startsWith("org-");
+        const orgId = postAsOrg ? identityVal.replace("org-", "") : undefined;
+
         const result = await createDiscussionWithScope({
           title, content, category, tags, relatedEvent, scope, communityId,
           cfTurnstileResponse: (typeof turnstile !== "undefined" && communityTurnstileWidgetId !== null)
             ? turnstile.getResponse(communityTurnstileWidgetId) : undefined,
+          postAsOrg,
+          orgId,
         });
 
         if (result) {
@@ -1997,8 +2039,11 @@ function initPostModal() {
           }).catch(() => {});
 
           const u = getUser();
-          result.avatar = (result.author || u?.username || "?")[0].toUpperCase();
-          result.university = u?.university || u?.school || "";
+          result.author = result.author || result.authorName || u?.fullname || u?.username || "Unknown";
+          if (!result.avatar) {
+            result.avatar = result.author[0].toUpperCase();
+          }
+          result.university = result.postAsOrg ? "Organization" : (u?.university || u?.school || "");
           result.lastActivity = "Just now";
           result.preview = content.substring(0, 150) + (content.length > 150 ? "..." : "");
           result.tags = tags;
@@ -2264,6 +2309,140 @@ function initDiscussionPopupClose() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !overlay.hasAttribute("hidden")) closeDiscussionDetail();
+  });
+}
+
+async function renderOrgGrid() {
+  const container = document.getElementById("forumOrgGrid");
+  if (!container) return;
+  
+  let orgsData = null;
+  try {
+    orgsData = await getPublicOrganizations();
+  } catch (err) {
+    console.error("Failed to load public organizations:", err);
+  }
+
+  const orgs = orgsData?.organizations || [];
+
+  if (!orgs || orgs.length === 0) {
+    container.innerHTML = `
+      <div class="forum-empty" style="grid-column:1/-1;">
+        <span class="material-symbols-outlined forum-empty-icon">groups</span>
+        <p class="forum-empty-title">No organizations found</p>
+        <p class="forum-empty-desc">Check back later for newly approved organizations!</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Render cards
+  const cardsHtml = await Promise.all(orgs.map(async (org) => {
+    let events = [];
+    try {
+      const resp = await getOrganizationPublicEvents(org._id, 2);
+      events = resp.events || [];
+    } catch {}
+
+    const eventsListHtml = events.length > 0 
+      ? events.map(e => `
+          <div class="flex items-center justify-between text-xs p-2 rounded-lg bg-[#f8f9fc] border border-[#ecedfa] hover:border-primary/30 transition-colors">
+            <div class="min-w-0 flex-grow pr-2">
+              <p class="font-semibold text-[#191b22] truncate">${e.title}</p>
+              <p class="text-[10px] text-[#64748b] flex items-center gap-1 mt-0.5">
+                <span class="material-symbols-outlined text-[10px]">calendar_today</span>
+                ${formatDate(e.heldDate)}
+              </p>
+            </div>
+            <a href="/explore.html?eventId=${e._id}" class="text-[10px] text-primary font-bold hover:underline shrink-0 flex items-center gap-0.5">
+              Detail <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+            </a>
+          </div>
+        `).join("")
+      : `<p class="text-xs text-[#94a3b8] italic text-center py-2">No upcoming events</p>`;
+
+    const avatarUrl = org.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(org.name)}`;
+
+    return `
+      <div class="bg-white rounded-3xl border border-[#ecedfa] shadow-sm hover:shadow-md transition-all duration-300 p-5 flex flex-col justify-between" data-org-id="${org._id}">
+        <div>
+          <!-- Header info -->
+          <div class="flex items-start gap-4 mb-4">
+            <img src="${avatarUrl}" class="w-14 h-14 rounded-2xl object-cover border border-[#ecedfa] bg-[#f8f9fc]" alt="${org.name}" />
+            <div class="min-w-0 flex-grow">
+              <h3 class="font-bold text-[#191b22] text-base truncate hover:text-primary transition-colors cursor-pointer" onclick="window.location.href='/org-profile.html?orgId=${org._id}'">${org.name}</h3>
+              <p class="text-xs text-[#64748b] flex items-center gap-1 mt-0.5">
+                <span class="material-symbols-outlined text-[12px] text-primary">groups</span>
+                <span class="followers-count font-semibold">${org.followersCount || 0}</span> followers
+              </p>
+            </div>
+          </div>
+          <!-- Description -->
+          <p class="text-xs text-[#64748b] line-clamp-2 mb-4 h-8">${org.description || "No description provided."}</p>
+          
+          <!-- Upcoming Events -->
+          <div class="mb-4">
+            <h4 class="text-xs font-bold text-[#191b22] mb-2 flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px] text-primary">event</span>
+              Upcoming Events
+            </h4>
+            <div class="space-y-2">
+              ${eventsListHtml}
+            </div>
+          </div>
+        </div>
+
+        <!-- Follow CTA -->
+        <div class="pt-2 border-t border-[#ecedfa] flex items-center justify-between gap-3">
+          <a href="/org-profile.html?orgId=${org._id}" class="px-3 py-2 rounded-xl bg-[#f8f9fc] hover:bg-[#ecedfa] border border-[#ecedfa] text-xs font-semibold text-[#191b22] text-center flex-1 transition-colors">
+            Profile
+          </a>
+          <button class="follow-org-btn px-3 py-2 rounded-xl text-xs font-bold text-center flex-1 transition-all ${org.isFollowing ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-primary text-white hover:bg-primary/90'}" data-org-id="${org._id}">
+            ${org.isFollowing ? '✓ Following' : 'Follow'}
+          </button>
+        </div>
+      </div>
+    `;
+  }));
+
+  container.innerHTML = cardsHtml.join("");
+
+  // Add click listeners to Follow buttons
+  container.querySelectorAll(".follow-org-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (!isAuthenticated()) {
+        window.location.href = "/login.html";
+        return;
+      }
+      const orgId = btn.dataset.orgId;
+      if (!orgId) return;
+
+      btn.disabled = true;
+      try {
+        const result = await toggleFollowOrganization(orgId);
+        
+        // Update button text and style
+        if (result.isFollowing) {
+          btn.textContent = "✓ Following";
+          btn.className = "follow-org-btn px-3 py-2 rounded-xl text-xs font-bold text-center flex-1 transition-all bg-gray-100 text-gray-500 hover:bg-gray-200";
+        } else {
+          btn.textContent = "Follow";
+          btn.className = "follow-org-btn px-3 py-2 rounded-xl text-xs font-bold text-center flex-1 transition-all bg-primary text-white hover:bg-primary/90";
+        }
+
+        // Update followers counter
+        const card = container.querySelector(`[data-org-id="${orgId}"]`);
+        if (card) {
+          const counter = card.querySelector(".followers-count");
+          if (counter) counter.textContent = result.followerCount;
+        }
+      } catch (err) {
+        alert(err.message || "Failed to update follow status.");
+      } finally {
+        btn.disabled = false;
+      }
+    });
   });
 }
 

@@ -1,11 +1,11 @@
 import { post, get, put } from "./client.js";
 
-export function login(username, password) {
+export function login(username, password, cfTurnstileResponse) {
     return post("/auth/login", {
-            username,
-            password
-        }
-    );
+        username,
+        password,
+        cfTurnstileResponse: cfTurnstileResponse || undefined
+    });
 }
 
 export function register(data) {

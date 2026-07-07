@@ -371,16 +371,209 @@ function initCreateEvent() {
 }
 
 function populateEventSelects() {
-  const selIds = ["participant-event-select", "attendance-event-select", "cert-event-select"];
-  const opts = currentEvents.map(e =>
-    `<option value="${e._id}">${e.title} (${formatDate(e.heldDate)})</option>`
-  );
-  selIds.forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const val = sel.value;
-    sel.innerHTML = `<option value="">Select an event...</option>${opts.join("")}`;
-    if (val) sel.value = val;
+  renderCustomSelect("participant-event-select-wrapper", "participant-event-select", currentEvents, "Select an event...");
+  renderCustomSelect("attendance-event-select-wrapper", "attendance-event-select", currentEvents, "Select an event...");
+  
+  const certEvents = currentEvents.filter(e => e.hasCertificate === true || e.hasCertificate === 'true');
+  renderCustomSelect("cert-event-select-wrapper", "cert-event-select", certEvents, "Select an event...");
+}
+
+function renderCustomSelect(wrapperId, hiddenInputId, events, placeholder = "Select an event...") {
+  const wrapper = document.getElementById(wrapperId);
+  if (!wrapper) return;
+
+  // Preserve the current selected value
+  let currentValue = "";
+  const existingInput = document.getElementById(hiddenInputId);
+  if (existingInput) {
+    currentValue = existingInput.value;
+  }
+
+  // Clear wrapper
+  wrapper.innerHTML = "";
+
+  // Create container
+  const container = document.createElement("div");
+  container.className = "custom-select-container relative min-w-[280px]";
+
+  // Find selected event
+  const selectedEvent = events.find(e => e._id === currentValue);
+
+  // Trigger button HTML
+  const triggerBtn = document.createElement("button");
+  triggerBtn.type = "button";
+  triggerBtn.className = "custom-select-trigger w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary flex items-center justify-between cursor-pointer transition-all duration-200 hover:border-primary/50 shadow-sm";
+  
+  const triggerContent = document.createElement("div");
+  triggerContent.className = "flex items-center gap-3 min-w-0";
+
+  const triggerImgDiv = document.createElement("div");
+  triggerImgDiv.className = "trigger-thumbnail w-6 h-6 rounded-md bg-[#ecedfa] overflow-hidden shrink-0" + (selectedEvent && selectedEvent.thumbnail ? "" : " hidden");
+  const triggerImg = document.createElement("img");
+  triggerImg.className = "w-full h-full object-cover";
+  if (selectedEvent && selectedEvent.thumbnail) {
+    triggerImg.src = selectedEvent.thumbnail;
+  }
+  triggerImgDiv.appendChild(triggerImg);
+  triggerContent.appendChild(triggerImgDiv);
+
+  const triggerText = document.createElement("span");
+  triggerText.className = "custom-select-selected-value text-[#191b22] font-semibold truncate";
+  triggerText.textContent = selectedEvent ? selectedEvent.title : placeholder;
+  triggerContent.appendChild(triggerText);
+
+  triggerBtn.appendChild(triggerContent);
+
+  const arrow = document.createElement("span");
+  arrow.className = "material-symbols-outlined select-arrow text-[#64748b] transition-transform duration-200 text-[20px]";
+  arrow.textContent = "keyboard_arrow_down";
+  triggerBtn.appendChild(arrow);
+
+  container.appendChild(triggerBtn);
+
+  // Dropdown list
+  const dropdown = document.createElement("div");
+  dropdown.className = "custom-select-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-[#ecedfa] rounded-2xl shadow-xl z-[100] max-h-[320px] flex flex-col hidden transform origin-top scale-95 opacity-0 transition-all duration-200";
+
+  // Search box
+  const searchDiv = document.createElement("div");
+  searchDiv.className = "p-3 border-b border-[#ecedfa]";
+  searchDiv.innerHTML = `
+    <div class="relative flex items-center">
+      <span class="material-symbols-outlined absolute left-3 text-[#64748b] text-[18px]">search</span>
+      <input type="text" class="custom-select-search w-full pl-9 pr-4 py-2 rounded-xl border border-[#e2e2eb] text-sm outline-none focus:border-primary placeholder-[#94a3b8]" placeholder="Search event...">
+    </div>
+  `;
+  dropdown.appendChild(searchDiv);
+
+  // List container
+  const list = document.createElement("div");
+  list.className = "custom-select-list overflow-y-auto flex-grow p-1 max-h-[220px]";
+
+  // Populate list
+  function renderListItems(filteredEvents) {
+    list.innerHTML = "";
+    if (filteredEvents.length === 0) {
+      list.innerHTML = `<div class="p-4 text-center text-[#94a3b8] text-xs">No events found</div>`;
+      return;
+    }
+
+    filteredEvents.forEach(e => {
+      const item = document.createElement("div");
+      item.className = "custom-select-item flex items-center gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#f8f9fc] transition-colors" + (e._id === currentValue ? " bg-[#f0f4ff]" : "");
+      
+      const thumb = e.thumbnail 
+        ? `<img src="${e.thumbnail}" class="w-10 h-10 rounded-lg object-cover shrink-0" />`
+        : `<div class="w-10 h-10 rounded-lg bg-[#ecedfa] flex items-center justify-center text-[#94a3b8] shrink-0"><i class="fa-regular fa-image text-sm"></i></div>`;
+      
+      item.innerHTML = `
+        ${thumb}
+        <div class="min-w-0 flex-grow">
+          <div class="text-sm font-semibold text-[#191b22] truncate">${e.title}</div>
+          <div class="text-xs text-[#64748b] flex items-center gap-1 mt-0.5">
+            <span class="material-symbols-outlined text-[12px]">calendar_today</span>
+            ${formatDate(e.heldDate)}
+          </div>
+        </div>
+        ${e._id === currentValue ? `<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>` : ""}
+      `;
+
+      item.addEventListener("click", () => {
+        // Update input and trigger event
+        input.value = e._id;
+        triggerText.textContent = e.title;
+        if (e.thumbnail) {
+          triggerImg.src = e.thumbnail;
+          triggerImgDiv.classList.remove("hidden");
+        } else {
+          triggerImgDiv.classList.add("hidden");
+        }
+        
+        // Close dropdown
+        closeDropdown();
+        
+        // Dispatch change event
+        input.dispatchEvent(new Event("change"));
+        
+        // Re-render select to show updated checked icon
+        renderCustomSelect(wrapperId, hiddenInputId, events, placeholder);
+      });
+
+      list.appendChild(item);
+    });
+  }
+
+  renderListItems(events);
+  dropdown.appendChild(list);
+  container.appendChild(dropdown);
+
+  // Hidden input
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.id = hiddenInputId;
+  input.className = "custom-select-value";
+  input.value = currentValue;
+  container.appendChild(input);
+
+  wrapper.appendChild(container);
+
+  // Dropdown open/close logic
+  let isOpen = false;
+  function openDropdown() {
+    isOpen = true;
+    dropdown.classList.remove("hidden");
+    // Animation frame for transition
+    requestAnimationFrame(() => {
+      dropdown.classList.remove("scale-95", "opacity-0");
+      dropdown.classList.add("scale-100", "opacity-100");
+    });
+    arrow.style.transform = "rotate(180deg)";
+    // Focus search
+    setTimeout(() => {
+      searchDiv.querySelector("input").focus();
+    }, 50);
+  }
+
+  function closeDropdown() {
+    isOpen = false;
+    dropdown.classList.remove("scale-100", "opacity-100");
+    dropdown.classList.add("scale-95", "opacity-0");
+    arrow.style.transform = "";
+    // Wait for animation before hiding
+    setTimeout(() => {
+      if (!isOpen) dropdown.classList.add("hidden");
+    }, 200);
+  }
+
+  triggerBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (isOpen) {
+      closeDropdown();
+    } else {
+      // Close all other custom dropdowns first
+      document.querySelectorAll(".custom-select-dropdown").forEach(d => {
+        d.classList.add("hidden", "scale-95", "opacity-0");
+      });
+      document.querySelectorAll(".select-arrow").forEach(a => {
+        a.style.transform = "";
+      });
+      openDropdown();
+    }
+  });
+
+  // Search logic
+  const searchInput = searchDiv.querySelector("input");
+  searchInput.addEventListener("input", (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    const filtered = events.filter(ev => ev.title.toLowerCase().includes(q));
+    renderListItems(filtered);
+  });
+
+  // Close on click outside
+  document.addEventListener("click", (e) => {
+    if (!container.contains(e.target)) {
+      closeDropdown();
+    }
   });
 }
 
@@ -508,7 +701,9 @@ async function loadAttendance(eventId) {
           </td>
           <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${r.checkedInAt ? formatDate(r.checkedInAt) : "—"}</td>
           <td class="py-3.5 px-4 text-right">
-            ${!isPresent ? `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Check In</button>` : '<span class="text-xs text-[#94a3b8]">Done</span>'}
+            ${isPresent 
+              ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Mark Absent</button>` 
+              : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Check In</button>`}
           </td>
         </tr>
       `;
@@ -524,6 +719,21 @@ async function loadAttendance(eventId) {
           await loadAttendance(eventId);
         } catch (err) {
           alert(err.message || "Check-in failed");
+        }
+      });
+    });
+
+    tbody.querySelectorAll(".manual-checkout-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const userId = btn.dataset.userId;
+        const eventId = document.getElementById("attendance-event-select").value;
+        if (!eventId || !userId) return;
+        if (!confirm("Change status to Absent for this participant?")) return;
+        try {
+          await markAttendance(eventId, userId, "absent");
+          await loadAttendance(eventId);
+        } catch (err) {
+          alert(err.message || "Operation failed");
         }
       });
     });

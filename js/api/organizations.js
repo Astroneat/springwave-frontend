@@ -56,3 +56,23 @@ export function uploadOrgCover(id, file) {
   formData.append("cover", file);
   return uploadFormData(`/organizations/${id}/cover`, formData);
 }
+
+export function getOrganizationPublicProfile(orgId) {
+  return get(`/organizations/${orgId}/public`);
+}
+
+export function getOrganizationPublicEvents(orgId, limit = 5) {
+  return get(`/organizations/${orgId}/public/events?limit=${limit}`);
+}
+
+export function updateOrganizationPublicProfile(orgId, data) {
+  return put(`/organizations/${orgId}/public`, data);
+}
+
+export function toggleFollowOrganization(orgId) {
+  return post(`/organizations/${orgId}/follow`);
+}
+
+export function getPublicOrganizations() {
+  return get("/organizations");
+}

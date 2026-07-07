@@ -212,7 +212,7 @@ export async function getMyUniversity() {
   return null;
 }
 
-export async function createDiscussionWithScope({ title, content, category, tags, relatedEvent, scope, communityId, cfTurnstileResponse }) {
+export async function createDiscussionWithScope({ title, content, category, tags, relatedEvent, scope, communityId, cfTurnstileResponse, postAsOrg, orgId }) {
   try {
     const data = await post("/community/discussions", {
       title, content, category, tags: tags || [],
@@ -220,6 +220,8 @@ export async function createDiscussionWithScope({ title, content, category, tags
       scope: scope || "general",
       communityId: communityId || undefined,
       cfTurnstileResponse: cfTurnstileResponse || undefined,
+      postAsOrg: postAsOrg || undefined,
+      orgId: orgId || undefined,
     });
     return data?.discussion || null;
   } catch {

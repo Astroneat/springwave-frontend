@@ -122,6 +122,18 @@
         </div>
       </div>
 
+      <div class="forum-section" id="organizations-section">
+        <div class="forum-section-header">
+          <div class="forum-section-title-group">
+            <h2 class="forum-section-title">Organizations</h2>
+            <p class="forum-section-subtitle">Discover clubs, teams, and organizations. Follow to stay updated on their events.</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="forumOrgGrid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
       <div class="forum-section" id="careerTopics">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
@@ -154,6 +166,12 @@
         </button>
       </div>
       <div class="forum-post-modal-body">
+        <div class="forum-post-field hidden" id="postIdentityField">
+          <label>Post as</label>
+          <select id="postIdentitySelect" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary">
+            <option value="personal">Personal (Me)</option>
+          </select>
+        </div>
         <div class="forum-post-field">
           <label for="postTitle" data-i18n="community.title_label">Title</label>
           <input type="text" id="postTitle" placeholder="What's on your mind?" data-i18n="community.what_mind" />
