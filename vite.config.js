@@ -5,6 +5,7 @@ import { resolve } from "path";
 export default defineConfig({
   plugins: [tailwindcss()],
   build: {
+    sourcemap: false,
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),

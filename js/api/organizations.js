@@ -64,3 +64,7 @@ export function updateOrganizationPublicProfile(orgId, data) {
 export function toggleFollowOrganization(orgId) {
   return post(`/organizations/${orgId}/follow`);
 }
+
+export function getPublicOrganizations() {
+  return get("/organizations");
+}

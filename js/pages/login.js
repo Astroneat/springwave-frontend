@@ -2,9 +2,11 @@ import "../../src/style.css";
 import { login, googleLogin } from "../api/auth.js";
 import { createSession, setSigningKey, isAuthenticated } from "../lib/session.js";
 import { ensureSession } from "../api/client.js";
-import { GOOGLE_CLIENT_ID, API_BASE_URL } from "../config.js";
+import { GOOGLE_CLIENT_ID, API_BASE_URL, TURNSTILE_SITE_KEY } from "../config.js";
 import { initI18n } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
+
+let turnstileWidgetId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (isAuthenticated()) {
@@ -13,7 +15,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
     initLoginForm();
     initGoogleLogin();
+    initTurnstile();
 });
+
+function initTurnstile() {
+    const container = document.getElementById("turnstile-container");
+    if (!container) return;
+    if (typeof turnstile === "undefined") {
+        setTimeout(initTurnstile, 300);
+        return;
+    }
+    if (turnstileWidgetId !== null) {
+        turnstile.remove(turnstileWidgetId);
+    }
+    turnstileWidgetId = turnstile.render(container, {
+        sitekey: TURNSTILE_SITE_KEY,
+    });
+}
 
 async function fetchSigningKey(token) {
     try {
@@ -43,8 +61,14 @@ function initLoginForm() {
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
         setStatus("Logging in", false);
+        
+        let cfTurnstileResponse = undefined;
+        if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+            cfTurnstileResponse = turnstile.getResponse(turnstileWidgetId);
+        }
+
         try {
-            const data = await login(username, password);
+            const data = await login(username, password, cfTurnstileResponse);
             if (!data) return;
             createSession(data.token, data.user);
             await fetchSigningKey(data.token);
@@ -55,6 +79,9 @@ function initLoginForm() {
                 setTimeout(() => { window.location.href = "/index.html"; }, 800);
             }
         } catch(err) {
+            if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+                turnstile.reset(turnstileWidgetId);
+            }
             if(err.status === 401) {
                 setStatus("Invalid credentials", true);
                 return;

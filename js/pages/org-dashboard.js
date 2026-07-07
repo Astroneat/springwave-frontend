@@ -701,7 +701,9 @@ async function loadAttendance(eventId) {
           </td>
           <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${r.checkedInAt ? formatDate(r.checkedInAt) : "—"}</td>
           <td class="py-3.5 px-4 text-right">
-            ${!isPresent ? `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Check In</button>` : '<span class="text-xs text-[#94a3b8]">Done</span>'}
+            ${isPresent 
+              ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Mark Absent</button>` 
+              : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Check In</button>`}
           </td>
         </tr>
       `;
@@ -717,6 +719,21 @@ async function loadAttendance(eventId) {
           await loadAttendance(eventId);
         } catch (err) {
           alert(err.message || "Check-in failed");
+        }
+      });
+    });
+
+    tbody.querySelectorAll(".manual-checkout-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const userId = btn.dataset.userId;
+        const eventId = document.getElementById("attendance-event-select").value;
+        if (!eventId || !userId) return;
+        if (!confirm("Change status to Absent for this participant?")) return;
+        try {
+          await markAttendance(eventId, userId, "absent");
+          await loadAttendance(eventId);
+        } catch (err) {
+          alert(err.message || "Operation failed");
         }
       });
     });

@@ -1,10 +1,12 @@
 import { createActivity } from "../api/activities.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
-import { getMyOrganizations } from "../api/organizations.js";
+import { getMyOrganizations, getOrganizationById } from "../api/organizations.js";
 import { getUser } from "../lib/session.js";
+import { TURNSTILE_SITE_KEY } from "../config.js";
 
 const MAX_FILES = 10;
+let turnstileWidgetId = null;
 
 export function initThumbnailPreview() {
     const thumbnailInput = document.getElementById("thumbnail-upload");
@@ -578,6 +580,10 @@ export function initFormSubmit(urlOrgId, onSuccess) {
             formData.append("attachmentLinks", JSON.stringify(linkData));
         }
 
+        if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+            formData.append("cfTurnstileResponse", turnstile.getResponse(turnstileWidgetId));
+        }
+
         setStatus("Creating activity...", false, statusMsg);
 
         try {
@@ -591,8 +597,26 @@ export function initFormSubmit(urlOrgId, onSuccess) {
                 }, 1500);
             }
         } catch (err) {
+            if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+                turnstile.reset(turnstileWidgetId);
+            }
             setStatus(err.message || "Failed to create activity.", true, statusMsg);
         }
+    });
+}
+
+export function initTurnstile() {
+    const container = document.getElementById("turnstile-container");
+    if (!container) return;
+    if (typeof turnstile === "undefined") {
+        setTimeout(initTurnstile, 300);
+        return;
+    }
+    if (turnstileWidgetId !== null) {
+        turnstile.remove(turnstileWidgetId);
+    }
+    turnstileWidgetId = turnstile.render(container, {
+        sitekey: TURNSTILE_SITE_KEY,
     });
 }
 
@@ -663,9 +687,19 @@ export async function initOrgSelector(urlOrgId) {
         orgs = data.organizations || [];
     } catch {}
 
-    const matchedOrg = urlOrgId ? orgs.find(o => o._id === urlOrgId) : null;
+    let matchedOrg = urlOrgId ? orgs.find(o => o._id === urlOrgId) : null;
 
     if (user?.role === 'admin') {
+        if (urlOrgId && !matchedOrg) {
+            try {
+                const orgData = await getOrganizationById(urlOrgId);
+                if (orgData && orgData.organization) {
+                    matchedOrg = orgData.organization;
+                }
+            } catch (err) {
+                console.error("Failed to fetch impersonated organization:", err);
+            }
+        }
         if (matchedOrg) {
             container.innerHTML = `
                 <input type="text" class="input" id="org-name-display" value="${matchedOrg.name}" readonly/>

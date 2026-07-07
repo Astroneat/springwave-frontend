@@ -5,6 +5,9 @@ import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { uploadFormData } from "../api/client.js";
 import { getMyHostStatus } from "../api/host.js";
+import { TURNSTILE_SITE_KEY } from "../config.js";
+
+let turnstileWidgetId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {
@@ -39,6 +42,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (footerContainer) footerContainer.innerHTML = html;
     });
     await initChatbot();
+    initTurnstile();
+
+    function initTurnstile() {
+        const container = document.getElementById("turnstile-container");
+        if (!container) return;
+        if (typeof turnstile === "undefined") {
+            setTimeout(initTurnstile, 300);
+            return;
+        }
+        if (turnstileWidgetId !== null) {
+            turnstile.remove(turnstileWidgetId);
+        }
+        turnstileWidgetId = turnstile.render(container, {
+            sitekey: TURNSTILE_SITE_KEY,
+        });
+    }
 
     const orgNameParam = params.get("orgName");
     if (orgNameParam) {
@@ -206,6 +225,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             formData.append("credibilityLinks", JSON.stringify(collectedLinks));
         }
 
+        if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+            formData.append("cfTurnstileResponse", turnstile.getResponse(turnstileWidgetId));
+        }
+
         try {
             await uploadFormData("/host/register", formData);
 
@@ -218,6 +241,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 window.location.href = "/";
             }, 1500);
         } catch (error) {
+            if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+                turnstile.reset(turnstileWidgetId);
+            }
             const msg = error?.message || "An unexpected error occurred. Please try again.";
             let userMsg = msg;
             if (msg.includes("AccessDenied") || msg.includes("upload")) {

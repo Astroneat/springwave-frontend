@@ -51,6 +51,8 @@
                     class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-lg bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20 max-sm:p-[10px_12px] max-sm:text-base">
             </div>
 
+            <div id="turnstile-container" class="mb-4 flex justify-center"></div>
+
             <div id="status-msg" class="text-sm my-2"></div>
 
             <button type="submit"
@@ -74,6 +76,7 @@
         </form>
     </div>
 
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script type="module" src="js/pages/login.js"></script>
 </body>
 
