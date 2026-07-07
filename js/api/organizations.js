@@ -44,3 +44,23 @@ export function removeManager(orgId, userId) {
 export function transferOwnership(orgId, email) {
   return put(`/organizations/${orgId}/transfer-owner`, { email });
 }
+
+// ──────────────────────────────────────────────
+// New: Public Profile & Follow Functions
+// ──────────────────────────────────────────────
+
+export function getOrganizationPublicProfile(orgId) {
+  return get(`/organizations/${orgId}/public`);
+}
+
+export function getOrganizationPublicEvents(orgId, limit = 5) {
+  return get(`/organizations/${orgId}/public/events?limit=${limit}`);
+}
+
+export function updateOrganizationPublicProfile(orgId, data) {
+  return put(`/organizations/${orgId}/public`, data);
+}
+
+export function toggleFollowOrganization(orgId) {
+  return post(`/organizations/${orgId}/follow`);
+}

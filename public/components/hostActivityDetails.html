@@ -296,8 +296,20 @@
             <div id="attachmentLinksList" class="flex flex-wrap gap-2 mt-2"></div>
         </section>
 
-
-        <!-- TAGS -->
+        <!-- OPTIONS -->
+        <section class="section">
+            <h2 class="section-title">Additional Options</h2>
+            <div class="flex items-center gap-4 p-4 rounded-xl bg-[#f8f9fc] border border-[#ecedfa] hover:border-primary/30 transition-colors">
+                <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-[#64748b] border border-[#ecedfa]">
+                    <span class="material-symbols-outlined text-[20px] text-primary">workspace_premium</span>
+                </div>
+                <div class="flex-grow">
+                    <label for="hasCertificate" class="font-semibold text-sm cursor-pointer select-none text-[#191b22]">Enable Certificates</label>
+                    <p class="text-xs text-[#64748b]">If enabled, participants who attend this event will receive a certificate.</p>
+                </div>
+                <input type="checkbox" id="hasCertificate" name="hasCertificate" class="w-5 h-5 rounded border-[#c3c6d5] text-primary cursor-pointer accent-primary" />
+            </div>
+        </section>
 
         <div id="status-msg" class="status-msg"></div>
 

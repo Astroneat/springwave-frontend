@@ -563,6 +563,8 @@ export function initFormSubmit(urlOrgId, onSuccess) {
         if (hostNameValue) formData.append("hostName", hostNameValue);
         if (orgId) formData.append("organization", orgId);
         if (registrationLink) formData.append("registrationLink", registrationLink);
+        const hasCertificate = document.getElementById("hasCertificate")?.checked;
+        formData.append("hasCertificate", hasCertificate ? "true" : "false");
         const lat = document.getElementById("locationLat")?.value;
         const lng = document.getElementById("locationLng")?.value;
         if (lat) formData.append("locationLat", lat);
