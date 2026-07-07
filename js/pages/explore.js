@@ -784,11 +784,11 @@ function buildPopupHTML(a, backText) {
                     </div>
 
                     <div class="sidebar-actions-group">
-                        <button class="action-btn participate" type="button">
-                            <i class="fa-solid fa-users"></i>
+                        <button class="action-btn participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
+                            <i class="fa-solid fa-${a.source?.url ? 'arrow-up-right-from-square' : 'users'}"></i>
                             <div>
-                                <h4 class="participate-header">${t("explore.participate")}</h4>
-                                <p class="participate-text">${t("explore.join_activity")}</p>
+                                <h4 class="participate-header">${a.source?.url ? t("explore.register_external") || "Register Externally" : t("explore.participate")}</h4>
+                                <p class="participate-text">${a.source?.url ? t("explore.visit_original") || "Visit original source" : t("explore.join_activity")}</p>
                             </div>
                         </button>
                         <button class="action-btn discuss discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}" type="button">
@@ -837,6 +837,7 @@ function initCardReveal() {
 function setParticipated() {
     const btn = document.querySelector(".participate");
     if (!btn) return;
+    if (btn.dataset.externalUrl) return; // Do not mark as participated for external links
     btn.classList.add("active");
     btn.querySelector(".participate-header").textContent = t("explore.participated");
     btn.querySelector(".participate-text").textContent = t("explore.joined_activity");
@@ -920,6 +921,13 @@ function initParticipateButton(activityID) {
         e.stopPropagation();
         const button = e.currentTarget;
         if (button.disabled) return;
+        
+        const externalUrl = button.dataset.externalUrl;
+        if (externalUrl) {
+            window.open(externalUrl, '_blank');
+            return;
+        }
+
         const isActive = button.classList.contains("active");
         if (!isAuthenticated()) return;
         if (!isActive) {
