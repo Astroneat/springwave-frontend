@@ -105,7 +105,7 @@ function renderTickets() {
   list.innerHTML = ticketsToDisplay.map(t => {
     const event = t.event || {};
     const eventDate = event.heldDate
-      ? new Date(event.heldDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+      ? new Date(event.heldDate).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
       : "TBD";
     const status = getTicketStatus(t);
     const showQR = status === 'active';
@@ -113,7 +113,7 @@ function renderTickets() {
     let checkInInfo = '';
     if (t.checkIn && (t.checkIn.status === 'present' || t.checkIn.status === 'late')) {
       const time = t.checkIn.checkedInAt
-        ? new Date(t.checkIn.checkedInAt).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })
+        ? new Date(t.checkIn.checkedInAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })
         : '';
       const label = t.checkIn.status === 'late' ? 'Checked in (late)' : 'Checked in';
       checkInInfo = `
@@ -143,7 +143,7 @@ function renderTickets() {
           <div class="min-w-0">
             <div class="hidden md:flex items-center justify-between gap-2 mb-2">
               ${statusBadgeHTML(status)}
-              ${t.expiresAt ? `<span class="text-[11px] text-[#64748b] bg-slate-50 px-2 py-0.5 rounded border border-slate-100 font-medium">Expires: ${new Date(t.expiresAt).toLocaleDateString("vi-VN")}</span>` : ""}
+              ${t.expiresAt ? `<span class="text-[11px] text-[#64748b] bg-slate-50 px-2 py-0.5 rounded border border-slate-100 font-medium">Expires: ${new Date(t.expiresAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" })}</span>` : ""}
             </div>
             <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2" title="${event.title || 'Unknown Event'}">${event.title || "Unknown Event"}</h3>
             
@@ -164,7 +164,7 @@ function renderTickets() {
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-3 text-xs text-[#64748b] min-w-0">
             <span class="truncate">Ticket ID: <strong class="text-[#191b22] font-mono">${t.qrCode ? t.qrCode.slice(0, 8).toUpperCase() + "..." : "N/A"}</strong></span>
             <div class="md:hidden flex items-center gap-2 flex-shrink-0">
-              ${t.expiresAt ? `<span class="text-[11px] font-medium">Expires: ${new Date(t.expiresAt).toLocaleDateString("vi-VN")}</span>` : ""}
+              ${t.expiresAt ? `<span class="text-[11px] font-medium">Expires: ${new Date(t.expiresAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" })}</span>` : ""}
             </div>
           </div>
         </div>
