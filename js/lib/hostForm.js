@@ -605,6 +605,8 @@ export function initFormSubmit(urlOrgId, onSuccess) {
         if (registrationLink) formData.append("registrationLink", registrationLink);
         const hasCertificate = document.getElementById("hasCertificate")?.checked;
         formData.append("hasCertificate", hasCertificate ? "true" : "false");
+        const hasAttendance = document.getElementById("hasAttendance")?.checked;
+        formData.append("hasAttendance", hasAttendance ? "true" : "false");
         const enableCheckinRules = document.getElementById("enableCheckinRules")?.checked;
         if (enableCheckinRules) {
             const lateMin = parseInt(document.getElementById("lateCheckinMinutes")?.value, 10) || 0;

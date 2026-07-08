@@ -676,7 +676,18 @@ function initAttendanceEventSelect() {
       await loadAttendance(this.value);
     } else {
       document.getElementById("attendance-table-body").innerHTML = "";
-      document.getElementById("attendance-empty").classList.remove("hidden");
+      const empty = document.getElementById("attendance-empty");
+      empty.classList.remove("hidden");
+      empty.innerHTML = `<i class="fa-solid fa-qrcode text-4xl mb-3 block"></i>
+        <p class="text-base font-semibold">Select an event to view attendance</p>`;
+      const statsGrid = document.querySelector("#section-attendance .grid.grid-cols-1");
+      const actionBtns = document.querySelector("#section-attendance .flex.gap-3.mb-6");
+      const attendanceListHeader = document.querySelector("#section-attendance .px-6.py-4");
+      const attendanceTable = document.querySelector("#section-attendance .overflow-x-auto");
+      if (statsGrid) statsGrid.style.opacity = "1";
+      if (actionBtns) actionBtns.style.opacity = "1";
+      if (attendanceListHeader) attendanceListHeader.style.opacity = "1";
+      if (attendanceTable) attendanceTable.style.opacity = "1";
     }
   });
 }
@@ -689,6 +700,49 @@ async function loadAttendance(eventId) {
       get(`/events/${eventId}`).catch(() => ({ event: {} })),
     ]);
     const event = eventData.event || {};
+    const hasAttendance = event.hasAttendance === true || event.hasAttendance === 'true';
+
+    const attendanceContainer = document.getElementById("attendance-content");
+    const attendanceEmpty = document.getElementById("attendance-empty");
+    const attendanceTable = document.querySelector("#section-attendance .overflow-x-auto");
+    const statsGrid = document.querySelector("#section-attendance .grid.grid-cols-1");
+    const actionBtns = document.querySelector("#section-attendance .flex.gap-3.mb-6");
+    const attendanceListHeader = document.querySelector("#section-attendance .px-6.py-4");
+
+    if (!hasAttendance) {
+      if (attendanceEmpty) {
+        attendanceEmpty.classList.remove("hidden");
+        attendanceEmpty.innerHTML = `
+          <i class="fa-solid fa-triangle-exclamation text-4xl mb-3 block text-[#f59e0b]"></i>
+          <p class="text-base font-semibold text-[#64748b]">Attendance tracking is not enabled for this event</p>
+          <p class="text-sm text-[#94a3b8] mt-1">You can enable it when creating the event or contact the event organizer.</p>
+        `;
+      }
+      document.getElementById("stat-present").textContent = "0";
+      document.getElementById("stat-absent").textContent = "0";
+      document.getElementById("stat-total-att").textContent = "0";
+      document.getElementById("attendance-count").textContent = "0 record(s)";
+      const tbody = document.getElementById("attendance-table-body");
+      if (tbody) tbody.innerHTML = "";
+      if (statsGrid) statsGrid.style.opacity = "0.4";
+      if (actionBtns) actionBtns.style.opacity = "0.4";
+      if (attendanceListHeader) attendanceListHeader.style.opacity = "0.4";
+      if (attendanceTable) attendanceTable.style.opacity = "0.4";
+      const rulesEl = document.getElementById("checkin-rules-display");
+      if (rulesEl) rulesEl.innerHTML = "";
+      return;
+    }
+
+    if (statsGrid) statsGrid.style.opacity = "1";
+    if (actionBtns) actionBtns.style.opacity = "1";
+    if (attendanceListHeader) attendanceListHeader.style.opacity = "1";
+    if (attendanceTable) attendanceTable.style.opacity = "1";
+    if (attendanceEmpty) {
+      attendanceEmpty.classList.remove("hidden");
+      attendanceEmpty.innerHTML = `<i class="fa-solid fa-qrcode text-4xl mb-3 block"></i>
+        <p class="text-base font-semibold">No attendance records yet</p>`;
+    }
+
     const lateMin = event.lateCheckinMinutes || 0;
     const expiredMin = event.expiredCheckinMinutes || 0;
     const rulesEl = document.getElementById("checkin-rules-display");
