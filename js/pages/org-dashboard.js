@@ -202,15 +202,16 @@ async function selectOrg(orgId) {
 function initSideNav() {
   document.querySelectorAll(".sidenav-link").forEach(link => {
     link.addEventListener("click", () => {
-      document.querySelectorAll(".sidenav-link").forEach(l => l.classList.remove("active"));
-      link.classList.add("active");
+      switchSection(link.dataset.section);
+    });
+  });
+  document.querySelectorAll(".mobile-tab-link").forEach(link => {
+    link.addEventListener("click", () => {
       switchSection(link.dataset.section);
     });
   });
   document.getElementById("goto-events")?.addEventListener("click", () => {
     switchSection("events");
-    document.querySelectorAll(".sidenav-link").forEach(l => l.classList.remove("active"));
-    document.querySelector('[data-section="events"]')?.classList.add("active");
   });
 }
 
@@ -219,6 +220,27 @@ function switchSection(section) {
   document.querySelectorAll(".section-content").forEach(el => el.classList.add("hidden"));
   const target = document.getElementById(`section-${section}`);
   if (target) target.classList.remove("hidden");
+
+  // Sync desktop sidenav active state
+  document.querySelectorAll(".sidenav-link").forEach(l => {
+    if (l.dataset.section === section) {
+      l.classList.add("active");
+    } else {
+      l.classList.remove("active");
+    }
+  });
+
+  // Sync mobile sub-nav active state
+  document.querySelectorAll(".mobile-tab-link").forEach(l => {
+    if (l.dataset.section === section) {
+      l.classList.add("active", "bg-primary", "text-white");
+      l.classList.remove("bg-white", "text-[#64748b]", "border", "border-[#e2e2eb]");
+    } else {
+      l.classList.remove("active", "bg-primary", "text-white");
+      l.classList.add("bg-white", "text-[#64748b]", "border", "border-[#e2e2eb]");
+    }
+  });
+
   if (section === "participants" && document.getElementById("participant-event-select").value) {
     loadParticipants(document.getElementById("participant-event-select").value);
   }

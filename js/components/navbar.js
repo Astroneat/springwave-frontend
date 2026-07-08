@@ -79,6 +79,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
     }
 
     updateMobileMenu();
+    updateHostBtn();
     await initI18n();
     initLangSwitcher();
     initSlidingIndicator();
@@ -292,6 +293,14 @@ function createMobileUserHTML(user) {
         : `<span class="text-primary font-bold text-sm">${initial}</span>`;
     const safeUsername = escapeHtml(user.username || "");
     const safeEmail = escapeHtml(user.email || "");
+    const isHostOrAdmin = user.role === 'host' || user.role === 'admin';
+    const hostLinkHtml = isHostOrAdmin
+        ? `
+        <a href="#" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-on-surface-variant hover:bg-primary-fixed/20 hover:text-primary font-headline-md text-lg font-medium spring-ease" id="mobile-become-host-btn">
+            <span class="material-symbols-outlined">dashboard</span> <span>Host Dashboard</span>
+        </a>
+        `
+        : '';
 
     return `
         <div class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-primary-fixed/10">
@@ -306,9 +315,7 @@ function createMobileUserHTML(user) {
         <a href="/profile.html" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-on-surface-variant hover:bg-primary-fixed/20 hover:text-primary font-headline-md text-lg font-medium spring-ease">
             <span class="material-symbols-outlined">person</span> <span data-i18n="nav.profile">Profile</span>
         </a>
-        <a href="#" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-on-surface-variant hover:bg-primary-fixed/20 hover:text-primary font-headline-md text-lg font-medium spring-ease" id="mobile-become-host-btn">
-            <span class="material-symbols-outlined">corporate_fare</span> <span data-i18n="nav.become_host">Become a Host</span>
-        </a>
+        ${hostLinkHtml}
         <button class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-600 hover:bg-red-50 font-headline-md text-lg font-medium spring-ease w-full text-left" id="mobileLogoutBtn">
             <span class="material-symbols-outlined">logout</span> <span data-i18n="nav.logout">Logout</span>
         </button>
@@ -430,15 +437,23 @@ function initUserDropdown(onFavouritesClick) {
 function initLangSwitcher() {
     const btn = document.getElementById("langSwitcher");
     const label = document.getElementById("langLabel");
-    if (!btn) return;
+    const mobileBtn = document.getElementById("mobileLangSwitcher");
+    const mobileLabel = document.getElementById("mobileLangLabel");
+    
     const updateLabel = () => {
-        if (label) label.textContent = getLang().toUpperCase();
+        const lang = getLang().toUpperCase();
+        if (label) label.textContent = lang;
+        if (mobileLabel) mobileLabel.textContent = lang;
     };
     updateLabel();
-    btn.addEventListener("click", () => {
+    
+    const toggleLang = () => {
         const next = getLang() === "en" ? "vi" : "en";
         setLang(next).then(updateLabel);
-    });
+    };
+    
+    btn?.addEventListener("click", toggleLang);
+    mobileBtn?.addEventListener("click", toggleLang);
     window.addEventListener("language-changed", updateLabel);
 }
 

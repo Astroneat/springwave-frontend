@@ -21,9 +21,9 @@
     </div>
 
     <!-- RIGHT ACTION BUTTONS -->
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-4 ml-auto">
       <!-- LANG SWITCHER -->
-      <button class="lang-switcher-btn bg-white/40 hover:bg-white/70 border border-white/20 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition cursor-pointer" id="langSwitcher" title="Switch language">
+      <button class="lang-switcher-btn bg-white/40 hover:bg-white/70 border border-white/20 px-3.5 py-1.5 rounded-full hidden md:flex items-center gap-1.5 transition cursor-pointer" id="langSwitcher" title="Switch language">
         <span class="material-symbols-outlined text-[#1c274c] text-lg">language</span>
         <span class="lang-label text-xs font-extrabold text-[#1c274c]" id="langLabel">EN</span>
       </button>
@@ -67,6 +67,19 @@
         <a href="./about.html" data-section="about" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-700 hover:bg-[#a5c8e9]/20 hover:text-[#3493fa] font-semibold text-lg transition">
           <span class="material-symbols-outlined">info</span> <span data-i18n="nav.about">About Us</span>
         </a>
+        
+        <!-- MOBILE LANG SWITCHER -->
+        <div class="border-t border-slate-100 my-3"></div>
+        <div class="px-2">
+          <button class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-slate-100/80 transition cursor-pointer" id="mobileLangSwitcher" title="Switch language">
+            <span class="flex items-center gap-2.5 text-slate-600 font-semibold text-sm">
+              <span class="material-symbols-outlined text-lg text-slate-500">language</span>
+              <span data-i18n="nav.language_mobile">Language</span>
+            </span>
+            <span class="lang-label text-xs font-extrabold text-primary bg-primary/10 px-2.5 py-1 rounded-lg" id="mobileLangLabel">EN</span>
+          </button>
+        </div>
+
         <div class="border-t border-slate-100 my-4"></div>
         <div id="mobile-auth-section" class="flex flex-col gap-2">
           <a href="/login.html" class="w-full text-center font-semibold text-slate-700 py-3 rounded-full border border-slate-200 hover:bg-slate-50 transition" id="mobileLoginBtn">
