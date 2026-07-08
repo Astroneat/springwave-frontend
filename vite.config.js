@@ -1,9 +1,39 @@
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "path";
+import { execSync } from "child_process";
+
+function cacheBustPlugin() {
+  let version;
+  return {
+    name: "cache-bust",
+    buildStart() {
+      try {
+        version = execSync("git rev-parse --short HEAD").toString().trim();
+      } catch {
+        version = Date.now().toString(36);
+      }
+    },
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "version.json",
+        source: JSON.stringify({ version, builtAt: new Date().toISOString() }),
+      });
+    },
+    transformIndexHtml(html) {
+      const cssPattern = /(<link\s+[^>]*href="\/assets\/style\.css)("[^>]*>)/i;
+      html = html.replace(cssPattern, `$1?v=${version}$2`);
+
+      const script =
+        `<script>!function(){var n=localStorage.getItem("av"),v="${version}";if(n&&n!==v){localStorage.clear(),sessionStorage.clear(),window.location.href=window.location.pathname+"?v="+Date.now()}localStorage.setItem("av",v)}();</script>`;
+      return html.replace("</head>", script + "</head>");
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [tailwindcss()],
+  plugins: [tailwindcss(), cacheBustPlugin()],
   build: {
     sourcemap: false,
     rollupOptions: {
