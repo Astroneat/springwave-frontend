@@ -210,25 +210,13 @@ function initSearchButton() {
 
     const performSearch = async () => {
         const location = searchLoc?.value.trim() || "";
-        const prefVal = searchPref?.value.trim() || "";
-        const navbarVal = navbarInput?.value.trim() || "";
-        
-        // Determine the keyword by looking at which input is currently being typed in.
-        // This prevents deleted text in one input from being restored by the other's synced value.
-        let keyword = "";
-        if (navbarInput && document.activeElement === navbarInput) {
-            keyword = navbarVal;
-        } else if (searchPref && document.activeElement === searchPref) {
-            keyword = prefVal;
-        } else {
-            keyword = prefVal || navbarVal;
-        }
+        const keyword = searchPref?.value.trim() || navbarInput?.value.trim() || "";
         
         const dates = window.__searchDates || {};
         
-        // Sync text inputs
-        if (searchPref) searchPref.value = keyword;
-        if (navbarInput) navbarInput.value = keyword;
+        // Sync text inputs to ensure they always match
+        if (searchPref && searchPref.value !== keyword) searchPref.value = keyword;
+        if (navbarInput && navbarInput.value !== keyword) navbarInput.value = keyword;
         
         // Clear active category filters when searching
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
@@ -251,7 +239,7 @@ function initSearchButton() {
 
             let activities = data?.activities || [];
             
-            // Client-side filtering fallback to ensure exact matching
+            // Client-side filtering fallback to ensure exact matching for location and dates
             if (location) {
                 activities = activities.filter(a => 
                     (a.location || "").toLowerCase().includes(location.toLowerCase())
@@ -266,12 +254,21 @@ function initSearchButton() {
                 activities = activities.filter(a => new Date(a.heldDate) >= dates.startDate);
             }
             if (keyword) {
-                activities = activities.filter(a => 
-                    (a.title || "").toLowerCase().includes(keyword.toLowerCase()) ||
-                    (a.description || "").toLowerCase().includes(keyword.toLowerCase()) ||
-                    (a.type || "").toLowerCase().includes(keyword.toLowerCase()) ||
-                    (a.tags || []).some(t => t.toLowerCase().includes(keyword.toLowerCase()))
-                );
+                const kwLower = keyword.toLowerCase();
+                activities = activities.filter(a => {
+                    const exactMatch = (a.title || "").toLowerCase().includes(kwLower) ||
+                        (a.description || "").toLowerCase().includes(kwLower) ||
+                        (a.type || "").toLowerCase().includes(kwLower) ||
+                        (a.tags || []).some(t => t.toLowerCase().includes(kwLower));
+                    
+                    // Backend returns score (cosine similarity). 0.28 is too low, use 0.65 as a reasonable threshold.
+                    const semanticMatch = a.score !== undefined && a.score >= 0.65;
+                    return exactMatch || semanticMatch;
+                });
+
+                // Auto-switch to relevance sorting for semantic search
+                document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
+                currentSort = "relevance";
             }
 
             if (activities.length === 0) {
@@ -292,6 +289,10 @@ function initSearchButton() {
     const inputs = [searchPref, navbarInput].filter(Boolean);
     inputs.forEach(input => {
         input.addEventListener("input", (e) => {
+            const val = e.target.value;
+            if (searchPref && searchPref !== e.target && searchPref.value !== val) searchPref.value = val;
+            if (navbarInput && navbarInput !== e.target && navbarInput.value !== val) navbarInput.value = val;
+            
             clearTimeout(debounceTimeout);
             debounceTimeout = setTimeout(performSearch, 350);
         });
@@ -343,6 +344,13 @@ async function applyFiltersAndSort() {
     }
 
     switch (currentSort) {
+        case "relevance":
+            filtered.sort((a, b) => {
+                const scoreA = a.score !== undefined ? a.score : 0;
+                const scoreB = b.score !== undefined ? b.score : 0;
+                return scoreB - scoreA;
+            });
+            break;
         case "newest":
             filtered.sort((a, b) => new Date(b.heldDate || 0) - new Date(a.heldDate || 0));
             break;
