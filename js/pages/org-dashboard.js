@@ -794,6 +794,8 @@ function initQRScan() {
   let lastScannedTime = 0;
   let feedbackTimer = null;
   let sessionHistory = [];
+  let lastScanTime = 0;
+  const SCAN_INTERVAL = 100; // scan every 100ms for zero lag and low CPU load
 
   function playBeep(success) {
     try {
@@ -1043,27 +1045,37 @@ function initQRScan() {
     if (!video) return;
 
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      // Downscale the entire video frame to a fixed width of 640px for maximum speed and field-of-view
-      const targetWidth = 640;
-      const targetHeight = Math.round((video.videoHeight / video.videoWidth) * targetWidth);
+      const now = Date.now();
+      if (now - lastScanTime >= SCAN_INTERVAL) {
+        lastScanTime = now;
 
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-      ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, targetWidth, targetHeight);
+        // Crop centered square area corresponding to the smaller dimension
+        const sourceSize = Math.min(video.videoWidth, video.videoHeight);
+        const sx = (video.videoWidth - sourceSize) / 2;
+        const sy = (video.videoHeight - sourceSize) / 2;
 
-      try {
-        const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-        if (typeof jsQR !== "undefined") {
-          // Attempt both normal and inverted colors to increase detection rates at tilted angles, reflections, or screens
-          const code = jsQR(imageData.data, targetWidth, targetHeight, {
-            inversionAttempts: "attemptBoth"
-          });
-          if (code && code.data) {
-            onScanSuccess(code.data);
+        const targetSize = 350; // Optimized size for speed & high-density decodes
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+
+        // Draw cropped center square from video source
+        ctx.drawImage(video, sx, sy, sourceSize, sourceSize, 0, 0, targetSize, targetSize);
+
+        try {
+          const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
+          if (typeof jsQR !== "undefined") {
+            // Alternate inversion attempts between frames to keep CPU usage low
+            const attempt = (Math.floor(now / SCAN_INTERVAL) % 2 === 0) ? "dontInvert" : "attemptBoth";
+            const code = jsQR(imageData.data, targetSize, targetSize, {
+              inversionAttempts: attempt
+            });
+            if (code && code.data) {
+              onScanSuccess(code.data);
+            }
           }
+        } catch (err) {
+          // Suppress canvas reading noise
         }
-      } catch (err) {
-        // Suppress canvas reading noise
       }
     }
     requestAnimationFrame(scanFrame);

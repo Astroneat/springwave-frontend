@@ -20,3 +20,11 @@ export function formatDate(dateString) {
 export function capitalize(str) {
     return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 }
+
+export function toLocalISODate(date) {
+    if (!date || isNaN(date.getTime())) return "";
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}

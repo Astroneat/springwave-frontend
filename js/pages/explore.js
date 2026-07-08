@@ -10,7 +10,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
-import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/utils.js";
 import { getUser } from "../lib/session.js";
 
 let allActivities = [];
@@ -255,8 +255,8 @@ function initSearchButton() {
         try {
             const params = {
                 location: location || undefined,
-                heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
-                heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
+                heldDateFrom: dates.startDate ? toLocalISODate(dates.startDate) : undefined,
+                heldDateTo: dates.endDate ? toLocalISODate(dates.endDate) : undefined
             };
 
             const data = keyword

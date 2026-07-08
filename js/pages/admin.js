@@ -3,7 +3,7 @@ import { isAuthenticated, getUser } from "../lib/session.js";
 import { getEvents, getPendingEvents, approveEvent, rejectEvent, deleteEvent, scrapeEvents, updateEvent } from "../api/admin.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
-import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/utils.js";
 import { t } from "../lib/i18n.js";
 import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit, initAttachmentLinks, initOrgSelector, initCheckinRulesToggle } from "../lib/hostForm.js";
 
@@ -298,7 +298,7 @@ function buildEditHTML(e) {
     let heldDate = "";
     if (e.heldDate) {
         const d = new Date(e.heldDate);
-        if (!isNaN(d)) heldDate = d.toISOString().split("T")[0];
+        if (!isNaN(d)) heldDate = toLocalISODate(d);
     }
     const classificationHTML = e.classificationReason
         ? `<div class="mt-4">

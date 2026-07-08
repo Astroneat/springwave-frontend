@@ -4,6 +4,7 @@ import { sanitizeHtml } from "../lib/sanitize.js";
 import { getMyOrganizations, getOrganizationById } from "../api/organizations.js";
 import { getUser } from "../lib/session.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
+import { toLocalISODate } from "../lib/utils.js";
 
 const MAX_FILES = 10;
 let turnstileWidgetId = null;
@@ -360,7 +361,7 @@ function createDatePicker(config) {
     function updateDisplay() {
         if (selectedDate) {
             input.value = formatDate(selectedDate);
-            if (hiddenInput) hiddenInput.value = selectedDate.toISOString().split("T")[0];
+            if (hiddenInput) hiddenInput.value = toLocalISODate(selectedDate);
         } else {
             input.value = "";
             if (hiddenInput) hiddenInput.value = "";
@@ -500,7 +501,7 @@ function createDatePicker(config) {
             if (parsed) {
                 selectedDate = parsed;
                 manualTyping = true;
-                if (hiddenInput) hiddenInput.value = selectedDate.toISOString().split("T")[0];
+                if (hiddenInput) hiddenInput.value = toLocalISODate(selectedDate);
                 if (onSelect) onSelect(parsed);
             }
         }
@@ -594,7 +595,11 @@ export function initFormSubmit(urlOrgId, onSuccess) {
         formData.append("description", description);
         formData.append("location", location);
         formData.append("type", type);
-        formData.append("heldDate", `${heldDate}T${heldHour}:${heldMinute}:00`);
+        const [year, month, day] = heldDate.split("-").map(Number);
+        const hour = parseInt(heldHour, 10);
+        const minute = parseInt(heldMinute, 10);
+        const localDate = new Date(year, month - 1, day, hour, minute, 0);
+        formData.append("heldDate", localDate.toISOString());
         if (hostNameValue) formData.append("hostName", hostNameValue);
         if (orgId) formData.append("organization", orgId);
         if (registrationLink) formData.append("registrationLink", registrationLink);
