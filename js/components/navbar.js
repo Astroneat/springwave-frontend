@@ -3,7 +3,7 @@ import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificat
 import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
 
-export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
+export async function loadNavbar({ activeSection } = {}) {
     if (isAuthenticated()) {
         try {
             const { getCurrentUser } = await import("../api/auth.js");
@@ -47,7 +47,7 @@ export async function loadNavbar({ activeSection, onFavouritesClick } = {}) {
             if (adminDashboardBtn) {
                 adminDashboardBtn.style.display = user?.role === "admin" ? "" : "none";
             }
-            initUserDropdown(onFavouritesClick);
+            initUserDropdown();
             if (bellIcon) {
                 bellIcon.classList.remove("hidden");
                 bellIcon.classList.add("flex");
@@ -349,7 +349,7 @@ export function updateHostBtn() {
     });
 }
 
-function initUserDropdown(onFavouritesClick) {
+function initUserDropdown() {
     const userMenu = document.querySelector(".user-menu");
     const userChip = document.getElementById("user-chip");
     const logoutBtn = document.getElementById("logout-btn");
@@ -427,10 +427,11 @@ function initUserDropdown(onFavouritesClick) {
     if (mobileHostBtn) mobileHostBtn.addEventListener("click", hostCheck);
 
     const favBtn = document.getElementById("favourites-btn");
-    favBtn?.addEventListener("click", (e) => {
+    favBtn?.addEventListener("click", async (e) => {
         e.stopPropagation();
         userMenu.classList.remove("active");
-        if (onFavouritesClick) onFavouritesClick();
+        const { showFavouritesGlobal } = await import("./favourites.js");
+        showFavouritesGlobal();
     });
 }
 

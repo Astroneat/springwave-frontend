@@ -7,5 +7,6 @@ dist/
 .env.local
 .env.*.local
 .vite/
+.env.local
 /.stitch
 CLAUDE.md

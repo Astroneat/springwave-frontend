@@ -234,7 +234,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         try {
-            await uploadFormData("/host/register", formData);
+            if (createMode) {
+                await uploadFormData("/organizations", formData);
+            } else {
+                await uploadFormData("/host/register", formData);
+            }
 
             btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> <span>Submission Received!</span>';
             btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');

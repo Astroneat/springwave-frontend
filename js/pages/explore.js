@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadNavbar() {
-    await loadSharedNavbar({ activeSection: "explore", onFavouritesClick: showFavourites });
+    await loadSharedNavbar({ activeSection: "explore" });
     initScrollMerge();
 }
 
@@ -124,21 +124,7 @@ function initNavbarActiveLinks() {
     });
 }
 
-function initUserDropdown() {
-    const userMenu = document.querySelector(".user-menu");
-    const userChip = document.getElementById("user-chip");
-    const logoutBtn = document.getElementById("logout-btn");
-    if (!userMenu || !userChip) return;
-    userChip.addEventListener("click", (e) => { e.stopPropagation(); userMenu.classList.toggle("active"); });
-    document.addEventListener("click", () => userMenu.classList.remove("active"));
-    userMenu.addEventListener("click", (e) => e.stopPropagation());
-    logoutBtn?.addEventListener("click", () => { logout(); window.location.href = "/login.html"; });
-    document.getElementById("favourites-btn")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        userMenu.classList.remove("active");
-        showFavourites();
-    });
-}
+
 
 async function initExplore() {
     try {
@@ -787,8 +773,8 @@ function buildPopupHTML(a, backText) {
                         <button class="action-btn participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
                             <i class="fa-solid fa-${a.source?.url ? 'arrow-up-right-from-square' : 'users'}"></i>
                             <div>
-                                <h4 class="participate-header">${a.source?.url ? t("explore.register_external") || "Register Externally" : t("explore.participate")}</h4>
-                                <p class="participate-text">${a.source?.url ? t("explore.visit_original") || "Visit original source" : t("explore.join_activity")}</p>
+                                <h4 class="participate-header">${a.source?.url ? "Explore more" : t("explore.participate")}</h4>
+                                <p class="participate-text" ${a.source?.url ? 'style="display:none"' : ''}>${a.source?.url ? '' : t("explore.join_activity")}</p>
                             </div>
                         </button>
                         <button class="action-btn discuss discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}" type="button">
@@ -849,50 +835,7 @@ function setFavourited(activityID) {
     toggleCardStar(activityID, true);
 }
 
-async function showFavourites() {
-    if (!isAuthenticated()) {
-        window.location.href = "/login.html";
-        return;
-    }
-    try {
-        const { activities } = await getFavourites();
-        popupContainer.innerHTML = buildFavouritesHTML(activities || []);
-        popupOverlay.removeAttribute("hidden");
-        popupOverlay.classList.add("active");
-        document.body.style.overflow = "hidden";
-        popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
-        const cards = popupContainer.querySelectorAll(".activity-card");
-        activities.forEach((a, i) => {
-            cards[i]?.addEventListener("click", () => openPopup2(a.activityID, a));
-        });
-    } catch (err) {
-        console.error("Failed to show favourites:", err);
-    }
-}
 
-function buildFavouritesHTML(activities) {
-    if (activities.length === 0) {
-        return `<div class="container" style="padding:40px;text-align:center;color:var(--text-muted)"><p>${t("explore.no_favourites")}</p></div>`;
-    }
-    const items = activities.map(a => {
-        const held = formatDate(a.heldDate);
-        const type = capitalize(a.type);
-        return `<div class="activity-card" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;transition:background 0.2s">
-            <div style="width:120px;height:90px;border-radius:10px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">
-                ${a.thumbnail ? `<img src="${a.thumbnail}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="padding:30px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}
-            </div>
-            <div style="flex:1">
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:12px;padding:2px 10px;border-radius:999px;background:#dce9ff;color:var(--accent);font-weight:600;">${type}</span>
-                    <span style="font-size:12px;color:var(--text-muted)">${held}</span>
-                </div>
-                <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">${a.title}</h3>
-                <div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${a.location}</div>
-            </div>
-        </div>`;
-    }).join('');
-    return `<div class="container"><div class="top-bar"><button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${t("explore.back")}</button><h2 style="font-size:22px;font-weight:700;">${t("explore.favourite_activities")}</h2></div><div style="margin-top:20px;">${items}</div></div>`;
-}
 
 function setParticipateLoading(button, loading) {
     if (loading) {
