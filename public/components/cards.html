@@ -1,22 +1,29 @@
 <!-- CARD 1 -->
-<div class="card">
+<div class="card relative group">
     <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop" class="card-image">
+    
+    <!-- Tag Overlay -->
+    <div class="absolute top-3 right-3 bg-[#e6f0fd] px-3 py-1 rounded-lg text-xs font-bold text-[#3493fa] flex items-center gap-1.5 border border-[#3493fa]/30 z-10 shadow-sm">
+        <i class="fa-solid fa-tag text-[#3493fa] text-[10px]"></i>
+        <span class="info-type">Social Activity</span>
+    </div>
+
     <div class="card-content">
         <h2 class="card-title">Clean Mỹ Khê Beach</h2>
 
         <div class="info">
             <i class="fa-solid fa-location-dot"></i>
-            <span>Mỹ Khê Beach</span>
+            <span class="info-location">Mỹ Khê Beach</span>
         </div>
 
         <div class="info">
             <i class="fa-regular fa-calendar"></i>
-            <span>15/05/2026</span>
+            <span class="info-date">15/05/2026</span>
         </div>
 
         <div class="info">
-            <i class="fa-solid fa-users"></i>
-            <span>Social Activity</span>
+            <i class="fa-solid fa-user-tie"></i>
+            <span class="info-host">Host Name</span>
         </div>
 
         <div class="card-bottom">

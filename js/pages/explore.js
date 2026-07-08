@@ -386,10 +386,17 @@ async function renderCardsDirect(activities) {
             image.alt = activity.title;
         }
         card.querySelector(".card-title").textContent = activity.title;
-        const infoSpans = card.querySelectorAll(".info span");
-        infoSpans[0].textContent = activity.location || t("explore.unknown_location");
-        infoSpans[1].textContent = formatDate(activity.heldDate);
-        infoSpans[2].textContent = capitalize(activity.type || "Activity");
+        const locationSpan = card.querySelector(".info-location");
+        if (locationSpan) locationSpan.textContent = activity.location || t("explore.unknown_location");
+        
+        const dateSpan = card.querySelector(".info-date");
+        if (dateSpan) dateSpan.textContent = formatDate(activity.heldDate);
+        
+        const typeSpan = card.querySelector(".info-type");
+        if (typeSpan) typeSpan.textContent = capitalize(activity.type || "Activity");
+        
+        const hostSpan = card.querySelector(".info-host");
+        if (hostSpan) hostSpan.textContent = activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
         card.dataset.id = activity.activityID;
         frag.appendChild(card);
     });
