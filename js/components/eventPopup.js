@@ -4,6 +4,7 @@ import { CDN_DOMAIN } from "../config.js";
 import { t } from "../lib/i18n.js";
 import { isAuthenticated } from "../lib/session.js";
 import { formatDate, capitalize } from "../lib/utils.js";
+import { openPostModal } from "./postModal.js";
 
 // Ensure overlay and container exist
 function ensurePopupElements() {
@@ -83,14 +84,7 @@ export async function openEventPopup(activityID, options = {}) {
     });
 
     container.querySelector(".discuss-btn")?.addEventListener("click", () => {
-        const btn = container.querySelector(".discuss-btn");
-        const eventId = btn?.dataset.eventId;
-        const eventTitle = btn?.dataset.eventTitle;
-        if (eventId && eventTitle && window._openExplorePostModal) {
-            window._openExplorePostModal(eventId, eventTitle);
-        } else {
-            window.location.href = `./community.html?event=${eventId}`;
-        }
+        openPostModal(activity);
     });
 
     if (isAuthenticated()) {

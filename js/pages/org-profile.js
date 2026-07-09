@@ -1,7 +1,7 @@
 import "../../src/style.css";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
-import { fetchContent, formatDate } from "../lib/utils.js";
+import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import {
   getOrganizationPublicProfile,
@@ -185,11 +185,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         grid.innerHTML = events.map(e => `
           <div data-id="${e._id}" class="event-card cursor-pointer block bg-white border border-[#ecedfa] rounded-[20px] overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-200 group">
-            <div class="h-36 bg-[#f1f5f9] overflow-hidden">
+            <div class="h-36 bg-[#f1f5f9] overflow-hidden relative">
               ${e.thumbnail
                 ? `<img src="${e.thumbnail}" alt="${e.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">`
                 : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><span class="material-symbols-outlined text-4xl">event</span></div>`
               }
+              <div class="absolute top-3 right-3 bg-[#e6f0fd] px-3 py-1 rounded-lg text-xs font-bold text-[#3493fa] flex items-center gap-1.5 border border-[#3493fa]/30 z-10 shadow-sm">
+                <i class="fa-solid fa-tag text-[#3493fa] text-[10px]"></i>
+                <span class="info-type">${capitalize(e.type || "Activity")}</span>
+              </div>
             </div>
             <div class="p-4">
               <h3 class="font-bold text-sm text-[#191b22] line-clamp-2 mb-2">${e.title}</h3>

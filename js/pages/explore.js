@@ -56,7 +56,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     await initExplore();
     await loadRecommendations();
     await initChatbot();
-    initExplorePostModal();
     initializePage();
 
     if (eventId) {
@@ -1144,148 +1143,8 @@ function initMapSelector() {
    EXPLORE POST MODAL
    ============================= */
 
-function initExplorePostModal() {
-  const overlay = document.getElementById("explorePostOverlay");
-  const backdrop = document.getElementById("explorePostBackdrop");
-  const closeBtn = document.getElementById("explorePostClose");
-  const cancelBtn = document.getElementById("explorePostCancel");
-  const publishBtn = document.getElementById("explorePostPublish");
-  const titleInput = document.getElementById("explorePostTitle");
-  const contentInput = document.getElementById("explorePostContent");
-  const tagsInput = document.getElementById("explorePostTags");
-  const eventInfo = document.getElementById("explorePostEventInfo");
 
-  let currentEventId = null;
-  let currentEventTitle = "";
 
-  function open(eventId, eventTitle) {
-    currentEventId = eventId;
-    currentEventTitle = eventTitle;
-    titleInput.value = "";
-    contentInput.value = "";
-    tagsInput.value = "";
-    eventInfo.innerHTML = `
-      <span class="material-symbols-outlined text-blue-600">event</span>
-      <div class="forum-post-event-info">
-        <span class="text-sm font-medium text-slate-800">${eventTitle}</span>
-        <span class="text-xs text-slate-500">This discussion will be linked to this event</span>
-      </div>
-      <span class="material-symbols-outlined text-blue-600">check_circle</span>
-    `;
-    overlay.style.display = "flex";
-    requestAnimationFrame(() => overlay.classList.add("active"));
-    document.body.style.overflow = "hidden";
-  }
 
-  function close() {
-    overlay.classList.remove("active");
-    setTimeout(() => { overlay.style.display = "none"; }, 300);
-    document.body.style.overflow = "";
-  }
-
-  closeBtn?.addEventListener("click", close);
-  cancelBtn?.addEventListener("click", close);
-  if (backdrop) backdrop.addEventListener("click", close);
-
-  publishBtn?.addEventListener("click", async () => {
-    const check = canPerformAction('createDiscussion');
-    if (!check.allowed) {
-      alert(`Please wait ${check.remaining} seconds before posting.`);
-      return;
-    }
-    markActionPerformed('createDiscussion');
-
-    const title = sanitizeHtml(titleInput.value.trim());
-    if (!title) { titleInput.focus(); return; }
-    publishBtn.disabled = true;
-    try {
-      const result = await createDiscussionWithScope({
-        title,
-        content: sanitizeHtml(contentInput.value.trim() || ""),
-        category: "event",
-        tags: (tagsInput.value || "").split(",").map(t => sanitizeHtml(t.trim())).filter(Boolean),
-        relatedEvent: currentEventId,
-        scope: "general",
-      });
-      close();
-      if (result) {
-        const act = allActivities.find(a => a.activityID === currentEventId || a._id === currentEventId);
-        result.relatedEvent = currentEventId;
-        result._event = {
-          title: act?.title || currentEventTitle,
-          date: act?.heldDate || "",
-          attendees: act?.participants || 0,
-        };
-        if (!result.tags) result.tags = (tagsInput.value || "").split(",").map(t => t.trim()).filter(Boolean);
-        if (!result.category) result.category = "event";
-        if (!result.lastActivity) result.lastActivity = "Just now";
-        if (!result.replies) result.replies = 0;
-        result.id = result.id || result._id;
-        try { sessionStorage.setItem("springwave_pending_discussion", JSON.stringify(result)); } catch {}
-        try {
-          result._storedAt = Date.now();
-          const stored = JSON.parse(localStorage.getItem("springwave_event_discussions") || "[]");
-          const idx = stored.findIndex(d => (d.id || d._id) === (result.id || result._id));
-          if (idx === -1) stored.unshift(result);
-          else stored[idx] = result;
-          localStorage.setItem("springwave_event_discussions", JSON.stringify(stored));
-        } catch {}
-        const discId = result._id || result.id;
-        showSuccessToast(
-          "Discussion posted successfully! Click here to view",
-          discId ? `./community.html?discussion=${discId}` : null,
-          "View Discussion"
-        );
-      }
-    } finally {
-      publishBtn.disabled = false;
-    }
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && overlay.classList.contains("active")) close();
-  });
-
-  window._openExplorePostModal = open;
-}
-
-function showSuccessToast(message, linkUrl, linkText) {
-  const existing = document.querySelectorAll(".success-toast");
-  const offset = existing.length * 80;
-  const toast = document.createElement("div");
-  toast.className = "success-toast";
-  toast.style.bottom = `${24 + offset}px`;
-  toast.innerHTML = `
-    <div class="success-toast-icon">
-      <span class="material-symbols-outlined">check_circle</span>
-    </div>
-    <div class="success-toast-body">
-      <span class="success-toast-heading">Success!</span>
-      <span class="success-toast-message">${message}</span>
-      ${linkUrl ? `<span class="success-toast-link">${linkText || "View Discussion"}</span>` : ""}
-    </div>
-    <button class="success-toast-close">
-      <span class="material-symbols-outlined">close</span>
-    </button>
-  `;
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => toast.classList.add("show"));
-  if (linkUrl) {
-    toast.addEventListener("click", (e) => {
-      if (e.target.closest(".success-toast-close")) return;
-      window.location.href = linkUrl;
-    });
-    toast.style.cursor = "pointer";
-  }
-  toast.querySelector(".success-toast-close")?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
-  });
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
-  }, 6000);
-}
 
 
