@@ -2,6 +2,7 @@ import "../../src/style.css";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate } from "../lib/utils.js";
+import { openEventPopup } from "../components/eventPopup.js";
 import {
   getOrganizationPublicProfile,
   getOrganizationPublicEvents,
@@ -14,6 +15,16 @@ import { getUser } from "../lib/session.js";
 
 // --- main --------------------------------------------------------------------
 
+function initEventDelegation() {
+  document.getElementById("org-events-grid")?.addEventListener("click", (e) => {
+    const card = e.target.closest(".event-card");
+    if (card) {
+      e.preventDefault();
+      openEventPopup(card.dataset.id);
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar();
   await fetchContent("./components/footer.html").then((html) => {
@@ -21,9 +32,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (footerContainer) footerContainer.innerHTML = html;
   });
   await initChatbot();
+  initEventDelegation();
 
   const params = new URLSearchParams(window.location.search);
-  const orgId = params.get("id");
+  const orgId = params.get("orgId") || params.get("id");
 
   if (!orgId) {
     document.getElementById("org-name").textContent = "Organization Not Found";
@@ -55,9 +67,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loggedInUser = getUser() || {};
 
   const orgAvatar =
-    org.avatar || loggedInUser.avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(org.name || "Org");
+    org.avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(org.name || "Org");
   const orgCover =
-    org.coverImage || loggedInUser.coverImage || loggedInUser.background || "";
+    org.coverImage || "";
 
   if (avatarImg) {
     avatarImg.src = orgAvatar;
@@ -172,7 +184,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>`;
       } else {
         grid.innerHTML = events.map(e => `
-          <a href="/explore.html?activity=${e._id}" class="block bg-white border border-[#ecedfa] rounded-[20px] overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-200 group">
+          <div data-id="${e._id}" class="event-card cursor-pointer block bg-white border border-[#ecedfa] rounded-[20px] overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-200 group">
             <div class="h-36 bg-[#f1f5f9] overflow-hidden">
               ${e.thumbnail
                 ? `<img src="${e.thumbnail}" alt="${e.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">`
@@ -190,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <span class="truncate">${e.location}</span>
               </div>` : ''}
             </div>
-          </a>
+          </div>
         `).join("");
       }
     }

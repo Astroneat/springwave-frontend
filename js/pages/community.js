@@ -42,6 +42,7 @@ import {
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { openEventPopup } from "../components/eventPopup.js";
 import { getActivityById, getActivities } from "../api/activities.js";
 import { grantContribution } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
@@ -293,8 +294,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Register interactive click and modal handlers immediately so UI is instantly smooth
   initSidebarLinkClick();
-  initEventDetailPopup();
+
   initDiscussionDetail();
+  console.log('openEventPopup is', openEventPopup);
+  window.openEventPopup = openEventPopup;
   initDiscussionPopupClose();
 
   // Load heavy network components concurrently in background
@@ -513,7 +516,7 @@ async function renderUpcomingEvents() {
       const id = item.dataset.eventId;
       if (id) {
         hideDiscussionPopup();
-        await window.openEventDetailPopup?.(id);
+        await window.openEventPopup?.(id);
       }
     });
   });
@@ -546,7 +549,7 @@ async function renderAISuggestions() {
       const id = item.dataset.eventId;
       if (id) {
         hideDiscussionPopup();
-        await window.openEventDetailPopup?.(id);
+        await window.openEventPopup?.(id);
       }
     });
   });
@@ -2124,7 +2127,7 @@ function initEventDetailPopup() {
   const container = document.getElementById("eventPopupContainer");
 
   async function open(eventId) {
-  window.openEventDetailPopup = open;
+  window.openEventPopup = open;
     if (!eventId) return;
     container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
     overlay.removeAttribute("hidden");
@@ -2354,9 +2357,9 @@ async function renderOrgGrid() {
                 ${formatDate(e.heldDate)}
               </p>
             </div>
-            <a href="/explore.html?eventId=${e._id}" class="text-[10px] text-primary font-bold hover:underline shrink-0 flex items-center gap-0.5">
+            <button type="button" onclick="openEventPopup('${e._id}')" class="text-[10px] text-primary font-bold hover:underline shrink-0 flex items-center gap-0.5">
               Detail <span class="material-symbols-outlined text-[10px]">chevron_right</span>
-            </a>
+            </button>
           </div>
         `).join("")
       : `<p class="text-xs text-[#94a3b8] italic text-center py-2">No upcoming events</p>`;
