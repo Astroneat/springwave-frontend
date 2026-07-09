@@ -5,6 +5,7 @@ import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "..
 import { getRecommendations, explainRecommendation } from "../api/recommendations.js";
 import { createDiscussionWithScope } from "../api/forum.js";
 import { CDN_DOMAIN } from "../config.js";
+import { openEventPopup } from "../components/eventPopup.js";
 import { t } from "../lib/i18n.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
@@ -67,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!allActivities.some(a => a.activityID === eventId || a._id === eventId)) {
                 allActivities.push(activity);
             }
-            openPopup(eventId);
+            openEventPopup(eventId);
         }
     }
 });
@@ -192,7 +193,7 @@ async function loadRecommendations() {
         container.querySelectorAll('.recommendation-card').forEach(card => {
             card.addEventListener('click', () => {
                 const id = card.dataset.id;
-                openPopup(id);
+                openEventPopup(id);
             });
         });
     } catch {
@@ -476,14 +477,30 @@ function renderPaginationControls(totalItems, totalPages) {
         btn.addEventListener("click", async () => {
             const page = parseInt(btn.dataset.page, 10);
             if (!isNaN(page)) {
-                currentPage = page;
-                await renderCardsDirect(currentFilteredActivities);
-                
-                // Scroll smoothly to results header
+                // Scroll to results header smoothly, accounting for fixed navbar
                 const target = document.querySelector(".results-header");
                 if (target) {
-                    target.scrollIntoView({ behavior: "smooth", block: "start" });
+                    const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+                    const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+                    window.scrollTo({ top: y, behavior: "smooth" });
                 }
+                
+                // Wait for smooth scroll to finish before rendering new cards
+                await new Promise(resolve => {
+                    let done = false;
+                    const finish = () => {
+                        if (done) return;
+                        done = true;
+                        window.removeEventListener('scrollend', finish);
+                        clearTimeout(fallback);
+                        resolve();
+                    };
+                    const fallback = setTimeout(finish, 800);
+                    window.addEventListener('scrollend', finish, { once: true });
+                });
+                
+                currentPage = page;
+                await renderCardsDirect(currentFilteredActivities);
             }
         });
     });
@@ -544,84 +561,10 @@ function initSidebar() {
 }
 
 function initializePage() {
-    initDetailButtons();
     initCardReveal();
 }
 
-const popupOverlay = document.getElementById("popup-overlay");
-const popupContainer = document.getElementById("popup-container");
-const popupOverlay2 = document.getElementById("popup-overlay-2");
-const popupContainer2 = document.getElementById("popup-container-2");
 
-async function openPopup(activityID) {
-    if (!activityID) return;
-    popupContainer.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
-    popupOverlay.removeAttribute("hidden");
-    popupOverlay.classList.add("active");
-    document.body.style.overflow = "hidden";
-
-    const activity = allActivities.find(a => a.activityID === activityID || a._id === activityID) || null;
-    if (activity) {
-        popupContainer.innerHTML = buildPopupHTML(activity);
-    } else {
-        const { activity: fetched } = await getActivityById(activityID);
-        popupContainer.innerHTML = buildPopupHTML(fetched);
-    }
-    initParticipateButton(activityID);
-    popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
-
-    popupContainer.querySelector(".icon-btn")?.addEventListener("click", () => {
-        const id = activityID;
-        const act = allActivities.find(a => a.activityID === id || a._id === id);
-        const title = act?.title || "SpringWave Event";
-        const url = `${window.location.origin}/explore.html?event=${id}`;
-        if (navigator.share) {
-            navigator.share({ title, url }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard!")).catch(() => {});
-        }
-    });
-
-    popupContainer.querySelector(".discuss-btn")?.addEventListener("click", () => {
-        const btn = popupContainer.querySelector(".discuss-btn");
-        const eventId = btn?.dataset.eventId;
-        const eventTitle = btn?.dataset.eventTitle;
-        if (eventId && eventTitle && window._openExplorePostModal) {
-            window._openExplorePostModal(eventId, eventTitle);
-        }
-    });
-
-    if (isAuthenticated()) {
-        Promise.all([
-            checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(); }),
-            checkFavourite(activityID).then(({ favourited }) => { if (favourited) setFavourited(activityID); })
-        ]).catch(() => {});
-    }
-
-    const favoriteBtn = popupContainer.querySelector(".favorite-btn");
-    favoriteBtn?.addEventListener("click", async (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (!isAuthenticated()) {
-            alert(t("explore.please_login") || "Please login first to favourite activities!");
-            return;
-        }
-        const isActive = favoriteBtn.classList.contains("active");
-        favoriteBtn.classList.toggle("active");
-        toggleCardStar(activityID, !isActive);
-        try {
-            if (isActive) {
-                await removeFavourite(activityID);
-            } else {
-                await addFavourite(activityID);
-            }
-        } catch (err) {
-            favoriteBtn.classList.toggle("active");
-            toggleCardStar(activityID, isActive);
-            console.error("Failed to toggle favourite:", err);
-        }
-    });
-}
 
 function toggleCardStar(activityID, active) {
     const card = document.querySelector(`.card[data-id="${activityID}"]`);
@@ -630,89 +573,7 @@ function toggleCardStar(activityID, active) {
     if (star) star.classList.toggle("active", active);
 }
 
-function closePopup() {
-    popupOverlay.classList.remove("active");
-    document.body.style.overflow = "";
-    setTimeout(() => { popupContainer.innerHTML = ""; popupOverlay.setAttribute("hidden", ""); }, 300);
-}
 
-function closePopup2() {
-    popupOverlay2.classList.remove("active");
-    setTimeout(() => { popupContainer2.innerHTML = ""; popupOverlay2.setAttribute("hidden", ""); }, 300);
-}
-
-async function openPopup2(activityID, activityData) {
-    if (!activityID) return;
-    popupContainer2.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
-    popupOverlay2.removeAttribute("hidden");
-    popupOverlay2.classList.add("active");
-
-    const activity = activityData || (await getActivityById(activityID)).activity;
-
-    if (!activity) return;
-    popupContainer2.innerHTML = buildPopupHTML(activity, "Back");
-    initParticipateButton(activityID);
-    popupContainer2.querySelector("#back-btn")?.addEventListener("click", closePopup2);
-
-    popupContainer2.querySelector(".icon-btn")?.addEventListener("click", () => {
-        const title = activity?.title || "SpringWave Event";
-        const url = `${window.location.origin}/explore.html?event=${activityID}`;
-        if (navigator.share) {
-            navigator.share({ title, url }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard!")).catch(() => {});
-        }
-    });
-
-    popupContainer2.querySelector(".discuss-btn")?.addEventListener("click", () => {
-        const btn = popupContainer2.querySelector(".discuss-btn");
-        const eventId = btn?.dataset.eventId;
-        const eventTitle = btn?.dataset.eventTitle;
-        if (eventId && eventTitle && window._openExplorePostModal) {
-            window._openExplorePostModal(eventId, eventTitle);
-        }
-    });
-
-    if (isAuthenticated()) {
-        Promise.all([
-            checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(); }),
-            checkFavourite(activityID).then(({ favourited }) => { if (favourited) setFavourited(activityID); })
-        ]).catch(() => {});
-    }
-
-    const favBtn = popupContainer2.querySelector(".favorite-btn");
-    favBtn?.addEventListener("click", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!isAuthenticated()) {
-            alert(t("explore.please_login") || "Please login first to favourite activities!");
-            return;
-        }
-        const active = favBtn.classList.contains("active");
-        favBtn.classList.toggle("active");
-        toggleCardStar(activityID, !active);
-        try {
-            if (active) { await removeFavourite(activityID); }
-            else { await addFavourite(activityID); }
-        } catch (err) {
-            favBtn.classList.toggle("active");
-            toggleCardStar(activityID, active);
-            console.error("Failed to toggle favourite:", err);
-        }
-    });
-}
-
-popupOverlay?.addEventListener("click", (e) => {
-    if (e.target === popupOverlay || e.target.classList.contains("popup-backdrop")) closePopup();
-});
-
-popupOverlay2?.addEventListener("click", (e) => {
-    if (e.target === popupOverlay2 || e.target.classList.contains("popup-backdrop")) closePopup2();
-});
-
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closePopup(); closePopup2(); }
-});
 
 let cardDelegationBound = false;
 let favReqInFlight = null;
@@ -756,9 +617,19 @@ function initCardClickHandlers() {
             return;
         }
 
+        const detailsBtn = e.target.closest(".details-btn");
+        if (detailsBtn) {
+            e.stopPropagation();
+            const card = detailsBtn.closest(".card");
+            if (card?.dataset.id) {
+                await openEventPopup(card.dataset.id);
+            }
+            return;
+        }
+
         const card = e.target.closest(".card");
         if (card?.dataset.id) {
-            await openPopup(card.dataset.id);
+            await openEventPopup(card.dataset.id);
         }
     });
 }
@@ -783,119 +654,8 @@ async function syncCardFavourites() {
     }
 }
 
-function buildPopupHTML(a, backText) {
-    const heldDate = formatDate(a.heldDate);
-    const type = capitalize(a.type);
-    const hasCoords = a.locationLat && a.locationLng;
-    const googleMapsLink = hasCoords
-        ? `https://www.google.com/maps?q=${a.locationLat},${a.locationLng}`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
-    backText = backText || t("explore.back");
-    const filesHTML = (a.attachments || []).map(f => {
-        const link = f.link || f.activityAttachLink || "";
-        const fileName = decodeURIComponent(link.split('/').pop());
-        return `<div class="file-item">
-            <div class="file-left">
-                <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-                <div><h4>${fileName}</h4></div>
-            </div>
-            <a class="download-btn" href="${CDN_DOMAIN}/${link}" target="_blank"><i class="fa-solid fa-download"></i></a>
-        </div>`;
-    }).join("");
 
-    return `
-    <div class="activity-popup-layout">
-        <!-- Hero Cover Section -->
-        <div class="popup-hero-cover">
-            <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
-            <div class="popup-hero-overlay"></div>
-            <button class="back-btn-floating" id="back-btn" title="${backText}"><i class="fa-solid fa-arrow-left"></i></button>
-            <span class="popup-category-badge"><i class="fa-solid fa-tag"></i> ${type}</span>
-        </div>
 
-        <!-- Content Grid Section -->
-        <div class="popup-body-grid">
-            <div class="popup-body-main">
-                <h1 class="popup-main-title">${a.title}</h1>
-                <div class="popup-host-row">
-                    <div class="popup-host-avatar">${(a.hostName || a.createdByName || "U")[0].toUpperCase()}</div>
-                    <div class="popup-host-info">
-                        <span class="host-label">Hosted by</span>
-                        <h4 class="host-name">${a.hostName || a.createdByName || t("common.unknown")}</h4>
-                    </div>
-                </div>
-                <div class="popup-section-divider"></div>
-                <h3 class="popup-section-title">About this Activity</h3>
-                <div class="popup-description-text">
-                    ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
-                </div>
-                ${filesHTML ? `
-                <div class="popup-section-divider"></div>
-                <div class="popup-attachments-section">
-                    <h3>${t("explore.attached_files")} (${(a.attachments || []).length})</h3>
-                    <div class="popup-files-list">${filesHTML}</div>
-                </div>` : ""}
-            </div>
-
-            <!-- Sticky Action Sidebar -->
-            <aside class="popup-sidebar">
-                <div class="popup-sidebar-card">
-                    <h3 class="sidebar-card-title">Activity Details</h3>
-                    <div class="sidebar-details-list">
-                        <div class="sidebar-detail-item">
-                            <i class="fa-regular fa-calendar"></i>
-                            <div>
-                                <span>Date & Time</span>
-                                <p>${heldDate}</p>
-                            </div>
-                        </div>
-                        <div class="sidebar-detail-item">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <div>
-                                <span>Location</span>
-                                <p><a href="${googleMapsLink}" target="_blank" class="sidebar-location-link">${a.location} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></p>
-                            </div>
-                        </div>
-                        <div class="sidebar-detail-item">
-                            <i class="fa-solid fa-tag"></i>
-                            <div>
-                                <span>Category</span>
-                                <p>${type}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-actions-group">
-                        <button class="action-btn participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
-                            <i class="fa-solid fa-${a.source?.url ? 'arrow-up-right-from-square' : 'users'}"></i>
-                            <div>
-                                <h4 class="participate-header">${a.source?.url ? "Explore more" : t("explore.participate")}</h4>
-                                <p class="participate-text" ${a.source?.url ? 'style="display:none"' : ''}>${a.source?.url ? '' : t("explore.join_activity")}</p>
-                            </div>
-                        </button>
-                        <button class="action-btn discuss discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}" type="button">
-                            <i class="fa-solid fa-comments"></i>
-                            <div>
-                                <h4>DISCUSS</h4>
-                                <p>Join the thread</p>
-                            </div>
-                        </button>
-                        <div class="sidebar-minor-row">
-                            <button class="icon-btn minor-btn" type="button"><span class="material-symbols-outlined text-base">share</span> ${t("explore.share")}</button>
-                            <button type="button" class="favorite-btn minor-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite")}</span></button>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-        </div>
-    </div>`;
-}
-
-function initDetailButtons() {
-    document.querySelectorAll(".details-btn").forEach(button => {
-        button.addEventListener("click", (e) => e.stopPropagation());
-    });
-}
 
 function initCardReveal() {
     const cards = document.querySelectorAll(".card");
@@ -916,86 +676,7 @@ function initCardReveal() {
     });
 }
 
-function setParticipated() {
-    const btn = document.querySelector(".participate");
-    if (!btn) return;
-    if (btn.dataset.externalUrl) return; // Do not mark as participated for external links
-    btn.classList.add("active");
-    btn.querySelector(".participate-header").textContent = t("explore.participated");
-    btn.querySelector(".participate-text").textContent = t("explore.joined_activity");
-}
 
-function setFavourited(activityID) {
-    const btn = document.querySelector(".favorite-btn");
-    if (btn) btn.classList.add("active");
-    toggleCardStar(activityID, true);
-}
-
-
-
-function setParticipateLoading(button, loading) {
-    if (loading) {
-        button.classList.add("loading");
-        button.disabled = true;
-        const icon = button.querySelector("i");
-        if (icon) {
-            icon.className = "fa-solid fa-spinner fa-spin";
-        }
-        button.querySelector(".participate-header").textContent = "Processing...";
-        button.querySelector(".participate-text").textContent = "Generating QR code";
-    } else {
-        button.classList.remove("loading");
-        button.disabled = false;
-        const icon = button.querySelector("i");
-        if (icon) {
-            icon.className = "fa-solid fa-users";
-        }
-    }
-}
-
-function initParticipateButton(activityID) {
-    const participateBtn = document.querySelector(".participate");
-    if (!participateBtn) return;
-    participateBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        const button = e.currentTarget;
-        if (button.disabled) return;
-        
-        const externalUrl = button.dataset.externalUrl;
-        if (externalUrl) {
-            window.open(externalUrl, '_blank');
-            return;
-        }
-
-        const isActive = button.classList.contains("active");
-        if (!isAuthenticated()) return;
-        if (!isActive) {
-            setParticipateLoading(button, true);
-        }
-        try {
-            if (isActive) {
-                await unparticipateActivity(activityID);
-                button.classList.remove("active");
-                button.querySelector(".participate-header").textContent = t("explore.participate");
-                button.querySelector(".participate-text").textContent = t("explore.join_activity");
-            } else {
-                await enqueueParticipate(() => participateActivity(activityID));
-                setParticipateLoading(button, false);
-                button.classList.add("active");
-                button.querySelector(".participate-header").textContent = t("explore.participated");
-                button.querySelector(".participate-text").textContent = t("explore.joined_activity");
-            }
-        } catch (err) {
-            setParticipateLoading(button, false);
-            console.error("Participate error:", err);
-            button.querySelector(".participate-header").textContent = t("explore.participate");
-            button.querySelector(".participate-text").textContent = err.message || t("common.error");
-            setTimeout(() => {
-                button.querySelector(".participate-text").textContent = button.classList.contains("active") ? t("explore.joined_activity") : t("explore.join_activity");
-            }, 2000);
-        }
-    });
-}
 
 function initSearchDatePicker() {
     const item = document.getElementById("zone-date");
