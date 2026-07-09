@@ -11334,4 +11334,56 @@ html, body, button, input, select, textarea {
     }
 }
 
+/* --- Pagination Controls --- */
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pagination-btn:hover:not([disabled]) {
+    border-color: rgba(35, 73, 155, 0.2);
+    background: rgba(35, 73, 155, 0.04);
+    color: #23499b;
+}
+
+.pagination-btn.active {
+    background: #23499b;
+    border-color: #23499b;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(35, 73, 155, 0.15);
+}
+
+.pagination-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #f8fafc;
+}
+
+.pagination-ellipsis {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    padding: 0 4px;
+}
+
 
