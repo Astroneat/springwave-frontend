@@ -70,3 +70,12 @@ export function searchSemantic(params) {
     if (params.limit) q.set("limit", params.limit);
     return get(`/events/search/semantic?${q.toString()}`).then(normalizeEvents);
 }
+
+// Comments API
+export function getEventComments(id) {
+    return get(`/events/${id}/comments`);
+}
+
+export function addEventComment(id, content) {
+    return post(`/events/${id}/comments`, { content });
+}

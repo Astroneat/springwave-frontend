@@ -1,9 +1,10 @@
-import { getActivityById, checkParticipation, unparticipateActivity, participateActivity } from "../api/activities.js";
+import { sanitizeHtml } from "../lib/sanitize.js";
+import { getActivityById, checkParticipation, unparticipateActivity, participateActivity, getEventComments, addEventComment } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { t } from "../lib/i18n.js";
-import { isAuthenticated } from "../lib/session.js";
-import { formatDate, capitalize } from "../lib/utils.js";
+import { isAuthenticated, getUser, isProfileComplete } from "../lib/session.js";
+import { formatDate, capitalize, timeAgo } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
 
 // Ensure overlay and container exist
@@ -86,6 +87,8 @@ export async function openEventPopup(activityID, options = {}) {
     container.querySelector(".discuss-btn")?.addEventListener("click", () => {
         openPostModal(activity);
     });
+
+    initEventComments(activityID, container);
 
     if (isAuthenticated()) {
         Promise.all([
@@ -188,6 +191,27 @@ function buildPopupHTML(a, backText) {
                     <h3>${t("explore.attached_files")} (${(a.attachments || []).length})</h3>
                     <div class="popup-files-list">${filesHTML}</div>
                 </div>` : ""}
+
+                <div class="popup-section-divider"></div>
+                <div class="popup-comments-section" id="popup-comments-container">
+                    <h3 class="popup-section-title">Comments</h3>
+                    
+                    <div class="event-comment-input-area">
+                        <div class="event-comment-avatar">
+                            <span id="current-user-avatar-initial">?</span>
+                        </div>
+                        <div class="event-comment-input-wrapper">
+                            <input type="text" id="event-comment-input" placeholder="Write a comment..." autocomplete="off">
+                            <button id="event-comment-submit"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+
+                    <div id="event-comments-list" class="event-comments-list">
+                        <div class="popup-loading-small"><div class="spinner"></div></div>
+                    </div>
+                    
+                    <button id="event-comments-see-more" class="event-comments-see-more" style="display: none;">See more comments</button>
+                </div>
             </div>
 
             <!-- Sticky Action Sidebar -->
@@ -309,4 +333,103 @@ function initParticipateButton(activityID) {
             alert(err.message || "Failed to participate");
         }
     });
+}
+
+
+async function initEventComments(eventId, container) {
+    const listEl = container.querySelector('#event-comments-list');
+    const inputEl = container.querySelector('#event-comment-input');
+    const submitBtn = container.querySelector('#event-comment-submit');
+    const seeMoreBtn = container.querySelector('#event-comments-see-more');
+    const avatarSpan = container.querySelector('#current-user-avatar-initial');
+    
+    if (isAuthenticated()) {
+        const user = getUser();
+        if (user) {
+            avatarSpan.textContent = (user.fullname || user.username || '?').charAt(0).toUpperCase();
+        }
+    }
+    
+    let comments = [];
+    let visibleCount = 3;
+
+    function renderComments() {
+        if (!comments || comments.length === 0) {
+            listEl.innerHTML = '<div class="no-comments">No comments yet. Be the first to comment!</div>';
+            seeMoreBtn.style.display = 'none';
+            return;
+        }
+
+        const visibleComments = comments.slice(0, visibleCount);
+        listEl.innerHTML = visibleComments.map(c => {
+            const initial = (c.userName || c.author || c.createdByName || '?').charAt(0).toUpperCase();
+            return `<div class="event-comment-item">
+                <div class="event-comment-avatar">${initial}</div>
+                <div class="event-comment-content">
+                    <h5 class="event-comment-author">${c.userName || c.author || c.createdByName || 'Unknown User'}</h5>
+                    <p class="event-comment-text">${sanitizeHtml(c.content)}</p>
+                    <span class="event-comment-date">${timeAgo(c.date || c.createdAt)}</span>
+                </div>
+            </div>`;
+        }).join('');
+
+        if (comments.length > visibleCount) {
+            seeMoreBtn.style.display = 'block';
+            seeMoreBtn.textContent = `See more comments (${comments.length - visibleCount} hidden)`;
+        } else {
+            seeMoreBtn.style.display = 'none';
+        }
+    }
+
+    seeMoreBtn?.addEventListener('click', () => {
+        visibleCount += 5;
+        renderComments();
+    });
+
+    submitBtn?.addEventListener('click', async () => {
+        if (!isAuthenticated()) {
+            alert('Please login to comment!');
+            window.location.href = '/login.html';
+            return;
+        }
+        
+        const user = getUser();
+        if (!isProfileComplete(user)) {
+            alert('Vui lòng cập nhật đầy đủ thông tin cá nhân (Ngày sinh, Trường, Lớp, Ngành, SĐT) trong trang Cá nhân trước khi bình luận.');
+            window.location.href = '/profile.html';
+            return;
+        }
+
+        const text = inputEl.value.trim();
+        if (!text) return;
+        
+        submitBtn.disabled = true;
+        try {
+            const resp = await addEventComment(eventId, text);
+            if (resp) {
+                inputEl.value = '';
+                // Prepend new comment
+                comments.unshift({
+                    author: user.fullname || user.username,
+                    content: text,
+                    date: new Date().toISOString()
+                });
+                renderComments();
+            }
+        } catch (err) {
+            alert(err.message || 'Failed to post comment');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    try {
+        const resp = await getEventComments(eventId);
+        comments = (resp && resp.comments) ? resp.comments : [];
+        comments.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+        renderComments();
+    } catch (err) {
+        listEl.innerHTML = '<div class="no-comments">Failed to load comments</div>';
+        seeMoreBtn.style.display = 'none';
+    }
 }

@@ -64,3 +64,8 @@ export function logout() {
         google.accounts.id.disableAutoSelect();
     }
 }
+
+export function isProfileComplete(user) {
+    if (!user) return false;
+    return !!(user.dob && user.school && user.class && user.major && user.phoneNo);
+}

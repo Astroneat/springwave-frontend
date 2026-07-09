@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { t } from "../lib/i18n.js";
-import { isAuthenticated, getUser, getToken, setUser } from "../lib/session.js";
+import { isAuthenticated, getUser, getToken, setUser, isProfileComplete } from "../lib/session.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
@@ -41,7 +41,7 @@ import {
 } from "../api/forum.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
-import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { fetchContent, formatDate, capitalize, timeAgo } from "../lib/utils.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { getActivityById, getActivities } from "../api/activities.js";
 import { grantContribution } from "../api/user.js";
@@ -158,9 +158,7 @@ function eventToDiscussion(event) {
   };
 }
 
-function isProfileComplete(user) {
-  return user && user.dob && user.school && user.class && user.major && user.phoneNo;
-}
+
 
 function showProfileModal() {
   const overlay = document.getElementById("profileModalOverlay");
@@ -333,6 +331,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (discussParam === "event") {
     history.replaceState({}, "", window.location.pathname);
   }
+
+  // Handle clicking on event references inside discussions
+  document.addEventListener("click", (e) => {
+    const ref = e.target.closest(".forum-event-ref");
+    if (!ref) return;
+    const eventId = ref.dataset.eventId;
+    if (eventId && typeof window.openEventPopup === "function") {
+      if (typeof hideDiscussionPopup === "function") hideDiscussionPopup();
+      window.openEventPopup(eventId);
+    }
+  });
 });
 
 async function loadNavbar() {
@@ -698,7 +707,7 @@ function renderEventRef(eventId, eventData) {
         <span class="forum-event-ref-title">${event.title}</span>
         <span class="forum-event-ref-meta">
           <span class="material-symbols-outlined text-xs">calendar_today</span>
-          ${event.date}
+          ${formatDate(event.date)}
         </span>
       </div>
       <span class="forum-event-ref-link">View Event</span>
@@ -1317,7 +1326,7 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
         <div class="forum-comment-header">
           ${depth > 0 ? `<div class="forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName)}</div>` : ""}
           <span class="forum-comment-author">${c.author || c.userName}</span>
-          <span class="forum-comment-date">${c.date || c.createdAt || "recent"}</span>
+          <span class="forum-comment-date">${timeAgo(c.date || c.createdAt)}</span>
         </div>
         <p class="forum-comment-text">${replyToHtml}${c.content}</p>
         <div class="forum-comment-footer">
@@ -2121,143 +2130,9 @@ function initPostModal() {
    EVENT DETAIL POPUP
    ============================= */
 
-function initEventDetailPopup() {
-  const overlay = document.getElementById("eventPopupOverlay");
-  const backdrop = document.getElementById("eventPopupBackdrop");
-  const container = document.getElementById("eventPopupContainer");
 
-  async function open(eventId) {
-  window.openEventPopup = open;
-    if (!eventId) return;
-    container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
-    overlay.removeAttribute("hidden");
-    overlay.classList.add("active");
-    document.body.style.overflow = "hidden";
 
-    try {
-      const { activity } = await getActivityById(eventId);
-      container.innerHTML = buildEventDetailPopupHTML(activity);
-    } catch {
-      const event = await getEventById(eventId);
-      if (event) {
-        container.innerHTML = buildEventDetailPopupHTML({
-          activityID: event.id,
-          title: event.title,
-          heldDate: event.date,
-          type: "event",
-          location: "Da Nang",
-          hostName: "SpringWave",
-          description: "Join the community discussion about this event! Share your thoughts, ask questions, and connect with other attendees.",
-          thumbnail: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop",
-          attachments: [],
-        });
-      } else {
-        container.innerHTML = `<div class="popup-loading text-slate-500">Event not found</div>`;
-      }
-    }
 
-    container.querySelector("#back-btn")?.addEventListener("click", close);
-
-    container.querySelector(".icon-btn")?.addEventListener("click", () => {
-      const id = eventId;
-      const title = "SpringWave Event";
-      const url = `${window.location.origin}/explore.html?event=${id}`;
-      if (navigator.share) {
-        navigator.share({ title, url }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard!")).catch(() => {});
-      }
-    });
-  }
-
-  function close() {
-    overlay.classList.remove("active");
-    setTimeout(() => {
-      container.innerHTML = "";
-      overlay.setAttribute("hidden", "");
-      const discOverlay = document.getElementById("discussionPopupOverlay");
-      const discContainer = document.getElementById("discussionPopupContainer");
-      if (discOverlay && discContainer && discContainer.innerHTML && discOverlay.hasAttribute("hidden")) {
-        discOverlay.removeAttribute("hidden");
-        requestAnimationFrame(() => discOverlay.classList.add("active"));
-        document.body.style.overflow = "hidden";
-      } else {
-        document.body.style.overflow = "";
-      }
-    }, 300);
-  }
-
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay || backdrop?.contains(e.target)) close();
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !overlay.hasAttribute("hidden")) close();
-  });
-
-  document.addEventListener("click", async (e) => {
-    const ref = e.target.closest(".forum-event-ref");
-    if (!ref) return;
-    const eventId = ref.dataset.eventId;
-    if (eventId) {
-      hideDiscussionPopup();
-      await open(eventId);
-    }
-  });
-}
-
-function buildEventDetailPopupHTML(a) {
-  const heldDate = formatDate(a.heldDate);
-  const type = capitalize(a.type);
-  const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
-  const filesHTML = (a.attachments || []).map(f => {
-    const link = f.link || f.activityAttachLink || "";
-    const fileName = decodeURIComponent(link.split('/').pop());
-    return `<div class="file-item">
-        <div class="file-left">
-            <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-            <div><h4>${fileName}</h4></div>
-        </div>
-        <a class="download-btn" href="${CDN_DOMAIN}/${link}" target="_blank"><i class="fa-solid fa-download"></i></a>
-    </div>`;
-  }).join("");
-
-  return `
-    <div class="container">
-      <div class="top-bar">
-        <button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <div class="top-actions">
-          <button class="icon-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
-          <button type="button" class="favorite-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">Favourite</span></button>
-        </div>
-      </div>
-      <div class="main-content">
-        <div class="left-panel">
-          <img src="${a.thumbnail || "https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop"}" alt="${a.title}">
-          <div class="tag"><i class="fa-solid fa-tag"></i> ${type}</div>
-          <div class="details-card">
-            <h2>Details</h2>
-            <div class="detail-item"><i class="fa-solid fa-location-dot"></i><div><span>Location</span><p>${a.location}</p></div></div>
-            <div class="detail-item"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-            <div class="detail-item"><i class="fa-regular fa-user"></i><div><span>Host</span><p>${a.hostName || a.createdByName || "Unknown"}</p></div></div>
-            <div class="detail-item"><i class="fa-solid fa-tag"></i><div><span>Type</span><p>${type}</p></div></div>
-          </div>
-        </div>
-        <div class="right-panel">
-          <h1 class="title">${a.title}</h1>
-          <a class="location-link" href="${googleMapsLink}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${a.location}</a>
-          <div class="info-boxes">
-            <div class="info-box"><i class="fa-regular fa-calendar"></i><div><span>Date</span><p>${heldDate}</p></div></div>
-            <div class="info-box"><i class="fa-regular fa-user"></i><div><span>Hosted by</span><p>${a.hostName || a.createdByName || "Unknown"}</p></div></div>
-          </div>
-          <div class="description-panel">
-            ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
-          </div>
-          ${filesHTML ? `<div class="files-box"><h3>Attached Files (${(a.attachments || []).length})</h3>${filesHTML}</div>` : ""}
-        </div>
-      </div>
-    </div>`;
-}
 
 function showUniMembersModal(uniName, members) {
   const existing = document.getElementById("uniMembersModal");
