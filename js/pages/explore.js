@@ -135,25 +135,25 @@ async function initExplore() {
     } catch (e) {
         console.error("Failed to initialize search date picker:", e);
     }
-    
+
     try {
         initSidebar();
     } catch (e) {
         console.error("Failed to initialize sidebar:", e);
     }
-    
+
     try {
         await loadCards();
     } catch (e) {
         console.error("Failed to load activities cards:", e);
     }
-    
+
     try {
         initSearchButton();
     } catch (e) {
         console.error("Failed to initialize search button handlers:", e);
     }
-    
+
     try {
         initMapSelector();
     } catch (e) {
@@ -214,26 +214,29 @@ function initSearchButton() {
     const performSearch = async () => {
         const location = searchLoc?.value.trim() || "";
         const keyword = searchPref?.value.trim() || navbarInput?.value.trim() || "";
-        
+
         const dates = window.__searchDates || {};
-        
+
         // Sync text inputs to ensure they always match
         if (searchPref && searchPref.value !== keyword) searchPref.value = keyword;
         if (navbarInput && navbarInput.value !== keyword) navbarInput.value = keyword;
-        
+
         // Clear active category filters when searching
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";
-        
+
         const cardsContainer = document.getElementById("cards-container");
         cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching")}</div>`;
+        const pagContainer = document.getElementById("pagination-container");
+        if (pagContainer) pagContainer.style.display = "none";
 
         try {
             const params = {
                 location: location || undefined,
                 heldDateFrom: dates.startDate ? toLocalISODate(dates.startDate) : undefined,
-                heldDateTo: dates.endDate ? toLocalISODate(dates.endDate) : undefined
+                heldDateTo: dates.endDate ? toLocalISODate(dates.endDate) : undefined,
+                limit: 500
             };
 
             const data = keyword
@@ -241,10 +244,10 @@ function initSearchButton() {
                 : await searchActivities({ keyword, ...params });
 
             let activities = data?.activities || [];
-            
+
             // Client-side filtering fallback to ensure exact matching for location and dates
             if (location) {
-                activities = activities.filter(a => 
+                activities = activities.filter(a =>
                     (a.location || "").toLowerCase().includes(location.toLowerCase())
                 );
             }
@@ -261,11 +264,13 @@ function initSearchButton() {
                 activities = activities.filter(a => {
                     const exactMatch = (a.title || "").toLowerCase().includes(kwLower) ||
                         (a.description || "").toLowerCase().includes(kwLower) ||
+                        (a.location || "").toLowerCase().includes(kwLower) ||
                         (a.type || "").toLowerCase().includes(kwLower) ||
                         (a.tags || []).some(t => t.toLowerCase().includes(kwLower));
-                    
-                    // Backend returns score (cosine similarity). 0.28 is too low, use 0.65 as a reasonable threshold.
-                    const semanticMatch = a.score !== undefined && a.score >= 0.65;
+
+                    // AI embeddings can give junk strings (like "a", "22") scores around 0.5. 
+                    // Use 0.60 to filter out junk semantic matches.
+                    const semanticMatch = a.score !== undefined && a.score >= 0.60;
                     return exactMatch || semanticMatch;
                 });
 
@@ -288,6 +293,40 @@ function initSearchButton() {
     // Click search button
     executeBtn?.addEventListener("click", performSearch);
 
+    const refreshBtn = document.getElementById("searchRefreshBtn");
+    refreshBtn?.addEventListener("click", async () => {
+        if (searchLoc) searchLoc.value = "";
+        if (searchPref) searchPref.value = "";
+        if (navbarInput) navbarInput.value = "";
+        if (window.__searchDates) {
+            window.__searchDates.startDate = null;
+            window.__searchDates.endDate = null;
+        }
+        const placeholder = document.getElementById("drPlaceholder");
+        const value = document.getElementById("drValue");
+        if (placeholder) placeholder.classList.remove("hidden");
+        if (value) value.classList.remove("visible");
+
+        document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
+        document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
+        currentCategory = "all";
+        document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
+        document.querySelector(".sort-option[data-sort='newest']")?.classList.add("active");
+        currentSort = "newest";
+
+        const cardsContainer = document.getElementById("cards-container");
+        if (cardsContainer) cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching") || "Refreshing..."}</div>`;
+        const pagContainer = document.getElementById("pagination-container");
+        if (pagContainer) pagContainer.style.display = "none";
+
+        try {
+            const data = await getActivities();
+            await renderCards(data.activities || []);
+        } catch (e) {
+            if (cardsContainer) cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("common.error") || "Error fetching data"}</div>`;
+        }
+    });
+
     // Typing in either preferences or navbar search inputs triggers search with debounce
     const inputs = [searchPref, navbarInput].filter(Boolean);
     inputs.forEach(input => {
@@ -295,7 +334,7 @@ function initSearchButton() {
             const val = e.target.value;
             if (searchPref && searchPref !== e.target && searchPref.value !== val) searchPref.value = val;
             if (navbarInput && navbarInput !== e.target && navbarInput.value !== val) navbarInput.value = val;
-            
+
             clearTimeout(debounceTimeout);
             debounceTimeout = setTimeout(performSearch, 350);
         });
@@ -403,13 +442,13 @@ async function renderCardsDirect(activities) {
         card.querySelector(".card-title").textContent = activity.title;
         const locationSpan = card.querySelector(".info-location");
         if (locationSpan) locationSpan.textContent = activity.location || t("explore.unknown_location");
-        
+
         const dateSpan = card.querySelector(".info-date");
         if (dateSpan) dateSpan.textContent = formatDate(activity.heldDate);
-        
+
         const typeSpan = card.querySelector(".info-type");
         if (typeSpan) typeSpan.textContent = capitalize(activity.type || "Activity");
-        
+
         const hostSpan = card.querySelector(".info-host");
         if (hostSpan) hostSpan.textContent = activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
         card.dataset.id = activity.activityID;
@@ -428,6 +467,7 @@ async function renderCardsDirect(activities) {
 function renderPaginationControls(totalItems, totalPages) {
     const container = document.getElementById("pagination-container");
     if (!container) return;
+    container.style.display = ""; // Ensure it's visible again after search
 
     if (totalPages <= 1) {
         container.innerHTML = "";
@@ -435,7 +475,7 @@ function renderPaginationControls(totalItems, totalPages) {
     }
 
     let html = "";
-    
+
     // Prev Button
     html += `
         <button class="pagination-btn nav-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">
@@ -446,8 +486,8 @@ function renderPaginationControls(totalItems, totalPages) {
     // Page Numbers
     for (let i = 1; i <= totalPages; i++) {
         if (
-            i === 1 || 
-            i === totalPages || 
+            i === 1 ||
+            i === totalPages ||
             (i >= currentPage - 2 && i <= currentPage + 2)
         ) {
             html += `
@@ -456,7 +496,7 @@ function renderPaginationControls(totalItems, totalPages) {
                 </button>
             `;
         } else if (
-            i === currentPage - 3 || 
+            i === currentPage - 3 ||
             i === currentPage + 3
         ) {
             html += `<span class="pagination-ellipsis">...</span>`;
@@ -484,7 +524,7 @@ function renderPaginationControls(totalItems, totalPages) {
                     const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
                     window.scrollTo({ top: y, behavior: "smooth" });
                 }
-                
+
                 // Wait for smooth scroll to finish before rendering new cards
                 await new Promise(resolve => {
                     let done = false;
@@ -498,7 +538,7 @@ function renderPaginationControls(totalItems, totalPages) {
                     const fallback = setTimeout(finish, 800);
                     window.addEventListener('scrollend', finish, { once: true });
                 });
-                
+
                 currentPage = page;
                 await renderCardsDirect(currentFilteredActivities);
             }
@@ -540,7 +580,7 @@ function initSidebar() {
         const value = document.getElementById("drValue");
         if (placeholder) placeholder.classList.remove("hidden");
         if (value) value.classList.remove("visible");
-        
+
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";
@@ -793,14 +833,14 @@ function initMapSelector() {
         overlay.removeAttribute("hidden");
         overlay.classList.add("active");
         document.body.style.overflow = "hidden";
-        
+
         if (typeof L === "undefined") {
             if (addressText) {
                 addressText.innerHTML = `<span style="color:#ef4444;font-weight:600">The map library (Leaflet) could not be loaded because unpkg.com is blocked or offline. Please check your network.</span>`;
             }
             return;
         }
-        
+
         if (!map) {
             map = L.map("leafletMap").setView([16.0544, 108.2022], 13);
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -812,7 +852,7 @@ function initMapSelector() {
                 updateMarker(lat, lng);
             });
         }
-        
+
         setTimeout(() => {
             map.invalidateSize();
         }, 100);
@@ -843,7 +883,7 @@ function initMapSelector() {
     const searchAddress = async () => {
         const query = searchInput.value.trim();
         if (!query) return;
-        
+
         searchBtn.disabled = true;
         try {
             const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
@@ -884,7 +924,7 @@ function initMapSelector() {
 
     trigger.addEventListener("click", openModal);
     locInput.addEventListener("click", openModal);
-    
+
     [closeBtn, cancelBtn, backdrop].filter(Boolean).forEach(el => {
         el.addEventListener("click", closeModal);
     });
