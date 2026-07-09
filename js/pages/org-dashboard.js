@@ -7,6 +7,7 @@ import { get, post, put, del, uploadFormData } from "../api/client.js";
 import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership } from "../api/organizations.js";
 import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
+import { getHostReviews } from "../api/activities.js";
 
 let currentOrgId = null;
 let currentOrgs = [];
@@ -194,6 +195,7 @@ async function selectOrg(orgId) {
   await loadDashboard();
   await loadEvents();
   await loadManagers();
+  await loadReviews();
   loadSettings(org);
 }
 
@@ -249,6 +251,9 @@ function switchSection(section) {
   }
   if (section === "certificates" && document.getElementById("cert-event-select").value) {
     loadCertificates(document.getElementById("cert-event-select").value);
+  }
+  if (section === "reviews") {
+    loadReviews();
   }
 }
 
@@ -782,12 +787,10 @@ async function loadAttendance(eventId) {
       let badge = '';
       if (status === 'present') {
         badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>';
-      } else if (status === 'late') {
-        badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Late</span>';
       } else {
         badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>';
       }
-      const isCheckedIn = status === 'present' || status === 'late';
+      const isCheckedIn = status === 'present';
       return `
         <tr class="border-b border-[#ecedfa]">
           <td class="py-3.5 px-4">
@@ -915,8 +918,8 @@ function initQRScan() {
       if (textEl) textEl.textContent = message || "Processing check-in...";
     } else if (state === "success" && user) {
       successView.classList.remove("hidden");
-      const borderClass = isLate ? "border-amber-200" : "border-emerald-200";
-      const bgClass = isLate ? "bg-amber-50/30" : "bg-emerald-50/30";
+      const borderClass = "border-emerald-200";
+      const bgClass = "bg-emerald-50/30";
       container.classList.add(borderClass, bgClass);
 
       const nameEl = document.getElementById("scan-feedback-name");
@@ -932,10 +935,8 @@ function initQRScan() {
       if (emailEl) emailEl.textContent = user.email || "";
       if (codeEl) codeEl.textContent = ticketCode ? ticketCode.toUpperCase() : "N/A";
       if (statusLabel) {
-        statusLabel.textContent = isLate ? "Checked in (late)" : "Checked in";
-        statusLabel.className = isLate
-          ? "text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full"
-          : "text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full";
+        statusLabel.textContent = "Checked in";
+        statusLabel.className = "text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full";
       }
 
       if (avatarEl && placeholderEl) {
@@ -980,7 +981,7 @@ function initQRScan() {
       avatar: user.avatar || "",
       ticketCode: ticketCode,
       time: timeStr,
-      isLate
+      isLate: false
     };
 
     sessionHistory.unshift(newItem);
@@ -1003,7 +1004,7 @@ function initQRScan() {
           </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <span class="px-2 py-0.5 rounded ${item.isLate ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'} border text-[9px] font-semibold">${item.isLate ? 'LATE' : 'SUCCESS'}</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border-emerald-100 border text-[9px] font-semibold">SUCCESS</span>
           <span class="text-[10px] text-slate-400 font-mono">${item.time}</span>
         </div>
       </div>
@@ -1350,7 +1351,7 @@ function initQRScan() {
     try {
       const response = await scanAttendance(eventId, ticketCode);
       playBeep(true);
-      const isLate = response.message?.includes('late');
+      const isLate = false;
       setFeedbackWithTimeout("success", response.message || "", response.user, ticketCode, isLate);
       addToHistory(response.user || {}, ticketCode, isLate);
 
@@ -1545,6 +1546,11 @@ function loadSettings(org) {
   document.getElementById("settings-desc").value = org.description || "";
   document.getElementById("settings-phone").value = org.contactInfo?.phoneNo || "";
   document.getElementById("settings-email").value = org.contactInfo?.email || "";
+  document.getElementById("settings-website").value = org.website || "";
+  document.getElementById("settings-facebook").value = org.socialLinks?.facebook || "";
+  document.getElementById("settings-linkedin").value = org.socialLinks?.linkedin || "";
+  document.getElementById("settings-instagram").value = org.socialLinks?.instagram || "";
+  document.getElementById("settings-twitter").value = org.socialLinks?.twitter || "";
 }
 
 function initSettingsForm() {
@@ -1558,6 +1564,13 @@ function initSettingsForm() {
         phoneNo: document.getElementById("settings-phone").value.trim(),
         email: document.getElementById("settings-email").value.trim(),
       },
+      website: document.getElementById("settings-website").value.trim(),
+      socialLinks: {
+        facebook: document.getElementById("settings-facebook").value.trim(),
+        linkedin: document.getElementById("settings-linkedin").value.trim(),
+        instagram: document.getElementById("settings-instagram").value.trim(),
+        twitter: document.getElementById("settings-twitter").value.trim(),
+      }
     };
     try {
       await updateOrganization(currentOrgId, data);
@@ -1609,3 +1622,174 @@ function initCreateOrg() {
     window.location.href = `/register-host.html?orgName=${encodeURIComponent(name)}&createMode=true`;
   });
 }
+
+// ─── Reviews ───
+
+let globalEventRatings = [];
+let currentEventRatingsPage = 1;
+const EVENTS_RATINGS_PER_PAGE = 5;
+
+async function loadReviews() {
+  try {
+    const data = await getHostReviews(currentOrgId);
+    const reviews = data.reviews || [];
+    
+    // Filter reviews to only show those for the currently selected org (though backend already filters if orgId is passed)
+    const orgReviews = reviews.filter(r => r.organization === currentOrgId || r.organization?._id === currentOrgId);
+    
+    // Calculate total org summary
+    let orgTotalRating = 0;
+    orgReviews.forEach(r => { orgTotalRating += r.rating; });
+    const orgAvgRating = orgReviews.length > 0 ? (orgTotalRating / orgReviews.length).toFixed(1) : "0.0";
+    
+    document.getElementById("review-avg-rating").textContent = orgAvgRating;
+    document.getElementById("review-total-count").textContent = orgReviews.length;
+
+    // Fetch org events to show all organized events
+    const { events: rawEvents = [] } = await getOrgActivities(currentOrgId);
+    
+    // Map events with their reviews
+    globalEventRatings = rawEvents.map(event => {
+        const evReviews = orgReviews.filter(r => r.event?._id === event._id || r.event === event._id);
+        const totalScore = evReviews.reduce((sum, r) => sum + r.rating, 0);
+        const avg = evReviews.length > 0 ? (totalScore / evReviews.length).toFixed(1) : "0.0";
+        return {
+            ...event,
+            reviews: evReviews,
+            averageRating: avg,
+            reviewCount: evReviews.length
+        };
+    }).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); // Sort by newest event
+
+    currentEventRatingsPage = 1;
+    renderEventRatingsPage(1);
+
+  } catch (err) {
+    console.error("Failed to load reviews:", err);
+    document.getElementById("events-ratings-list").innerHTML = `<div class="p-8 text-center text-red-500">Failed to load events.</div>`;
+  }
+}
+
+function renderEventRatingsPage(page) {
+    const list = document.getElementById("events-ratings-list");
+    const pagination = document.getElementById("events-ratings-pagination");
+    const prevBtn = document.getElementById("events-ratings-prev");
+    const nextBtn = document.getElementById("events-ratings-next");
+    const pageInfo = document.getElementById("events-ratings-page-info");
+
+    if (!list) return;
+
+    if (globalEventRatings.length === 0) {
+        list.innerHTML = `<div class="p-8 text-center text-gray-500 italic">No events found for this organization.</div>`;
+        pagination.classList.add("hidden");
+        return;
+    }
+
+    const totalPages = Math.ceil(globalEventRatings.length / EVENTS_RATINGS_PER_PAGE);
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    currentEventRatingsPage = page;
+
+    const startIdx = (page - 1) * EVENTS_RATINGS_PER_PAGE;
+    const endIdx = startIdx + EVENTS_RATINGS_PER_PAGE;
+    const pageItems = globalEventRatings.slice(startIdx, endIdx);
+
+    list.innerHTML = pageItems.map(e => `
+        <div class="p-6 hover:bg-gray-50/50 transition-colors flex items-center justify-between gap-4 cursor-pointer" onclick="openReviewDetailsModal('${e._id}')">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div class="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
+                    <img src="${e.thumbnail || '/img/placeholder.png'}" class="w-full h-full object-cover" alt="Event" />
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-gray-900 truncate text-base">${e.title}</h4>
+                    <p class="text-xs text-gray-500 mt-1">${formatDate(e.heldDate || e.createdAt)}</p>
+                </div>
+            </div>
+            <div class="text-right shrink-0 flex flex-col items-end">
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="flex text-yellow-400 text-sm">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <span class="text-lg font-bold text-gray-900">${e.averageRating}</span>
+                </div>
+                <span class="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">${e.reviewCount} review${e.reviewCount !== 1 ? 's' : ''}</span>
+            </div>
+        </div>
+    `).join("");
+
+    if (totalPages > 1) {
+        pagination.classList.remove("hidden");
+        pageInfo.textContent = `Page ${page} of ${totalPages}`;
+        
+        prevBtn.disabled = page === 1;
+        nextBtn.disabled = page === totalPages;
+
+        prevBtn.onclick = () => renderEventRatingsPage(page - 1);
+        nextBtn.onclick = () => renderEventRatingsPage(page + 1);
+    } else {
+        pagination.classList.add("hidden");
+    }
+}
+
+window.openReviewDetailsModal = function(eventId) {
+    const eventData = globalEventRatings.find(e => e._id === eventId);
+    if (!eventData) return;
+
+    const modal = document.getElementById("review-details-modal");
+    const content = document.getElementById("review-details-content");
+    const title = document.getElementById("review-modal-title");
+    const list = document.getElementById("review-modal-list");
+
+    title.textContent = `Reviews: ${eventData.title}`;
+
+    if (!eventData.reviews || eventData.reviews.length === 0) {
+        list.innerHTML = `<div class="py-12 text-center text-gray-500 italic">No reviews yet for this event.</div>`;
+    } else {
+        list.innerHTML = eventData.reviews.map(r => `
+            <div class="py-5 border-b border-gray-100 last:border-0 flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold flex-shrink-0">
+                    ${(r.user?.fullname || r.user?.username || '?').charAt(0).toUpperCase()}
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <h4 class="font-bold text-gray-900">${r.user?.fullname || r.user?.username || 'Unknown User'}</h4>
+                        <span class="text-xs text-gray-500">${formatDate(r.createdAt)}</span>
+                    </div>
+                    <div class="flex text-yellow-400 text-sm mb-2">
+                        ${Array.from({ length: 5 }, (_, i) => `<i class="fa-solid fa-star ${i < r.rating ? '' : 'text-gray-200'}"></i>`).join('')}
+                    </div>
+                    <p class="text-gray-700 text-sm leading-relaxed">${r.content || '<em class="text-gray-400">No comment provided</em>'}</p>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    // trigger animation
+    setTimeout(() => {
+        content.classList.remove("scale-95", "opacity-0");
+        content.classList.add("scale-100", "opacity-100");
+    }, 10);
+    document.body.style.overflow = "hidden";
+}
+
+function closeReviewDetailsModal() {
+    const modal = document.getElementById("review-details-modal");
+    const content = document.getElementById("review-details-content");
+    if (!modal || modal.classList.contains("hidden")) return;
+
+    content.classList.remove("scale-100", "opacity-100");
+    content.classList.add("scale-95", "opacity-0");
+    
+    setTimeout(() => {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+    }, 300);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("close-review-modal-btn")?.addEventListener("click", closeReviewDetailsModal);
+    document.getElementById("review-details-backdrop")?.addEventListener("click", closeReviewDetailsModal);
+});

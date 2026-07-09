@@ -493,7 +493,7 @@
   },
   "admin": {
     "title": "Event Management — SpringWave",
-    "dashboard": "Event Management",
+    "dashboard": "Admin Dashboard",
     "dashboard_desc": "Review, approve, and manage all platform events",
     "search": "Search events...",
     "scrape": "Scrape",

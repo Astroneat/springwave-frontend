@@ -50,6 +50,10 @@
                 <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
                 <span>Attendance</span>
             </div>
+            <div class="sidenav-link" data-section="reviews">
+                <span class="material-symbols-outlined text-[20px]">reviews</span>
+                <span>Reviews & Ratings</span>
+            </div>
             <div class="sidenav-link" data-section="managers">
                 <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
                 <span>Managers</span>
@@ -128,6 +132,9 @@
             </button>
             <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="certificates">
                 Certificates
+            </button>
+            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="reviews">
+                Reviews
             </button>
             <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="settings">
                 Settings
@@ -271,80 +278,119 @@
         </div>
 
         <!-- Section: Attendance -->
-        <div id="section-attendance" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+        <section id="section-attendance" class="section-content hidden animate-fade-in pb-20">
+            <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
                 <div>
-                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Attendance</h2>
-                    <p class="text-[#64748b] mt-1">Check in participants via QR code or manually</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div id="attendance-event-select-wrapper" class="relative"></div>
+                    <h2 class="text-3xl font-extrabold text-[#191b22] tracking-tight">Check-in Attendance</h2>
+                    <p class="text-[15px] text-[#64748b] mt-2">Scan QR codes to mark participants as present.</p>
                 </div>
             </div>
 
-            <!-- QR Scanner Modal Trigger -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary"><i class="fa-solid fa-qrcode text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">QR Scan</span>
-                    </div>
-                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-present">0</p>
-                    <p class="text-xs text-[#64748b] mt-1">Checked in</p>
+            <div class="bg-white rounded-2xl p-6 border border-[#ecedfa] shadow-sm max-w-2xl mx-auto">
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-[#191b22] mb-2">Select Active Event</label>
+                    <select id="attendance-event-select" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                        <option value="">Loading events...</option>
+                    </select>
                 </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#fee2e2] flex items-center justify-center text-[#dc2626]"><i class="fa-solid fa-clock text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Absent</span>
+                
+                <div id="scanner-container" class="hidden">
+                    <div class="relative rounded-2xl overflow-hidden bg-black aspect-video mb-4 shadow-inner">
+                        <video id="qr-video" class="w-full h-full object-cover"></video>
+                        <div class="absolute inset-0 pointer-events-none border-2 border-primary/50 m-8 rounded-xl flex items-center justify-center">
+                            <div class="w-48 h-48 border-2 border-white/50 border-dashed rounded-lg"></div>
+                        </div>
                     </div>
-                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-absent">0</p>
-                    <p class="text-xs text-[#64748b] mt-1">Not checked in</p>
+                    <div class="flex justify-center mb-6">
+                        <button id="toggle-camera-btn" class="px-6 py-2.5 rounded-full border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-camera-rotate"></i> Switch Camera
+                        </button>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#d1fae5] flex items-center justify-center text-[#059669]"><i class="fa-solid fa-users text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Total</span>
+
+                <div class="text-center">
+                    <div id="checkin-status" class="mb-4 text-sm font-semibold"></div>
+                    <button id="start-scanner-btn" class="px-8 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 active:scale-95 transition-all w-full md:w-auto shadow-md">
+                        <i class="fa-solid fa-qrcode mr-2"></i> Start QR Scanner
+                    </button>
+                </div>
+
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="font-bold text-lg mb-4">Manual Check-in</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="manual-ticket-input" placeholder="Enter 8-character ticket code" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary outline-none uppercase font-mono" maxlength="8">
+                        <button id="manual-checkin-btn" class="px-6 py-2.5 rounded-xl bg-gray-800 text-white font-semibold hover:bg-gray-900 transition-colors">Submit</button>
                     </div>
-                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-total-att">0</p>
-                    <p class="text-xs text-[#64748b] mt-1">Registered</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Reviews -->
+        <section id="section-reviews" class="section-content hidden animate-fade-in pb-20">
+            <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-[#191b22] tracking-tight">Event Reviews & Ratings</h2>
+                    <p class="text-[15px] text-[#64748b] mt-2">See what participants are saying about your events.</p>
                 </div>
             </div>
 
-            <div class="flex gap-3 mb-6">
-                <button id="scan-qr-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
-                    <i class="fa-solid fa-camera"></i> Scan QR Code
-                </button>
-                <button id="init-attendance-btn" class="py-2.5 px-5 rounded-full border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95">
-                    <i class="fa-solid fa-rotate"></i> Init Attendance
-                </button>
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div class="bg-white rounded-2xl p-6 border border-[#ecedfa] shadow-sm flex items-center gap-6">
+                    <div class="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center text-yellow-500 text-2xl">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Average Rating</p>
+                        <div class="flex items-end gap-2">
+                            <span class="text-4xl font-extrabold text-gray-900" id="review-avg-rating">—</span>
+                            <span class="text-lg font-medium text-gray-400 mb-1">/ 5.0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-[#ecedfa] shadow-sm flex items-center gap-6">
+                    <div class="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center text-primary text-2xl">
+                        <i class="fa-solid fa-comment-dots"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Reviews</p>
+                        <span class="text-4xl font-extrabold text-gray-900" id="review-total-count">—</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-[#ecedfa] flex items-center justify-between">
-                    <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Attendance List</h3>
-                    <span class="text-sm text-[#64748b]" id="attendance-count">0 records</span>
+            <!-- Events List with Ratings -->
+            <div class="bg-white rounded-2xl border border-[#ecedfa] shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="font-bold text-gray-800">Events Ratings</h3>
                 </div>
-                <div class="px-6 pt-3" id="checkin-rules-display"></div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">User</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Email</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Check-in Time</th>
-                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendance-table-body"></tbody>
-                    </table>
+                <div id="events-ratings-list" class="divide-y divide-gray-100">
+                    <!-- Events rendered here -->
+                    <div class="p-8 text-center text-gray-500 italic">Loading events...</div>
                 </div>
-                <div id="attendance-empty" class="hidden text-center py-16 text-[#94a3b8]">
-                    <i class="fa-solid fa-qrcode text-4xl mb-3 block"></i>
-                    <p class="text-base font-semibold">Select an event to view attendance</p>
+                <div id="events-ratings-pagination" class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between hidden">
+                    <button id="events-ratings-prev" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                    <span id="events-ratings-page-info" class="text-sm font-medium text-gray-500">Page 1 of 1</span>
+                    <button id="events-ratings-next" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
                 </div>
             </div>
-        </div>
+
+            <!-- Review Details Modal -->
+            <div id="review-details-modal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+                <div class="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm" id="review-details-backdrop"></div>
+                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col m-4 transform scale-95 opacity-0 transition-all duration-300" id="review-details-content">
+                    <div class="flex items-center justify-between p-6 border-b border-slate-100">
+                        <h3 class="text-xl font-bold text-slate-800" id="review-modal-title">Event Reviews</h3>
+                        <button class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors" id="close-review-modal-btn">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-y-auto flex-1" id="review-modal-list">
+                        <!-- Reviews go here -->
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Section: Managers -->
         <div id="section-managers" class="section-content hidden">
@@ -438,6 +484,31 @@
                         <div>
                             <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Contact Email</label>
                             <input id="settings-email" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Chapter Website (URL)</label>
+                        <input id="settings-website" type="url" placeholder="https://example.com" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                    </div>
+                    <div class="pt-4 border-t border-[#e2e2eb]">
+                        <h3 class="text-sm font-bold text-[#191b22] mb-4">Connect with us (Social Links)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-[#64748b] mb-1.5"><i class="fa-brands fa-facebook text-[#1877F2] mr-1"></i> Facebook</label>
+                                <input id="settings-facebook" type="url" placeholder="Facebook URL" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-[#64748b] mb-1.5"><i class="fa-brands fa-linkedin text-[#0A66C2] mr-1"></i> LinkedIn</label>
+                                <input id="settings-linkedin" type="url" placeholder="LinkedIn URL" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-[#64748b] mb-1.5"><i class="fa-brands fa-instagram text-[#E4405F] mr-1"></i> Instagram</label>
+                                <input id="settings-instagram" type="url" placeholder="Instagram URL" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-[#64748b] mb-1.5"><i class="fa-brands fa-x-twitter text-gray-800 mr-1"></i> Twitter (X)</label>
+                                <input id="settings-twitter" type="url" placeholder="Twitter URL" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                            </div>
                         </div>
                     </div>
                     <div class="pt-4 flex gap-3">

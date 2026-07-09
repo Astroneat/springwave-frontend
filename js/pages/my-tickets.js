@@ -111,13 +111,13 @@ function renderTickets() {
     const showQR = status === 'active';
 
     let checkInInfo = '';
-    if (t.checkIn && (t.checkIn.status === 'present' || t.checkIn.status === 'late')) {
+    if (t.checkIn && t.checkIn.status === 'present') {
       const time = t.checkIn.checkedInAt
         ? new Date(t.checkIn.checkedInAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })
         : '';
-      const label = t.checkIn.status === 'late' ? 'Checked in (late)' : 'Checked in';
+      const label = 'Checked in';
       checkInInfo = `
-        <div class="flex items-center gap-1.5 text-xs ${t.checkIn.status === 'late' ? 'text-amber-600' : 'text-emerald-600'}">
+        <div class="flex items-center gap-1.5 text-xs text-emerald-600">
           <span class="material-symbols-outlined text-[16px]">check_circle</span>
           <span class="font-medium">${label}</span>
           ${time ? `<span class="text-slate-400">• ${time}</span>` : ''}

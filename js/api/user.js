@@ -39,6 +39,10 @@ export function getUserContribution() {
     return get("/user/contribution");
 }
 
+export function getUserTickets() {
+    return get("/events/tickets/mine");
+}
+
 export function grantContribution(action) {
     return post("/user/contribution/grant", { action });
 }

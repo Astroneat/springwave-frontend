@@ -1,0 +1,43 @@
+<div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold" data-i18n="review.title">Rate & Review</h2>
+        <button id="close-review-modal" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+    </div>
+    
+    <div class="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+        <div id="review-event-thumbnail-container" class="w-[30%] aspect-video rounded-lg overflow-hidden bg-gray-200 hidden shadow-sm flex-shrink-0">
+            <img id="review-event-thumbnail" src="" alt="Thumbnail" class="w-full h-full object-cover">
+        </div>
+        <div class="flex-1 text-left">
+            <h3 id="review-event-title" class="font-bold text-gray-800 line-clamp-2 text-base">Event Title</h3>
+            <p id="review-org-name" class="text-xs font-semibold text-primary mt-1 mb-1 hidden">Org Name</p>
+            <p class="text-sm text-gray-500" data-i18n="review.subtitle">How was your experience?</p>
+        </div>
+    </div>
+
+    <form id="review-form">
+        <input type="hidden" id="review-event-id">
+        
+        <div class="flex justify-center gap-2 mb-6" id="star-rating">
+            <button type="button" class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-value="1"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-value="2"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-value="3"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-value="4"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-value="5"><i class="fa-solid fa-star"></i></button>
+        </div>
+        <input type="hidden" id="review-rating-value" required min="1" max="5">
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="review.content_label">Share your thoughts (optional)</label>
+            <textarea id="review-content" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none" placeholder="What did you like? What could be improved?"></textarea>
+        </div>
+
+        <div id="review-status" class="text-sm text-center mb-4 hidden"></div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all" id="submit-review-btn">
+            Submit Review
+        </button>
+    </form>
+</div>

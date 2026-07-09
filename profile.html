@@ -67,10 +67,45 @@
 
     <div class="profile-layout">
       <div class="profile-sidebar">
-        <div class="profile-card" id="exp-panel">
-          <h2 data-i18n="profile.community_contribution">Community Contribution</h2>
-          <div id="exp-list"></div>
+        <!-- Contribute Score moved here -->
+        <div class="profile-card">
+          <h2 class="text-xl font-bold text-gray-800 mb-6">Community Contribution</h2>
+          
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-[#f0f4ff] flex items-center justify-center text-[#1755ba]">
+                  <i class="fa-solid fa-users text-sm"></i>
+                </div>
+                <span class="font-semibold text-gray-800 text-[15px]">Contribution Score</span>
+              </div>
+              <span id="contribute-level" class="text-xs font-bold text-[#1755ba] bg-[#f0f4ff] px-3 py-1 rounded-full">Lv.1</span>
+            </div>
+            
+            <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden mb-2">
+              <div id="contribute-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-[#1755ba] rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+            </div>
+            
+            <div class="flex justify-between text-xs text-gray-500 font-medium">
+              <span id="contribute-score-val">0 pts</span>
+              <span id="contribute-score-target">0 / 100 pts</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-50 rounded-2xl p-4 flex flex-col items-center text-center transition-transform hover:scale-[1.02]">
+              <i class="fa-regular fa-comments text-[#1755ba] text-xl mb-2"></i>
+              <span id="stat-discussions" class="text-2xl font-bold text-gray-900 mb-1">0</span>
+              <span class="text-xs text-gray-500 font-medium">Discussions</span>
+            </div>
+            <div class="bg-gray-50 rounded-2xl p-4 flex flex-col items-center text-center transition-transform hover:scale-[1.02]">
+              <i class="fa-regular fa-calendar-check text-[#1755ba] text-xl mb-2"></i>
+              <span id="stat-events" class="text-2xl font-bold text-gray-900 mb-1">0</span>
+              <span class="text-xs text-gray-500 font-medium">Events Attended</span>
+            </div>
+          </div>
         </div>
+
         <div class="profile-card" id="ai-profile-card" style="display:none;">
           <h2><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span> <span data-i18n="profile.ai_profile">AI Profile</span></h2>
           <p class="badges-subtitle" data-i18n="profile.ai_profile_desc">Your AI-generated profile based on quiz answers and activity preferences.</p>
@@ -78,10 +113,21 @@
         </div>
       </div>
 
-      <div class="profile-card">
-        <h2 data-i18n="profile.badges">Badges</h2>
-        <p class="badges-subtitle" data-i18n="profile.badges_desc">Complete actions across the community to earn badges. Each badge has its own personality — collect them all.</p>
-        <div id="badges-grid"></div>
+      <div class="flex flex-col gap-6">
+        <!-- Participated Events moved here -->
+        <div class="profile-card" id="exp-panel">
+          <h2 data-i18n="profile.participated_events">Participated Events</h2>
+          <div id="participated-list" class="space-y-4 mt-4">
+            <!-- Grouped events by organization will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Badges moved to the bottom -->
+        <div class="profile-card">
+          <h2 data-i18n="profile.badges">Badges</h2>
+          <p class="badges-subtitle" data-i18n="profile.badges_desc">Complete actions across the community to earn badges. Each badge has its own personality — collect them all.</p>
+          <div id="badges-grid" class="mt-4"></div>
+        </div>
       </div>
     </div>
   </div>

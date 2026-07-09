@@ -178,6 +178,7 @@ function renderNotifDropdown() {
             case 'reply': return 'reply';
             case 'new_comment': return 'chat_bubble';
             case 'new_discussion': return 'forum';
+            case 'event_review': return 'rate_review';
             case 'badge': return 'military_tech';
             default: return 'notifications';
         }
@@ -219,8 +220,12 @@ function renderNotifDropdown() {
                 const n = all.find((x) => x.id === id);
                 if (n) {
                     markRead(id);
-                    const link = getNotifLink(n);
-                    if (link) window.location.href = link;
+                    if (n.type === 'event_review' && n.eventId) {
+                        import('./reviewModal.js').then(m => m.openReviewModal(n.eventId, n.message));
+                    } else {
+                        const link = getNotifLink(n);
+                        if (link) window.location.href = link;
+                    }
                 }
             }
         });

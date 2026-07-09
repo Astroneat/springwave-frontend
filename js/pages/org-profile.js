@@ -80,7 +80,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- Contact & website ---
   document.getElementById("org-email").textContent = org.contactInfo?.email || "-";
-  document.getElementById("org-website").textContent = org.website || "-";
+  
+  const websiteEl = document.getElementById("org-website");
+  if (org.website) {
+    websiteEl.textContent = org.website;
+    // ensure url has protocol
+    websiteEl.href = org.website.startsWith('http') ? org.website : 'https://' + org.website;
+  } else {
+    websiteEl.textContent = "-";
+    websiteEl.removeAttribute('href');
+  }
 
   // --- Stats ---
   document.getElementById("org-stats-events").textContent = org.eventCount ?? 0;

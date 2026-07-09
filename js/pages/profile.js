@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser, setUser } from "../lib/session.js";
-import { changeInfo, getFavourites, getUserContribution, uploadAvatar, getParticipatedActivities } from "../api/user.js";
+import { changeInfo, getFavourites, getUserContribution, uploadAvatar, getParticipatedActivities, getMyTickets } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
 import { getMyProfile } from "../api/profile.js";
 import {
@@ -11,6 +11,7 @@ import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
+import { openReviewModal } from "../components/reviewModal.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { t } from "../lib/i18n.js";
 
@@ -24,9 +25,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadFooter();
     await initChatbot();
     await loadUserProfile();
-    await renderContribPanel();
+    await renderParticipatedEventsPanel();
     await renderAIProfile();
     initEditProfile();
+    
+    // Expose for onclick handlers
+    window.openReviewModal = openReviewModal;
 });
 
 async function loadNavbar() {
@@ -356,7 +360,7 @@ function calcContribLevel(score) {
 
 function computeLocalBadges(user, c, favoritesCount = 0, participationsCount = 0) {
   const badges = [];
-  if (user && user.dob && user.school) badges.push("hello_world");
+  if (user) badges.push("hello_world");
   if (c.repliesGiven >= 1) badges.push("talk_is_silver");
   if (c.discussionsStarted >= 1) badges.push("so_it_begins");
   if (localStorage.getItem("springwave_quiz_completed") === "true") badges.push("self_discovery");
@@ -505,9 +509,113 @@ function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount 
   }
 }
 
-async function renderContribPanel() {
-  const container = document.getElementById("exp-list");
+import { getUserTickets } from "../api/user.js";
+
+async function renderParticipatedEventsPanel() {
+  const container = document.getElementById("participated-list");
   if (!container) return;
+
+  let globalCheckedInTickets = [];
+  
+  try {
+    try {
+      let tickets = [];
+    const res = await getMyTickets();
+    tickets = res.tickets || [];
+    globalCheckedInTickets = tickets.filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
+  } catch (err) {
+    console.warn("Failed to fetch user tickets:", err);
+  }
+
+  window.changeParticipatedPage = (page) => {
+    renderParticipatedPage(page);
+  };
+
+  function renderParticipatedPage(page) {
+    if (globalCheckedInTickets.length === 0) {
+      container.innerHTML = `<p class="text-sm text-text-secondary italic">${t("profile.no_participated_events") || "You haven't participated in any events yet."}</p>`;
+      return;
+    }
+
+    const EVENTS_PER_PAGE = 5;
+    const startIndex = (page - 1) * EVENTS_PER_PAGE;
+    const paginatedTickets = globalCheckedInTickets.slice(startIndex, startIndex + EVENTS_PER_PAGE);
+
+    const orgs = {};
+    paginatedTickets.forEach(t => {
+      let orgObj = t.event.organization;
+      if (typeof orgObj === 'string') {
+        orgObj = { _id: orgObj, name: 'Unknown Organization' };
+      }
+      const orgId = orgObj._id || orgObj;
+      if (!orgs[orgId]) {
+        orgs[orgId] = {
+          name: orgObj.name || 'Unknown Organization',
+          avatar: orgObj.avatar || '',
+          events: []
+        };
+      }
+      t.event.review = t.review;
+      orgs[orgId].events.push(t.event);
+    });
+
+    let html = '';
+    for (const orgId in orgs) {
+      const org = orgs[orgId];
+      html += `
+        <div class="org-group mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <div class="flex items-center gap-3 mb-3 border-b pb-2">
+            ${org.avatar ? `<img src="${org.avatar}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">${(org.name || '?').charAt(0)}</div>`}
+            <h3 class="font-bold text-gray-800 text-sm">${org.name || 'Unknown Organization'}</h3>
+          </div>
+          <div class="space-y-3">
+            ${org.events.map(e => {
+                let starsHtml = '';
+                if (e.review && e.review.rating) {
+                    starsHtml = `
+                    <div class="flex text-yellow-400 text-[10px] ml-2">
+                        ${Array.from({length: 5}, (_, i) => `<i class="fa-solid fa-star ${i < e.review.rating ? '' : 'text-gray-200'}"></i>`).join('')}
+                    </div>
+                    `;
+                }
+                return `
+              <div class="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors" onclick="window.openReviewModal('${e._id}', '${e.title.replace(/'/g, "\\'")}', '${e.thumbnail || ''}', '${org.name.replace(/'/g, "\\'")}')">
+                ${e.thumbnail ? `<img src="${e.thumbnail}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">` : `<div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>`}
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <h4 class="font-semibold text-gray-800 text-sm line-clamp-1">${e.title}</h4>
+                    ${starsHtml}
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                    <span><i class="fa-regular fa-calendar mr-1"></i>${new Date(e.heldDate).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            `}).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    const totalPages = Math.ceil(globalCheckedInTickets.length / EVENTS_PER_PAGE);
+    if (totalPages > 1) {
+      html += `
+        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+          <button class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === 1 ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === 1 ? 'disabled' : ''} onclick="window.changeParticipatedPage(${page - 1})">
+            <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+          </button>
+          <span class="text-sm font-medium text-gray-500">Page ${page} of ${totalPages}</span>
+          <button class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === totalPages ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === totalPages ? 'disabled' : ''} onclick="window.changeParticipatedPage(${page + 1})">
+            Next <i class="fa-solid fa-chevron-right ml-1"></i>
+          </button>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
+  renderParticipatedPage(1);
 
   let data;
   try {
@@ -525,15 +633,11 @@ async function renderContribPanel() {
   } catch (err) {
     console.warn("Failed to fetch favorites count:", err);
   }
-  try {
-    const { activities } = await getParticipatedActivities();
-    participationsCount = (activities || []).length;
-  } catch (err) {
-    console.warn("Failed to fetch participated activities count:", err);
-  }
+  // Calculate Events Attended directly from the checked in tickets
+  participationsCount = globalCheckedInTickets ? globalCheckedInTickets.length : 0;
 
   const c = data.contribution;
-  const user = getUser();
+  const user = currentUser || getUser();
   const serverBadges = c.badges || [];
   const localBadges = computeLocalBadges(user, c, favoritesCount, participationsCount);
   const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
@@ -558,46 +662,31 @@ async function renderContribPanel() {
   const pct = Math.round(progress * 100);
   const nextLabel = next !== null ? `${current} / ${next} pts` : `${c.score} pts (Max)`;
 
-  container.innerHTML = `
-    <div class="exp-category">
-      <div class="exp-header">
-        <span class="exp-label">
-          <span class="exp-icon-wrap" style="color:#23499b;">
-            <span class="material-symbols-outlined" style="font-size:20px">diversity_3</span>
-          </span>
-          Contribution Score
-        </span>
-        <span class="exp-level communication" style="background:rgba(35,73,155,0.1);color:#23499b;">Lv.${level}</span>
-      </div>
-      <div class="exp-track">
-        <div class="exp-fill communication animated" data-pct="${pct}" style="background:linear-gradient(90deg,#23499b,#5b8def);"></div>
-      </div>
-      <div class="exp-info">
-        <span class="exp-numbers">${c.score} pts</span>
-        <span class="exp-next">${nextLabel}</span>
-      </div>
-    </div>
+  // Update Contribute Score UI
+  const scoreVal = document.getElementById("contribute-score-val");
+  const levelEl = document.getElementById("contribute-level");
+  const progressBar = document.getElementById("contribute-progress-bar");
+  const scoreTarget = document.getElementById("contribute-score-target");
+  const statDiscussions = document.getElementById("stat-discussions");
+  const statEvents = document.getElementById("stat-events");
 
-    <div class="contrib-stats">
-      <div class="contrib-stat">
-        <span class="contrib-stat-icon material-symbols-outlined">chat</span>
-        <span class="contrib-stat-value">${c.discussionsStarted}</span>
-        <span class="contrib-stat-label">Discussions</span>
-      </div>
-      <div class="contrib-stat">
-        <span class="contrib-stat-icon material-symbols-outlined">forum</span>
-        <span class="contrib-stat-value">${c.repliesGiven}</span>
-        <span class="contrib-stat-label">Replies</span>
-      </div>
-    </div>
-  `;
+  if (scoreVal) scoreVal.textContent = `${c.score || 0} pts`;
+  if (levelEl) levelEl.textContent = `Lv.${level}`;
+  if (progressBar) progressBar.style.width = `${pct}%`;
+  if (scoreTarget) scoreTarget.textContent = nextLabel;
+  if (statDiscussions) statDiscussions.textContent = c.discussionsStarted || 0;
+  if (statEvents) statEvents.textContent = participationsCount || 0;
 
-  requestAnimationFrame(() => {
-    const bar = container.querySelector(".exp-fill");
-    if (bar) bar.style.width = bar.dataset.pct + "%";
-  });
-
+  // Badges rendering
   renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount);
+
+  } catch (err) {
+    console.error("CRITICAL ERROR in renderParticipatedEventsPanel:", err);
+    const grid = document.getElementById("badges-grid");
+    if (grid) {
+      grid.innerHTML = `<div style="color:red; padding:20px; font-weight:bold;">Error rendering badges: ${err.message}<br><pre>${err.stack}</pre></div>`;
+    }
+  }
 }
 
 function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount) {

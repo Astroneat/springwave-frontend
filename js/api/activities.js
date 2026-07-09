@@ -73,9 +73,18 @@ export function searchSemantic(params) {
 
 // Comments API
 export function getEventComments(id) {
-    return get(`/events/${id}/comments`);
 }
 
 export function addEventComment(id, content) {
     return post(`/events/${id}/comments`, { content });
+}
+
+export async function addEventReview(id, rating, content) {
+    const data = await post(`/events/${id}/reviews`, { rating, content });
+    return data;
+}
+
+export async function getHostReviews(orgId) {
+    const data = await get(`/host/reviews${orgId ? `?orgId=${orgId}` : ''}`);
+    return data;
 }
