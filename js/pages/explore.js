@@ -14,6 +14,9 @@ import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/uti
 import { getUser } from "../lib/session.js";
 
 let allActivities = [];
+let currentFilteredActivities = [];
+let currentPage = 1;
+const pageSize = 20;
 let currentCategory = "all";
 let currentSort = "newest";
 let cachedTemplate = null;
@@ -337,6 +340,7 @@ async function renderCards(activities) {
 }
 
 async function applyFiltersAndSort() {
+    currentPage = 1;
     let filtered = [...allActivities];
 
     if (currentCategory !== "all") {
@@ -362,6 +366,7 @@ async function applyFiltersAndSort() {
             break;
     }
 
+    currentFilteredActivities = filtered;
     await renderCardsDirect(filtered);
 }
 
@@ -372,12 +377,22 @@ async function renderCardsDirect(activities) {
     if (activities.length === 0) {
         cardsContainer.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#94a3b8"><span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px">search_off</span><p style="font-size:16px;font-weight:600">${t("explore.no_match")}</p><p style="font-size:13px;margin-top:4px">${t("explore.no_match_hint")}</p></div>`;
         document.getElementById("resultsCount").textContent = t("explore.results", { n: 0 });
+        const pagContainer = document.getElementById("pagination-container");
+        if (pagContainer) pagContainer.innerHTML = "";
         return;
     }
 
+    const totalPages = Math.ceil(activities.length / pageSize);
+    // Ensure currentPage is within bounds
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * pageSize;
+    const paginatedActivities = activities.slice(startIndex, startIndex + pageSize);
+
     cardsContainer.innerHTML = "";
     const frag = document.createDocumentFragment();
-    activities.forEach(activity => {
+    paginatedActivities.forEach(activity => {
         const card = cachedTemplate.cloneNode(true);
         card.classList.add("revealed");
         const image = card.querySelector(".card-image");
@@ -404,8 +419,75 @@ async function renderCardsDirect(activities) {
 
     document.getElementById("resultsCount").textContent = activities.length === 1 ? t("explore.result_singular", { n: activities.length }) : t("explore.results", { n: activities.length });
 
+    renderPaginationControls(activities.length, totalPages);
+
     await syncCardFavourites();
     initCardClickHandlers();
+}
+
+function renderPaginationControls(totalItems, totalPages) {
+    const container = document.getElementById("pagination-container");
+    if (!container) return;
+
+    if (totalPages <= 1) {
+        container.innerHTML = "";
+        return;
+    }
+
+    let html = "";
+    
+    // Prev Button
+    html += `
+        <button class="pagination-btn nav-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">
+            <span class="material-symbols-outlined text-sm">chevron_left</span>
+        </button>
+    `;
+
+    // Page Numbers
+    for (let i = 1; i <= totalPages; i++) {
+        if (
+            i === 1 || 
+            i === totalPages || 
+            (i >= currentPage - 2 && i <= currentPage + 2)
+        ) {
+            html += `
+                <button class="pagination-btn num-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">
+                    ${i}
+                </button>
+            `;
+        } else if (
+            i === currentPage - 3 || 
+            i === currentPage + 3
+        ) {
+            html += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+
+    // Next Button
+    html += `
+        <button class="pagination-btn nav-btn" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+        </button>
+    `;
+
+    container.innerHTML = html;
+
+    // Add click handlers
+    container.querySelectorAll(".pagination-btn:not([disabled])").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const page = parseInt(btn.dataset.page, 10);
+            if (!isNaN(page)) {
+                currentPage = page;
+                await renderCardsDirect(currentFilteredActivities);
+                
+                // Scroll smoothly to results header
+                const target = document.querySelector(".results-header");
+                if (target) {
+                    target.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            }
+        });
+    });
 }
 
 function initSidebar() {
