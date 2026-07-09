@@ -2218,9 +2218,12 @@ async function renderOrgGrid() {
   const cardsHtml = await Promise.all(orgs.map(async (org) => {
     let events = [];
     try {
-      const resp = await getOrganizationPublicEvents(org._id, 2);
+      const resp = await getOrganizationPublicEvents(org._id, 1);
       events = resp.events || [];
     } catch {}
+
+    const isPast = events.length > 0 && new Date(events[0].heldDate || events[0].createdAt) < new Date();
+    const eventsTitle = events.length === 0 ? "Upcoming Events" : (isPast ? "Latest Events" : "Upcoming Events");
 
     const eventsListHtml = events.length > 0 
       ? events.map(e => `
@@ -2237,7 +2240,7 @@ async function renderOrgGrid() {
             </button>
           </div>
         `).join("")
-      : `<p class="text-xs text-[#94a3b8] italic text-center py-2">No upcoming events</p>`;
+      : `<p class="text-xs text-[#94a3b8] italic text-center py-2">No events</p>`;
 
     const avatarUrl = org.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(org.name)}`;
 
@@ -2262,7 +2265,7 @@ async function renderOrgGrid() {
           <div class="mb-4">
             <h4 class="text-xs font-bold text-[#191b22] mb-2 flex items-center gap-1">
               <span class="material-symbols-outlined text-[14px] text-primary">event</span>
-              Upcoming Events
+              ${eventsTitle}
             </h4>
             <div class="space-y-2">
               ${eventsListHtml}

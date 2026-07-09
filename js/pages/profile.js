@@ -539,10 +539,11 @@ async function renderContribPanel() {
   const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
   const earnedKeys = new Set(mergedBadges);
 
-  const stored = localStorage.getItem("springwave_badges");
+  const badgeStorageKey = `springwave_badges_${user?._id || 'guest'}`;
+  const stored = localStorage.getItem(badgeStorageKey);
   const prevBadges = stored ? JSON.parse(stored) : [];
   const newBadges = mergedBadges.filter(k => !prevBadges.includes(k));
-  localStorage.setItem("springwave_badges", JSON.stringify(mergedBadges));
+  localStorage.setItem(badgeStorageKey, JSON.stringify(mergedBadges));
 
   if (newBadges.length > 0) {
     setTimeout(() => {
