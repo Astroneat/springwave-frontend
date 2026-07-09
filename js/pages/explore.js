@@ -20,6 +20,7 @@ let currentPage = 1;
 const pageSize = 20;
 let currentCategory = "all";
 let currentSort = "newest";
+let currentStatus = "upcoming";
 let cachedTemplate = null;
 let participateQueue = [];
 let activeParticipations = 0;
@@ -386,6 +387,13 @@ async function applyFiltersAndSort() {
         filtered = filtered.filter(a => (a.type || "").toLowerCase() === currentCategory);
     }
 
+    const now = new Date();
+    if (currentStatus === "upcoming") {
+        filtered = filtered.filter(a => new Date(a.heldDate || a.createdAt || 0) >= now);
+    } else if (currentStatus === "past") {
+        filtered = filtered.filter(a => new Date(a.heldDate || a.createdAt || 0) < now);
+    }
+
     switch (currentSort) {
         case "relevance":
             filtered.sort((a, b) => {
@@ -451,6 +459,29 @@ async function renderCardsDirect(activities) {
 
         const hostSpan = card.querySelector(".info-host");
         if (hostSpan) hostSpan.textContent = activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
+        
+        const isPast = new Date(activity.heldDate || activity.createdAt || 0) < new Date();
+        if (isPast) {
+            card.classList.add("opacity-75", "grayscale-[0.5]");
+            
+            const btn = card.querySelector(".details-btn");
+            if (btn) {
+                btn.textContent = t("explore.ended") || "Ended";
+                btn.classList.add("!bg-gray-300", "!text-gray-600", "cursor-not-allowed", "!shadow-none");
+                btn.classList.remove("bg-primary", "text-white");
+                // remove hover effect via style or we can just disable pointer events
+                btn.style.pointerEvents = "none";
+            }
+            
+            const tagContainer = card.querySelector(".absolute");
+            if (tagContainer) {
+                const endedBadge = document.createElement("div");
+                endedBadge.className = "absolute top-3 left-3 bg-red-100 px-3 py-1 rounded-lg text-xs font-bold text-red-600 flex items-center gap-1.5 border border-red-200 z-10 shadow-sm";
+                endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[10px]"></i><span>Ended</span>`;
+                card.appendChild(endedBadge);
+            }
+        }
+        
         card.dataset.id = activity.activityID;
         frag.appendChild(card);
     });
@@ -556,12 +587,21 @@ function initSidebar() {
         });
     });
 
-    document.querySelectorAll(".sort-option").forEach(option => {
-        option.addEventListener("click", async () => {
-            document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
-            option.classList.add("active");
-            currentSort = option.dataset.sort;
-            await applyFiltersAndSort();
+    document.querySelectorAll(".sort-option").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".sort-option").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentSort = btn.dataset.sort;
+            applyFiltersAndSort();
+        });
+    });
+
+    document.querySelectorAll(".status-option").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".status-option").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentStatus = btn.dataset.status;
+            applyFiltersAndSort();
         });
     });
 

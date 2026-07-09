@@ -492,8 +492,8 @@
     "close": "Close"
   },
   "admin": {
-    "title": "Admin Dashboard — SpringWave",
-    "dashboard": "Admin Dashboard",
+    "title": "Event Management — SpringWave",
+    "dashboard": "Event Management",
     "dashboard_desc": "Review, approve, and manage all platform events",
     "search": "Search events...",
     "scrape": "Scrape",
