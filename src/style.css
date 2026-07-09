@@ -11512,3 +11512,15 @@ html, body, button, input, select, textarea {
     background: #f8fafc;
     color: #0f172a;
 }
+
+
+/* Event popup host hover effect */
+a.popup-host-row {
+    transition: opacity 0.2s;
+}
+a.popup-host-row:hover .host-name {
+    color: #3b82f6; /* web primary color */
+}
+a.popup-host-row:hover .popup-host-avatar {
+    opacity: 0.9;
+}

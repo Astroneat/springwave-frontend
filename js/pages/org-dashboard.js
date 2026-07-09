@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Nút mở profile của tổ chức
   document.getElementById("view-profile-btn")?.addEventListener("click", () => {
     if (currentOrgId) {
-      window.open(`/org-profile.html?id=${currentOrgId}`, "_blank");
+      window.open(`/org-profile.html?orgId=${currentOrgId}`, "_blank");
     }
   });
 

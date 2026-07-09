@@ -173,13 +173,13 @@ function buildPopupHTML(a, backText) {
         <div class="popup-body-grid">
             <div class="popup-body-main">
                 <h1 class="popup-main-title">${a.title}</h1>
-                <div class="popup-host-row">
+                <a href="/org-profile.html?orgId=${a.organization || a.createdBy}" class="popup-host-row" style="text-decoration: none; color: inherit;">
                     <div class="popup-host-avatar">${(a.hostName || a.createdByName || "U")[0].toUpperCase()}</div>
                     <div class="popup-host-info">
                         <span class="host-label">Hosted by</span>
-                        <h4 class="host-name">${a.hostName || a.createdByName || t("common.unknown")}</h4>
+                        <h4 class="host-name" style="transition: color 0.2s;">${a.hostName || a.createdByName || t("common.unknown")}</h4>
                     </div>
-                </div>
+                </a>
                 <div class="popup-section-divider"></div>
                 <h3 class="popup-section-title">About this Activity</h3>
                 <div class="popup-description-text">
