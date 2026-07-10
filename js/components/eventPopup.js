@@ -425,9 +425,9 @@ function initAIMatchButton(container, activityID) {
 
             let pct = null;
             let color = "#64748b";
-            let matchLabel = "Unknown";
+            let matchLabel = "Chưa xác định";
             if (score !== null) {
-                pct = Math.round(score * 100);
+                pct = Math.min(100, Math.max(0, Math.round(score * 100)));
                 if (pct >= 80) { color = "#059669"; matchLabel = "Excellent Match"; }
                 else if (pct >= 60) { color = "#16a34a"; matchLabel = "Strong Match"; }
                 else if (pct >= 40) { color = "#d97706"; matchLabel = "Moderate Match"; }
@@ -438,14 +438,23 @@ function initAIMatchButton(container, activityID) {
                 ? tags.map(t => `<span class="ai-match-tag">${t}</span>`).join("")
                 : "";
 
+            const scoreCircleHTML = pct !== null
+                ? `
+                <div class="ai-match-score-circle" style="width:56px;height:56px;border-radius:50%;background:conic-gradient(${color} ${pct}%, #ecedfa ${pct}%);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+                    <span style="background:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:${color};">${pct}%</span>
+                </div>
+                <span style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;background:${color}15;color:${color};">${matchLabel}</span>
+                `
+                : `
+                <div class="ai-match-score-circle" style="width:56px;height:56px;border-radius:50%;background:#ecedfa;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+                    <span style="background:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#64748b;">–</span>
+                </div>
+                <span style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;background:#64748b15;color:#64748b;">Chưa xác định</span>
+                `;
+
             resultEl.innerHTML = `
                 <div class="ai-match-success">
-                    ${pct !== null ? `
-                    <div class="ai-match-score-circle" style="width:56px;height:56px;border-radius:50%;background:conic-gradient(${color} ${pct}%, #ecedfa ${pct}%);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
-                        <span style="background:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:${color};">${pct}%</span>
-                    </div>
-                    <span style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;background:${color}15;color:${color};">${matchLabel}</span>
-                    ` : ""}
+                    ${scoreCircleHTML}
                     <h4 class="font-bold text-sm text-[#191b22] mt-3 text-center">AI Compatibility</h4>
                     <p class="text-xs text-[#475569] mt-1 leading-relaxed" style="text-align:left;line-height:1.6;">${explanation}</p>
                     ${tagsHTML ? `<div class="ai-match-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;justify-content:center;">${tagsHTML}</div>` : ""}
