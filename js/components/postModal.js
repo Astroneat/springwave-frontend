@@ -2,6 +2,7 @@ import { fetchContent } from "../lib/utils.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { createDiscussionWithScope } from "../api/forum.js";
+import { TURNSTILE_SITE_KEY } from "../config.js";
 
 let isInitialized = false;
 
@@ -35,6 +36,27 @@ async function ensurePostModalElements() {
     cancelBtn?.addEventListener("click", closePostModal);
     if (backdrop) backdrop.addEventListener("click", closePostModal);
 
+    const initModalTurnstile = () => {
+        if (typeof turnstile !== "undefined" && document.getElementById("turnstile-container-modal")) {
+            turnstile.render("#turnstile-container-modal", {
+                sitekey: TURNSTILE_SITE_KEY,
+                callback: function(token) { window._postModalTurnstileToken = token; },
+            });
+        }
+    };
+
+    if (typeof turnstile === "undefined" && !document.getElementById("turnstile-script-modal")) {
+        const script = document.createElement("script");
+        script.id = "turnstile-script-modal";
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        script.defer = true;
+        script.onload = initModalTurnstile;
+        document.head.appendChild(script);
+    } else {
+        initModalTurnstile();
+    }
+
     publishBtn?.addEventListener("click", async () => {
         const check = canPerformAction('createDiscussion');
         if (!check.allowed) {
@@ -55,7 +77,13 @@ async function ensurePostModalElements() {
                 tags: (tagsInput.value || "").split(",").map(t => sanitizeHtml(t.trim())).filter(Boolean),
                 relatedEvent: currentActivity?.activityID || currentActivity?._id,
                 scope: "general",
+                cfTurnstileResponse: window._postModalTurnstileToken || "",
             });
+            
+            if (typeof turnstile !== "undefined" && document.getElementById("turnstile-container-modal")) {
+                turnstile.reset("#turnstile-container-modal");
+                window._postModalTurnstileToken = "";
+            }
             
             closePostModal();
             
