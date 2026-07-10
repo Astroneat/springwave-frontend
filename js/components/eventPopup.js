@@ -6,6 +6,8 @@ import { t } from "../lib/i18n.js";
 import { isAuthenticated, getUser, isProfileComplete } from "../lib/session.js";
 import { formatDate, capitalize, timeAgo } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
+import { explainRecommendation } from "../api/recommendations.js";
+import { getMyProfile } from "../api/profile.js";
 
 // Ensure overlay and container exist
 function ensurePopupElements() {
@@ -87,6 +89,8 @@ export async function openEventPopup(activityID, options = {}) {
     container.querySelector(".discuss-btn")?.addEventListener("click", () => {
         openPostModal(activity);
     });
+
+    initAIMatchButton(container, activityID);
 
     initEventComments(activityID, container);
 
@@ -257,6 +261,14 @@ function buildPopupHTML(a, backText) {
                                 <p>Join the thread</p>
                             </div>
                         </button>
+                        <button class="action-btn ai-match-btn" type="button">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <div>
+                                <h4>AI MATCH</h4>
+                                <p>Check your compatibility</p>
+                            </div>
+                        </button>
+                        <div id="ai-match-result" class="ai-match-result" style="display:none;"></div>
                         <div class="sidebar-minor-row">
                             <button class="icon-btn minor-btn" type="button"><span class="material-symbols-outlined text-base">share</span> ${t("explore.share") || "Share"}</button>
                             <button type="button" class="favorite-btn minor-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite") || "Favourite"}</span></button>
@@ -335,6 +347,83 @@ function initParticipateButton(activityID) {
     });
 }
 
+
+function initAIMatchButton(container, activityID) {
+    const btn = container.querySelector(".ai-match-btn");
+    const resultEl = container.querySelector("#ai-match-result");
+    if (!btn || !resultEl) return;
+
+    btn.addEventListener("click", async () => {
+        if (!isAuthenticated()) {
+            alert("Please login first to use AI Match!");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.querySelector("h4").textContent = "CHECKING...";
+        btn.querySelector("p").textContent = "Analyzing your profile";
+        resultEl.style.display = "none";
+
+        try {
+            const profileResp = await getMyProfile();
+            const profile = profileResp?.profile;
+
+            if (!profile || typeof profile !== "object" || Object.keys(profile).length === 0) {
+                resultEl.innerHTML = `
+                    <div class="ai-match-incomplete">
+                        <span class="material-symbols-outlined text-3xl text-[#f59e0b]">psychology</span>
+                        <h4 class="font-bold text-sm text-[#191b22] mt-2">Profile Required</h4>
+                        <p class="text-xs text-[#64748b] mt-1">Take the AI Personality Quiz to build your profile and check event compatibility.</p>
+                        <a href="/quiz.html" class="block mt-3 py-2 px-4 rounded-xl bg-primary text-white text-xs font-semibold text-center hover:bg-primary/90 transition-all">Take the Quiz</a>
+                    </div>
+                `;
+                resultEl.style.display = "block";
+                resetBtn();
+                return;
+            }
+
+            const result = await explainRecommendation(activityID);
+            const score = result?.score ?? result?.compatibility ?? null;
+            const explanation = result?.explanation || result?.message || "Based on your AI profile, this event aligns with your interests and preferences.";
+
+            let scoreHTML = "";
+            if (score !== null) {
+                const pct = Math.round(score * 100);
+                const color = pct >= 70 ? "#059669" : pct >= 40 ? "#d97706" : "#dc2626";
+                scoreHTML = `
+                    <div class="ai-match-score-circle" style="width:48px;height:48px;border-radius:50%;background:conic-gradient(${color} ${pct}%, #ecedfa ${pct}%);display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                        <span style="background:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:${color};">${pct}%</span>
+                    </div>
+                `;
+            }
+
+            resultEl.innerHTML = `
+                <div class="ai-match-success">
+                    ${scoreHTML}
+                    <h4 class="font-bold text-sm text-[#191b22] mt-2 text-center">AI Compatibility</h4>
+                    <p class="text-xs text-[#64748b] mt-1 leading-relaxed">${explanation}</p>
+                </div>
+            `;
+            resultEl.style.display = "block";
+        } catch (err) {
+            console.error("AI Match error:", err);
+            resultEl.innerHTML = `
+                <div class="ai-match-error">
+                    <span class="material-symbols-outlined text-3xl text-[#ef4444]">error_outline</span>
+                    <p class="text-xs text-[#ef4444] mt-1 font-medium">${err.message || "Failed to check compatibility. Please try again later."}</p>
+                </div>
+            `;
+            resultEl.style.display = "block";
+        }
+        resetBtn();
+
+        function resetBtn() {
+            btn.disabled = false;
+            btn.querySelector("h4").textContent = "AI MATCH";
+            btn.querySelector("p").textContent = "Check your compatibility";
+        }
+    });
+}
 
 async function initEventComments(eventId, container) {
     const listEl = container.querySelector('#event-comments-list');

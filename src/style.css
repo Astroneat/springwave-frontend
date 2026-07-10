@@ -9520,6 +9520,90 @@ html, body, button, input, select, textarea {
 }
 
 /* ==========================================================================
+   AI MATCH RESULT IN POPUP SIDEBAR
+   ========================================================================== */
+
+.ai-match-result {
+    margin-top: 12px;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(28, 39, 76, 0.06);
+    text-align: center;
+    animation: fadeInUp 0.3s ease;
+}
+
+.ai-match-result .ai-match-incomplete,
+.ai-match-result .ai-match-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ai-match-result .ai-match-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar-actions-group .action-btn.ai-match-btn {
+    width: 100% !important;
+    height: auto !important;
+    padding: 14px 16px !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+    flex-direction: row !important;
+    text-align: left !important;
+    border: none;
+    font-family: var(--font-body-md), 'Inter', sans-serif;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.08)) !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    color: #6d28d9 !important;
+}
+
+.sidebar-actions-group .action-btn.ai-match-btn i {
+    font-size: 18px !important;
+    color: #7c3aed !important;
+}
+
+.sidebar-actions-group .action-btn.ai-match-btn h4 {
+    font-size: 13px !important;
+    font-weight: 700;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+}
+
+.sidebar-actions-group .action-btn.ai-match-btn p {
+    font-size: 10px !important;
+    margin: 2px 0 0 0 !important;
+    opacity: 0.85;
+    line-height: 1.2 !important;
+}
+
+.sidebar-actions-group .action-btn.ai-match-btn:hover {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.15)) !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
+    transform: translateY(-1px);
+}
+
+.sidebar-actions-group .action-btn.ai-match-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
    DASHBOARD SHOWCASE & BENTO SOCIAL PROOF STYLES
    ========================================================================== */
 
