@@ -9598,6 +9598,22 @@ html, body, button, input, select, textarea {
     cursor: wait;
 }
 
+.sidebar-actions-group .action-btn.ai-match-btn.cooldown {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.ai-match-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(139, 92, 246, 0.1);
+    color: #6d28d9;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }

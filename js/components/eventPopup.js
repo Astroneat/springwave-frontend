@@ -298,8 +298,24 @@ function initParticipateButton(activityID) {
     const btn = document.querySelector(".participate");
     if (!btn) return;
 
+    let lastClick = 0;
+    const COOLDOWN = 3000;
+
     btn.addEventListener("click", async (e) => {
         e.stopPropagation();
+
+        const now = Date.now();
+        if (now - lastClick < COOLDOWN) {
+            const remaining = Math.ceil((COOLDOWN - (now - lastClick)) / 1000);
+            btn.querySelector("p").textContent = `Wait ${remaining}s...`;
+            setTimeout(() => {
+                const isActive = btn.classList.contains("active");
+                btn.querySelector("p").textContent = isActive
+                    ? (t("explore.joined_activity") || "Joined activity")
+                    : (t("explore.join_activity") || "Join activity");
+            }, COOLDOWN - (now - lastClick));
+            return;
+        }
 
         if (btn.dataset.externalUrl) {
             window.open(btn.dataset.externalUrl, '_blank');
@@ -314,6 +330,12 @@ function initParticipateButton(activityID) {
         const isActive = btn.classList.contains("active");
         const headerEl = btn.querySelector(".participate-header");
         const textEl = btn.querySelector(".participate-text");
+
+        if (isActive) {
+            if (!confirm("Are you sure you want to leave this event?")) return;
+        }
+
+        lastClick = now;
 
         try {
             if (isActive) {
@@ -353,12 +375,26 @@ function initAIMatchButton(container, activityID) {
     const resultEl = container.querySelector("#ai-match-result");
     if (!btn || !resultEl) return;
 
+    let lastClick = 0;
+    const COOLDOWN = 15000;
+
     btn.addEventListener("click", async () => {
         if (!isAuthenticated()) {
             alert("Please login first to use AI Match!");
             return;
         }
 
+        const now = Date.now();
+        if (now - lastClick < COOLDOWN) {
+            const remaining = Math.ceil((COOLDOWN - (now - lastClick)) / 1000);
+            btn.querySelector("p").textContent = `Wait ${remaining}s`;
+            setTimeout(() => {
+                btn.querySelector("p").textContent = "Check your compatibility";
+            }, COOLDOWN - (now - lastClick));
+            return;
+        }
+
+        lastClick = now;
         btn.disabled = true;
         btn.querySelector("h4").textContent = "CHECKING...";
         btn.querySelector("p").textContent = "Analyzing your profile";
@@ -385,23 +421,34 @@ function initAIMatchButton(container, activityID) {
             const result = await explainRecommendation(activityID);
             const score = result?.score ?? result?.compatibility ?? null;
             const explanation = result?.explanation || result?.message || "Based on your AI profile, this event aligns with your interests and preferences.";
+            const tags = result?.tags || result?.highlights || [];
 
-            let scoreHTML = "";
+            let pct = null;
+            let color = "#64748b";
+            let matchLabel = "Unknown";
             if (score !== null) {
-                const pct = Math.round(score * 100);
-                const color = pct >= 70 ? "#059669" : pct >= 40 ? "#d97706" : "#dc2626";
-                scoreHTML = `
-                    <div class="ai-match-score-circle" style="width:48px;height:48px;border-radius:50%;background:conic-gradient(${color} ${pct}%, #ecedfa ${pct}%);display:flex;align-items:center;justify-content:center;margin:0 auto;">
-                        <span style="background:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:${color};">${pct}%</span>
-                    </div>
-                `;
+                pct = Math.round(score * 100);
+                if (pct >= 80) { color = "#059669"; matchLabel = "Excellent Match"; }
+                else if (pct >= 60) { color = "#16a34a"; matchLabel = "Strong Match"; }
+                else if (pct >= 40) { color = "#d97706"; matchLabel = "Moderate Match"; }
+                else { color = "#dc2626"; matchLabel = "Low Match"; }
             }
+
+            const tagsHTML = tags.length
+                ? tags.map(t => `<span class="ai-match-tag">${t}</span>`).join("")
+                : "";
 
             resultEl.innerHTML = `
                 <div class="ai-match-success">
-                    ${scoreHTML}
-                    <h4 class="font-bold text-sm text-[#191b22] mt-2 text-center">AI Compatibility</h4>
-                    <p class="text-xs text-[#64748b] mt-1 leading-relaxed">${explanation}</p>
+                    ${pct !== null ? `
+                    <div class="ai-match-score-circle" style="width:56px;height:56px;border-radius:50%;background:conic-gradient(${color} ${pct}%, #ecedfa ${pct}%);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+                        <span style="background:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:${color};">${pct}%</span>
+                    </div>
+                    <span style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;background:${color}15;color:${color};">${matchLabel}</span>
+                    ` : ""}
+                    <h4 class="font-bold text-sm text-[#191b22] mt-3 text-center">AI Compatibility</h4>
+                    <p class="text-xs text-[#475569] mt-1 leading-relaxed" style="text-align:left;line-height:1.6;">${explanation}</p>
+                    ${tagsHTML ? `<div class="ai-match-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;justify-content:center;">${tagsHTML}</div>` : ""}
                 </div>
             `;
             resultEl.style.display = "block";
