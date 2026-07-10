@@ -243,15 +243,12 @@ function switchSection(section) {
     }
   });
 
-  if (section === "participants" && document.getElementById("participant-event-select").value) {
-    loadParticipants(document.getElementById("participant-event-select").value);
-  }
-  if (section === "attendance" && document.getElementById("attendance-event-select").value) {
-    loadAttendance(document.getElementById("attendance-event-select").value);
-  }
-  if (section === "certificates" && document.getElementById("cert-event-select").value) {
-    loadCertificates(document.getElementById("cert-event-select").value);
-  }
+  const ps = document.getElementById("participant-event-select");
+  if (section === "participants" && ps && ps.value) loadParticipants(ps.value);
+  const as = document.getElementById("attendance-event-select");
+  if (section === "attendance" && as && as.value) loadAttendance(as.value);
+  const cs = document.getElementById("cert-event-select");
+  if (section === "certificates" && cs && cs.value) loadCertificates(cs.value);
   if (section === "reviews") {
     loadReviews();
   }
@@ -401,8 +398,7 @@ function populateEventSelects() {
   renderCustomSelect("participant-event-select-wrapper", "participant-event-select", currentEvents, "Select an event...");
   renderCustomSelect("attendance-event-select-wrapper", "attendance-event-select", currentEvents, "Select an event...");
   
-  const certEvents = currentEvents.filter(e => e.hasCertificate === true || e.hasCertificate === 'true');
-  renderCustomSelect("cert-event-select-wrapper", "cert-event-select", certEvents, "Select an event...");
+  renderCustomSelect("cert-event-select-wrapper", "cert-event-select", currentEvents, "Select an event...");
 }
 
 function renderCustomSelect(wrapperId, hiddenInputId, events, placeholder = "Select an event...") {
@@ -515,15 +511,21 @@ function renderCustomSelect(wrapperId, hiddenInputId, events, placeholder = "Sel
         } else {
           triggerImgDiv.classList.add("hidden");
         }
-        
-        // Close dropdown
+
+        // Update selected visual state in-place (no full re-render)
+        list.querySelectorAll(".custom-select-item").forEach(el => {
+          el.classList.remove("bg-[#f0f4ff]");
+          const icon = el.querySelector(".material-symbols-outlined.text-primary");
+          if (icon) icon.remove();
+        });
+        item.classList.add("bg-[#f0f4ff]");
+        const checkSpan = document.createElement("span");
+        checkSpan.className = "material-symbols-outlined text-primary text-[18px]";
+        checkSpan.textContent = "check_circle";
+        item.appendChild(checkSpan);
+
         closeDropdown();
-        
-        // Dispatch change event
-        input.dispatchEvent(new Event("change"));
-        
-        // Re-render select to show updated checked icon
-        renderCustomSelect(wrapperId, hiddenInputId, events, placeholder);
+        input.dispatchEvent(new Event("change", { bubbles: true }));
       });
 
       list.appendChild(item);
@@ -607,13 +609,17 @@ function renderCustomSelect(wrapperId, hiddenInputId, events, placeholder = "Sel
 // ─── Participants ───
 
 function initParticipantEventSelect() {
-  document.getElementById("participant-event-select").addEventListener("change", async function () {
-    if (this.value) {
-      await loadParticipants(this.value);
-    } else {
-      document.getElementById("participants-table-body").innerHTML = "";
-      document.getElementById("participants-empty").classList.remove("hidden");
-      document.getElementById("participant-count").textContent = "0";
+  const wrapper = document.getElementById("participant-event-select-wrapper");
+  if (!wrapper) return;
+  wrapper.addEventListener("change", (e) => {
+    if (e.target.id === "participant-event-select") {
+      if (e.target.value) {
+        loadParticipants(e.target.value);
+      } else {
+        document.getElementById("participants-table-body").innerHTML = "";
+        document.getElementById("participants-empty").classList.remove("hidden");
+        document.getElementById("participant-count").textContent = "0";
+      }
     }
   });
 }
@@ -676,23 +682,29 @@ async function loadParticipants(eventId) {
 // ─── Attendance ───
 
 function initAttendanceEventSelect() {
-  document.getElementById("attendance-event-select").addEventListener("change", async function () {
-    if (this.value) {
-      await loadAttendance(this.value);
-    } else {
-      document.getElementById("attendance-table-body").innerHTML = "";
-      const empty = document.getElementById("attendance-empty");
-      empty.classList.remove("hidden");
-      empty.innerHTML = `<i class="fa-solid fa-qrcode text-4xl mb-3 block"></i>
-        <p class="text-base font-semibold">Select an event to view attendance</p>`;
-      const statsGrid = document.querySelector("#section-attendance .grid.grid-cols-1");
-      const actionBtns = document.querySelector("#section-attendance .flex.gap-3.mb-6");
-      const attendanceListHeader = document.querySelector("#section-attendance .px-6.py-4");
-      const attendanceTable = document.querySelector("#section-attendance .overflow-x-auto");
-      if (statsGrid) statsGrid.style.opacity = "1";
-      if (actionBtns) actionBtns.style.opacity = "1";
-      if (attendanceListHeader) attendanceListHeader.style.opacity = "1";
-      if (attendanceTable) attendanceTable.style.opacity = "1";
+  const wrapper = document.getElementById("attendance-event-select-wrapper");
+  if (!wrapper) return;
+  wrapper.addEventListener("change", (e) => {
+    if (e.target.id === "attendance-event-select") {
+      if (e.target.value) {
+        loadAttendance(e.target.value);
+      } else {
+        document.getElementById("attendance-table-body").innerHTML = "";
+        const empty = document.getElementById("attendance-empty");
+        if (empty) {
+          empty.classList.remove("hidden");
+          empty.innerHTML = `<i class="fa-solid fa-qrcode text-4xl mb-3 block"></i>
+            <p class="text-base font-semibold">Select an event to view attendance</p>`;
+        }
+        const statsGrid = document.querySelector("#section-attendance .grid.grid-cols-1");
+        const actionBtns = document.querySelector("#section-attendance .flex.gap-3.mb-6");
+        const attendanceListHeader = document.querySelector("#section-attendance .px-6.py-4");
+        const attendanceTable = document.querySelector("#section-attendance .overflow-x-auto");
+        if (statsGrid) statsGrid.style.opacity = "1";
+        if (actionBtns) actionBtns.style.opacity = "1";
+        if (attendanceListHeader) attendanceListHeader.style.opacity = "1";
+        if (attendanceTable) attendanceTable.style.opacity = "1";
+      }
     }
   });
 }
@@ -1382,18 +1394,48 @@ function initAttendanceButtons() {
 // ─── Certificates ───
 
 function initCertEventSelect() {
-  document.getElementById("cert-event-select").addEventListener("change", async function () {
-    if (this.value) {
-      await loadCertificates(this.value);
-    } else {
-      document.getElementById("certs-table-body").innerHTML = "";
-      document.getElementById("certs-empty").classList.remove("hidden");
+  const wrapper = document.getElementById("cert-event-select-wrapper");
+  if (!wrapper) return;
+  wrapper.addEventListener("change", (e) => {
+    if (e.target.id === "cert-event-select") {
+      if (e.target.value) {
+        loadCertificates(e.target.value);
+      } else {
+        document.getElementById("certs-table-body").innerHTML = "";
+        const empty = document.getElementById("certs-empty");
+        if (empty) {
+          empty.classList.remove("hidden");
+          empty.innerHTML = `
+            <i class="fa-solid fa-award text-4xl mb-3 block"></i>
+            <p class="text-base font-semibold">Select an event to view certificates</p>
+          `;
+        }
+      }
     }
   });
 }
 
+function showCertsNotSupported() {
+  const tbody = document.getElementById("certs-table-body");
+  const empty = document.getElementById("certs-empty");
+  if (tbody) tbody.innerHTML = "";
+  if (empty) {
+    empty.classList.remove("hidden");
+    empty.innerHTML = `
+      <i class="fa-solid fa-triangle-exclamation text-4xl mb-3 block text-[#f59e0b]"></i>
+      <p class="text-base font-semibold text-[#64748b]">Certificates not supported for this event</p>
+      <p class="text-sm text-[#94a3b8] mt-1">Enable the certificate option when creating or editing the event.</p>
+    `;
+  }
+}
+
 async function loadCertificates(eventId) {
   try {
+    const event = currentEvents.find(ev => ev._id === eventId);
+    if (!event || !(event.hasCertificate === true || event.hasCertificate === 'true')) {
+      showCertsNotSupported();
+      return;
+    }
     const { certificates = [] } = await getEventCertificates(eventId);
     const tbody = document.getElementById("certs-table-body");
     const empty = document.getElementById("certs-empty");
@@ -1401,6 +1443,11 @@ async function loadCertificates(eventId) {
     if (!certificates.length) {
       tbody.innerHTML = "";
       empty.classList.remove("hidden");
+      empty.innerHTML = `
+        <i class="fa-solid fa-award text-4xl mb-3 block"></i>
+        <p class="text-base font-semibold">No certificates issued yet</p>
+        <p class="text-sm text-[#94a3b8] mt-1">Issue certificates for present participants.</p>
+      `;
       return;
     }
     empty.classList.add("hidden");
@@ -1424,6 +1471,10 @@ function initIssueCerts() {
   document.getElementById("issue-certs-btn").addEventListener("click", async () => {
     const eventId = document.getElementById("cert-event-select").value;
     if (!eventId) return alert("Select an event first");
+    const event = currentEvents.find(ev => ev._id === eventId);
+    if (!event || !(event.hasCertificate === true || event.hasCertificate === 'true')) {
+      return alert("This event does not support certificates.");
+    }
     if (!confirm("Issue certificates to all present participants?")) return;
     try {
       await issueCertificates(eventId);
