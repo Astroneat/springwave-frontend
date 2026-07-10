@@ -72,11 +72,17 @@ export function searchSemantic(params) {
 }
 
 // Comments API
-export function getEventComments(id) {
-}
-
 export function addEventComment(id, content) {
     return post(`/events/${id}/comments`, { content });
+}
+
+export function getSimilarEvents(eventId, limit = 5) {
+    const q = new URLSearchParams({ limit });
+    return get(`/events/${eventId}/similar?${q.toString()}`);
+}
+
+export async function getEventComments(id) {
+    return get(`/events/${id}/comments`);
 }
 
 export async function addEventReview(id, rating, content) {

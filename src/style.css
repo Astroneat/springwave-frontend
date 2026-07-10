@@ -6498,12 +6498,23 @@ html, body, button, input, select, textarea {
     margin: 0;
 }
 
-.recommendations-container {
+.recommendations-container,
+.similar-events-grid {
     display: flex;
     gap: 12px;
     overflow-x: auto;
     padding-bottom: 8px;
     scrollbar-width: thin;
+}
+
+.similar-events-section {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(28, 39, 76, 0.08);
+}
+
+.similar-events-grid .recommendation-card {
+    flex: 0 0 200px;
 }
 
 .recommendation-card {
@@ -9259,6 +9270,7 @@ html, body, button, input, select, textarea {
 .popup-body-main {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .popup-main-title {

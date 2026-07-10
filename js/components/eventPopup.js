@@ -8,6 +8,7 @@ import { formatDate, capitalize, timeAgo } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
 import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
+import { getSimilarEvents } from "../api/activities.js";
 
 // Ensure overlay and container exist
 function ensurePopupElements() {
@@ -93,6 +94,8 @@ export async function openEventPopup(activityID, options = {}) {
     initAIMatchButton(container, activityID);
 
     initEventComments(activityID, container);
+
+    loadSimilarEvents(activityID);
 
     if (isAuthenticated()) {
         Promise.all([
@@ -481,8 +484,62 @@ function initAIMatchButton(container, activityID) {
     });
 }
 
+async function loadSimilarEvents(activityID) {
+    const container = document.getElementById('similar-events-container');
+    if (!container) return;
+
+    try {
+        const data = await getSimilarEvents(activityID, 5);
+        const events = data?.events || [];
+
+        if (events.length === 0) {
+            container.innerHTML = `<p style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px">No similar events found.</p>`;
+            return;
+        }
+
+        container.innerHTML = events.map(a => {
+            const held = formatDate(a.heldDate);
+            return `<div class="recommendation-card" data-id="${a._id || a.activityID}" style="cursor:pointer;">
+                <div class="recommendation-thumb">
+                    ${a.thumbnail ? `<img src="${a.thumbnail}" alt="${a.title}">` : '<div class="recommendation-thumb-placeholder"><span class="material-symbols-outlined">event</span></div>'}
+                </div>
+                <div class="recommendation-body">
+                    <h4 class="recommendation-title">${a.title}</h4>
+                    <span class="recommendation-meta"><span class="material-symbols-outlined" style="font-size:14px;">location_on</span> ${a.location || 'Unknown'}</span>
+                    <span class="recommendation-meta"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span> ${held}</span>
+                </div>
+            </div>`;
+        }).join('');
+
+        container.querySelectorAll('.recommendation-card').forEach(card => {
+            card.addEventListener('click', async () => {
+                const id = card.dataset.id;
+                await openEventPopup(id, { activityData: null });
+            });
+        });
+    } catch (err) {
+        console.error("Failed to load similar events:", err);
+        container.innerHTML = `<p style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px">Failed to load similar events.</p>`;
+    }
+}
+
 async function initEventComments(eventId, container) {
     const listEl = container.querySelector('#event-comments-list');
+
+    // Add similar events section after comments
+    const commentsSection = container.querySelector('#popup-comments-container');
+    if (commentsSection) {
+        const similarEventsSection = document.createElement('div');
+        similarEventsSection.id = 'similar-events-section';
+        similarEventsSection.className = 'similar-events-section';
+        similarEventsSection.innerHTML = `
+            <h3 class="popup-section-title">Similar Events</h3>
+            <div id="similar-events-container" class="similar-events-grid">
+                <div class="empty-state" style="text-align:center;padding:20px;color:var(--text-muted)">Loading similar events...</div>
+            </div>
+        `;
+        commentsSection.parentNode.insertBefore(similarEventsSection, commentsSection.nextSibling);
+    }
     const inputEl = container.querySelector('#event-comment-input');
     const submitBtn = container.querySelector('#event-comment-submit');
     const seeMoreBtn = container.querySelector('#event-comments-see-more');
