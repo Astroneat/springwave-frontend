@@ -55,7 +55,11 @@ export default defineConfig({
         admin: resolve(__dirname, "admin.html"),
         adminHost: resolve(__dirname, "admin-host.html"),
         myTickets: resolve(__dirname, "my-tickets.html"),
+<<<<<<< HEAD
         myEvents: resolve(__dirname, "my-events.html"),
+=======
+        adminCategories: resolve(__dirname, "admin-categories.html"),
+>>>>>>> 8ae806b (feat: add event category management)
       },
       output: {
         assetFileNames: "assets/[name][extname]",
