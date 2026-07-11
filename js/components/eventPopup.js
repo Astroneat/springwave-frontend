@@ -167,6 +167,9 @@ function buildPopupHTML(a, backText) {
         </div>`;
     }).join("");
 
+    const tagsHTML = (a.tags || []).map(tag => `<span class="event-tag">${tag}</span>`).join("");
+    const participantCount = a.participants?.length || 0;
+
     return `
     <div class="activity-popup-layout">
         <!-- Hero Cover Section -->
@@ -181,18 +184,43 @@ function buildPopupHTML(a, backText) {
         <div class="popup-body-grid">
             <div class="popup-body-main">
                 <h1 class="popup-main-title">${a.title}</h1>
-                <a href="/org-profile.html?orgId=${a.organization || a.createdBy}" class="popup-host-row" style="text-decoration: none; color: inherit;">
-                    <div class="popup-host-avatar">${(a.hostName || a.createdByName || "U")[0].toUpperCase()}</div>
-                    <div class="popup-host-info">
-                        <span class="host-label">Hosted by</span>
-                        <h4 class="host-name" style="transition: color 0.2s;">${a.hostName || a.createdByName || t("common.unknown")}</h4>
+                
+                ${tagsHTML ? `<div class="event-tags-container">${tagsHTML}</div>` : ""}
+
+                <a href="/org-profile.html?orgId=${a.organization || a.createdBy}" class="popup-host-row-new" style="text-decoration: none; color: inherit;">
+                    <div class="popup-host-avatar-new">${(a.hostName || a.createdByName || "U")[0].toUpperCase()}</div>
+                    <div class="popup-host-info-new">
+                        <span class="host-label-new">Hosted by</span>
+                        <h4 class="host-name-new">${a.hostName || a.createdByName || t("common.unknown")}</h4>
                     </div>
+                    <div class="popup-host-arrow-icon"><i class="fa-solid fa-chevron-right"></i></div>
                 </a>
+
                 <div class="popup-section-divider"></div>
+                
+                <!-- Quick Info Row for Mobile -->
+                <div class="mobile-quick-info">
+                    <div class="quick-info-item" style="margin-bottom:12px">
+                        <i class="fa-regular fa-calendar"></i>
+                        <div>
+                            <span>Date & Time</span>
+                            <p>${heldDate}</p>
+                        </div>
+                    </div>
+                    <div class="quick-info-item">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <div>
+                            <span>Location</span>
+                            <p>${a.location}</p>
+                        </div>
+                    </div>
+                </div>
+
                 <h3 class="popup-section-title">About this Activity</h3>
                 <div class="popup-description-text">
                     ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
                 </div>
+
                 ${filesHTML ? `
                 <div class="popup-section-divider"></div>
                 <div class="popup-attachments-section">
@@ -242,37 +270,31 @@ function buildPopupHTML(a, backText) {
                             </div>
                         </div>
                         <div class="sidebar-detail-item">
-                            <i class="fa-solid fa-tag"></i>
+                            <i class="fa-solid fa-users"></i>
                             <div>
-                                <span>Category</span>
-                                <p>${type}</p>
+                                <span>Participants</span>
+                                <p>${participantCount} registered</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="sidebar-actions-group">
-                        <button class="action-btn participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
-                            <i class="fa-solid fa-${a.source?.url ? 'arrow-up-right-from-square' : 'users'}"></i>
-                            <div>
-                                <h4 class="participate-header">${a.source?.url ? "Explore more" : t("explore.participate")}</h4>
-                                <p class="participate-text" ${a.source?.url ? 'style="display:none"' : ''}>${a.source?.url ? '' : t("explore.join_activity")}</p>
-                            </div>
+                        <button class="action-btn-primary participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
+                            <i class="fa-solid fa-${a.source?.url ? 'arrow-up-right-from-square' : 'circle-check'}"></i>
+                            <span>${a.source?.url ? "Explore more" : t("explore.participate")}</span>
                         </button>
-                        <button class="action-btn discuss discuss-btn" data-event-id="${a.activityID || a._id}" data-event-title="${a.title}" type="button">
-                            <i class="fa-solid fa-comments"></i>
-                            <div>
-                                <h4>DISCUSS</h4>
-                                <p>Join the thread</p>
-                            </div>
-                        </button>
-                        <button class="action-btn ai-match-btn" type="button">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            <div>
-                                <h4>AI MATCH</h4>
-                                <p>Check your compatibility</p>
-                            </div>
-                        </button>
+                        
+                        <div class="action-btn-row">
+                            <button class="action-btn-secondary discuss discuss-btn" data-event-id="${a.activityID || a._id}" data-event-title="${a.title}" type="button">
+                                <i class="fa-solid fa-comments"></i> Discuss
+                            </button>
+                            <button class="action-btn-secondary ai-match-btn" type="button">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Match
+                            </button>
+                        </div>
+                        
                         <div id="ai-match-result" class="ai-match-result" style="display:none;"></div>
+                        
                         <div class="sidebar-minor-row">
                             <button class="icon-btn minor-btn" type="button"><span class="material-symbols-outlined text-base">share</span> ${t("explore.share") || "Share"}</button>
                             <button type="button" class="favorite-btn minor-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite") || "Favourite"}</span></button>
@@ -281,95 +303,124 @@ function buildPopupHTML(a, backText) {
                 </div>
             </aside>
         </div>
+
+        <!-- Sticky Bottom Bar for Mobile -->
+        <div class="mobile-sticky-bottom-bar">
+            <div class="mobile-bottom-info">
+                <span class="mobile-bottom-date">${heldDate.split(',')[0]}</span>
+                <span class="mobile-bottom-title truncate">${a.title}</span>
+            </div>
+            <button class="mobile-action-btn participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
+                <span>${a.source?.url ? "Explore" : t("explore.participate")}</span>
+            </button>
+        </div>
     </div>`;
 }
 
 function setParticipated(activity) {
-    const btn = document.querySelector(".participate");
-    if (!btn) return;
-    if (btn.dataset.externalUrl) return;
-    btn.classList.add("active");
-    btn.querySelector(".participate-header").textContent = t("explore.participated") || "Participated";
-    btn.querySelector(".participate-text").textContent = t("explore.joined_activity") || "Joined activity";
+    const btns = document.querySelectorAll(".participate");
+    btns.forEach(btn => {
+        if (!btn) return;
+        if (btn.dataset.externalUrl) return;
+        btn.classList.add("active");
+        
+        // Handle primary/mobile button
+        const span = btn.querySelector("span");
+        if (span) {
+            span.textContent = t("explore.participated") || "Participated";
+        }
+        
+        // Handle legacy/other styles
+        const header = btn.querySelector(".participate-header");
+        if (header) {
+            header.textContent = t("explore.participated") || "Participated";
+        }
+        const text = btn.querySelector(".participate-text");
+        if (text) {
+            text.textContent = t("explore.joined_activity") || "Joined activity";
+        }
+    });
 }
 
 function setFavourited() {
-    const btn = document.querySelector(".favorite-btn");
-    if (btn) btn.classList.add("active");
+    const btns = document.querySelectorAll(".favorite-btn");
+    btns.forEach(btn => {
+        if (btn) btn.classList.add("active");
+    });
 }
 
 function initParticipateButton(activityID) {
-    const btn = document.querySelector(".participate");
-    if (!btn) return;
+    const btns = document.querySelectorAll(".participate");
+    if (btns.length === 0) return;
 
     let lastClick = 0;
     const COOLDOWN = 3000;
 
-    btn.addEventListener("click", async (e) => {
-        e.stopPropagation();
+    btns.forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
 
-        const now = Date.now();
-        if (now - lastClick < COOLDOWN) {
-            const remaining = Math.ceil((COOLDOWN - (now - lastClick)) / 1000);
-            btn.querySelector("p").textContent = `Wait ${remaining}s...`;
-            setTimeout(() => {
-                const isActive = btn.classList.contains("active");
-                btn.querySelector("p").textContent = isActive
-                    ? (t("explore.joined_activity") || "Joined activity")
-                    : (t("explore.join_activity") || "Join activity");
-            }, COOLDOWN - (now - lastClick));
-            return;
-        }
-
-        if (btn.dataset.externalUrl) {
-            window.open(btn.dataset.externalUrl, '_blank');
-            return;
-        }
-
-        if (!isAuthenticated()) {
-            alert(t("explore.please_login") || "Please login first!");
-            return;
-        }
-
-        const isActive = btn.classList.contains("active");
-        const headerEl = btn.querySelector(".participate-header");
-        const textEl = btn.querySelector(".participate-text");
-
-        if (isActive) {
-            if (!confirm("Are you sure you want to leave this event?")) return;
-        }
-
-        lastClick = now;
-
-        try {
-            if (isActive) {
-                btn.classList.remove("active");
-                headerEl.textContent = t("explore.participate") || "Participate";
-                textEl.textContent = t("explore.join_activity") || "Join activity";
-            } else {
-                btn.classList.add("active");
-                headerEl.textContent = t("explore.participated") || "Participated";
-                textEl.textContent = t("explore.joined_activity") || "Joined activity";
+            const now = Date.now();
+            if (now - lastClick < COOLDOWN) {
+                return;
             }
 
-            if (isActive) {
-                await unparticipateActivity(activityID);
-            } else {
-                await participateActivity(activityID);
+            if (btn.dataset.externalUrl) {
+                window.open(btn.dataset.externalUrl, '_blank');
+                return;
             }
-        } catch (err) {
-            console.error("Participate error:", err);
-            if (isActive) {
-                btn.classList.add("active");
-                headerEl.textContent = t("explore.participated") || "Participated";
-                textEl.textContent = t("explore.joined_activity") || "Joined activity";
-            } else {
-                btn.classList.remove("active");
-                headerEl.textContent = t("explore.participate") || "Participate";
-                textEl.textContent = t("explore.join_activity") || "Join activity";
+
+            if (!isAuthenticated()) {
+                alert(t("explore.please_login") || "Please login first!");
+                return;
             }
-            alert(err.message || "Failed to participate");
-        }
+
+            const isActive = btn.classList.contains("active");
+
+            if (isActive) {
+                if (!confirm("Are you sure you want to leave this event?")) return;
+            }
+
+            lastClick = now;
+
+            try {
+                // Update all buttons status
+                const allBtns = document.querySelectorAll(".participate");
+                allBtns.forEach(b => {
+                    if (isActive) {
+                        b.classList.remove("active");
+                        const span = b.querySelector("span");
+                        if (span) span.textContent = t("explore.participate") || "Participate";
+                    } else {
+                        b.classList.add("active");
+                        const span = b.querySelector("span");
+                        if (span) span.textContent = t("explore.participated") || "Participated";
+                    }
+                });
+
+                if (isActive) {
+                    await unparticipateActivity(activityID);
+                } else {
+                    await participateActivity(activityID);
+                }
+            } catch (err) {
+                console.error("Participate error:", err);
+                // Revert status on error
+                const allBtns = document.querySelectorAll(".participate");
+                allBtns.forEach(b => {
+                    if (isActive) {
+                        b.classList.add("active");
+                        const span = b.querySelector("span");
+                        if (span) span.textContent = t("explore.participated") || "Participated";
+                    } else {
+                        b.classList.remove("active");
+                        const span = b.querySelector("span");
+                        if (span) span.textContent = t("explore.participate") || "Participate";
+                    }
+                });
+                alert(err.message || "Failed to participate");
+            }
+        });
     });
 }
 
@@ -527,7 +578,7 @@ async function loadSimilarEvents(activityID) {
 async function initEventComments(eventId, container) {
     const listEl = container.querySelector('#event-comments-list');
 
-    // Add similar events section after comments
+    // Add similar events section before comments
     const commentsSection = container.querySelector('#popup-comments-container');
     if (commentsSection) {
         const similarEventsSection = document.createElement('div');
@@ -539,7 +590,7 @@ async function initEventComments(eventId, container) {
                 <div class="empty-state" style="text-align:center;padding:20px;color:var(--text-muted)">Loading similar events...</div>
             </div>
         `;
-        commentsSection.parentNode.insertBefore(similarEventsSection, commentsSection.nextSibling);
+        commentsSection.parentNode.insertBefore(similarEventsSection, commentsSection);
     }
     const inputEl = container.querySelector('#event-comment-input');
     const submitBtn = container.querySelector('#event-comment-submit');

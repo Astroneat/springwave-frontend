@@ -969,14 +969,19 @@ async function loadAttendance(eventId) {
       let badge = '';
       if (status === 'present') {
         badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>';
+      } else if (status === 'late') {
+        badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Late</span>';
       } else {
         badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>';
       }
-      const isCheckedIn = status === 'present';
+      const isCheckedIn = status === 'present' || status === 'late';
       return `
         <tr class="border-b border-[#ecedfa]">
           <td class="py-3.5 px-4">
             <div class="flex items-center gap-3">
+              ${user.avatar
+                ? `<img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover" />`
+                : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(user.fullname?.[0] || "?").toUpperCase()}</div>`}
               <span class="font-semibold">${user.fullname || "Unknown"}</span>
             </div>
           </td>
@@ -1092,20 +1097,27 @@ function initQRScan() {
 
     container.classList.remove("border-emerald-200", "bg-emerald-50/30", "border-amber-200", "bg-amber-50/30", "border-rose-200", "bg-rose-50/30", "border-slate-200/60", "bg-slate-50");
 
-    if (state === "default") {
+    if (state === "default" || state === "loading") {
       defaultView.classList.remove("hidden");
       container.classList.add("border-slate-200/60", "bg-slate-50");
       const textEl = defaultView.querySelector("p");
-      if (textEl) textEl.textContent = "Position the attendee's ticket QR code inside the camera viewfinder.";
-    } else if (state === "loading") {
-      defaultView.classList.remove("hidden");
-      container.classList.add("border-slate-200/60", "bg-slate-50");
-      const textEl = defaultView.querySelector("p");
-      if (textEl) textEl.textContent = message || "Processing check-in...";
+      if (textEl) textEl.textContent = message || (state === "loading" ? "Processing check-in..." : "Position the attendee's ticket QR code inside the camera viewfinder.");
+      
+      const placeholderEl = document.getElementById("scan-feedback-avatar-placeholder");
+      if (placeholderEl) {
+        placeholderEl.textContent = "person";
+        placeholderEl.className = "material-symbols-outlined text-4xl text-slate-400";
+      }
+      const avatarContainer = document.getElementById("scan-feedback-avatar-container");
+      if (avatarContainer) {
+        avatarContainer.className = "w-20 h-20 rounded-full border-4 border-slate-300 overflow-hidden shadow-md mx-auto bg-slate-200 flex items-center justify-center";
+      }
+      const avatarEl = document.getElementById("scan-feedback-avatar");
+      if (avatarEl) avatarEl.classList.add("hidden");
     } else if (state === "success" && user) {
       successView.classList.remove("hidden");
-      const borderClass = "border-emerald-200";
-      const bgClass = "bg-emerald-50/30";
+      const borderClass = isLate ? "border-amber-200" : "border-emerald-200";
+      const bgClass = isLate ? "bg-amber-50/30" : "bg-emerald-50/30";
       container.classList.add(borderClass, bgClass);
 
       const nameEl = document.getElementById("scan-feedback-name");
@@ -1115,14 +1127,24 @@ function initQRScan() {
       const avatarEl = document.getElementById("scan-feedback-avatar");
       const placeholderEl = document.getElementById("scan-feedback-avatar-placeholder");
       const statusLabel = document.getElementById("scan-feedback-status-label");
+      const avatarContainer = document.getElementById("scan-feedback-avatar-container");
 
       if (nameEl) nameEl.textContent = user.fullname || "Unknown Attendee";
       if (usernameEl) usernameEl.textContent = user.username ? `@${user.username}` : "";
       if (emailEl) emailEl.textContent = user.email || "";
       if (codeEl) codeEl.textContent = ticketCode ? ticketCode.toUpperCase() : "N/A";
       if (statusLabel) {
-        statusLabel.textContent = "Checked in";
-        statusLabel.className = "text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full";
+        if (isLate) {
+          statusLabel.textContent = "Checked in (Late)";
+          statusLabel.className = "text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full";
+        } else {
+          statusLabel.textContent = "Checked in";
+          statusLabel.className = "text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full";
+        }
+      }
+
+      if (avatarContainer) {
+        avatarContainer.className = `w-20 h-20 rounded-full border-4 ${isLate ? 'border-amber-400' : 'border-emerald-400'} overflow-hidden shadow-md mx-auto bg-slate-200 flex items-center justify-center`;
       }
 
       if (avatarEl && placeholderEl) {
@@ -1130,9 +1152,17 @@ function initQRScan() {
           avatarEl.src = user.avatar;
           avatarEl.classList.remove("hidden");
           placeholderEl.classList.add("hidden");
+          avatarEl.onerror = () => {
+            avatarEl.classList.add("hidden");
+            placeholderEl.classList.remove("hidden");
+            placeholderEl.textContent = (user.fullname?.[0] || user.username?.[0] || "?").toUpperCase();
+            placeholderEl.className = "text-2xl font-bold text-slate-500";
+          };
         } else {
           avatarEl.classList.add("hidden");
           placeholderEl.classList.remove("hidden");
+          placeholderEl.textContent = (user.fullname?.[0] || user.username?.[0] || "?").toUpperCase();
+          placeholderEl.className = "text-2xl font-bold text-slate-500";
         }
       }
     } else if (state === "error") {
@@ -1181,7 +1211,7 @@ function initQRScan() {
           <div class="w-7 h-7 rounded-full overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center border border-slate-200">
             ${item.avatar
               ? `<img src="${item.avatar}" class="w-full h-full object-cover" />`
-              : `<span class="material-symbols-outlined text-base text-slate-400">person</span>`
+              : `<span class="font-bold text-[10px] text-slate-500">${(item.fullname?.[0] || "?").toUpperCase()}</span>`
             }
           </div>
           <div class="min-w-0">
