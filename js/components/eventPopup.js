@@ -157,12 +157,13 @@ function buildPopupHTML(a, backText) {
     const filesHTML = (a.attachments || []).map(f => {
         const link = f.link || f.activityAttachLink || "";
         const fileName = decodeURIComponent(link.split('/').pop());
+        const href = (link.startsWith("http://") || link.startsWith("https://")) ? link : `${CDN_DOMAIN}/${link}`;
         return `<div class="file-item">
             <div class="file-left">
                 <div class="file-icon"><i class="fa-solid fa-file"></i></div>
                 <div><h4>${fileName}</h4></div>
             </div>
-            <a class="download-btn" href="${CDN_DOMAIN}/${link}" target="_blank"><i class="fa-solid fa-download"></i></a>
+            <a class="download-btn" href="${href}" target="_blank"><i class="fa-solid fa-download"></i></a>
         </div>`;
     }).join("");
 

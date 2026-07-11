@@ -850,6 +850,43 @@ async function loadAttendance(eventId) {
       get(`/events/${eventId}`).catch(() => ({ event: {} })),
     ]);
     const event = eventData.event || {};
+    const eventDate = event.heldDateEnd || event.heldDate;
+    let isPastEvent = false;
+    if (eventDate) {
+      const eventDateString = new Date(eventDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+      const nowDateString = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+      isPastEvent = nowDateString > eventDateString;
+    }
+
+    const scanQrBtn = document.getElementById("scan-qr-btn");
+    const initBtn = document.getElementById("init-attendance-btn");
+    if (scanQrBtn) {
+      if (isPastEvent) {
+        scanQrBtn.disabled = true;
+        scanQrBtn.classList.add("opacity-50", "cursor-not-allowed");
+        scanQrBtn.classList.remove("cursor-pointer");
+        scanQrBtn.title = "Cannot scan QR code for a past event";
+      } else {
+        scanQrBtn.disabled = false;
+        scanQrBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        scanQrBtn.classList.add("cursor-pointer");
+        scanQrBtn.title = "";
+      }
+    }
+    if (initBtn) {
+      if (isPastEvent) {
+        initBtn.disabled = true;
+        initBtn.classList.add("opacity-50", "cursor-not-allowed");
+        initBtn.classList.remove("cursor-pointer");
+        initBtn.title = "Cannot initialize attendance for a past event";
+      } else {
+        initBtn.disabled = false;
+        initBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        initBtn.classList.add("cursor-pointer");
+        initBtn.title = "";
+      }
+    }
+
     const hasAttendance = event.hasAttendance === true || event.hasAttendance === 'true';
 
     const attendanceContainer = document.getElementById("attendance-content");
@@ -947,9 +984,13 @@ async function loadAttendance(eventId) {
           <td class="py-3.5 px-4">${badge}</td>
           <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${r.checkedInAt ? formatDate(r.checkedInAt) : "—"}</td>
           <td class="py-3.5 px-4 text-right">
-            ${isCheckedIn
-              ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Mark Absent</button>`
-              : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Check In</button>`}
+            ${isPastEvent
+              ? (isCheckedIn
+                  ? `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Mark Absent</span>`
+                  : `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Check In</span>`)
+              : (isCheckedIn
+                  ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Mark Absent</button>`
+                  : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Check In</button>`)}
           </td>
         </tr>
       `;
@@ -1433,6 +1474,7 @@ function initQRScan() {
   }
 
   document.getElementById("scan-qr-btn").addEventListener("click", () => {
+    if (document.getElementById("scan-qr-btn").disabled) return;
     const eventId = document.getElementById("attendance-event-select").value;
     if (!eventId) return alert("Select an event first");
     const overlay = document.getElementById("scan-overlay");
@@ -1511,6 +1553,7 @@ function initQRScan() {
 
 function initAttendanceButtons() {
   document.getElementById("init-attendance-btn").addEventListener("click", async () => {
+    if (document.getElementById("init-attendance-btn").disabled) return;
     const eventId = document.getElementById("attendance-event-select").value;
     if (!eventId) return alert("Select an event first");
     if (!confirm("Initialize/refresh attendance records for all participants?")) return;
