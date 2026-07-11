@@ -433,6 +433,38 @@ function initAIMatchButton(container, activityID) {
     let lastClick = 0;
     const COOLDOWN = 15000;
 
+    function setBtnLoading() {
+        const h4 = btn.querySelector("h4");
+        const p = btn.querySelector("p");
+        if (h4 && p) {
+            h4.textContent = "CHECKING...";
+            p.textContent = "Analyzing your profile";
+        } else {
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Matching...`;
+        }
+    }
+
+    function setBtnCooldown(remaining) {
+        const p = btn.querySelector("p");
+        if (p) {
+            p.textContent = `Wait ${remaining}s`;
+        } else {
+            btn.innerHTML = `<i class="fa-solid fa-hourglass-half"></i> Wait ${remaining}s`;
+        }
+    }
+
+    function resetBtn() {
+        btn.disabled = false;
+        const h4 = btn.querySelector("h4");
+        const p = btn.querySelector("p");
+        if (h4 && p) {
+            h4.textContent = "AI MATCH";
+            p.textContent = "Check your compatibility";
+        } else {
+            btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Match`;
+        }
+    }
+
     btn.addEventListener("click", async () => {
         if (!isAuthenticated()) {
             alert("Please login first to use AI Match!");
@@ -442,17 +474,16 @@ function initAIMatchButton(container, activityID) {
         const now = Date.now();
         if (now - lastClick < COOLDOWN) {
             const remaining = Math.ceil((COOLDOWN - (now - lastClick)) / 1000);
-            btn.querySelector("p").textContent = `Wait ${remaining}s`;
+            setBtnCooldown(remaining);
             setTimeout(() => {
-                btn.querySelector("p").textContent = "Check your compatibility";
+                resetBtn();
             }, COOLDOWN - (now - lastClick));
             return;
         }
 
         lastClick = now;
         btn.disabled = true;
-        btn.querySelector("h4").textContent = "CHECKING...";
-        btn.querySelector("p").textContent = "Analyzing your profile";
+        setBtnLoading();
         resultEl.style.display = "none";
 
         try {
@@ -527,12 +558,6 @@ function initAIMatchButton(container, activityID) {
             resultEl.style.display = "block";
         }
         resetBtn();
-
-        function resetBtn() {
-            btn.disabled = false;
-            btn.querySelector("h4").textContent = "AI MATCH";
-            btn.querySelector("p").textContent = "Check your compatibility";
-        }
     });
 }
 
