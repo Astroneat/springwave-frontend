@@ -292,6 +292,7 @@ async function loadDashboard() {
 // ─── Events ───
 
 let eventsFilter = "all";
+let showExpiredEvents = false;
 
 function initEventsTabs() {
   document.querySelectorAll("[data-events-tab]").forEach(btn => {
@@ -316,11 +317,31 @@ async function loadEvents() {
   }
 }
 
+function isEventExpired(heldDate) {
+  if (!heldDate) return false;
+  return new Date(heldDate) < new Date();
+}
+
+function canEditEvent(heldDate) {
+  if (!heldDate) return true;
+  const heldTime = new Date(heldDate).getTime();
+  const now = Date.now();
+  const diffMs = heldTime - now;
+  return !(diffMs > 0 && diffMs < 30 * 60 * 1000);
+}
+
 function renderEventsTable() {
   const tbody = document.getElementById("events-table-body");
   const empty = document.getElementById("events-empty");
+  const expiredToggle = document.getElementById("toggle-expired-events");
+  if (expiredToggle) {
+    const hasExpired = currentEvents.some(e => isEventExpired(e.heldDate));
+    expiredToggle.classList.toggle("hidden", !hasExpired);
+  }
+
   let filtered = currentEvents;
   if (eventsFilter !== "all") filtered = filtered.filter(e => e.status === eventsFilter);
+  if (!showExpiredEvents) filtered = filtered.filter(e => !isEventExpired(e.heldDate));
 
   if (!filtered.length) {
     tbody.innerHTML = "";
@@ -329,8 +350,13 @@ function renderEventsTable() {
   }
   empty.classList.add("hidden");
 
-  tbody.innerHTML = filtered.map(e => `
-    <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] transition-colors" data-id="${e._id}">
+  tbody.innerHTML = filtered.map(e => {
+    const expired = isEventExpired(e.heldDate);
+    const canEdit = canEditEvent(e.heldDate);
+    const editDisabled = !canEdit && !expired;
+    const editTitle = editDisabled ? 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút' : 'Edit';
+    return `
+    <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] transition-colors ${expired ? 'opacity-60' : ''}" data-id="${e._id}">
       <td class="py-3.5 px-4">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-[#ecedfa] overflow-hidden shrink-0">
@@ -355,19 +381,35 @@ function renderEventsTable() {
           <button class="view-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary transition-all spring-ease" title="View">
             <i class="fa-regular fa-eye text-sm"></i>
           </button>
+          <button class="edit-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center transition-all spring-ease ${editDisabled ? 'opacity-40 cursor-not-allowed' : 'text-[#1755ba] hover:bg-[#dae1ff] hover:text-primary'}" title="${editTitle}" ${editDisabled ? 'disabled' : ''}>
+            <i class="fa-solid fa-pen text-sm"></i>
+          </button>
           <button class="delete-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Delete">
             <i class="fa-solid fa-trash-can text-sm"></i>
           </button>
         </div>
       </td>
     </tr>
-  `).join("");
+  `}).join("");
 
   tbody.querySelectorAll(".view-event-btn").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
       const id = btn.closest("tr").dataset.id;
-      window.open(`/explore.html?event=${id}`, "_blank");
+      openEventDetailModal(id);
+    });
+  });
+
+  tbody.querySelectorAll(".edit-event-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = btn.closest("tr").dataset.id;
+      const event = currentEvents.find(ev => ev._id === id);
+      if (!canEditEvent(event?.heldDate)) {
+        alert('Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút');
+        return;
+      }
+      window.location.href = `/hostActivity.html?edit=${id}&org=${currentOrgId}`;
     });
   });
 
@@ -386,6 +428,97 @@ function renderEventsTable() {
     });
   });
 }
+
+// ─── Event Detail Modal ───
+
+function openEventDetailModal(eventId) {
+  const event = currentEvents.find(e => e._id === eventId);
+  if (!event) return;
+
+  const overlay = document.getElementById("event-detail-overlay");
+  const body = document.getElementById("event-detail-body");
+  if (!overlay || !body) return;
+
+  const heldDate = formatDate(event.heldDate);
+  const type = capitalize(event.type || "Event");
+  const source = event.createdByName || "—";
+
+  body.innerHTML = `
+    <div class="flex flex-col md:flex-row gap-6">
+      <div class="md:w-[340px] shrink-0">
+        ${event.thumbnail
+          ? `<img src="${event.thumbnail}" class="w-full h-[240px] object-cover rounded-2xl" alt="${event.title}" />`
+          : `<div class="w-full h-[240px] rounded-2xl bg-[#ecedfa] flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-4xl"></i></div>`
+        }
+        <div class="mt-4 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-regular fa-calendar"></i></div>
+            <div><p class="text-[13px] text-[#64748b]">Date</p><p class="font-semibold text-[#191b22]">${heldDate}</p></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-regular fa-user"></i></div>
+            <div><p class="text-[13px] text-[#64748b]">Host</p><p class="font-semibold text-[#191b22]">${source}</p></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-solid fa-tag"></i></div>
+            <div><p class="text-[13px] text-[#64748b]">Type</p><p class="font-semibold text-[#191b22]">${type}</p></div>
+          </div>
+          ${event.location ? `
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-solid fa-location-dot"></i></div>
+            <div><p class="text-[13px] text-[#64748b]">Location</p><p class="font-semibold text-[#191b22]">${event.location}</p></div>
+          </div>` : ''}
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-regular fa-user"></i></div>
+            <div><p class="text-[13px] text-[#64748b]">Participants</p><p class="font-semibold text-[#191b22]">${event.participants?.length || 0}</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h2 class="font-headline-md text-2xl font-bold text-[#191b22] mb-2">${event.title}</h2>
+        <div class="flex flex-wrap gap-2 mb-4">
+          ${(event.tags || []).map(t => `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#dae1ff] text-primary">${t}</span>`).join('')}
+        </div>
+        <div class="bg-[#f8f9fc] rounded-2xl p-5 max-h-[400px] overflow-y-auto text-sm leading-relaxed text-[#475569] whitespace-pre-wrap">
+          ${event.description || "No description"}
+        </div>
+      </div>
+    </div>`;
+
+  overlay.removeAttribute("hidden");
+  overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeEventDetailModal() {
+  const overlay = document.getElementById("event-detail-overlay");
+  if (!overlay) return;
+  overlay.classList.remove("active");
+  document.body.style.overflow = "";
+  setTimeout(() => overlay.setAttribute("hidden", ""), 300);
+}
+
+// ─── Expired Events Toggle ───
+
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.getElementById("toggle-expired-events");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      showExpiredEvents = !showExpiredEvents;
+      toggleBtn.classList.toggle("bg-[#dae1ff]", showExpiredEvents);
+      const icon = toggleBtn.querySelector(".material-symbols-outlined");
+      const text = toggleBtn.querySelector("span:last-child");
+      if (icon) icon.textContent = showExpiredEvents ? "visibility_off" : "visibility";
+      if (text) text.textContent = showExpiredEvents ? "Hide Expired Events" : "Show Expired Events";
+      renderEventsTable();
+    });
+  }
+
+  const detailBackdrop = document.getElementById("event-detail-backdrop");
+  if (detailBackdrop) detailBackdrop.addEventListener("click", closeEventDetailModal);
+  const detailClose = document.getElementById("event-detail-close");
+  if (detailClose) detailClose.addEventListener("click", closeEventDetailModal);
+});
 
 function initCreateEvent() {
   document.getElementById("create-event-btn").addEventListener("click", () => {

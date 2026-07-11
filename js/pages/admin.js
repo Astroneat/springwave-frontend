@@ -12,6 +12,7 @@ let pendingEvents = [];
 let publishedEvents = [];
 let actionTarget = null;
 let selectedIds = new Set();
+let showExpiredPublished = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {
@@ -94,8 +95,21 @@ function renderTable() {
     const empty = document.getElementById("table-empty");
     const count = document.getElementById("table-count");
     const title = document.getElementById("table-title");
+    const expiredToggle = document.getElementById("toggle-expired-admin");
 
-    const events = getActiveEvents();
+    let events = getActiveEvents();
+    if (currentTab === "published") {
+        const hasExpired = events.some(e => e.heldDate && new Date(e.heldDate) < new Date());
+        if (expiredToggle) {
+            expiredToggle.classList.toggle("hidden", !hasExpired);
+        }
+        if (!showExpiredPublished) {
+            events = events.filter(e => !e.heldDate || new Date(e.heldDate) >= new Date());
+        }
+    } else {
+        if (expiredToggle) expiredToggle.classList.add("hidden");
+    }
+
     title.textContent = currentTab === "pending" ? t("admin.pending_review") : t("admin.published_events");
 
     if (events.length === 0) {
@@ -128,9 +142,16 @@ function renderTable() {
                 </button>
             `;
         } else {
+            const canEdit = !e.heldDate || (new Date(e.heldDate).getTime() - Date.now() >= 30 * 60 * 1000);
+            const isExpired = e.heldDate && new Date(e.heldDate) < new Date();
+            const editDisabled = !canEdit && !isExpired;
+            const editTitle = editDisabled ? 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút' : 'Edit';
             actionsHTML = `
                 <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="View">
                     <i class="fa-regular fa-eye text-sm"></i>
+                </button>
+                <button class="edit-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center transition-all spring-ease ${editDisabled ? 'opacity-40 cursor-not-allowed' : 'text-[#1755ba] hover:bg-[#dae1ff] hover:text-primary'}" title="${editTitle}" ${editDisabled ? 'disabled' : ''}>
+                    <i class="fa-solid fa-pen text-sm"></i>
                 </button>
                 <button class="delete-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="${t("admin.delete")}">
                     <i class="fa-solid fa-trash-can text-sm"></i>
@@ -412,6 +433,22 @@ function initRowActions() {
             e.stopPropagation();
             const id = btn.closest("tr").dataset.id;
             openViewPopup(id);
+        });
+    });
+
+    document.querySelectorAll(".edit-event-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const id = btn.closest("tr").dataset.id;
+            const ev = publishedEvents.find(e => e._id === id);
+            if (ev?.heldDate) {
+                const diffMs = new Date(ev.heldDate).getTime() - Date.now();
+                if (diffMs > 0 && diffMs < 30 * 60 * 1000) {
+                    alert('Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút');
+                    return;
+                }
+            }
+            window.location.href = `/hostActivity.html?edit=${id}`;
         });
     });
 
@@ -754,3 +791,20 @@ async function loadEditSchoolList() {
         ).join("");
     } catch {}
 }
+
+// ─── Expired Events Toggle ───
+
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById("toggle-expired-admin");
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", () => {
+            showExpiredPublished = !showExpiredPublished;
+            toggleBtn.classList.toggle("bg-[#dae1ff]", showExpiredPublished);
+            const icon = toggleBtn.querySelector(".material-symbols-outlined");
+            const text = toggleBtn.querySelector("span:last-child");
+            if (icon) icon.textContent = showExpiredPublished ? "visibility_off" : "visibility";
+            if (text) text.textContent = showExpiredPublished ? "Hide Expired" : "Show Expired";
+            renderTable();
+        });
+    }
+});

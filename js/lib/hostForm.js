@@ -1,4 +1,4 @@
-import { createActivity } from "../api/activities.js";
+import { createActivity, updateActivity, getActivityById } from "../api/activities.js";
 import { canPerformAction, markActionPerformed, resetCooldown, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { getMyOrganizations, getOrganizationById } from "../api/organizations.js";
@@ -556,17 +556,116 @@ function createDatePicker(config) {
     return api;
 }
 
+const EDIT_EVENT_ID_KEY = '__editEventId';
+
+async function initEditMode(eventId) {
+  try {
+    const result = await getActivityById(eventId);
+    const event = result.activity || result.event;
+    if (!event) return;
+
+    sessionStorage.setItem(EDIT_EVENT_ID_KEY, eventId);
+
+    const titleEl = document.getElementById("title");
+    const descEl = document.getElementById("description");
+    const locationEl = document.getElementById("location");
+    const hostNameEl = document.getElementById("hostName");
+    const heldDateInput = document.getElementById("heldDate");
+    const registrationLinkEl = document.getElementById("registrationLink");
+    const hasCertificateEl = document.getElementById("hasCertificate");
+    const hasAttendanceEl = document.getElementById("hasAttendance");
+    const enableCheckinRulesEl = document.getElementById("enableCheckinRules");
+    const lateMinEl = document.getElementById("lateCheckinMinutes");
+    const expiredMinEl = document.getElementById("expiredCheckinMinutes");
+
+    if (titleEl) titleEl.value = event.title || '';
+    if (descEl) descEl.value = event.description || '';
+    if (locationEl) locationEl.value = event.location || '';
+    if (hostNameEl) hostNameEl.value = event.hostName || event.createdByName || '';
+    if (registrationLinkEl) registrationLinkEl.value = event.registrationLink || '';
+
+    if (event.heldDate) {
+      const d = new Date(event.heldDate);
+      if (!isNaN(d)) {
+        const isoDate = toLocalISODate(d);
+        if (heldDateInput) heldDateInput.value = isoDate;
+        const dateInput = document.getElementById("heldDateInput");
+        if (dateInput) {
+          const day = String(d.getDate()).padStart(2, '0');
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const year = d.getFullYear();
+          dateInput.value = `${day}/${month}/${year}`;
+        }
+        const hourEl = document.getElementById("heldHour");
+        const minEl = document.getElementById("heldMinute");
+        if (hourEl) hourEl.value = String(d.getHours()).padStart(2, '0');
+        if (minEl) minEl.value = String(d.getMinutes()).padStart(2, '0');
+      }
+    }
+
+    if (hasCertificateEl) hasCertificateEl.checked = event.hasCertificate === true || event.hasCertificate === 'true';
+    if (hasAttendanceEl) hasAttendanceEl.checked = event.hasAttendance === true || event.hasAttendance === 'true';
+    if (event.lateCheckinMinutes > 0 || event.expiredCheckinMinutes > 0) {
+      if (enableCheckinRulesEl) enableCheckinRulesEl.checked = true;
+      const rulesFields = document.getElementById("checkin-rules-fields");
+      if (rulesFields) rulesFields.classList.remove("hidden");
+      if (lateMinEl) lateMinEl.value = event.lateCheckinMinutes || 0;
+      if (expiredMinEl) expiredMinEl.value = event.expiredCheckinMinutes || 0;
+    }
+
+    if (event.organization) {
+      const orgIdInput = document.getElementById("org-id-value");
+      const orgNameInput = document.getElementById("org-name-display");
+      if (orgIdInput && typeof orgIdInput.value !== 'undefined') {
+        orgIdInput.value = event.organization._id || event.organization;
+        if (orgNameInput) orgNameInput.value = event.organization.name || 'Organization';
+      }
+    }
+
+    if (event.type) {
+      const editForm = document.getElementById("activity-form");
+      if (editForm) {
+        const typeRadio = editForm.querySelector(`input[name="type"][value="${event.type}"]`);
+        if (typeRadio) typeRadio.checked = true;
+      }
+    }
+
+    const statusMsg = document.getElementById("status-msg");
+    if (statusMsg) {
+      statusMsg.textContent = 'Edit mode — update the fields and save';
+      statusMsg.classList.remove("error-msg", "success-msg");
+      statusMsg.classList.add("info-msg");
+    }
+
+    const editForm = document.getElementById("activity-form");
+    if (editForm) {
+      const submitBtn = editForm.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.textContent = 'Update Event';
+    }
+  } catch (err) {
+    console.error('Failed to load event for editing:', err);
+  }
+}
+
 export function initFormSubmit(urlOrgId, onSuccess) {
     const form = document.getElementById("activity-form");
     const statusMsg = document.getElementById("status-msg");
     if (!form) return;
 
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("edit");
+    if (editId) {
+      setTimeout(() => initEditMode(editId), 500);
+    }
+
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const check = canPerformAction('createEvent');
+        const isEdit = !!sessionStorage.getItem(EDIT_EVENT_ID_KEY);
+
+        const check = canPerformAction(isEdit ? 'updateEvent' : 'createEvent');
         if (!check.allowed) {
-            setStatus(`Please wait ${check.remaining} seconds before posting again.`, true, statusMsg);
+            setStatus(`Please wait ${check.remaining} seconds before ${isEdit ? 'updating' : 'posting'} again.`, true, statusMsg);
             return;
         }
 
@@ -627,7 +726,7 @@ export function initFormSubmit(urlOrgId, onSuccess) {
             formData.append("attachmentLinks", JSON.stringify(linkData));
         }
 
-        if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+        if (!isEdit && typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
             if (!turnstileToken) {
                 turnstile.reset(turnstileWidgetId);
                 await new Promise(r => setTimeout(r, 1000));
@@ -638,27 +737,31 @@ export function initFormSubmit(urlOrgId, onSuccess) {
             formData.append("cfTurnstileResponse", turnstileToken || "");
         }
 
-        setStatus("Creating activity...", false, statusMsg);
+        const actionLabel = isEdit ? 'Updating' : 'Creating';
+        setStatus(`${actionLabel} activity...`, false, statusMsg);
 
-        markActionPerformed('createEvent');
+        markActionPerformed(isEdit ? 'updateEvent' : 'createEvent');
 
         try {
-            const result = await createActivity(formData);
-            setStatus("Activity created successfully!", false, statusMsg);
+            const result = isEdit
+              ? await updateActivity(sessionStorage.getItem(EDIT_EVENT_ID_KEY), formData)
+              : await createActivity(formData);
+            sessionStorage.removeItem(EDIT_EVENT_ID_KEY);
+            setStatus(isEdit ? "Activity updated successfully!" : "Activity created successfully!", false, statusMsg);
             if (onSuccess) {
                 setTimeout(() => onSuccess(result), 1200);
             } else {
                 setTimeout(() => {
-                    window.location.href = "./index.html";
+                    window.location.href = isEdit ? `./org-dashboard.html` : "./index.html";
                 }, 1500);
             }
         } catch (err) {
-            resetCooldown('createEvent');
-            if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+            resetCooldown(isEdit ? 'updateEvent' : 'createEvent');
+            if (!isEdit && typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
                 turnstile.reset(turnstileWidgetId);
             }
-            turnstileToken = null;
-            setStatus(err.message || "Failed to create activity.", true, statusMsg);
+            if (!isEdit) turnstileToken = null;
+            setStatus(err.message || `Failed to ${isEdit ? 'update' : 'create'} activity.`, true, statusMsg);
         }
     });
 }

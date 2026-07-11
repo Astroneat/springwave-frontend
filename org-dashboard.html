@@ -214,10 +214,16 @@
                     <i class="fa-solid fa-plus"></i> Create Event
                 </button>
             </div>
-            <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
-                <button class="tab-btn active" data-events-tab="all">All</button>
-                <button class="tab-btn" data-events-tab="published">Published</button>
-                <button class="tab-btn" data-events-tab="draft">Draft</button>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex gap-1 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
+                    <button class="tab-btn active" data-events-tab="all">All</button>
+                    <button class="tab-btn" data-events-tab="published">Published</button>
+                    <button class="tab-btn" data-events-tab="draft">Draft</button>
+                </div>
+                <button id="toggle-expired-events" class="hidden items-center gap-2 px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] text-sm font-semibold text-[#64748b] transition-all spring-ease cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                    <span>Show Expired Events</span>
+                </button>
             </div>
             <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -729,6 +735,20 @@
                 <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="create-org-cancel">Cancel</button>
                 <button class="flex-1 py-3 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="create-org-confirm">Submit</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Event Detail Modal -->
+    <div class="popup-overlay" hidden id="event-detail-overlay">
+        <div class="popup-backdrop" id="event-detail-backdrop"></div>
+        <div class="popup-container !max-w-[800px]">
+            <div class="flex items-center justify-between p-6 border-b border-[#ecedfa]">
+                <h3 class="font-headline-md text-xl font-bold text-[#191b22]">Event Details</h3>
+                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] transition-all cursor-pointer" id="event-detail-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 max-h-[80vh] overflow-y-auto" id="event-detail-body"></div>
         </div>
     </div>
 

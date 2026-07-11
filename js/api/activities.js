@@ -1,4 +1,4 @@
-import { post, get, del, uploadFormData } from "./client.js";
+import { post, get, del, uploadFormData, putFormData } from "./client.js";
 
 function normalizeEvent(e) {
     return { ...e, activityID: e._id };
@@ -28,6 +28,10 @@ export function createActivity(formData) {
 
 export function deleteActivity(id) {
     return del(`/events/${id}`);
+}
+
+export function updateActivity(id, formData) {
+    return putFormData(`/events/${id}`, formData);
 }
 
 export function participateActivity(id) {

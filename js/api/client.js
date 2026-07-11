@@ -218,3 +218,16 @@ export function uploadFormData(endpoint, formData) {
         body: formData
     });
 }
+
+export function putFormData(endpoint, formData) {
+    const token = getToken();
+    const headers = {};
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+    return request(endpoint, {
+        method: "PUT",
+        headers,
+        body: formData
+    });
+}

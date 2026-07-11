@@ -55,6 +55,7 @@ export default defineConfig({
         admin: resolve(__dirname, "admin.html"),
         adminHost: resolve(__dirname, "admin-host.html"),
         myTickets: resolve(__dirname, "my-tickets.html"),
+        myEvents: resolve(__dirname, "my-events.html"),
       },
       output: {
         assetFileNames: "assets/[name][extname]",
