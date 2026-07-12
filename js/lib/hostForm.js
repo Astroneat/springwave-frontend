@@ -1,4 +1,5 @@
 import { createActivity, updateActivity, getActivityById } from "../api/activities.js";
+import { listCategories } from "../api/categories.js";
 import { canPerformAction, markActionPerformed, resetCooldown, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { getMyOrganizations, getOrganizationById } from "../api/organizations.js";
@@ -647,7 +648,27 @@ async function initEditMode(eventId) {
   }
 }
 
-export function initFormSubmit(urlOrgId, onSuccess) {
+let categoriesCache = null;
+
+async function ensureCategories() {
+    if (!categoriesCache) {
+        try {
+            const data = await listCategories();
+            categoriesCache = data.categories || [];
+        } catch {
+            categoriesCache = [];
+        }
+    }
+    return categoriesCache;
+}
+
+function findCategoryByType(type) {
+    if (!categoriesCache || !type) return null;
+    const slug = type.toLowerCase();
+    return categoriesCache.find(c => c.slug === slug || c.name.toLowerCase() === slug) || null;
+}
+
+export function initFormSubmit(orgId, onSuccess) {
     const form = document.getElementById("activity-form");
     const statusMsg = document.getElementById("status-msg");
     if (!form) return;
@@ -694,12 +715,12 @@ export function initFormSubmit(urlOrgId, onSuccess) {
         formData.append("description", description);
         formData.append("location", location);
         formData.append("type", type);
-        const [year, month, day] = heldDate.split("-").map(Number);
-        const hour = parseInt(heldHour, 10);
-        const minute = parseInt(heldMinute, 10);
-        const localDate = new Date(year, month - 1, day, hour, minute, 0);
-        formData.append("heldDate", localDate.toISOString());
-        if (hostNameValue) formData.append("hostName", hostNameValue);
+        formData.append("heldDate", heldDate);
+
+        const categories = await ensureCategories();
+        const matched = findCategoryByType(type);
+        if (matched) formData.append("category", matched._id);
+        if (hostName) formData.append("hostName", hostName);
         if (orgId) formData.append("organization", orgId);
         if (registrationLink) formData.append("registrationLink", registrationLink);
         const hasCertificate = document.getElementById("hasCertificate")?.checked;

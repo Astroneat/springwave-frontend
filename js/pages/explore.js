@@ -1,6 +1,7 @@
 import "../../src/style.css";
 import { isAuthenticated } from "../lib/session.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities, searchSemantic } from "../api/activities.js";
+import { listCategories } from "../api/categories.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
 import { getRecommendations, explainRecommendation } from "../api/recommendations.js";
 import { createDiscussionWithScope } from "../api/forum.js";
@@ -22,6 +23,7 @@ let currentCategory = "all";
 let currentSort = "newest";
 let currentStatus = "upcoming";
 let cachedTemplate = null;
+<<<<<<< HEAD
 let participateQueue = [];
 let activeParticipations = 0;
 const MAX_CONCURRENT_PARTICIPATIONS = 3;
@@ -48,6 +50,9 @@ async function processParticipateQueue() {
         }
     }
 }
+=======
+let categoriesList = [];
+>>>>>>> dfe5614 (feat: add event category management)
 
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
@@ -130,7 +135,37 @@ function initNavbarActiveLinks() {
 
 
 
+async function loadCategories() {
+    try {
+        const data = await listCategories();
+        categoriesList = data.categories || [];
+        const list = document.getElementById("categoryList");
+        if (!list || categoriesList.length === 0) return;
+        const allChip = list.querySelector('[data-category="all"]');
+        list.innerHTML = "";
+        if (allChip) list.appendChild(allChip);
+        categoriesList.forEach(cat => {
+            const btn = document.createElement("button");
+            btn.className = "category-chip-figma category-chip";
+            btn.dataset.category = cat.slug || cat._id;
+            btn.innerHTML = cat.icon
+                ? `<i class="${cat.icon}" style="font-size:14px;color:${cat.color || '#64748b'}"></i>`
+                : "";
+            btn.append(" " + cat.name);
+            list.appendChild(btn);
+        });
+    } catch (e) {
+        console.warn("Categories API unavailable, using static chips", e);
+    }
+}
+
 async function initExplore() {
+    try {
+        await loadCategories();
+    } catch (e) {
+        console.error("Failed to load categories:", e);
+    }
+
     try {
         initSearchDatePicker();
     } catch (e) {
@@ -233,11 +268,19 @@ function initSearchButton() {
         if (pagContainer) pagContainer.style.display = "none";
 
         try {
+            const catChip = document.querySelector(".category-chip.active");
+            const catValue = catChip && catChip.dataset.category !== "all" ? catChip.dataset.category : undefined;
             const params = {
                 location: location || undefined,
+<<<<<<< HEAD
                 heldDateFrom: dates.startDate ? toLocalISODate(dates.startDate) : undefined,
                 heldDateTo: dates.endDate ? toLocalISODate(dates.endDate) : undefined,
                 limit: 500
+=======
+                category: catValue,
+                heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
+                heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
+>>>>>>> dfe5614 (feat: add event category management)
             };
 
             const data = keyword
@@ -384,7 +427,10 @@ async function applyFiltersAndSort() {
     let filtered = [...allActivities];
 
     if (currentCategory !== "all") {
-        filtered = filtered.filter(a => (a.type || "").toLowerCase() === currentCategory);
+        filtered = filtered.filter(a => {
+            const cat = a.category?.slug || a.category?._id || (a.type || "").toLowerCase();
+            return cat === currentCategory;
+        });
     }
 
     const now = new Date();
@@ -448,6 +494,7 @@ async function renderCardsDirect(activities) {
             image.alt = activity.title;
         }
         card.querySelector(".card-title").textContent = activity.title;
+<<<<<<< HEAD
         const locationSpan = card.querySelector(".info-location");
         if (locationSpan) locationSpan.textContent = activity.location || t("explore.unknown_location");
 
@@ -482,6 +529,27 @@ async function renderCardsDirect(activities) {
             }
         }
         
+=======
+        const infoSpans = card.querySelectorAll(".info span");
+        infoSpans[0].textContent = activity.location || t("explore.unknown_location");
+        infoSpans[1].textContent = formatDate(activity.heldDate);
+        const cat = activity.category;
+        if (cat && cat.name) {
+            infoSpans[2].innerHTML = cat.icon
+                ? `<i class="${cat.icon}" style="color:${cat.color || '#64748b'}"></i> ${cat.name}`
+                : cat.name;
+            if (cat.color) {
+                infoSpans[2].style.background = `${cat.color}20`;
+                infoSpans[2].style.color = cat.color;
+                infoSpans[2].style.borderRadius = "999px";
+                infoSpans[2].style.padding = "2px 10px";
+                infoSpans[2].style.fontSize = "12px";
+                infoSpans[2].style.fontWeight = "600";
+            }
+        } else {
+            infoSpans[2].textContent = capitalize(activity.type || "Activity");
+        }
+>>>>>>> dfe5614 (feat: add event category management)
         card.dataset.id = activity.activityID;
         frag.appendChild(card);
     });
@@ -734,8 +802,127 @@ async function syncCardFavourites() {
     }
 }
 
+<<<<<<< HEAD
 
 
+=======
+function buildPopupHTML(a, backText) {
+    const heldDate = formatDate(a.heldDate);
+    const cat = a.category;
+    const typeLabel = cat && cat.name ? cat.name : capitalize(a.type);
+    const typeIcon = cat && cat.icon ? cat.icon : "fa-solid fa-tag";
+    const typeColor = cat && cat.color ? cat.color : "#64748b";
+    const hasCoords = a.locationLat && a.locationLng;
+    const googleMapsLink = hasCoords
+        ? `https://www.google.com/maps?q=${a.locationLat},${a.locationLng}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
+    backText = backText || t("explore.back");
+    const filesHTML = (a.attachments || []).map(f => {
+        const link = f.link || f.activityAttachLink || "";
+        const fileName = decodeURIComponent(link.split('/').pop());
+        return `<div class="file-item">
+            <div class="file-left">
+                <div class="file-icon"><i class="fa-solid fa-file"></i></div>
+                <div><h4>${fileName}</h4></div>
+            </div>
+            <a class="download-btn" href="${CDN_DOMAIN}/${link}" target="_blank"><i class="fa-solid fa-download"></i></a>
+        </div>`;
+    }).join("");
+
+    return `
+    <div class="activity-popup-layout">
+        <!-- Hero Cover Section -->
+        <div class="popup-hero-cover">
+            <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
+            <div class="popup-hero-overlay"></div>
+            <button class="back-btn-floating" id="back-btn" title="${backText}"><i class="fa-solid fa-arrow-left"></i></button>
+            <span class="popup-category-badge" style="background:${typeColor}20;color:${typeColor}"><i class="${typeIcon}"></i> ${typeLabel}</span>
+        </div>
+
+        <!-- Content Grid Section -->
+        <div class="popup-body-grid">
+            <div class="popup-body-main">
+                <h1 class="popup-main-title">${a.title}</h1>
+                <div class="popup-host-row">
+                    <div class="popup-host-avatar">${(a.hostName || a.createdByName || "U")[0].toUpperCase()}</div>
+                    <div class="popup-host-info">
+                        <span class="host-label">Hosted by</span>
+                        <h4 class="host-name">${a.hostName || a.createdByName || t("common.unknown")}</h4>
+                    </div>
+                </div>
+                <div class="popup-section-divider"></div>
+                <h3 class="popup-section-title">About this Activity</h3>
+                <div class="popup-description-text">
+                    ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+                </div>
+                ${filesHTML ? `
+                <div class="popup-section-divider"></div>
+                <div class="popup-attachments-section">
+                    <h3>${t("explore.attached_files")} (${(a.attachments || []).length})</h3>
+                    <div class="popup-files-list">${filesHTML}</div>
+                </div>` : ""}
+            </div>
+
+            <!-- Sticky Action Sidebar -->
+            <aside class="popup-sidebar">
+                <div class="popup-sidebar-card">
+                    <h3 class="sidebar-card-title">Activity Details</h3>
+                    <div class="sidebar-details-list">
+                        <div class="sidebar-detail-item">
+                            <i class="fa-regular fa-calendar"></i>
+                            <div>
+                                <span>Date & Time</span>
+                                <p>${heldDate}</p>
+                            </div>
+                        </div>
+                        <div class="sidebar-detail-item">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <div>
+                                <span>Location</span>
+                                <p><a href="${googleMapsLink}" target="_blank" class="sidebar-location-link">${a.location} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></p>
+                            </div>
+                        </div>
+                        <div class="sidebar-detail-item">
+                            <i class="${typeIcon}" style="color:${typeColor}"></i>
+                            <div>
+                                <span>Category</span>
+                                <p>${typeLabel}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-actions-group">
+                        <button class="action-btn participate" type="button">
+                            <i class="fa-solid fa-users"></i>
+                            <div>
+                                <h4 class="participate-header">${t("explore.participate")}</h4>
+                                <p class="participate-text">${t("explore.join_activity")}</p>
+                            </div>
+                        </button>
+                        <button class="action-btn discuss discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}" type="button">
+                            <i class="fa-solid fa-comments"></i>
+                            <div>
+                                <h4>DISCUSS</h4>
+                                <p>Join the thread</p>
+                            </div>
+                        </button>
+                        <div class="sidebar-minor-row">
+                            <button class="icon-btn minor-btn" type="button"><span class="material-symbols-outlined text-base">share</span> ${t("explore.share")}</button>
+                            <button type="button" class="favorite-btn minor-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite")}</span></button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>`;
+}
+
+function initDetailButtons() {
+    document.querySelectorAll(".details-btn").forEach(button => {
+        button.addEventListener("click", (e) => e.stopPropagation());
+    });
+}
+>>>>>>> dfe5614 (feat: add event category management)
 
 function initCardReveal() {
     const cards = document.querySelectorAll(".card");
@@ -757,6 +944,90 @@ function initCardReveal() {
 }
 
 
+<<<<<<< HEAD
+=======
+function setFavourited(activityID) {
+    const btn = document.querySelector(".favorite-btn");
+    if (btn) btn.classList.add("active");
+    toggleCardStar(activityID, true);
+}
+
+async function showFavourites() {
+    if (!isAuthenticated()) {
+        window.location.href = "/login.html";
+        return;
+    }
+    try {
+        const { activities } = await getFavourites();
+        popupContainer.innerHTML = buildFavouritesHTML(activities || []);
+        popupOverlay.removeAttribute("hidden");
+        popupOverlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+        popupContainer.querySelector("#back-btn")?.addEventListener("click", closePopup);
+        const cards = popupContainer.querySelectorAll(".activity-card");
+        activities.forEach((a, i) => {
+            cards[i]?.addEventListener("click", () => openPopup2(a.activityID, a));
+        });
+    } catch (err) {
+        console.error("Failed to show favourites:", err);
+    }
+}
+
+function buildFavouritesHTML(activities) {
+    if (activities.length === 0) {
+        return `<div class="container" style="padding:40px;text-align:center;color:var(--text-muted)"><p>${t("explore.no_favourites")}</p></div>`;
+    }
+    const items = activities.map(a => {
+        const held = formatDate(a.heldDate);
+        const cat = a.category;
+        const type = cat && cat.name ? cat.name : capitalize(a.type);
+        return `<div class="activity-card" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;transition:background 0.2s">
+            <div style="width:120px;height:90px;border-radius:10px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">
+                ${a.thumbnail ? `<img src="${a.thumbnail}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="padding:30px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}
+            </div>
+            <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-size:12px;padding:2px 10px;border-radius:999px;background:#dce9ff;color:var(--accent);font-weight:600;">${type}</span>
+                    <span style="font-size:12px;color:var(--text-muted)">${held}</span>
+                </div>
+                <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">${a.title}</h3>
+                <div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${a.location}</div>
+            </div>
+        </div>`;
+    }).join('');
+    return `<div class="container"><div class="top-bar"><button class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> ${t("explore.back")}</button><h2 style="font-size:22px;font-weight:700;">${t("explore.favourite_activities")}</h2></div><div style="margin-top:20px;">${items}</div></div>`;
+}
+
+function initParticipateButton(activityID) {
+    const participateBtn = document.querySelector(".participate");
+    if (!participateBtn) return;
+    participateBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const button = e.currentTarget;
+        const isActive = button.classList.contains("active");
+        if (!isAuthenticated()) return;
+        try {
+            if (isActive) {
+                await unparticipateActivity(activityID);
+                button.classList.remove("active");
+                button.querySelector(".participate-header").textContent = t("explore.participate");
+                button.querySelector(".participate-text").textContent = t("explore.join_activity");
+            } else {
+                await participateActivity(activityID);
+                button.classList.add("active");
+                button.querySelector(".participate-header").textContent = t("explore.participated");
+                button.querySelector(".participate-text").textContent = t("explore.joined_activity");
+            }
+        } catch (err) {
+            console.error("Participate error:", err);
+            button.querySelector(".participate-text").textContent = err.message || t("common.error");
+            setTimeout(() => {
+                button.querySelector(".participate-text").textContent = button.classList.contains("active") ? t("explore.joined_activity") : t("explore.join_activity");
+            }, 2000);
+        }
+    });
+}
+>>>>>>> dfe5614 (feat: add event category management)
 
 function initSearchDatePicker() {
     const item = document.getElementById("zone-date");

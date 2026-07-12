@@ -50,6 +50,7 @@ export function searchActivities(params) {
     const q = new URLSearchParams();
     if (params.keyword) q.set("keyword", params.keyword);
     if (params.type) q.set("type", params.type);
+    if (params.category) q.set("category", params.category);
     if (params.status) q.set("status", params.status);
     if (params.tag) q.set("tag", params.tag);
     if (params.location) q.set("location", params.location);
@@ -69,6 +70,7 @@ export function searchSemantic(params) {
     if (params.heldDateFrom) q.set("heldDateFrom", params.heldDateFrom);
     if (params.heldDateTo) q.set("heldDateTo", params.heldDateTo);
     if (params.type) q.set("type", params.type);
+    if (params.category) q.set("category", params.category);
     if (params.tag) q.set("tag", params.tag);
     if (params.page) q.set("page", params.page);
     if (params.limit) q.set("limit", params.limit);
