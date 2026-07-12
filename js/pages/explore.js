@@ -23,7 +23,6 @@ let currentCategory = "all";
 let currentSort = "newest";
 let currentStatus = "upcoming";
 let cachedTemplate = null;
-<<<<<<< HEAD
 let participateQueue = [];
 let activeParticipations = 0;
 const MAX_CONCURRENT_PARTICIPATIONS = 3;
@@ -50,9 +49,7 @@ async function processParticipateQueue() {
         }
     }
 }
-=======
 let categoriesList = [];
->>>>>>> dfe5614 (feat: add event category management)
 
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
@@ -272,15 +269,9 @@ function initSearchButton() {
             const catValue = catChip && catChip.dataset.category !== "all" ? catChip.dataset.category : undefined;
             const params = {
                 location: location || undefined,
-<<<<<<< HEAD
-                heldDateFrom: dates.startDate ? toLocalISODate(dates.startDate) : undefined,
-                heldDateTo: dates.endDate ? toLocalISODate(dates.endDate) : undefined,
-                limit: 500
-=======
                 category: catValue,
                 heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
                 heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
->>>>>>> dfe5614 (feat: add event category management)
             };
 
             const data = keyword
@@ -494,7 +485,6 @@ async function renderCardsDirect(activities) {
             image.alt = activity.title;
         }
         card.querySelector(".card-title").textContent = activity.title;
-<<<<<<< HEAD
         const locationSpan = card.querySelector(".info-location");
         if (locationSpan) locationSpan.textContent = activity.location || t("explore.unknown_location");
 
@@ -502,7 +492,14 @@ async function renderCardsDirect(activities) {
         if (dateSpan) dateSpan.textContent = formatDate(activity.heldDate);
 
         const typeSpan = card.querySelector(".info-type");
-        if (typeSpan) typeSpan.textContent = capitalize(activity.type || "Activity");
+        if (typeSpan) {
+            const cat = activity.category;
+            if (cat && cat.name) {
+                typeSpan.textContent = cat.name;
+            } else {
+                typeSpan.textContent = capitalize(activity.type || "Activity");
+            }
+        }
 
         const hostSpan = card.querySelector(".info-host");
         if (hostSpan) hostSpan.textContent = activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
@@ -516,7 +513,6 @@ async function renderCardsDirect(activities) {
                 btn.textContent = t("explore.ended") || "Ended";
                 btn.classList.add("!bg-gray-300", "!text-gray-600", "cursor-not-allowed", "!shadow-none");
                 btn.classList.remove("bg-primary", "text-white");
-                // remove hover effect via style or we can just disable pointer events
                 btn.style.pointerEvents = "none";
             }
             
@@ -528,28 +524,6 @@ async function renderCardsDirect(activities) {
                 card.appendChild(endedBadge);
             }
         }
-        
-=======
-        const infoSpans = card.querySelectorAll(".info span");
-        infoSpans[0].textContent = activity.location || t("explore.unknown_location");
-        infoSpans[1].textContent = formatDate(activity.heldDate);
-        const cat = activity.category;
-        if (cat && cat.name) {
-            infoSpans[2].innerHTML = cat.icon
-                ? `<i class="${cat.icon}" style="color:${cat.color || '#64748b'}"></i> ${cat.name}`
-                : cat.name;
-            if (cat.color) {
-                infoSpans[2].style.background = `${cat.color}20`;
-                infoSpans[2].style.color = cat.color;
-                infoSpans[2].style.borderRadius = "999px";
-                infoSpans[2].style.padding = "2px 10px";
-                infoSpans[2].style.fontSize = "12px";
-                infoSpans[2].style.fontWeight = "600";
-            }
-        } else {
-            infoSpans[2].textContent = capitalize(activity.type || "Activity");
-        }
->>>>>>> dfe5614 (feat: add event category management)
         card.dataset.id = activity.activityID;
         frag.appendChild(card);
     });
@@ -802,10 +776,6 @@ async function syncCardFavourites() {
     }
 }
 
-<<<<<<< HEAD
-
-
-=======
 function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
     const cat = a.category;
@@ -831,15 +801,13 @@ function buildPopupHTML(a, backText) {
 
     return `
     <div class="activity-popup-layout">
-        <!-- Hero Cover Section -->
         <div class="popup-hero-cover">
             <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
             <div class="popup-hero-overlay"></div>
             <button class="back-btn-floating" id="back-btn" title="${backText}"><i class="fa-solid fa-arrow-left"></i></button>
-            <span class="popup-category-badge" style="background:${typeColor}20;color:${typeColor}"><i class="${typeIcon}"></i> ${typeLabel}</span>
+            <span class="popup-category-badge" style="background:${typeColor}20;color:${typeColor}"><i class="${typeIcon}"></i><span>${typeLabel}</span></span>
         </div>
 
-        <!-- Content Grid Section -->
         <div class="popup-body-grid">
             <div class="popup-body-main">
                 <h1 class="popup-main-title">${a.title}</h1>
@@ -863,7 +831,6 @@ function buildPopupHTML(a, backText) {
                 </div>` : ""}
             </div>
 
-            <!-- Sticky Action Sidebar -->
             <aside class="popup-sidebar">
                 <div class="popup-sidebar-card">
                     <h3 class="sidebar-card-title">Activity Details</h3>
@@ -922,7 +889,6 @@ function initDetailButtons() {
         button.addEventListener("click", (e) => e.stopPropagation());
     });
 }
->>>>>>> dfe5614 (feat: add event category management)
 
 function initCardReveal() {
     const cards = document.querySelectorAll(".card");
@@ -944,8 +910,6 @@ function initCardReveal() {
 }
 
 
-<<<<<<< HEAD
-=======
 function setFavourited(activityID) {
     const btn = document.querySelector(".favorite-btn");
     if (btn) btn.classList.add("active");
@@ -1027,7 +991,6 @@ function initParticipateButton(activityID) {
         }
     });
 }
->>>>>>> dfe5614 (feat: add event category management)
 
 function initSearchDatePicker() {
     const item = document.getElementById("zone-date");

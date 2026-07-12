@@ -177,7 +177,7 @@ function buildPopupHTML(a, backText) {
             <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
             <div class="popup-hero-overlay"></div>
             <button class="back-btn-floating" id="back-btn" title="${backText}"><i class="fa-solid fa-arrow-left"></i></button>
-            <span class="popup-category-badge"><i class="fa-solid fa-tag"></i> ${type}</span>
+            <span class="popup-category-badge"><i class="fa-solid fa-tag"></i><span>${type}</span></span>
         </div>
 
         <!-- Content Grid Section -->
