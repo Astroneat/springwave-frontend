@@ -494,6 +494,7 @@
   "admin": {
     "title": "Quản lý sự kiện — SpringWave",
     "dashboard": "Admin Dashboard",
+    "event_management": "Quản lý sự kiện",
     "dashboard_desc": "Xem xét, phê duyệt và quản lý tất cả sự kiện trên nền tảng",
     "search": "Tìm kiếm sự kiện...",
     "scrape": "Thu thập",

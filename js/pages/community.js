@@ -49,6 +49,7 @@ import { getCurrentUser } from "../api/auth.js";
 import { addBadgeNotification } from "../lib/notifications.js";
 import { getPublicOrganizations, toggleFollowOrganization, getOrganizationPublicEvents, getMyOrganizations } from "../api/organizations.js";
 import { CDN_DOMAIN } from "../config.js";
+import { ORGANIZATIONS_MOCK } from "../api/mockdatacommunity.js";
 
 const CATEGORIES = {
   all:   { label: () => t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
@@ -99,6 +100,8 @@ async function enrichDiscussionsEventData(discussions) {
 const MAX_EVENT_DISCUSSIONS = 20;
 let discussionsCache = [];
 let savedDiscussionIds = new Set();
+let currentPage = 1;
+let currentOrgPage = 1;
 
 async function loadSavedDiscussionIds() {
   if (!isAuthenticated()) return;
@@ -403,6 +406,7 @@ function initFeedTabs() {
       tab.classList.add("active");
       const sort = tab.dataset.sort;
       currentSort = sort;
+      currentPage = 1;
       
       let discussions = [...(window._currentDiscussions || [])];
       if (sort === "newest") {
@@ -573,6 +577,8 @@ function renderDiscussions(discussions, category) {
   if (!container) return;
 
   if (discussions.length === 0) {
+    const pagContainer = document.getElementById("pagination-container");
+    if (pagContainer) pagContainer.innerHTML = "";
     const emptyMessages = {
       mine:   ["forum", "No discussions yet", "You haven't started any discussions yet. Click 'Start Discussion' to create one!"],
       saved:  ["bookmark", "No saved posts", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later."],
@@ -591,7 +597,13 @@ function renderDiscussions(discussions, category) {
     return;
   }
 
-  container.innerHTML = discussions
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.ceil(discussions.length / ITEMS_PER_PAGE);
+  if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+  
+  const paginatedDiscussions = discussions.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  container.innerHTML = paginatedDiscussions
     .map(
       (d) => {
         const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
@@ -638,6 +650,63 @@ function renderDiscussions(discussions, category) {
     `
     })
     .join("");
+
+  renderPaginationControls(discussions.length, totalPages, discussions, category);
+}
+
+function renderPaginationControls(totalItems, totalPages, discussions, category) {
+  const container = document.getElementById("pagination-container");
+  if (!container) return;
+  container.style.display = "";
+
+  if (totalPages <= 1) {
+      container.innerHTML = "";
+      return;
+  }
+
+  let html = "";
+  html += `
+      <button class="pagination-btn nav-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">
+          <span class="material-symbols-outlined text-sm">chevron_left</span>
+      </button>
+  `;
+
+  for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+          html += `
+              <button class="pagination-btn num-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">
+                  ${i}
+              </button>
+          `;
+      } else if (i === currentPage - 3 || i === currentPage + 3) {
+          html += `<span class="pagination-ellipsis">...</span>`;
+      }
+  }
+
+  html += `
+      <button class="pagination-btn nav-btn" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">
+          <span class="material-symbols-outlined text-sm">chevron_right</span>
+      </button>
+  `;
+
+  container.innerHTML = html;
+  container.querySelectorAll(".pagination-btn:not([disabled])").forEach(btn => {
+      btn.addEventListener("click", () => {
+          const page = parseInt(btn.dataset.page, 10);
+          if (!isNaN(page)) {
+              currentPage = page;
+              const target = document.querySelector(".forum-section-header");
+              if (target) {
+                  const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+                  const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+                  window.scrollTo({ top: y, behavior: "smooth" });
+              }
+              setTimeout(() => {
+                  renderDiscussions(discussions, category);
+              }, 300);
+          }
+      });
+  });
 }
 
 function buildDiscussionCardHTML(d) {
@@ -2195,13 +2264,16 @@ async function renderOrgGrid() {
   if (!container) return;
   
   let orgsData = null;
+  // Bypassing API call to forcefully use mock data as requested
+  /*
   try {
     orgsData = await getPublicOrganizations();
   } catch (err) {
     console.error("Failed to load public organizations:", err);
   }
+  */
 
-  const orgs = orgsData?.organizations || [];
+  let orgs = ORGANIZATIONS_MOCK;
 
   if (!orgs || orgs.length === 0) {
     container.innerHTML = `
@@ -2211,16 +2283,26 @@ async function renderOrgGrid() {
         <p class="forum-empty-desc">Check back later for newly approved organizations!</p>
       </div>
     `;
+    const pagContainer = document.getElementById("org-pagination-container");
+    if (pagContainer) pagContainer.innerHTML = "";
     return;
   }
 
+  const ITEMS_PER_PAGE = 9;
+  const totalPages = Math.ceil(orgs.length / ITEMS_PER_PAGE);
+  if (currentOrgPage > totalPages) currentOrgPage = Math.max(1, totalPages);
+  
+  const paginatedOrgs = orgs.slice((currentOrgPage - 1) * ITEMS_PER_PAGE, currentOrgPage * ITEMS_PER_PAGE);
+
   // Render cards
-  const cardsHtml = await Promise.all(orgs.map(async (org) => {
-    let events = [];
-    try {
-      const resp = await getOrganizationPublicEvents(org._id, 1);
-      events = resp.events || [];
-    } catch {}
+  const cardsHtml = await Promise.all(paginatedOrgs.map(async (org) => {
+    let events = org.mockEvents || [];
+    if (!org.mockEvents) {
+      try {
+        const resp = await getOrganizationPublicEvents(org._id, 1);
+        events = resp.events || [];
+      } catch {}
+    }
 
     const isPast = events.length > 0 && new Date(events[0].heldDate || events[0].createdAt) < new Date();
     const eventsTitle = events.length === 0 ? "Upcoming Events" : (isPast ? "Latest Events" : "Upcoming Events");
@@ -2288,6 +2370,8 @@ async function renderOrgGrid() {
 
   container.innerHTML = cardsHtml.join("");
 
+  renderOrgPaginationControls(orgs.length, totalPages);
+
   // Add click listeners to Follow buttons
   container.querySelectorAll(".follow-org-btn").forEach(btn => {
     btn.addEventListener("click", async (e) => {
@@ -2327,4 +2411,57 @@ async function renderOrgGrid() {
   });
 }
 
+function renderOrgPaginationControls(totalItems, totalPages) {
+  const container = document.getElementById("org-pagination-container");
+  if (!container) return;
+  container.style.display = "";
 
+  if (totalPages <= 1) {
+      container.innerHTML = "";
+      return;
+  }
+
+  let html = "";
+  html += `
+      <button class="pagination-btn nav-btn" ${currentOrgPage === 1 ? 'disabled' : ''} data-page="${currentOrgPage - 1}">
+          <span class="material-symbols-outlined text-sm">chevron_left</span>
+      </button>
+  `;
+
+  for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentOrgPage - 2 && i <= currentOrgPage + 2)) {
+          html += `
+              <button class="pagination-btn num-btn ${i === currentOrgPage ? 'active' : ''}" data-page="${i}">
+                  ${i}
+              </button>
+          `;
+      } else if (i === currentOrgPage - 3 || i === currentOrgPage + 3) {
+          html += `<span class="pagination-ellipsis">...</span>`;
+      }
+  }
+
+  html += `
+      <button class="pagination-btn nav-btn" ${currentOrgPage === totalPages ? 'disabled' : ''} data-page="${currentOrgPage + 1}">
+          <span class="material-symbols-outlined text-sm">chevron_right</span>
+      </button>
+  `;
+
+  container.innerHTML = html;
+  container.querySelectorAll(".pagination-btn:not([disabled])").forEach(btn => {
+      btn.addEventListener("click", () => {
+          const page = parseInt(btn.dataset.page, 10);
+          if (!isNaN(page)) {
+              currentOrgPage = page;
+              const target = document.querySelector("#forumOrgGrid")?.previousElementSibling;
+              if (target) {
+                  const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+                  const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+                  window.scrollTo({ top: y, behavior: "smooth" });
+              }
+              setTimeout(() => {
+                  renderOrgGrid();
+              }, 300);
+          }
+      });
+  });
+}
