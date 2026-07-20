@@ -57,6 +57,8 @@ export default defineConfig({
         myTickets: resolve(__dirname, "my-tickets.html"),
         myEvents: resolve(__dirname, "my-events.html"),
         adminCategories: resolve(__dirname, "admin-categories.html"),
+        studentVerify: resolve(__dirname, "student-verify.html"),
+        adminStudentVerification: resolve(__dirname, "admin-student-verification.html"),
       },
       output: {
         assetFileNames: "assets/[name][extname]",

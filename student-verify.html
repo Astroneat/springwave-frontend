@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Student Verification | SpringWave</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&amp;family=satoshi:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/style.css" />
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+  .accent-shadow {
+    box-shadow: 0 10px 30px -5px rgba(35, 73, 155, 0.1), 0 4px 12px -2px rgba(35, 73, 155, 0.05);
+  }
+  .input-focus-glow:focus {
+    box-shadow: 0 0 0 4px rgba(59, 111, 212, 0.14);
+  }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body class="bg-background font-body-md text-on-background min-h-screen flex flex-col">
+<div id="navbar-container"></div>
+<main class="flex-grow pt-32 pb-20 px-4 md:px-0">
+<div class="max-w-[720px] mx-auto">
+  <section class="text-center mb-12">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed mb-4">
+      <span class="material-symbols-outlined text-[16px]">badge</span>
+      <span class="font-label-md text-label-md">Student Identity Verification</span>
+    </div>
+    <h1 class="font-headline-lg text-headline-lg text-primary mb-4">Xác nhận sinh viên</h1>
+    <p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto">
+      Vui lòng cung cấp mã số sinh viên và ảnh chụp thẻ sinh viên để xác thực danh tính. Admin sẽ xem xét và duyệt yêu cầu của bạn.
+    </p>
+  </section>
+  <div id="status-banner" class="hidden mb-8"></div>
+  <form action="#" class="bg-surface-container-lowest rounded-xl p-8 md:p-12 accent-shadow border border-outline-variant/30" method="POST">
+    <div class="mb-12">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+          <span class="material-symbols-outlined">school</span>
+        </div>
+        <h2 class="font-headline-md text-headline-md text-on-surface">Student Information</h2>
+      </div>
+      <div class="space-y-6">
+        <div>
+          <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="studentId">Mã số sinh viên</label>
+          <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="studentId" name="studentId" placeholder="e.g., 2021ABCDE" required="" type="text"/>
+        </div>
+        <div>
+          <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Ảnh chụp thẻ sinh viên</label>
+          <div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden">
+            <span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="cardIcon">cloud_upload</span>
+            <p class="font-body-md text-on-surface-variant mb-1 text-center" id="cardLabel">Click to upload or drag and drop</p>
+            <p class="font-caption text-outline text-center" id="cardHint">JPEG, PNG or GIF up to 50MB</p>
+            <input class="absolute inset-0 opacity-0 cursor-pointer" id="studentCardImage" name="studentCardImage" accept="image/jpeg,image/png,image/gif,image/webp" type="file"/>
+            <div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
+              <span class="material-symbols-outlined text-[16px]">lock</span>
+              <span class="text-[10px] font-bold tracking-wider uppercase">Private & Secure</span>
+            </div>
+          </div>
+          <div id="cardPreview" class="mt-2 hidden"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-8 flex flex-col items-center gap-6">
+      <div id="turnstile-container" class="mb-4 flex justify-center"></div>
+      <p class="font-caption text-outline text-center max-w-[500px]">
+        By submitting, you confirm that the information provided is accurate. Your student card image is stored securely and only visible to admins.
+      </p>
+      <button class="w-full h-14 rounded-full bg-gradient-to-r from-primary-container to-secondary text-white font-headline-md text-label-lg flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group" type="submit">
+        <span>Submit for Verification</span>
+        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">send</span>
+      </button>
+    </div>
+  </form>
+</div>
+</main>
+<div id="footer-container"></div>
+<div class="popup-overlay" id="popup-overlay" hidden>
+  <div class="popup-backdrop"></div>
+  <div class="popup-container" id="popup-container"></div>
+</div>
+<div id="chatbot-container"></div>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<script type="module" src="./js/pages/student-verify.js"></script>
+</body>
+</html>
