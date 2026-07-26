@@ -14,7 +14,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadSchools();
     initTurnstile();
     initRegisterForm();
+    initPasswordToggles();
 });
+
+function initPasswordToggles() {
+    document.querySelectorAll(".auth-toggle-btn[data-toggle-target]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const input = document.getElementById(btn.dataset.toggleTarget);
+            if (!input) return;
+            const icon = btn.querySelector(".material-symbols-outlined");
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            btn.setAttribute("aria-pressed", String(isHidden));
+            btn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+            if (icon) icon.textContent = isHidden ? "visibility_off" : "visibility";
+        });
+    });
+}
 
 function initTurnstile() {
     const container = document.getElementById("turnstile-container");
@@ -74,6 +90,7 @@ function initRegisterForm() {
             email: document.getElementById("email").value.trim(),
             fullname: firstName + " " + lastName,
             password: document.getElementById("password").value.trim(),
+            _website: document.getElementById("_website")?.value || "",
         };
         const confirmPassword = document.getElementById("confirm-password").value.trim();
         const dob = document.getElementById("dob")?.value;
@@ -128,14 +145,15 @@ function initRegisterForm() {
         }
         const form = document.getElementById("register-form");
         form.innerHTML = `
-            <div class="text-center py-8">
-                <span class="material-symbols-outlined text-6xl text-green-500 mb-4">mark_email_unread</span>
-                <h2 class="text-2xl font-bold text-[#23499b] mb-3">Check Your Email</h2>
-                <p class="text-gray-600 mb-2">We sent a verification link to:</p>
-                <p class="text-lg font-semibold text-gray-800 mb-6">${email}</p>
-                <p class="text-sm text-gray-500 mb-6">Click the link in the email to verify your account, then log in.</p>
-                <a href="login.html"
-                    class="inline-block w-full p-4 bg-[#23499b] text-white rounded-2xl text-lg font-bold cursor-pointer transition duration-200 hover:-translate-y-0.5">
+            <div class="auth-status-panel">
+                <div class="auth-status-icon" style="background: rgba(16, 185, 129, 0.12);">
+                    <span class="material-symbols-outlined" style="color: #059669;">mark_email_unread</span>
+                </div>
+                <h2 class="text-xl font-bold mb-3" style="color: var(--brand);">Check Your Email</h2>
+                <p class="text-sm mb-1" style="color: var(--color-text-secondary);">We sent a verification link to:</p>
+                <p class="text-base font-semibold mb-4" style="color: var(--color-text-primary);">${email}</p>
+                <p class="text-sm mb-6" style="color: var(--color-text-muted);">Click the link in the email to verify your account, then log in.</p>
+                <a href="login.html" class="auth-submit-btn" style="text-decoration:none;">
                     Go to Login
                 </a>
             </div>

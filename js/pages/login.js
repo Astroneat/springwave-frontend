@@ -16,7 +16,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     initLoginForm();
     initGoogleLogin();
     initTurnstile();
+    initPasswordToggles();
 });
+
+function initPasswordToggles() {
+    document.querySelectorAll(".auth-toggle-btn[data-toggle-target]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const input = document.getElementById(btn.dataset.toggleTarget);
+            if (!input) return;
+            const icon = btn.querySelector(".material-symbols-outlined");
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            btn.setAttribute("aria-pressed", String(isHidden));
+            btn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+            if (icon) icon.textContent = isHidden ? "visibility_off" : "visibility";
+        });
+    });
+}
 
 function initTurnstile() {
     const container = document.getElementById("turnstile-container");
@@ -104,19 +120,19 @@ function initLoginForm() {
     async function showVerificationWarning(email) {
         const form = document.getElementById("login-form");
         form.innerHTML = `
-            <div class="text-center py-6">
-                <span class="material-symbols-outlined text-6xl text-amber-500 mb-4">mark_email_unread</span>
-                <h2 class="text-xl font-bold text-[#23499b] mb-2">Email Not Verified</h2>
-                <p class="text-gray-600 mb-4">Please check your email (${email}) and click the verification link.</p>
-                <button id="resend-btn"
-                    class="w-full p-3 bg-[#ffde42] border-2 border-[#23499b] rounded-2xl text-lg font-bold cursor-pointer transition duration-200 hover:-translate-y-0.5 mb-3">
+            <div class="auth-status-panel">
+                <div class="auth-status-icon pending">
+                    <span class="material-symbols-outlined">mark_email_unread</span>
+                </div>
+                <h2 class="text-xl font-bold mb-2" style="color: var(--brand);">Email Not Verified</h2>
+                <p class="text-sm mb-6" style="color: var(--color-text-secondary);">Please check your email (${email}) and click the verification link.</p>
+                <button id="resend-btn" type="button" class="auth-submit-btn mb-3">
                     Resend Verification Email
                 </button>
-                <a href="index.html"
-                    class="inline-block w-full p-3 bg-gray-200 rounded-2xl text-lg font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5">
+                <a href="index.html" class="text-sm font-bold text-center block" style="color: var(--brand);">
                     Go to Home
                 </a>
-                <p id="resend-status" class="text-sm mt-3 text-gray-500"></p>
+                <p id="resend-status" class="text-sm mt-3" style="color: var(--color-text-secondary);"></p>
             </div>
         `;
         const baseUrl = API_BASE_URL;
