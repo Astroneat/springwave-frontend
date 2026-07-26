@@ -39,7 +39,7 @@ export async function loadNavbar({ activeSection } = {}) {
             } else {
                 if (avatarImg) avatarImg.style.display = "none";
                 if (avatarInitial) {
-                    avatarInitial.textContent = user.username.charAt(0).toUpperCase();
+                    avatarInitial.textContent = (user.username || user.fullname || user.email || "U").charAt(0).toUpperCase();
                     avatarInitial.style.display = "";
                 }
             }

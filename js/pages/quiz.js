@@ -378,20 +378,21 @@ async function finishQuiz() {
 
   if (isAuthenticated()) {
     const check = canPerformAction('submitSurvey');
-    if (!check.allowed) return;
-    markActionPerformed('submitSurvey');
-    try {
-      const result = await submitSurvey(answerData);
-      if (result?.scores) {
-        scores = result.scores;
-      }
+    if (check.allowed) {
+      markActionPerformed('submitSurvey');
       try {
-        await generateProfile({ answers: answerData });
-      } catch (profileErr) {
-        console.warn("Profile generation failed:", profileErr);
+        const result = await submitSurvey(answerData);
+        if (result?.scores) {
+          scores = result.scores;
+        }
+        try {
+          await generateProfile({ answers: answerData });
+        } catch (profileErr) {
+          console.warn("Profile generation failed:", profileErr);
+        }
+      } catch (err) {
+        console.warn("Survey submission failed:", err);
       }
-    } catch (err) {
-      console.warn("Survey submission failed:", err);
     }
   }
 

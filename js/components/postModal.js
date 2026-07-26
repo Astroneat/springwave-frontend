@@ -79,44 +79,49 @@ async function ensurePostModalElements() {
                 scope: "general",
                 cfTurnstileResponse: window._postModalTurnstileToken || "",
             });
-            
+
+            if (!result) {
+                alert("Failed to post discussion. Please try again.");
+                return;
+            }
+
             if (typeof turnstile !== "undefined" && document.getElementById("turnstile-container-modal")) {
                 turnstile.reset("#turnstile-container-modal");
                 window._postModalTurnstileToken = "";
             }
-            
+
             closePostModal();
-            
-            if (result) {
-                result.relatedEvent = currentActivity?.activityID || currentActivity?._id;
-                result._event = {
-                    title: currentActivity?.title || "",
-                    date: currentActivity?.heldDate || "",
-                    attendees: currentActivity?.participants || 0,
-                };
-                if (!result.tags) result.tags = (tagsInput.value || "").split(",").map(t => t.trim()).filter(Boolean);
-                if (!result.category) result.category = "event";
-                if (!result.lastActivity) result.lastActivity = "Just now";
-                if (!result.replies) result.replies = 0;
-                result.id = result.id || result._id;
-                
-                try { sessionStorage.setItem("springwave_pending_discussion", JSON.stringify(result)); } catch {}
-                try {
-                    result._storedAt = Date.now();
-                    const stored = JSON.parse(localStorage.getItem("springwave_event_discussions") || "[]");
-                    const idx = stored.findIndex(d => (d.id || d._id) === (result.id || result._id));
-                    if (idx === -1) stored.unshift(result);
-                    else stored[idx] = result;
-                    localStorage.setItem("springwave_event_discussions", JSON.stringify(stored));
-                } catch {}
-                
-                const discId = result._id || result.id;
-                showSuccessToast(
-                    "Discussion posted successfully! Click here to view",
-                    discId ? `./community.html?discussion=${discId}` : null,
-                    "View Discussion"
-                );
-            }
+
+            result.relatedEvent = currentActivity?.activityID || currentActivity?._id;
+            result._event = {
+                title: currentActivity?.title || "",
+                date: currentActivity?.heldDate || "",
+                attendees: currentActivity?.participants || 0,
+            };
+            if (!result.tags) result.tags = (tagsInput.value || "").split(",").map(t => t.trim()).filter(Boolean);
+            if (!result.category) result.category = "event";
+            if (!result.lastActivity) result.lastActivity = "Just now";
+            if (!result.replies) result.replies = 0;
+            result.id = result.id || result._id;
+
+            try { sessionStorage.setItem("springwave_pending_discussion", JSON.stringify(result)); } catch {}
+            try {
+                result._storedAt = Date.now();
+                const stored = JSON.parse(localStorage.getItem("springwave_event_discussions") || "[]");
+                const idx = stored.findIndex(d => (d.id || d._id) === (result.id || result._id));
+                if (idx === -1) stored.unshift(result);
+                else stored[idx] = result;
+                localStorage.setItem("springwave_event_discussions", JSON.stringify(stored));
+            } catch {}
+
+            const discId = result._id || result.id;
+            showSuccessToast(
+                "Discussion posted successfully! Click here to view",
+                discId ? `./community.html?discussion=${discId}` : null,
+                "View Discussion"
+            );
+        } catch (err) {
+            alert(err?.message || "Failed to post discussion. Please try again.");
         } finally {
             publishBtn.disabled = false;
         }

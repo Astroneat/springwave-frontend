@@ -1688,8 +1688,42 @@ function openUniDialog(editData, callback) {
    ============================= */
 
 /* =============================
-   SUCCESS TOAST
+   TOAST
    ============================= */
+
+function showToast(message, isError = false) {
+  const existing = document.querySelectorAll(".success-toast");
+  const offset = existing.length * 80;
+
+  const toast = document.createElement("div");
+  toast.className = "success-toast" + (isError ? " error" : "");
+  toast.style.bottom = `${24 + offset}px`;
+  toast.innerHTML = `
+    <div class="success-toast-icon">
+      <span class="material-symbols-outlined">${isError ? "error" : "check_circle"}</span>
+    </div>
+    <div class="success-toast-body">
+      <span class="success-toast-heading">${isError ? "Error" : "Success!"}</span>
+      <span class="success-toast-message">${message}</span>
+    </div>
+    <button class="success-toast-close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  `;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("show"));
+
+  toast.querySelector(".success-toast-close")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  });
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 6000);
+}
 
 function showSuccessToast(message, linkUrl, linkText) {
   const existing = document.querySelectorAll(".success-toast");
@@ -2041,41 +2075,44 @@ function initPostModal() {
             ? turnstile.getResponse(communityTurnstileWidgetId) : undefined,
           postAsOrg,
           orgId,
+        }).catch((err) => {
+          showToast(err?.message || "Failed to post discussion. Please try again.", true);
+          return null;
         });
 
-        if (result) {
-          grantContribution("discussion").then((res) => {
-            if (res && res.newBadges && Array.isArray(res.newBadges)) {
-              res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
-            }
-          }).catch(() => {});
+        if (!result) return;
 
-          const u = getUser();
-          result.author = result.author || result.authorName || u?.fullname || u?.username || "Unknown";
-          if (!result.avatar) {
-            result.avatar = result.author[0].toUpperCase();
+        grantContribution("discussion").then((res) => {
+          if (res && res.newBadges && Array.isArray(res.newBadges)) {
+            res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
           }
-          result.university = result.postAsOrg ? "Organization" : (u?.university || u?.school || "");
-          result.lastActivity = "Just now";
-          result.preview = content.substring(0, 150) + (content.length > 150 ? "..." : "");
-          result.tags = tags;
-          result.replies = 0;
-          result.views = 0;
+        }).catch(() => {});
 
-          if (category === "event" && relatedEvent) {
-            result.relatedEvent = relatedEvent;
-            if (_selectedEventData) result._event = { ..._selectedEventData };
-          }
-          if (result._event) {
-            try {
-              result._storedAt = Date.now();
-              const stored = JSON.parse(localStorage.getItem("springwave_event_discussions") || "[]");
-              const idx = stored.findIndex(d => (d.id || d._id) === (result.id || result._id));
-              if (idx === -1) stored.unshift(result);
-              else stored[idx] = result;
-              localStorage.setItem("springwave_event_discussions", JSON.stringify(stored));
-            } catch {}
-          }
+        const u = getUser();
+        result.author = result.author || result.authorName || u?.fullname || u?.username || "Unknown";
+        if (!result.avatar) {
+          result.avatar = result.author[0].toUpperCase();
+        }
+        result.university = result.postAsOrg ? "Organization" : (u?.university || u?.school || "");
+        result.lastActivity = "Just now";
+        result.preview = content.substring(0, 150) + (content.length > 150 ? "..." : "");
+        result.tags = tags;
+        result.replies = 0;
+        result.views = 0;
+
+        if (category === "event" && relatedEvent) {
+          result.relatedEvent = relatedEvent;
+          if (_selectedEventData) result._event = { ..._selectedEventData };
+        }
+        if (result._event) {
+          try {
+            result._storedAt = Date.now();
+            const stored = JSON.parse(localStorage.getItem("springwave_event_discussions") || "[]");
+            const idx = stored.findIndex(d => (d.id || d._id) === (result.id || result._id));
+            if (idx === -1) stored.unshift(result);
+            else stored[idx] = result;
+            localStorage.setItem("springwave_event_discussions", JSON.stringify(stored));
+          } catch {}
         }
 
         close();
@@ -2085,31 +2122,29 @@ function initPostModal() {
         selectedEventId = null;
         selectedSkill = "";
 
-        if (result) {
-          const container = document.getElementById("forumDiscussions");
-          const empty = container?.querySelector(".forum-empty");
-          const cardHTML = buildDiscussionCardHTML(result);
-          if (empty) {
-            container.innerHTML = cardHTML;
-          } else {
-            container.insertAdjacentHTML("afterbegin", cardHTML);
-          }
-          if (Array.isArray(window._currentDiscussions)) {
-            window._currentDiscussions.unshift(result);
-          }
+        const container = document.getElementById("forumDiscussions");
+        const empty = container?.querySelector(".forum-empty");
+        const cardHTML = buildDiscussionCardHTML(result);
+        if (empty) {
+          container.innerHTML = cardHTML;
+        } else {
+          container.insertAdjacentHTML("afterbegin", cardHTML);
+        }
+        if (Array.isArray(window._currentDiscussions)) {
+          window._currentDiscussions.unshift(result);
+        }
 
-          const discId = result._id || result.id;
-          showSuccessToast("Discussion posted successfully! Click here to view", discId ? `./community.html?discussion=${discId}` : null, "View Discussion");
+        const discId = result._id || result.id;
+        showSuccessToast("Discussion posted successfully! Click here to view", discId ? `./community.html?discussion=${discId}` : null, "View Discussion");
 
-          const uniId = communityId || document.querySelector(".forum-uni-join-btn.joined")?.closest(".forum-uni-card")?.dataset.uniId;
-          if (uniId) {
-            const uniCard = document.querySelector(`.forum-uni-card[data-uni-id="${uniId}"]`);
-            const discStats = uniCard?.querySelectorAll(".forum-uni-stat-value");
-            const discStat = discStats?.[1];
-            if (discStat) {
-              const current = parseInt(discStat.textContent.replace(/,/g, "")) || 0;
-              discStat.textContent = (current + 1).toLocaleString();
-            }
+        const uniId = communityId || document.querySelector(".forum-uni-join-btn.joined")?.closest(".forum-uni-card")?.dataset.uniId;
+        if (uniId) {
+          const uniCard = document.querySelector(`.forum-uni-card[data-uni-id="${uniId}"]`);
+          const discStats = uniCard?.querySelectorAll(".forum-uni-stat-value");
+          const discStat = discStats?.[1];
+          if (discStat) {
+            const current = parseInt(discStat.textContent.replace(/,/g, "")) || 0;
+            discStat.textContent = (current + 1).toLocaleString();
           }
         }
       } finally {

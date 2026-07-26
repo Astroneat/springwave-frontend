@@ -73,7 +73,7 @@ function restoreMessages() {
 
   conversationHistory.forEach(msg => {
     const div = document.createElement("div");
-    div.className = `message ${msg.role}`;
+    div.className = `message ${msg.role === "assistant" ? "bot" : msg.role}`;
     div.innerHTML = `<div class="message-content">${escapeHtml(msg.content)}</div>`;
     container.appendChild(div);
   });
@@ -140,7 +140,7 @@ async function sendMessage() {
 function addMessage(role, content) {
   const container = document.getElementById("chatbot-messages");
   const div = document.createElement("div");
-  div.className = `message ${role}`;
+  div.className = `message ${role === "assistant" ? "bot" : role}`;
   div.innerHTML = `<div class="message-content">${escapeHtml(typeof content === 'string' ? content : '')}</div>`;
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;

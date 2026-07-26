@@ -12,8 +12,21 @@ import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { openReviewModal } from "../components/reviewModal.js";
+import { openEventPopup } from "../components/eventPopup.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { t } from "../lib/i18n.js";
+
+const popupOverlay = document.getElementById("popup-overlay");
+const popupContainer = document.getElementById("popup-container");
+
+function closePopup() {
+    if (!popupOverlay) return;
+    popupOverlay.classList.remove("active");
+    setTimeout(() => {
+        popupOverlay.setAttribute("hidden", "");
+        if (popupContainer) popupContainer.innerHTML = "";
+    }, 300);
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {

@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
   initSearch();
   initRefresh();
+  initPagination();
   initPopups();
   await loadData();
 });
@@ -163,11 +164,21 @@ function renderPagination(pagination) {
     return;
   }
   el.hidden = false;
+  currentPage = pagination.page;
   totalPages = pagination.totalPages;
   document.getElementById("pagination-info").textContent =
     `Page ${pagination.page} of ${pagination.totalPages} (${pagination.totalItems} total)`;
   document.getElementById("prev-page").disabled = currentPage <= 1;
   document.getElementById("next-page").disabled = currentPage >= totalPages;
+}
+
+function initPagination() {
+  document.getElementById("prev-page")?.addEventListener("click", () => {
+    if (currentPage > 1) { currentPage--; loadData(); }
+  });
+  document.getElementById("next-page")?.addEventListener("click", () => {
+    if (currentPage < totalPages) { currentPage++; loadData(); }
+  });
 }
 
 function showEmpty() {

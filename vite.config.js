@@ -61,7 +61,12 @@ export default defineConfig({
         adminStudentVerification: resolve(__dirname, "admin-student-verification.html"),
       },
       output: {
-        assetFileNames: "assets/[name][extname]",
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith(".css")) {
+            return "assets/style.css";
+          }
+          return "assets/[name][extname]";
+        },
       },
     },
   },

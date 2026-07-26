@@ -5,6 +5,7 @@ import { addEventReview } from "../api/activities.js";
 import { getMyCertificates } from "../api/certificates.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { formatDate } from "../lib/utils.js";
+import { API_BASE_URL } from "../config.js";
 
 let allTickets = [];
 let showPast = false;
@@ -253,7 +254,7 @@ function closeRateModal() {
 function openCertModal(certCode, eventTitle) {
   document.getElementById("cert-modal-event-name").textContent = eventTitle;
   document.getElementById("cert-modal-code").textContent = certCode;
-  document.getElementById("cert-verify-link").href = `/certificates/verify/${certCode}`;
+  document.getElementById("cert-verify-link").href = `${API_BASE_URL}/certificates/verify/${certCode}`;
   const modal = document.getElementById("cert-modal");
   const content = modal.querySelector(".bg-white");
   modal.classList.remove("opacity-0", "pointer-events-none");

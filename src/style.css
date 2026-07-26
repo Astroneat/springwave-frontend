@@ -6316,6 +6316,19 @@ html, body, button, input, select, textarea {
     font-size: 16px;
 }
 
+.success-toast.error {
+    border-left-color: #ef4444;
+}
+
+.success-toast.error .success-toast-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.success-toast.error .success-toast-heading {
+    color: #ef4444;
+}
+
 /* =========================
    NOTIFICATION DROPDOWN
    ========================= */

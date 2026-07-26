@@ -1197,7 +1197,7 @@ function initQRScan() {
       avatar: user.avatar || "",
       ticketCode: ticketCode,
       time: timeStr,
-      isLate: false
+      isLate
     };
 
     sessionHistory.unshift(newItem);
@@ -1568,7 +1568,7 @@ function initQRScan() {
     try {
       const response = await scanAttendance(eventId, ticketCode);
       playBeep(true);
-      const isLate = false;
+      const isLate = response.attendance?.status === "late";
       setFeedbackWithTimeout("success", response.message || "", response.user, ticketCode, isLate);
       addToHistory(response.user || {}, ticketCode, isLate);
 
