@@ -12016,11 +12016,6 @@ a.popup-host-row:hover .popup-host-avatar {
     @apply inline-flex items-center gap-2 text-white font-bold text-xl w-fit;
 }
 
-.auth-brand-logo .material-symbols-outlined {
-    @apply text-2xl;
-    color: var(--color-electric-yellow);
-}
-
 .auth-brand-headline {
     @apply text-4xl xl:text-[2.75rem] font-bold text-white leading-tight mt-auto mb-5 max-w-md;
 }
@@ -12035,31 +12030,13 @@ a.popup-host-row:hover .popup-host-avatar {
 }
 
 .auth-feature-item {
-    @apply flex items-center gap-3 text-white/90 text-[15px] font-medium;
+    @apply flex items-center gap-2.5 text-white/90 text-[15px] font-medium;
 }
 
-.auth-feature-icon {
-    @apply w-9 h-9 rounded-xl flex items-center justify-center shrink-0;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.auth-feature-icon .material-symbols-outlined {
-    @apply text-lg text-white;
-}
-
-.auth-stats-row {
-    @apply flex items-center gap-8 pt-8;
-    border-top: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.auth-stat-num {
-    @apply text-2xl font-bold text-white;
-}
-
-.auth-stat-label {
-    @apply text-xs mt-0.5;
-    color: rgba(255, 255, 255, 0.65);
+.auth-feature-item::before {
+    content: "";
+    @apply w-1.5 h-1.5 rounded-full shrink-0;
+    background: var(--color-electric-yellow);
 }
 
 /* --- Form panel --- */
@@ -12074,10 +12051,6 @@ a.popup-host-row:hover .popup-host-avatar {
 
 .auth-mobile-brand {
     @apply flex lg:hidden items-center gap-2 font-bold text-lg mb-8;
-    color: var(--brand);
-}
-
-.auth-mobile-brand .material-symbols-outlined {
     color: var(--brand);
 }
 
@@ -12121,17 +12094,8 @@ a.popup-host-row:hover .popup-host-avatar {
     @apply relative flex items-center;
 }
 
-.auth-input-icon {
-    @apply absolute left-3.5 flex items-center justify-center pointer-events-none;
-    color: var(--color-text-muted);
-}
-
-.auth-input-icon .material-symbols-outlined {
-    font-size: 20px;
-}
-
 .auth-input {
-    @apply w-full py-3 pl-11 pr-4 rounded-xl outline-none text-[15px] bg-white transition duration-200 w-full;
+    @apply w-full py-3 px-4 rounded-xl outline-none text-[15px] bg-white transition duration-200;
     border: 1.5px solid var(--color-outline-variant);
     color: var(--color-text-primary);
 }
@@ -12146,21 +12110,17 @@ a.popup-host-row:hover .popup-host-avatar {
 }
 
 .auth-input.has-toggle {
-    @apply pr-11;
+    @apply pr-16;
 }
 
 .auth-toggle-btn {
-    @apply absolute right-3.5 flex items-center justify-center cursor-pointer bg-transparent border-none p-1;
+    @apply absolute right-3 flex items-center justify-center cursor-pointer bg-transparent border-none px-1 py-1 text-xs font-semibold uppercase tracking-wide;
     color: var(--color-text-muted);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: color 0.2s ease;
 }
 
 .auth-toggle-btn:hover {
     color: var(--brand);
-}
-
-.auth-toggle-btn .material-symbols-outlined {
-    font-size: 20px;
 }
 
 .auth-inline-fields {
@@ -12175,7 +12135,7 @@ a.popup-host-row:hover .popup-host-avatar {
 }
 
 .auth-details summary {
-    @apply flex items-center justify-between gap-2 cursor-pointer select-none px-4 py-3 font-semibold text-sm list-none;
+    @apply flex items-center gap-2 cursor-pointer select-none px-4 py-3 font-semibold text-sm list-none;
     color: var(--brand);
     background: var(--color-surface-container-low);
 }
@@ -12184,14 +12144,14 @@ a.popup-host-row:hover .popup-host-avatar {
     display: none;
 }
 
-.auth-details summary .material-symbols-outlined {
-    @apply text-lg;
+.auth-details summary::before {
+    content: "+";
+    @apply text-base font-bold leading-none;
     color: var(--color-text-muted);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.auth-details[open] summary .material-symbols-outlined {
-    transform: rotate(180deg);
+.auth-details[open] summary::before {
+    content: "\2212";
 }
 
 .auth-details-body {

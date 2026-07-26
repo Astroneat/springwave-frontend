@@ -3,7 +3,7 @@ import { login, googleLogin } from "../api/auth.js";
 import { createSession, setSigningKey, isAuthenticated } from "../lib/session.js";
 import { ensureSession } from "../api/client.js";
 import { GOOGLE_CLIENT_ID, API_BASE_URL, TURNSTILE_SITE_KEY } from "../config.js";
-import { initI18n } from "../lib/i18n.js";
+import { initI18n, t } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 
 let turnstileWidgetId = null;
@@ -24,12 +24,11 @@ function initPasswordToggles() {
         btn.addEventListener("click", () => {
             const input = document.getElementById(btn.dataset.toggleTarget);
             if (!input) return;
-            const icon = btn.querySelector(".material-symbols-outlined");
             const isHidden = input.type === "password";
             input.type = isHidden ? "text" : "password";
             btn.setAttribute("aria-pressed", String(isHidden));
             btn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
-            if (icon) icon.textContent = isHidden ? "visibility_off" : "visibility";
+            btn.textContent = isHidden ? t("auth.hide") : t("auth.show");
         });
     });
 }

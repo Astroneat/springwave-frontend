@@ -1,7 +1,7 @@
 import "../../src/style.css";
 import { register } from "../api/auth.js";
 import { isAuthenticated } from "../lib/session.js";
-import { initI18n } from "../lib/i18n.js";
+import { initI18n, t } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { getDeviceFingerprint } from "../lib/device.js";
@@ -22,12 +22,11 @@ function initPasswordToggles() {
         btn.addEventListener("click", () => {
             const input = document.getElementById(btn.dataset.toggleTarget);
             if (!input) return;
-            const icon = btn.querySelector(".material-symbols-outlined");
             const isHidden = input.type === "password";
             input.type = isHidden ? "text" : "password";
             btn.setAttribute("aria-pressed", String(isHidden));
             btn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
-            if (icon) icon.textContent = isHidden ? "visibility_off" : "visibility";
+            btn.textContent = isHidden ? t("auth.hide") : t("auth.show");
         });
     });
 }

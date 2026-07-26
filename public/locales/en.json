@@ -175,6 +175,10 @@
     "clear": "Clear",
     "close": "Close"
   },
+  "auth": {
+    "show": "Show",
+    "hide": "Hide"
+  },
   "login": {
     "title": "SpringWave - Login",
     "home": "Back to home",

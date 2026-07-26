@@ -8,8 +8,6 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet">
 </head>
 
 <body>
@@ -19,10 +17,7 @@
         <aside class="auth-brand-panel">
             <div class="auth-brand-glow" aria-hidden="true"></div>
             <div class="auth-brand-content">
-                <a href="index.html" class="auth-brand-logo">
-                    <span class="material-symbols-outlined">auto_awesome</span>
-                    SpringWave
-                </a>
+                <a href="index.html" class="auth-brand-logo">SpringWave</a>
 
                 <h1 class="auth-brand-headline" data-i18n="register.brand_headline">Start your growth journey today.</h1>
                 <p class="auth-brand-subtext" data-i18n="register.brand_subtext">
@@ -32,31 +27,13 @@
 
                 <div class="auth-feature-list">
                     <div class="auth-feature-item">
-                        <span class="auth-feature-icon"><span class="material-symbols-outlined">quiz</span></span>
                         <span data-i18n="register.feature_quiz">Take the AI quiz to build your profile</span>
                     </div>
                     <div class="auth-feature-item">
-                        <span class="auth-feature-icon"><span class="material-symbols-outlined">event</span></span>
                         <span data-i18n="register.feature_events">Explore hackathons, workshops &amp; more</span>
                     </div>
                     <div class="auth-feature-item">
-                        <span class="auth-feature-icon"><span class="material-symbols-outlined">groups</span></span>
                         <span data-i18n="register.feature_network">Network with students across universities</span>
-                    </div>
-                </div>
-
-                <div class="auth-stats-row">
-                    <div>
-                        <div class="auth-stat-num">15,000+</div>
-                        <div class="auth-stat-label" data-i18n="register.stat_students">Students</div>
-                    </div>
-                    <div>
-                        <div class="auth-stat-num">2,000+</div>
-                        <div class="auth-stat-label" data-i18n="register.stat_discussions">Discussions</div>
-                    </div>
-                    <div>
-                        <div class="auth-stat-num">10+</div>
-                        <div class="auth-stat-label" data-i18n="register.stat_universities">Universities</div>
                     </div>
                 </div>
             </div>
@@ -65,13 +42,9 @@
         <!-- Form panel -->
         <main class="auth-form-panel">
             <div class="auth-form-wrap">
-                <a href="index.html" class="auth-mobile-brand">
-                    <span class="material-symbols-outlined">auto_awesome</span>
-                    SpringWave
-                </a>
+                <a href="index.html" class="auth-mobile-brand">SpringWave</a>
 
                 <a href="index.html" class="auth-back-link">
-                    <span class="material-symbols-outlined text-base">arrow_back</span>
                     <span data-i18n="register.home">Back to home</span>
                 </a>
 
@@ -85,12 +58,10 @@
                         </label>
                         <div class="auth-inline-fields">
                             <div class="auth-input-group flex-1">
-                                <span class="auth-input-icon"><span class="material-symbols-outlined">badge</span></span>
                                 <input id="first-name" type="text" placeholder="First Name" data-i18n="register.first_name"
                                     aria-label="First Name" autocomplete="given-name" required class="auth-input">
                             </div>
                             <div class="auth-input-group flex-1">
-                                <span class="auth-input-icon"><span class="material-symbols-outlined">badge</span></span>
                                 <input id="last-name" type="text" placeholder="Last Name" data-i18n="register.last_name"
                                     aria-label="Last Name" autocomplete="family-name" required class="auth-input">
                             </div>
@@ -102,7 +73,6 @@
                             <span data-i18n="register.username">Username</span> <span class="auth-required">*</span>
                         </label>
                         <div class="auth-input-group">
-                            <span class="auth-input-icon"><span class="material-symbols-outlined">person</span></span>
                             <input id="username" type="text" placeholder="AlbertEpstein" autocomplete="username" required
                                 class="auth-input">
                         </div>
@@ -113,7 +83,6 @@
                             <span data-i18n="register.email">Email</span> <span class="auth-required">*</span>
                         </label>
                         <div class="auth-input-group">
-                            <span class="auth-input-icon"><span class="material-symbols-outlined">mail</span></span>
                             <input id="email" type="email" placeholder="example@gmail.com" autocomplete="email" required
                                 class="auth-input">
                         </div>
@@ -124,12 +93,11 @@
                             <span data-i18n="register.password">Password</span> <span class="auth-required">*</span>
                         </label>
                         <div class="auth-input-group">
-                            <span class="auth-input-icon"><span class="material-symbols-outlined">lock</span></span>
                             <input id="password" type="password" placeholder="Enter password" data-i18n="register.enter_password"
                                 autocomplete="new-password" required class="auth-input has-toggle">
                             <button type="button" class="auth-toggle-btn" data-toggle-target="password"
-                                aria-label="Show password" aria-pressed="false">
-                                <span class="material-symbols-outlined">visibility</span>
+                                aria-label="Show password" aria-pressed="false" data-i18n="auth.show">
+                                Show
                             </button>
                         </div>
                     </div>
@@ -144,13 +112,12 @@
                             <span data-i18n="register.confirm_password">Confirm Password</span> <span class="auth-required">*</span>
                         </label>
                         <div class="auth-input-group">
-                            <span class="auth-input-icon"><span class="material-symbols-outlined">lock</span></span>
                             <input id="confirm-password" type="password" placeholder="Confirm password"
                                 data-i18n="register.confirm_password_ph" autocomplete="new-password" required
                                 class="auth-input has-toggle">
                             <button type="button" class="auth-toggle-btn" data-toggle-target="confirm-password"
-                                aria-label="Show password" aria-pressed="false">
-                                <span class="material-symbols-outlined">visibility</span>
+                                aria-label="Show password" aria-pressed="false" data-i18n="auth.show">
+                                Show
                             </button>
                         </div>
                     </div>
@@ -158,32 +125,29 @@
                     <details class="auth-details">
                         <summary>
                             <span data-i18n="register.optional_details">Optional: Add profile details to skip this step later</span>
-                            <span class="material-symbols-outlined">expand_more</span>
                         </summary>
                         <div class="auth-details-body">
                             <div>
                                 <label class="auth-label" for="dob" data-i18n="register.dob">Date of Birth</label>
-                                <input id="dob" type="date" class="auth-input" style="padding-left:1rem;">
+                                <input id="dob" type="date" class="auth-input">
                             </div>
                             <div>
                                 <label class="auth-label" for="school" data-i18n="register.school">School</label>
-                                <select id="school" class="auth-input" style="padding-left:1rem;">
+                                <select id="school" class="auth-input">
                                     <option value="">-- Select your school --</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="auth-label" for="class" data-i18n="register.class">Class</label>
-                                <input id="class" type="text" placeholder="e.g. 12A" class="auth-input" style="padding-left:1rem;">
+                                <input id="class" type="text" placeholder="e.g. 12A" class="auth-input">
                             </div>
                             <div>
                                 <label class="auth-label" for="major" data-i18n="register.major">Major</label>
-                                <input id="major" type="text" placeholder="e.g. Computer Science" class="auth-input"
-                                    style="padding-left:1rem;">
+                                <input id="major" type="text" placeholder="e.g. Computer Science" class="auth-input">
                             </div>
                             <div class="col-span-2 max-sm:col-span-1">
                                 <label class="auth-label" for="phoneNo" data-i18n="register.phone">Phone Number</label>
-                                <input id="phoneNo" type="tel" placeholder="e.g. 0123456789" class="auth-input"
-                                    style="padding-left:1rem;">
+                                <input id="phoneNo" type="tel" placeholder="e.g. 0123456789" class="auth-input">
                             </div>
                         </div>
                     </details>

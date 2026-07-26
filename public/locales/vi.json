@@ -175,6 +175,10 @@
     "clear": "Xóa",
     "close": "Đóng"
   },
+  "auth": {
+    "show": "Hiện",
+    "hide": "Ẩn"
+  },
   "login": {
     "title": "SpringWave - Đăng nhập",
     "home": "Về trang chủ",
