@@ -52,18 +52,40 @@
           <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="studentId" name="studentId" placeholder="e.g., 2021ABCDE" required="" type="text"/>
         </div>
         <div>
-          <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Ảnh chụp thẻ sinh viên</label>
-          <div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden">
-            <span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="cardIcon">cloud_upload</span>
-            <p class="font-body-md text-on-surface-variant mb-1 text-center" id="cardLabel">Click to upload or drag and drop</p>
-            <p class="font-caption text-outline text-center" id="cardHint">JPEG, PNG or GIF up to 50MB</p>
-            <input class="absolute inset-0 opacity-0 cursor-pointer" id="studentCardImage" name="studentCardImage" accept="image/jpeg,image/png,image/gif,image/webp" type="file"/>
-            <div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-              <span class="material-symbols-outlined text-[16px]">lock</span>
-              <span class="text-[10px] font-bold tracking-wider uppercase">Private & Secure</span>
+          <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Ảnh chụp thẻ sinh viên (2 mặt)</label>
+          <p class="font-caption text-outline mb-3">Vui lòng chụp rõ cả mặt trước và mặt sau của thẻ.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Front -->
+            <div>
+              <p class="font-label-md text-label-md text-on-surface mb-2 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-primary">badge</span> Mặt trước
+              </p>
+              <div class="card-dropzone border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden min-h-[160px]">
+                <span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="frontIcon">cloud_upload</span>
+                <p class="font-body-md text-on-surface-variant mb-1 text-center text-sm" id="frontLabel">Click to upload front</p>
+                <p class="font-caption text-outline text-center" id="frontHint">JPEG, PNG or GIF up to 50MB</p>
+                <input class="absolute inset-0 opacity-0 cursor-pointer" id="studentCardFront" name="studentCardFront" accept="image/jpeg,image/png,image/gif,image/webp" type="file"/>
+              </div>
+              <div id="frontPreview" class="mt-2 hidden"></div>
+            </div>
+            <!-- Back -->
+            <div>
+              <p class="font-label-md text-label-md text-on-surface mb-2 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-primary">badge</span> Mặt sau
+              </p>
+              <div class="card-dropzone border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden min-h-[160px]">
+                <span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="backIcon">cloud_upload</span>
+                <p class="font-body-md text-on-surface-variant mb-1 text-center text-sm" id="backLabel">Click to upload back</p>
+                <p class="font-caption text-outline text-center" id="backHint">JPEG, PNG or GIF up to 50MB</p>
+                <input class="absolute inset-0 opacity-0 cursor-pointer" id="studentCardBack" name="studentCardBack" accept="image/jpeg,image/png,image/gif,image/webp" type="file"/>
+              </div>
+              <div id="backPreview" class="mt-2 hidden"></div>
             </div>
           </div>
-          <div id="cardPreview" class="mt-2 hidden"></div>
+          <div class="mt-3 flex items-center gap-1.5 px-3 py-1 w-fit rounded-full bg-green-50 text-green-700 border border-green-200">
+            <span class="material-symbols-outlined text-[16px]">lock</span>
+            <span class="text-[10px] font-bold tracking-wider uppercase">Private & Secure</span>
+          </div>
         </div>
       </div>
     </div>

@@ -218,7 +218,18 @@ function openEditModal() {
     document.getElementById("edit-fullname").value = user.fullname || "";
     document.getElementById("edit-dob").value = user.dob ? user.dob.split("T")[0] : "";
     document.getElementById("edit-phone").value = user.phoneNo || "";
-    document.getElementById("edit-school").value = user.school || "";
+    const schoolInput = document.getElementById("edit-school");
+    schoolInput.value = user.school || "";
+    // School locked from a verified email domain can't be edited.
+    if (user.schoolLocked) {
+        schoolInput.readOnly = true;
+        schoolInput.classList.add("opacity-70", "cursor-not-allowed");
+        schoolInput.title = "Trường học đã được xác thực qua email và không thể thay đổi.";
+    } else {
+        schoolInput.readOnly = false;
+        schoolInput.classList.remove("opacity-70", "cursor-not-allowed");
+        schoolInput.title = "";
+    }
     document.getElementById("edit-class").value = user.class || "";
     document.getElementById("edit-major").value = user.major || "";
 

@@ -165,6 +165,12 @@ async function request(endpoint, options = {}) {
                 window.location.href = "/complete-profile.html";
                 return;
             }
+            if (response.status === 403 && data?.code === "STUDENT_NOT_VERIFIED") {
+                if (!window.location.pathname.endsWith("/student-verify.html")) {
+                    window.location.href = "/student-verify.html";
+                }
+                throw { status: 403, code: "STUDENT_NOT_VERIFIED", message: data?.error || "Please verify your student status first" };
+            }
             if (response.status === 429) {
                 const retryAfter = response.headers.get("Retry-After");
                 const msg = data?.error || data?.message || "Too many requests. Please wait before trying again.";

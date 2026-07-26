@@ -27,35 +27,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     const form = document.querySelector('form');
     if (!form) return;
 
-    const cardInput = document.getElementById("studentCardImage");
-    if (cardInput) {
-        cardInput.addEventListener("change", () => {
-            const preview = document.getElementById("cardPreview");
-            const label = document.getElementById("cardLabel");
-            const icon = document.getElementById("cardIcon");
-            const hint = document.getElementById("cardHint");
-            if (!preview) return;
-            if (cardInput.files.length > 0) {
-                const file = cardInput.files[0];
-                label.textContent = file.name;
-                icon.textContent = "description";
-                hint.textContent = (file.size / 1024 / 1024).toFixed(1) + " MB";
-                preview.classList.remove("hidden");
+    function bindCardInput(inputId, { icon, label, hint, preview, defaultLabel }) {
+        const input = document.getElementById(inputId);
+        const iconEl = document.getElementById(icon);
+        const labelEl = document.getElementById(label);
+        const hintEl = document.getElementById(hint);
+        const previewEl = document.getElementById(preview);
+        if (!input || !previewEl) return;
+        input.addEventListener("change", () => {
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                labelEl.textContent = file.name;
+                iconEl.textContent = "description";
+                hintEl.textContent = (file.size / 1024 / 1024).toFixed(1) + " MB";
+                previewEl.classList.remove("hidden");
                 if (file.type.startsWith("image/")) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        preview.innerHTML = `<img src="${e.target.result}" class="max-h-40 rounded-lg border border-outline-variant shadow-sm"/>`;
+                        previewEl.innerHTML = `<img src="${e.target.result}" class="max-h-40 rounded-lg border border-outline-variant shadow-sm"/>`;
                     };
                     reader.readAsDataURL(file);
                 }
             } else {
-                label.textContent = "Click to upload or drag and drop";
-                icon.textContent = "cloud_upload";
-                hint.textContent = "JPEG, PNG or GIF up to 50MB";
-                preview.classList.add("hidden");
+                labelEl.textContent = defaultLabel;
+                iconEl.textContent = "cloud_upload";
+                hintEl.textContent = "JPEG, PNG or GIF up to 50MB";
+                previewEl.classList.add("hidden");
             }
         });
     }
+
+    const frontInput = document.getElementById("studentCardFront");
+    const backInput = document.getElementById("studentCardBack");
+    bindCardInput("studentCardFront", { icon: "frontIcon", label: "frontLabel", hint: "frontHint", preview: "frontPreview", defaultLabel: "Click to upload front" });
+    bindCardInput("studentCardBack", { icon: "backIcon", label: "backLabel", hint: "backHint", preview: "backPreview", defaultLabel: "Click to upload back" });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -65,8 +70,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("Vui lòng nhập mã số sinh viên");
             return;
         }
-        if (!cardInput?.files?.length) {
-            alert("Vui lòng chọn ảnh chụp thẻ sinh viên");
+        if (!frontInput?.files?.length || !backInput?.files?.length) {
+            alert("Vui lòng chọn ảnh cả hai mặt (trước và sau) của thẻ sinh viên");
             return;
         }
 

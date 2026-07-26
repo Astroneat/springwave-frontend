@@ -3,12 +3,20 @@ import { getActivityById, checkParticipation, unparticipateActivity, participate
 import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { t } from "../lib/i18n.js";
-import { isAuthenticated, getUser, isProfileComplete } from "../lib/session.js";
+import { isAuthenticated, getUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
 import { formatDate, capitalize, timeAgo } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
 import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
 import { getSimilarEvents } from "../api/activities.js";
+
+// Unverified students are view-only: prompt + redirect to the verify page.
+function requireVerifiedOrRedirect() {
+    if (isStudentVerified(getUser())) return true;
+    alert("Bạn cần xác thực sinh viên trước khi tham gia hoặc tương tác. Vui lòng hoàn tất xác thực.");
+    window.location.href = "/student-verify.html";
+    return false;
+}
 
 // Ensure overlay and container exist
 function ensurePopupElements() {
@@ -375,6 +383,8 @@ function initParticipateButton(activityID) {
                 return;
             }
 
+            if (!requireVerifiedOrRedirect()) return;
+
             const isActive = btn.classList.contains("active");
 
             if (isActive) {
@@ -678,6 +688,7 @@ async function initEventComments(eventId, container) {
             window.location.href = '/profile.html';
             return;
         }
+        if (!requireVerifiedOrRedirect()) return;
 
         const text = inputEl.value.trim();
         if (!text) return;

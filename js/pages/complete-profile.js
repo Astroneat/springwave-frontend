@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { getCurrentUser, completeProfile } from "../api/auth.js";
-import { isAuthenticated, getToken, createSession, setUser } from "../lib/session.js";
+import { isAuthenticated, getToken, createSession, setUser, getUser } from "../lib/session.js";
 import { initI18n } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 
@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     await initI18n();
     await loadSchools();
+    applySchoolLock();
     initCompleteProfileForm();
 });
 
@@ -27,6 +28,27 @@ async function loadSchools() {
             select.appendChild(opt);
         });
     } catch {}
+}
+
+// If the school was set & locked from a verified email domain, pre-select it and
+// disable the field so it can't be changed.
+function applySchoolLock() {
+    const user = getUser();
+    const select = document.getElementById("school");
+    if (!select || !user?.schoolLocked || !user.school) return;
+    if (!Array.from(select.options).some(o => o.value === user.school)) {
+        const opt = document.createElement("option");
+        opt.value = user.school;
+        opt.textContent = user.school;
+        select.appendChild(opt);
+    }
+    select.value = user.school;
+    select.disabled = true;
+    select.classList.add("opacity-70", "cursor-not-allowed");
+    const label = select.previousElementSibling;
+    if (label && label.tagName === "LABEL" && !label.querySelector(".school-lock-note")) {
+        label.insertAdjacentHTML("beforeend", ' <span class="school-lock-note text-xs text-green-600">(verified email)</span>');
+    }
 }
 
 function initCompleteProfileForm() {

@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { t } from "../lib/i18n.js";
-import { isAuthenticated, getUser, getToken, setUser, isProfileComplete } from "../lib/session.js";
+import { isAuthenticated, getUser, getToken, setUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
@@ -160,6 +160,14 @@ function eventToDiscussion(event) {
 
 
 
+// Unverified students are view-only: warn + redirect to the verify page.
+function requireVerifiedOrRedirect() {
+  if (isStudentVerified(getUser())) return true;
+  showToast("Bạn cần xác thực sinh viên trước khi đăng bài hoặc bình luận.", true);
+  setTimeout(() => { window.location.href = "/student-verify.html"; }, 900);
+  return false;
+}
+
 function showProfileModal() {
   const overlay = document.getElementById("profileModalOverlay");
   if (!overlay) return;
@@ -306,8 +314,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (addBtn && user?.role === "admin") {
         addBtn.style.display = "flex";
         addBtn.addEventListener("click", () => {
-          openUniDialog(null, async (name, description, color) => {
-            const result = await createUniversity(name, description, color);
+          openUniDialog(null, async (name, description, color, domains) => {
+            const result = await createUniversity(name, description, color, domains);
             if (result) window.location.reload();
           });
         });
@@ -1078,6 +1086,8 @@ async function submitDiscussionComment(id, container) {
   const text = sanitizeHtml(input.value.trim());
   if (!text) return;
 
+  if (!requireVerifiedOrRedirect()) return;
+
   const check = canPerformAction('addComment');
   if (!check.allowed) {
     alert(`Please wait ${check.remaining} seconds before posting another comment.`);
@@ -1501,8 +1511,8 @@ async function renderUniGrid() {
       if (!id) return;
       const uni = unis.find(u => String(u.id) === String(id));
       if (!uni) return;
-      openUniDialog(uni, async (name, description, color) => {
-        const result = await updateUniversity(id, { name, description, color });
+      openUniDialog(uni, async (name, description, color, domains) => {
+        const result = await updateUniversity(id, { name, description, color, domains });
         if (result) window.location.reload();
       });
     });
@@ -1623,8 +1633,10 @@ function initUniDialog() {
     }
     const description = document.getElementById("uniDescription")?.value.trim() || "";
     const color = document.getElementById("uniColorPicker")?.value || "#3B6FD4";
+    const domains = (document.getElementById("uniDomains")?.value || "")
+      .split(",").map(d => d.trim().toLowerCase().replace(/^@/, "")).filter(Boolean);
     close();
-    if (uniDialogCallback) uniDialogCallback(name, description, color);
+    if (uniDialogCallback) uniDialogCallback(name, description, color, domains);
     uniDialogCallback = null;
   });
 
@@ -1654,6 +1666,7 @@ function openUniDialog(editData, callback) {
   const title = document.getElementById("uniDialogTitle");
   const nameInput = document.getElementById("uniName");
   const descInput = document.getElementById("uniDescription");
+  const domainsInput = document.getElementById("uniDomains");
   const colorPicker = document.getElementById("uniColorPicker");
   const colorHex = document.getElementById("uniColorHex");
   if (!overlay) return;
@@ -1664,6 +1677,7 @@ function openUniDialog(editData, callback) {
     title.textContent = "Edit University";
     nameInput.value = editData.name || "";
     descInput.value = editData.description || "";
+    if (domainsInput) domainsInput.value = (editData.domains || []).join(", ");
     const c = editData.color || "#3B6FD4";
     if (colorPicker) colorPicker.value = c;
     if (colorHex) colorHex.value = c;
@@ -1671,6 +1685,7 @@ function openUniDialog(editData, callback) {
     title.textContent = t("community.add_uni_title");
     nameInput.value = "";
     descInput.value = "";
+    if (domainsInput) domainsInput.value = "";
     if (colorPicker) colorPicker.value = "#3B6FD4";
     if (colorHex) colorHex.value = "#3B6FD4";
   }
@@ -2032,6 +2047,7 @@ function initPostModal() {
         showToast("Please verify your email before posting. Check your inbox or resend the verification.", true);
         return;
       }
+      if (!requireVerifiedOrRedirect()) return;
 
       const check = canPerformAction('createDiscussion');
       if (!check.allowed) {

@@ -281,9 +281,19 @@ async function openDetail(id) {
     const data = await getVerificationById(id);
     const v = data.verification;
     const user = v.submittedBy || {};
-    const cardImg = v.studentCardImage
-      ? `<img src="${v.studentCardImage}" alt="Student Card" class="w-full rounded-xl border border-[#ecedfa] shadow-sm" onerror="this.parentElement.innerHTML='<div class=\\'p-8 text-center text-[#94a3b8]\\'><i class=\\'fa-solid fa-image-slash text-3xl mb-2\\'></i><p>Image unavailable</p></div>'"/>`
-      : '<div class="p-8 text-center text-[#94a3b8]"><i class="fa-solid fa-image-slash text-3xl mb-2"></i><p>No image uploaded</p></div>';
+    const cardSideHtml = (src, caption) => {
+      const inner = src
+        ? `<img src="${src}" alt="${caption}" class="w-full rounded-xl border border-[#ecedfa] shadow-sm" onerror="this.parentElement.innerHTML='<div class=\\'p-6 text-center text-[#94a3b8]\\'><i class=\\'fa-solid fa-image-slash text-2xl mb-2\\'></i><p>Image unavailable</p></div>'"/>`
+        : '<div class="p-6 text-center text-[#94a3b8]"><i class="fa-solid fa-image-slash text-2xl mb-2"></i><p>No image</p></div>';
+      return `<div>
+        <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide mb-1.5">${caption}</p>
+        <div class="bg-[#f8f9fc] rounded-xl p-3 border border-[#ecedfa]">${inner}</div>
+      </div>`;
+    };
+    // New records have front/back; legacy records only have studentCardImage.
+    const cardImg = (v.studentCardFront || v.studentCardBack)
+      ? `${cardSideHtml(v.studentCardFront, 'Front')}${cardSideHtml(v.studentCardBack, 'Back')}`
+      : cardSideHtml(v.studentCardImage, 'Student Card');
 
     body.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -320,8 +330,8 @@ async function openDetail(id) {
           ${v.reviewedBy ? `<div><label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Reviewed By</label><p class="text-[#191b22]">${v.reviewedBy.fullname || ''}</p></div>` : ''}
         </div>
         <div>
-          <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide mb-2 block">Student Card Image</label>
-          <div class="bg-[#f8f9fc] rounded-xl p-4 border border-[#ecedfa]">
+          <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide mb-2 block">Student Card Images</label>
+          <div class="space-y-3">
             ${cardImg}
           </div>
         </div>

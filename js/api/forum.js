@@ -242,9 +242,14 @@ export async function deleteDiscussion(id) {
   }
 }
 
-export async function createUniversity(name, description, color) {
+export async function createUniversity(name, description, color, domains) {
   try {
-    const data = await post("/community/universities", { name, description: description || "", color: color || "#3B6FD4" });
+    const data = await post("/community/universities", {
+      name,
+      description: description || "",
+      color: color || "#3B6FD4",
+      domains: domains || [],
+    });
     return data?.university || null;
   } catch {
     return null;

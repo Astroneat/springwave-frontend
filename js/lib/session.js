@@ -69,3 +69,8 @@ export function isProfileComplete(user) {
     if (!user) return false;
     return !!(user.dob && user.school && user.class && user.major && user.phoneNo);
 }
+
+export function isStudentVerified(user) {
+    if (!user) return false;
+    return !!(user.isStudentVerified || user.role === "admin" || user.role === "host");
+}

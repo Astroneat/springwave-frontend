@@ -267,6 +267,7 @@
     "add_uni_title": "Add University",
     "uni_name": "University Name",
     "uni_desc": "Description (optional)",
+    "uni_domains": "Email domains (comma-separated)",
     "uni_color": "Brand Color",
     "save": "Save",
     "popular": "Popular Discussions",

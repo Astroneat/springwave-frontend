@@ -267,6 +267,7 @@
     "add_uni_title": "Thêm trường đại học",
     "uni_name": "Tên trường",
     "uni_desc": "Mô tả (không bắt buộc)",
+    "uni_domains": "Tên miền email (phân cách bằng dấu phẩy)",
     "uni_color": "Màu thương hiệu",
     "save": "Lưu",
     "popular": "Thảo luận phổ biến",
