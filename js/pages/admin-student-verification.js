@@ -3,13 +3,39 @@ import { isAuthenticated, getUser } from "../lib/session.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate } from "../lib/utils.js";
-import { getVerifications, getVerificationById, approveVerification, rejectVerification } from "../api/studentVerification.js";
+import { getVerifications, getVerificationById, approveVerification, rejectVerification, batchApproveVerifications, batchRejectVerifications } from "../api/studentVerification.js";
 
 let currentTab = "all";
 let currentPage = 1;
 let totalPages = 1;
+let totalItems = 0;
 let actionTarget = null;
 let searchTimer = null;
+let isLoading = false;
+let selectedItems = new Set();
+let batchMode = false;
+
+/* =========================
+   POPUP HELPERS
+   ========================= */
+
+function openPopup(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closePopup(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+/* =========================
+   INIT
+   ========================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!isAuthenticated()) {
@@ -34,15 +60,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   initRefresh();
   initPagination();
   initPopups();
+  initBatchActions();
   await loadData();
 });
 
+/* =========================
+   DATA LOADING
+   ========================= */
+
 async function loadData() {
+  if (isLoading) return;
+  isLoading = true;
+  showTableLoading();
+
   try {
     const params = { page: currentPage, pageSize: 10 };
     if (currentTab !== "all") params.status = currentTab;
     const sd = document.getElementById("search-input")?.value.trim();
     if (sd) params.search = sd;
+    const school = document.getElementById("school-filter")?.value;
+    if (school) params.school = school;
 
     const data = await getVerifications(params);
     renderTable(data.data || []);
@@ -51,7 +88,25 @@ async function loadData() {
   } catch (err) {
     console.error("Load data error:", err);
     showEmpty();
+    showToast("Failed to load data", "error");
+  } finally {
+    isLoading = false;
+    hideTableLoading();
   }
+}
+
+function showTableLoading() {
+  const tbody = document.getElementById("table-body");
+  const empty = document.getElementById("table-empty");
+  const loading = document.getElementById("table-loading");
+  if (tbody) tbody.innerHTML = "";
+  if (empty) empty.classList.add("hidden");
+  if (loading) loading.classList.remove("hidden");
+}
+
+function hideTableLoading() {
+  const loading = document.getElementById("table-loading");
+  if (loading) loading.classList.add("hidden");
 }
 
 async function renderStats() {
@@ -69,6 +124,10 @@ async function renderStats() {
   } catch {}
 }
 
+/* =========================
+   TABLE RENDERING
+   ========================= */
+
 function renderTable(verifications) {
   const tbody = document.getElementById("table-body");
   const empty = document.getElementById("table-empty");
@@ -82,30 +141,44 @@ function renderTable(verifications) {
   }
 
   empty.classList.add("hidden");
-  count.textContent = `${verifications.length} requests`;
+  count.textContent = `${totalItems || verifications.length} requests`;
 
   tbody.innerHTML = verifications.map(v => `
-    <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc]/60 transition-colors">
+    <tr class="border-b border-[#e2e8f0] hover:bg-blue-50/40 transition-colors">
       <td class="py-3.5 px-4">
-        <span class="font-semibold text-[#191b22]">${v.studentId}</span>
+        ${currentTab === 'pending' ? `<input type="checkbox" class="item-checkbox w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" data-id="${v._id}">` : ''}
+        <span class="font-semibold text-[#191b22] text-sm ml-2">${v.studentId}</span>
       </td>
       <td class="py-3.5 px-4 hidden md:table-cell">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 shadow-sm">
             ${(v.submittedBy?.fullname || '?').charAt(0).toUpperCase()}
           </div>
           <div>
-            <p class="font-medium text-[#191b22]">${v.submittedBy?.fullname || 'Unknown'}</p>
-            <p class="text-[#64748b] text-xs">${v.submittedBy?.email || ''}</p>
+            <p class="font-medium text-[#191b22] text-sm">${v.submittedBy?.fullname || 'Unknown'}</p>
+            <p class="text-[#94a3b8] text-xs">${v.submittedBy?.email || ''}</p>
           </div>
         </div>
       </td>
-      <td class="py-3.5 px-4 hidden lg:table-cell text-[#64748b]">${v.submittedBy?.school || '—'}</td>
-      <td class="py-3.5 px-4 hidden sm:table-cell text-[#64748b] text-xs">${formatDate(v.createdAt)}</td>
+      <td class="py-3.5 px-4 hidden lg:table-cell text-[#64748b] text-sm">${v.submittedBy?.school || '—'}</td>
+      <td class="py-3.5 px-4 hidden sm:table-cell text-[#64748b] text-xs whitespace-nowrap">${formatDate(v.createdAt)}</td>
       <td class="py-3.5 px-4">${statusBadge(v.status)}</td>
       <td class="py-3.5 px-4 text-right">${actionButtons(v)}</td>
     </tr>
   `).join("");
+
+  // Bind checkbox events
+  tbody.querySelectorAll(".item-checkbox").forEach(checkbox => {
+    checkbox.addEventListener("change", (e) => {
+      const id = e.target.dataset.id;
+      if (e.target.checked) {
+        selectedItems.add(id);
+      } else {
+        selectedItems.delete(id);
+      }
+      updateBatchActions();
+    });
+  });
 
   tbody.querySelectorAll(".view-btn").forEach(btn => {
     btn.addEventListener("click", () => openDetail(btn.dataset.id));
@@ -115,57 +188,62 @@ function renderTable(verifications) {
       actionTarget = btn.dataset.id;
       document.getElementById("approve-name").textContent = btn.dataset.name;
       document.getElementById("approve-sid").textContent = btn.dataset.sid;
-      document.getElementById("approve-overlay").hidden = false;
+      openPopup("approve-overlay");
     });
   });
   tbody.querySelectorAll(".reject-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       actionTarget = btn.dataset.id;
       document.getElementById("reject-name").textContent = btn.dataset.name;
-      document.getElementById("reject-overlay").hidden = false;
+      openPopup("reject-overlay");
     });
   });
 }
 
 function statusBadge(status) {
   const map = {
-    pending: '<span class="badge-pending"><i class="fa-regular fa-clock mr-1"></i>Pending</span>',
-    approved: '<span class="badge-approved"><i class="fa-solid fa-check mr-1"></i>Approved</span>',
-    rejected: '<span class="badge-rejected"><i class="fa-solid fa-ban mr-1"></i>Rejected</span>',
+    pending: '<span class="badge badge-pending"><i class="fa-regular fa-clock mr-1"></i>Pending</span>',
+    approved: '<span class="badge badge-approved"><i class="fa-solid fa-check mr-1"></i>Approved</span>',
+    rejected: '<span class="badge badge-rejected"><i class="fa-solid fa-ban mr-1"></i>Rejected</span>',
   };
   return map[status] || status;
 }
 
 function actionButtons(v) {
   if (v.status !== "pending") {
-    return `<button class="view-btn px-4 py-1.5 rounded-lg border border-[#e2e2eb] bg-white text-[#64748b] text-xs font-semibold hover:bg-[#f8f9fc] spring-ease" data-id="${v._id}">
-      <i class="fa-regular fa-eye mr-1"></i> View
+    return `<button class="view-btn inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#e2e8f0] bg-white text-[#64748b] text-xs font-semibold hover:bg-[#f1f5f9] hover:border-[#cbd5e1] spring-ease active:scale-95" data-id="${v._id}">
+      <i class="fa-regular fa-eye text-sm"></i> View
     </button>`;
   }
   return `
-    <div class="flex items-center justify-end gap-2">
-      <button class="view-btn px-4 py-1.5 rounded-lg border border-[#e2e2eb] bg-white text-[#64748b] text-xs font-semibold hover:bg-[#f8f9fc] spring-ease" data-id="${v._id}">
-        <i class="fa-regular fa-eye mr-1"></i>
+    <div class="flex items-center justify-end gap-1.5">
+      <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e8f0] bg-white text-[#64748b] hover:bg-[#f1f5f9] hover:border-[#cbd5e1] spring-ease active:scale-95 flex items-center justify-center" data-id="${v._id}" title="View Details">
+        <i class="fa-regular fa-eye text-sm"></i>
       </button>
-      <button class="approve-btn px-4 py-1.5 rounded-lg border-none bg-[#059669] text-white text-xs font-semibold hover:bg-[#047857] spring-ease" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}" data-sid="${v.studentId}">
-        <i class="fa-solid fa-check mr-1"></i> Approve
+      <button class="approve-btn relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border-none bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 spring-ease active:scale-95 shadow-sm shadow-emerald-200" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}" data-sid="${v.studentId}">
+        <i class="fa-solid fa-check"></i> Approve
       </button>
-      <button class="reject-btn px-4 py-1.5 rounded-lg border-none bg-red-500 text-white text-xs font-semibold hover:bg-red-600 spring-ease" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}">
-        <i class="fa-solid fa-ban mr-1"></i>
+      <button class="reject-btn relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border-none bg-red-400 text-white text-xs font-semibold hover:bg-red-500 spring-ease active:scale-95 shadow-sm shadow-red-200" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}">
+        <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
   `;
 }
 
+/* =========================
+   PAGINATION
+   ========================= */
+
 function renderPagination(pagination) {
   const el = document.getElementById("pagination");
   if (!pagination || pagination.totalPages <= 1) {
-    el.hidden = true;
+    el.classList.add("hidden");
     return;
   }
-  el.hidden = false;
+  el.classList.remove("hidden");
   currentPage = pagination.page;
   totalPages = pagination.totalPages;
+  totalItems = pagination.totalItems;
   document.getElementById("pagination-info").textContent =
     `Page ${pagination.page} of ${pagination.totalPages} (${pagination.totalItems} total)`;
   document.getElementById("prev-page").disabled = currentPage <= 1;
@@ -174,10 +252,10 @@ function renderPagination(pagination) {
 
 function initPagination() {
   document.getElementById("prev-page")?.addEventListener("click", () => {
-    if (currentPage > 1) { currentPage--; loadData(); }
+    if (currentPage > 1) { currentPage--; loadData(); window.scrollTo({ top: 200, behavior: "smooth" }); }
   });
   document.getElementById("next-page")?.addEventListener("click", () => {
-    if (currentPage < totalPages) { currentPage++; loadData(); }
+    if (currentPage < totalPages) { currentPage++; loadData(); window.scrollTo({ top: 200, behavior: "smooth" }); }
   });
 }
 
@@ -187,6 +265,10 @@ function showEmpty() {
   document.getElementById("table-count").textContent = "0 requests";
 }
 
+/* =========================
+   TABS
+   ========================= */
+
 function initTabs() {
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -194,88 +276,259 @@ function initTabs() {
       btn.classList.add("active");
       currentTab = btn.dataset.tab;
       currentPage = 1;
+      selectedItems.clear();
+      updateBatchActions();
       loadData();
     });
   });
 }
 
+function initBatchActions() {
+  const batchActions = document.getElementById("batch-actions");
+  const selectAll = document.getElementById("select-all");
+  const selectedCount = document.getElementById("selected-count");
+  const batchApprove = document.getElementById("batch-approve");
+  const batchReject = document.getElementById("batch-reject");
+  const batchCancel = document.getElementById("batch-cancel");
+
+  // Toggle batch mode
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && batchMode) {
+      batchMode = false;
+      selectedItems.clear();
+      updateBatchActions();
+    }
+  });
+
+  // Select all checkbox
+  selectAll?.addEventListener("change", (e) => {
+    const isChecked = e.target.checked;
+    document.querySelectorAll(".item-checkbox").forEach(checkbox => {
+      checkbox.checked = isChecked;
+      if (isChecked) selectedItems.add(checkbox.dataset.id);
+      else selectedItems.delete(checkbox.dataset.id);
+    });
+    updateBatchActions();
+  });
+
+  // Enable batch mode when clicking on a checkbox
+  document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("item-checkbox")) {
+      batchMode = true;
+      updateBatchActions();
+    }
+  });
+
+  // Batch approve
+  batchApprove?.addEventListener("click", async () => {
+    if (selectedItems.size === 0) return;
+    if (!confirm(`Approve ${selectedItems.size} selected verifications?`)) return;
+
+    batchApprove.disabled = true;
+    const origHtml = batchApprove.innerHTML;
+    batchApprove.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Processing...';
+
+    try {
+      await batchApproveVerifications(Array.from(selectedItems));
+      selectedItems.clear();
+      updateBatchActions();
+      await loadData();
+      showToast(`${selectedItems.size} verifications approved successfully`, "success");
+    } catch (err) {
+      showToast(err.message || "Failed to batch approve", "error");
+    } finally {
+      batchApprove.disabled = false;
+      batchApprove.innerHTML = origHtml;
+    }
+  });
+
+  // Batch reject
+  batchReject?.addEventListener("click", async () => {
+    if (selectedItems.size === 0) return;
+    const note = prompt(`Enter rejection note for ${selectedItems.size} verifications (optional):`);
+    if (note === null) return;
+
+    batchReject.disabled = true;
+    const origHtml = batchReject.innerHTML;
+    batchReject.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Processing...';
+
+    try {
+      await batchRejectVerifications(Array.from(selectedItems), note);
+      selectedItems.clear();
+      updateBatchActions();
+      await loadData();
+      showToast(`${selectedItems.size} verifications rejected`, "success");
+    } catch (err) {
+      showToast(err.message || "Failed to batch reject", "error");
+    } finally {
+      batchReject.disabled = false;
+      batchReject.innerHTML = origHtml;
+    }
+  });
+
+  // Cancel batch mode
+  batchCancel?.addEventListener("click", () => {
+    batchMode = false;
+    selectedItems.clear();
+    updateBatchActions();
+  });
+
+  // Update batch actions UI
+  function updateBatchActions() {
+    const batchActions = document.getElementById("batch-actions");
+    const selectedCount = document.getElementById("selected-count");
+    const selectAll = document.getElementById("select-all");
+
+    const count = selectedItems.size;
+    selectedCount.textContent = `${count} selected`;
+    batchActions.classList.toggle("hidden", !batchMode || count === 0);
+
+    if (selectAll) {
+      selectAll.checked = count > 0 && document.querySelectorAll(".item-checkbox").length === count;
+    }
+  }
+}
+
+/* =========================
+   SEARCH
+   ========================= */
+
 function initSearch() {
   const input = document.getElementById("search-input");
+  const schoolFilter = document.getElementById("school-filter");
   if (!input) return;
   input.addEventListener("input", () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
       currentPage = 1;
       loadData();
-    }, 400);
+    }, 350);
   });
-}
-
-function initRefresh() {
-  document.getElementById("refresh-btn")?.addEventListener("click", () => {
+  schoolFilter?.addEventListener("change", () => {
     currentPage = 1;
     loadData();
   });
 }
 
-function initPopups() {
-  // Detail popup
-  const detailOverlay = document.getElementById("detail-overlay");
-  document.getElementById("detail-close")?.addEventListener("click", () => { detailOverlay.hidden = true; });
-  document.getElementById("detail-backdrop")?.addEventListener("click", () => { detailOverlay.hidden = true; });
+/* =========================
+   REFRESH
+   ========================= */
 
-  // Approve popup
-  const approveOverlay = document.getElementById("approve-overlay");
-  document.getElementById("approve-cancel")?.addEventListener("click", () => { approveOverlay.hidden = true; actionTarget = null; });
-  document.getElementById("approve-backdrop")?.addEventListener("click", () => { approveOverlay.hidden = true; actionTarget = null; });
+function initRefresh() {
+  const btn = document.getElementById("refresh-btn");
+  btn?.addEventListener("click", () => {
+    btn.classList.add("animate-spin");
+    setTimeout(() => btn.classList.remove("animate-spin"), 600);
+    currentPage = 1;
+    loadData();
+  });
+}
+
+/* =========================
+   TOAST NOTIFICATIONS
+   ========================= */
+
+function showToast(message, type = "info") {
+  const existing = document.querySelector(".toast-notification");
+  if (existing) existing.remove();
+
+  const toast = document.createElement("div");
+  toast.className = `toast-notification fixed top-6 right-6 z-[9999] px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold spring-ease translate-x-[120%] opacity-0 ${
+    type === "error"
+      ? "bg-red-50 text-red-700 border border-red-200"
+      : type === "success"
+      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+      : "bg-white text-[#191b22] border border-[#e2e8f0]"
+  }`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.remove("translate-x-[120%]", "opacity-0");
+    toast.classList.add("translate-x-0", "opacity-100");
+  });
+
+  setTimeout(() => {
+    toast.classList.add("translate-x-[120%]", "opacity-0");
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
+}
+
+/* =========================
+   POPUPS
+   ========================= */
+
+function initPopups() {
+  // --- Detail popup ---
+  const detailOverlay = document.getElementById("detail-overlay");
+  document.getElementById("detail-close")?.addEventListener("click", () => closePopup("detail-overlay"));
+  document.getElementById("detail-backdrop")?.addEventListener("click", () => closePopup("detail-overlay"));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closePopup("detail-overlay");
+      closePopup("approve-overlay");
+      closePopup("reject-overlay");
+    }
+  });
+
+  // --- Approve popup ---
+  document.getElementById("approve-cancel")?.addEventListener("click", () => { closePopup("approve-overlay"); actionTarget = null; });
+  document.getElementById("approve-backdrop")?.addEventListener("click", () => { closePopup("approve-overlay"); actionTarget = null; });
   document.getElementById("approve-confirm")?.addEventListener("click", async () => {
     if (!actionTarget) return;
     const btn = document.getElementById("approve-confirm");
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Processing...';
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Processing...';
     try {
       await approveVerification(actionTarget);
-      approveOverlay.hidden = true;
+      closePopup("approve-overlay");
       actionTarget = null;
       await loadData();
+      showToast("Verification approved successfully", "success");
     } catch (err) {
-      alert("Error: " + (err.message || "Failed to approve"));
+      showToast(err.message || "Failed to approve", "error");
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> Approve';
+      btn.innerHTML = origHtml;
     }
   });
 
-  // Reject popup
-  const rejectOverlay = document.getElementById("reject-overlay");
-  document.getElementById("reject-cancel")?.addEventListener("click", () => { rejectOverlay.hidden = true; actionTarget = null; });
-  document.getElementById("reject-backdrop")?.addEventListener("click", () => { rejectOverlay.hidden = true; actionTarget = null; });
+  // --- Reject popup ---
+  document.getElementById("reject-cancel")?.addEventListener("click", () => { closePopup("reject-overlay"); actionTarget = null; });
+  document.getElementById("reject-backdrop")?.addEventListener("click", () => { closePopup("reject-overlay"); actionTarget = null; });
   document.getElementById("reject-confirm")?.addEventListener("click", async () => {
     if (!actionTarget) return;
     const note = document.getElementById("reject-note").value.trim();
     const btn = document.getElementById("reject-confirm");
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Processing...';
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Processing...';
     try {
       await rejectVerification(actionTarget, note);
-      rejectOverlay.hidden = true;
+      closePopup("reject-overlay");
       actionTarget = null;
       document.getElementById("reject-note").value = "";
       await loadData();
+      showToast("Verification rejected", "success");
     } catch (err) {
-      alert("Error: " + (err.message || "Failed to reject"));
+      showToast(err.message || "Failed to reject", "error");
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-ban mr-1.5"></i> Reject';
+      btn.innerHTML = origHtml;
     }
   });
 }
 
+/* =========================
+   DETAIL VIEW
+   ========================= */
+
 async function openDetail(id) {
   const overlay = document.getElementById("detail-overlay");
   const body = document.getElementById("detail-body");
-  body.innerHTML = '<div class="flex items-center justify-center py-16 text-[#94a3b8]"><div class="spinner"></div></div>';
-  overlay.hidden = false;
+  body.innerHTML = '<div class="flex items-center justify-center py-20 text-[#94a3b8]"><div class="spinner"></div></div>';
+  openPopup("detail-overlay");
 
   try {
     const data = await getVerificationById(id);
@@ -283,66 +536,77 @@ async function openDetail(id) {
     const user = v.submittedBy || {};
     const cardSideHtml = (src, caption) => {
       const inner = src
-        ? `<img src="${src}" alt="${caption}" class="w-full rounded-xl border border-[#ecedfa] shadow-sm" onerror="this.parentElement.innerHTML='<div class=\\'p-6 text-center text-[#94a3b8]\\'><i class=\\'fa-solid fa-image-slash text-2xl mb-2\\'></i><p>Image unavailable</p></div>'"/>`
-        : '<div class="p-6 text-center text-[#94a3b8]"><i class="fa-solid fa-image-slash text-2xl mb-2"></i><p>No image</p></div>';
-      return `<div>
-        <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide mb-1.5">${caption}</p>
-        <div class="bg-[#f8f9fc] rounded-xl p-3 border border-[#ecedfa]">${inner}</div>
-      </div>`;
+        ? `<img src="${src}" alt="${caption}" class="w-full rounded-xl border border-[#e2e8f0] shadow-sm object-cover max-h-48" onerror="this.parentElement.innerHTML='<div class=\\'p-8 text-center text-[#94a3b8]\\'><i class=\\'fa-solid fa-image-slash text-2xl mb-2\\'></i><p class=\\'text-sm\\'>Image unavailable</p></div>'"/>`
+        : '<div class="p-8 text-center text-[#94a3b8]"><i class="fa-solid fa-image-slash text-2xl mb-2"></i><p class="text-sm">No image</p></div>';
+      return `<div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] overflow-hidden">${inner}</div>`;
     };
-    // New records have front/back; legacy records only have studentCardImage.
     const cardImg = (v.studentCardFront || v.studentCardBack)
-      ? `${cardSideHtml(v.studentCardFront, 'Front')}${cardSideHtml(v.studentCardBack, 'Back')}`
+      ? `<div class="grid grid-cols-2 gap-3">${cardSideHtml(v.studentCardFront, 'Front')}${cardSideHtml(v.studentCardBack, 'Back')}</div>`
       : cardSideHtml(v.studentCardImage, 'Student Card');
 
+    // Build info rows
+    const infoFields = [
+      { label: 'Full Name', value: user.fullname || 'Unknown', icon: 'fa-user' },
+      { label: 'Email', value: user.email || '—', icon: 'fa-envelope' },
+      { label: 'School', value: user.school || '—', icon: 'fa-building-columns' },
+      { label: 'Class / Major', value: `${user.class || '—'} ${user.major ? '/ ' + user.major : ''}`, icon: 'fa-graduation-cap' },
+      { label: 'Submitted', value: formatDate(v.createdAt), icon: 'fa-calendar' },
+    ];
+    if (v.reviewedBy?.fullname) {
+      infoFields.push({ label: 'Reviewed By', value: v.reviewedBy.fullname, icon: 'fa-user-check' });
+    }
+
     body.innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-4">
-          <div>
-            <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Student ID</label>
-            <p class="text-lg font-bold text-[#191b22]">${v.studentId}</p>
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <!-- Info column -->
+        <div class="lg:col-span-3 space-y-2">
+          <div class="flex items-center gap-3 mb-4 pb-3 border-b border-[#e2e8f0]">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+              ${(user.fullname || '?').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 class="font-bold text-lg text-[#191b22]">${v.studentId}</h3>
+              <div class="flex items-center gap-2 mt-0.5">
+                ${statusBadge(v.status)}
+              </div>
+            </div>
           </div>
-          <div>
-            <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Full Name</label>
-            <p class="text-[#191b22]">${user.fullname || 'Unknown'}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            ${infoFields.map(f => `
+              <div class="bg-[#f8fafc] rounded-xl px-4 py-3 border border-[#e2e8f0]">
+                <p class="text-[11px] font-semibold text-[#64748b] uppercase tracking-wider mb-1">
+                  <i class="fa-regular ${f.icon} mr-1.5"></i>${f.label}
+                </p>
+                <p class="text-sm font-medium text-[#191b22]">${f.value}</p>
+              </div>
+            `).join('')}
           </div>
-          <div>
-            <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Email</label>
-            <p class="text-[#191b22]">${user.email || '—'}</p>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">School</label>
-            <p class="text-[#191b22]">${user.school || '—'}</p>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Class / Major</label>
-            <p class="text-[#191b22]">${user.class || '—'} ${user.major ? '/ ' + user.major : ''}</p>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Submitted</label>
-            <p class="text-[#191b22]">${formatDate(v.createdAt)}</p>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Status</label>
-            <div class="mt-1">${statusBadge(v.status)}</div>
-            ${v.reviewNote ? `<div class="mt-2"><label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Review Note</label><p class="text-red-600 text-sm mt-1">${v.reviewNote}</p></div>` : ''}
-          </div>
-          ${v.reviewedBy ? `<div><label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Reviewed By</label><p class="text-[#191b22]">${v.reviewedBy.fullname || ''}</p></div>` : ''}
+          ${v.reviewNote ? `
+            <div class="bg-red-50 rounded-xl px-4 py-3 border border-red-200 mt-3">
+              <p class="text-[11px] font-semibold text-red-600 uppercase tracking-wider mb-1">
+                <i class="fa-solid fa-pen mr-1.5"></i>Review Note
+              </p>
+              <p class="text-sm text-red-700">${v.reviewNote}</p>
+            </div>
+          ` : ''}
         </div>
-        <div>
-          <label class="text-xs font-semibold text-[#64748b] uppercase tracking-wide mb-2 block">Student Card Images</label>
+        <!-- Card images -->
+        <div class="lg:col-span-2">
+          <p class="text-[11px] font-semibold text-[#64748b] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i class="fa-regular fa-id-card"></i> Student Card
+          </p>
           <div class="space-y-3">
             ${cardImg}
           </div>
         </div>
       </div>
       ${v.status === 'pending' ? `
-        <div class="flex gap-3 mt-8 pt-6 border-t border-[#ecedfa]">
-          <button class="flex-1 py-3 rounded-xl border-none bg-[#059669] text-white font-semibold text-sm spring-ease hover:bg-[#047857] active:scale-95" id="detail-approve-btn" data-id="${v._id}" data-name="${user.fullname || ''}" data-sid="${v.studentId}">
-            <i class="fa-solid fa-check mr-1.5"></i> Approve
+        <div class="flex gap-3 mt-6 pt-5 border-t border-[#e2e8f0] bg-gradient-to-r from-transparent via-blue-50/30 to-transparent -mx-6 -mb-6 px-6 pb-6">
+          <button class="btn btn-success flex-1 py-3 text-sm" id="detail-approve-btn" data-id="${v._id}" data-name="${user.fullname || ''}" data-sid="${v.studentId}">
+            <i class="fa-solid fa-check"></i> Approve Verification
           </button>
-          <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="detail-reject-btn" data-id="${v._id}" data-name="${user.fullname || ''}">
-            <i class="fa-solid fa-ban mr-1.5"></i> Reject
+          <button class="btn btn-danger flex-1 py-3 text-sm" id="detail-reject-btn" data-id="${v._id}" data-name="${user.fullname || ''}">
+            <i class="fa-solid fa-xmark"></i> Reject
           </button>
         </div>
       ` : ''}
@@ -350,20 +614,20 @@ async function openDetail(id) {
 
     document.getElementById("detail-approve-btn")?.addEventListener("click", () => {
       const btn = document.getElementById("detail-approve-btn");
-      overlay.hidden = true;
+      closePopup("detail-overlay");
       actionTarget = btn.dataset.id;
       document.getElementById("approve-name").textContent = btn.dataset.name;
       document.getElementById("approve-sid").textContent = btn.dataset.sid;
-      document.getElementById("approve-overlay").hidden = false;
+      openPopup("approve-overlay");
     });
     document.getElementById("detail-reject-btn")?.addEventListener("click", () => {
       const btn = document.getElementById("detail-reject-btn");
-      overlay.hidden = true;
+      closePopup("detail-overlay");
       actionTarget = btn.dataset.id;
       document.getElementById("reject-name").textContent = btn.dataset.name;
-      document.getElementById("reject-overlay").hidden = false;
+      openPopup("reject-overlay");
     });
   } catch (err) {
-    body.innerHTML = `<div class="text-center py-8 text-red-500"><i class="fa-solid fa-exclamation-circle text-3xl mb-2"></i><p>Failed to load details: ${err.message}</p></div>`;
+    body.innerHTML = `<div class="flex flex-col items-center justify-center py-16 text-red-500 gap-3"><i class="fa-solid fa-circle-exclamation text-4xl"></i><p class="text-sm font-medium">Failed to load details</p><p class="text-xs text-red-400">${err.message}</p></div>`;
   }
 }

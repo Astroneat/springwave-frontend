@@ -32,10 +32,10 @@ export function timeAgo(dateString) {
     if (!dateString) return "just now";
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "just now";
-    
+
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
-    
+
     if (diffInSeconds < 60) return "just now";
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) return `${diffInMinutes}m`;
@@ -49,4 +49,78 @@ export function timeAgo(dateString) {
     if (diffInMonths < 12) return `${diffInMonths}mo`;
     const diffInYears = Math.floor(diffInDays / 365);
     return `${diffInYears}y`;
+}
+
+/**
+ * Check if an email belongs to a school domain
+ * @param {string} email - The email address to check
+ * @returns {boolean} - True if the email belongs to a school domain
+ */
+export function isSchoolEmail(email) {
+    if (!email || typeof email !== 'string') return false;
+
+    // Extract domain from email
+    const domain = email.split('@')[1];
+    if (!domain) return false;
+
+    // School domains that qualify for auto-verification
+    const SCHOOL_DOMAINS = [
+        "vku.udn.vn",
+        "ued.udn.vn",
+        "dut.udn.vn",
+        "dne.udn.vn",
+        "dntu.udn.vn",
+        "daihocdanang.edu.vn"
+    ];
+
+    // Check if domain matches any school domain
+    return SCHOOL_DOMAINS.some(schoolDomain =>
+        domain === schoolDomain || domain.endsWith(`.${schoolDomain}`)
+    );
+}
+
+/**
+ * Extract domain from email
+ * @param {string} email - The email address
+ * @returns {string|null} - The domain or null if invalid
+ */
+export function extractEmailDomain(email) {
+    if (!email || typeof email !== 'string') return null;
+    const parts = email.split('@');
+    return parts.length === 2 ? parts[1] : null;
+}
+
+/**
+ * Check if user is verified or exempt (admin/host)
+ * @param {Object} user - The user object
+ * @returns {boolean} - True if user is verified or exempt
+ */
+export function isUserVerifiedOrExempt(user) {
+    if (!user) return false;
+    // Admins and hosts are exempt from verification
+    if (user.role === 'admin' || user.role === 'host') return true;
+    // Check if student is verified
+    return !!user.isStudentVerified;
+}
+
+/**
+ * Show verification required message
+ * @param {string} action - The action being attempted (e.g., "participate", "comment")
+ */
+export function showVerificationRequired(action = "perform this action") {
+    alert(`You need to verify your student status to ${action}. Please complete the verification process.`);
+}
+
+/**
+ * Guard function to prevent unverified users from performing actions
+ * @param {Object} user - The user object
+ * @param {string} action - The action being attempted
+ * @returns {boolean} - True if user can proceed, false if blocked
+ */
+export function checkVerificationGuard(user, action = "perform this action") {
+    if (!isUserVerifiedOrExempt(user)) {
+        showVerificationRequired(action);
+        return false;
+    }
+    return true;
 }

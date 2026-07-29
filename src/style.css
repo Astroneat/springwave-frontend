@@ -380,6 +380,14 @@ html, body, button, input, select, textarea {
     @apply text-red-700;
 }
 
+.verification-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 border border-green-200 text-xs font-bold tracking-wider uppercase ml-2;
+}
+
+.verification-badge i {
+    @apply text-[10px];
+}
+
 /* collapsed state adjusts */
 #navbar.collapsed .user-dropdown {
     top: 64px;
@@ -4006,14 +4014,219 @@ html, body, button, input, select, textarea {
 }
 
 .tab-btn:hover {
-    background: rgba(23, 85, 186, 0.06);
-    color: #1755ba;
+    @apply bg-blue-50 text-primary;
 }
 
 .tab-btn.active {
-    background: #1755ba;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(23, 85, 186, 0.2);
+    @apply bg-primary text-white shadow-md;
+}
+
+/* =========================
+   BADGES
+   ========================= */
+
+.badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold;
+}
+
+.badge-pending {
+    @apply bg-yellow-50 text-yellow-700 border border-yellow-200;
+}
+
+.badge-approved {
+    @apply bg-emerald-50 text-emerald-700 border border-emerald-200;
+}
+
+.badge-rejected {
+    @apply bg-red-50 text-red-700 border border-red-200;
+}
+
+/* =========================
+   STATS CARDS
+   ========================= */
+
+.stats-card {
+    @apply bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow;
+}
+
+.stats-card-icon {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center text-lg;
+}
+
+.stats-card-icon.total {
+    @apply bg-blue-50 text-primary;
+}
+
+.stats-card-icon.pending {
+    @apply bg-yellow-50 text-yellow-600;
+}
+
+.stats-card-icon.approved {
+    @apply bg-emerald-50 text-emerald-600;
+}
+
+.stats-card-icon.rejected {
+    @apply bg-red-50 text-red-600;
+}
+
+.stats-card-label {
+    @apply text-[13px] font-semibold text-[#64748b] uppercase tracking-wide;
+}
+
+.stats-card-value {
+    @apply text-[32px] font-extrabold text-[#191b22];
+}
+
+/* =========================
+   TABLE
+   ========================= */
+
+.table-container {
+    @apply bg-white rounded-[24px] border border-[#e2e8f0] shadow-sm overflow-hidden;
+}
+
+.table-header {
+    @apply flex items-center justify-between px-6 py-4 border-b border-[#e2e8f0];
+}
+
+.table-title {
+    @apply font-headline-md text-xl font-bold text-[#191b22];
+}
+
+.table-count {
+    @apply text-sm text-[#64748b] font-medium;
+}
+
+.table {
+    @apply w-full text-sm;
+}
+
+.table-header-row {
+    @apply border-b border-[#e2e8f0] bg-[#f8fafc];
+}
+
+.table-cell {
+    @apply py-3.5 px-4;
+}
+
+.table-row {
+    @apply border-b border-[#e2e8f0] hover:bg-blue-50/40 transition-colors;
+}
+
+.table-row:last-child {
+    @apply border-b-0;
+}
+
+.table-cell-header {
+    @apply text-left font-semibold text-[#64748b] text-[13px] uppercase tracking-wide;
+}
+
+.table-cell-value {
+    @apply font-semibold text-[#191b22] text-sm;
+}
+
+.table-cell-secondary {
+    @apply text-[#64748b] text-sm;
+}
+
+.table-cell-tertiary {
+    @apply text-[#64748b] text-xs;
+}
+
+.table-empty {
+    @apply text-center py-16 text-[#94a3b8];
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.btn {
+    @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold active:scale-95;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-primary {
+    @apply border-none bg-primary text-white hover:bg-blue-600 shadow-sm shadow-blue-200;
+}
+
+.btn-secondary {
+    @apply border border-[#e2e8f0] bg-white text-[#64748b] hover:bg-[#f1f5f9] hover:border-[#cbd5e1];
+}
+
+.btn-danger {
+    @apply border-none bg-red-400 text-white hover:bg-red-500 shadow-sm shadow-red-200;
+}
+
+.btn-success {
+    @apply border-none bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm shadow-emerald-200;
+}
+
+.btn-icon {
+    @apply w-9 h-9 rounded-lg border border-[#e2e8f0] bg-white text-[#64748b] hover:bg-[#f1f5f9] hover:border-[#cbd5e1] flex items-center justify-center;
+}
+
+/* =========================
+   ADMIN NAVIGATION
+   ========================= */
+
+.admin-nav-link {
+    @apply inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer whitespace-nowrap;
+    color: #64748b;
+    background: transparent;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.admin-nav-link:active {
+    transform: scale(0.95);
+}
+
+.admin-nav-link:hover {
+    @apply bg-[#f1f5f9];
+}
+
+.admin-nav-link.active {
+    @apply bg-primary text-white shadow-md;
+}
+
+.admin-nav-icon {
+    @apply mr-1.5;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* =========================
+   TOAST NOTIFICATIONS
+   ========================= */
+.badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold;
+}
+
+.badge-pending {
+    @apply bg-yellow-50 text-yellow-700 border border-yellow-200;
+}
+
+.badge-approved {
+    @apply bg-emerald-50 text-emerald-700 border border-emerald-200;
+}
+
+.badge-rejected {
+    @apply bg-red-50 text-red-700 border border-red-200;
+}
+
+/* =========================
+   TOAST NOTIFICATIONS
+   ========================= */
+.toast-notification {
+    @apply fixed top-6 right-6 z-[9999] px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* =========================

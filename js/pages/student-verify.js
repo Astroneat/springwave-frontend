@@ -6,6 +6,7 @@ import { fetchContent } from "../lib/utils.js";
 import { uploadFormData } from "../api/client.js";
 import { getMyVerificationStatus } from "../api/studentVerification.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
+import { isSchoolEmail } from "../lib/utils.js";
 
 let turnstileWidgetId = null;
 
@@ -21,6 +22,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (c) c.innerHTML = html;
     });
     await initChatbot();
+
+    // Check if user already has a school email and shouldn't be here
+    const user = getUser();
+    if (user && user.email && isSchoolEmail(user.email)) {
+        const banner = document.getElementById("status-banner");
+        if (banner) {
+            banner.classList.remove("hidden");
+            banner.innerHTML = `
+                <div class="rounded-xl bg-blue-50 border border-blue-200 p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-blue-600 text-2xl">info</span>
+                    </div>
+                    <div>
+                        <h3 class="font-headline-md text-headline-md text-blue-800">School Email Detected</h3>
+                        <p class="text-sm text-blue-700">Your email (${user.email}) is recognized as a school email. You should be auto-verified. If auto-verification hasn't completed, please contact support.</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
     initTurnstile();
     await checkExistingStatus();
 
@@ -34,9 +56,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         const hintEl = document.getElementById(hint);
         const previewEl = document.getElementById(preview);
         if (!input || !previewEl) return;
+
         input.addEventListener("change", () => {
             if (input.files.length > 0) {
                 const file = input.files[0];
+
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!validTypes.includes(file.type)) {
+                    alert("Invalid file type. Please upload JPEG, PNG, GIF, or WebP images only.");
+                    input.value = '';
+                    return;
+                }
+
+                // Validate file size (max 10MB)
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (file.size > maxSize) {
+                    alert("File is too large. Please upload an image smaller than 10MB.");
+                    input.value = '';
+                    return;
+                }
+
                 labelEl.textContent = file.name;
                 iconEl.textContent = "description";
                 hintEl.textContent = (file.size / 1024 / 1024).toFixed(1) + " MB";
@@ -44,7 +84,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (file.type.startsWith("image/")) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        previewEl.innerHTML = `<img src="${e.target.result}" class="max-h-40 rounded-lg border border-outline-variant shadow-sm"/>`;
+                        previewEl.innerHTML = `
+                            <div class="relative">
+                                <img src="${e.target.result}" class="max-h-40 rounded-lg border border-outline-variant shadow-sm"/>
+                                <button type="button" class="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors" onclick="this.parentElement.parentElement.classList.add('hidden'); document.getElementById('${inputId}').value = '';">
+                                    <span class="material-symbols-outlined text-[14px]">close</span>
+                                </button>
+                            </div>
+                        `;
                     };
                     reader.readAsDataURL(file);
                 }
@@ -70,8 +117,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("Vui lòng nhập mã số sinh viên");
             return;
         }
+
+        // Validate student ID format
+        if (!/^[a-zA-Z0-9]{6,15}$/.test(studentId)) {
+            alert("Mã số sinh viên không hợp lệ. Vui lòng nhập 6-15 ký tự chữ và số.");
+            return;
+        }
+
         if (!frontInput?.files?.length || !backInput?.files?.length) {
             alert("Vui lòng chọn ảnh cả hai mặt (trước và sau) của thẻ sinh viên");
+            return;
+        }
+
+        // Validate file sizes
+        const frontFile = frontInput.files[0];
+        const backFile = backInput.files[0];
+        const maxSize = 10 * 1024 * 1024; // 10MB
+
+        if (frontFile.size > maxSize || backFile.size > maxSize) {
+            alert("Một hoặc cả hai ảnh quá lớn. Vui lòng upload ảnh nhỏ hơn 10MB.");
             return;
         }
 

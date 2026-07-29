@@ -18,16 +18,6 @@
         } catch(e) { window.location.replace("/login.html"); }
     })();
     </script>
-    <style>
-        .tab-btn { padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .tab-btn:active { transform: scale(0.95); }
-        .tab-btn.active { background: #1755ba; color: #fff; box-shadow: 0 4px 12px rgba(23,85,186,0.2); }
-        .tab-btn:not(.active) { background: transparent; color: #64748b; }
-        .tab-btn:not(.active):hover { background: #f1f5f9; }
-        .badge-pending { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #fef3c7; color: #d97706; }
-        .badge-approved { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #d1fae5; color: #059669; }
-        .badge-rejected { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #fee2e2; color: #dc2626; }
-    </style>
 </head>
 <body class="bg-[#faf8ff] text-[#191b22] font-body-md antialiased min-h-screen">
     <div id="navbar-container"></div>
@@ -40,44 +30,73 @@
             <div class="flex items-center gap-3">
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-sm"></i>
-                    <input type="text" id="search-input" placeholder="Search by student ID..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[200px] outline-none focus:border-primary transition-colors" />
+                    <input type="text" id="search-input" placeholder="Search by student ID, name, or email..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[200px] outline-none focus:border-primary transition-colors" />
                 </div>
+                <select id="school-filter" class="px-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary transition-colors">
+                    <option value="">All Schools</option>
+                    <option value="VKU">VKU - Đại học VinUni</option>
+                    <option value="UED">UED - Đại học Sư phạm Đà Nẵng</option>
+                    <option value="DUT">DUT - Đại học Bách khoa Đà Nẵng</option>
+                    <option value="DNE">DNE - Đại học Kinh tế Đà Nẵng</option>
+                    <option value="DNTU">DNTU - Đại học Công nghệ Thông tin và Truyền thông Việt-Hàn</option>
+                </select>
                 <button id="refresh-btn" class="w-10 h-10 rounded-full border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f1f5f9] transition-all spring-ease" title="Refresh">
                     <i class="fa-solid fa-rotate"></i>
                 </button>
             </div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="stats">
-            <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+    </div>
+    <div id="batch-actions" class="hidden bg-white rounded-2xl p-4 border border-[#e2e8f0] shadow-sm mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="select-all" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+                <label for="select-all" class="text-sm font-medium text-[#191b22]">Select All</label>
+                <span id="selected-count" class="text-sm text-[#64748b]">0 selected</span>
+            </div>
+            <div class="flex gap-2">
+                <button id="batch-approve" class="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                    <i class="fa-solid fa-check mr-1.5"></i> Approve
+                </button>
+                <button id="batch-reject" class="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors">
+                    <i class="fa-solid fa-ban mr-1.5"></i> Reject
+                </button>
+                <button id="batch-cancel" class="px-4 py-2 rounded-lg border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold hover:bg-[#f8f9fc] transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="stats">
+            <div class="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-primary">
                         <i class="fa-solid fa-file-pen text-lg"></i>
                     </div>
                     <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Total</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-total">—</p>
             </div>
-            <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+            <div class="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#fef3c7] flex items-center justify-center text-[#d97706]">
+                    <div class="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600">
                         <i class="fa-solid fa-clock text-lg"></i>
                     </div>
                     <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Pending</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-pending">—</p>
             </div>
-            <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+            <div class="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#d1fae5] flex items-center justify-center text-[#059669]">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                         <i class="fa-solid fa-check-circle text-lg"></i>
                     </div>
                     <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Approved</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-approved">—</p>
             </div>
-            <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+            <div class="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#fee2e2] flex items-center justify-center text-[#dc2626]">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
                         <i class="fa-solid fa-ban text-lg"></i>
                     </div>
                     <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Rejected</span>
@@ -85,18 +104,18 @@
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-rejected">—</p>
             </div>
         </div>
-        <div class="flex gap-3 mb-6">
-            <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
-                <i class="fa-solid fa-calendar-days mr-1.5"></i> Events
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide" id="admin-nav">
+            <a href="/admin.html" class="admin-nav-link">
+                <i class="fa-solid fa-calendar-days admin-nav-icon"></i> Events
             </a>
-            <a href="/admin-host.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
-                <i class="fa-solid fa-users-gear mr-1.5"></i> Host Registrations
+            <a href="/admin-host.html" class="admin-nav-link">
+                <i class="fa-solid fa-users-gear admin-nav-icon"></i> Host Registrations
             </a>
-            <a href="/admin-student-verification.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md">
-                <i class="fa-solid fa-graduation-cap mr-1.5"></i> Student Verification
+            <a href="/admin-student-verification.html" class="admin-nav-link active">
+                <i class="fa-solid fa-graduation-cap admin-nav-icon"></i> Student Verification
             </a>
-            <a href="/admin-categories.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
-                <i class="fa-solid fa-tags mr-1.5"></i> Categories
+            <a href="/admin-categories.html" class="admin-nav-link">
+                <i class="fa-solid fa-tags admin-nav-icon"></i> Categories
             </a>
         </div>
         <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
@@ -125,20 +144,28 @@
                     <tbody id="table-body"></tbody>
                 </table>
             </div>
+            <div id="table-loading" class="hidden text-center py-16 text-[#94a3b8]">
+                <div class="spinner"></div>
+                <p class="text-base font-semibold mt-4">Loading verification requests...</p>
+            </div>
             <div id="table-empty" class="hidden text-center py-16 text-[#94a3b8]">
                 <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
                 <p class="text-base font-semibold">No verification requests found</p>
             </div>
         </div>
-        <div class="flex items-center justify-between mt-6 text-sm text-[#64748b]" id="pagination" hidden>
-            <span id="pagination-info"></span>
+        <div class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4" id="pagination" hidden>
+            <span id="pagination-info" class="text-sm text-[#64748b]"></span>
             <div class="flex gap-2">
-                <button id="prev-page" class="px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] spring-ease disabled:opacity-40" disabled>Previous</button>
-                <button id="next-page" class="px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] spring-ease disabled:opacity-40">Next</button>
+                <button id="prev-page" class="btn btn-secondary px-4 py-2 disabled:opacity-40" disabled>
+                    <i class="fa-solid fa-chevron-left mr-1.5"></i> Previous
+                </button>
+                <button id="next-page" class="btn btn-secondary px-4 py-2 disabled:opacity-40">
+                    Next <i class="fa-solid fa-chevron-right ml-1.5"></i>
+                </button>
             </div>
         </div>
     </main>
-    <div class="popup-overlay" hidden id="detail-overlay">
+    <div class="popup-overlay" id="detail-overlay">
         <div class="popup-backdrop" id="detail-backdrop"></div>
         <div class="popup-container !max-w-[720px] !p-0 max-h-[90vh] overflow-y-auto">
             <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
@@ -154,7 +181,7 @@
             </div>
         </div>
     </div>
-    <div class="popup-overlay" hidden id="approve-overlay">
+    <div class="popup-overlay" id="approve-overlay">
         <div class="popup-backdrop" id="approve-backdrop"></div>
         <div class="popup-container !max-w-[420px] !p-8 text-center">
             <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
@@ -170,7 +197,7 @@
             </div>
         </div>
     </div>
-    <div class="popup-overlay" hidden id="reject-overlay">
+    <div class="popup-overlay" id="reject-overlay">
         <div class="popup-backdrop" id="reject-backdrop"></div>
         <div class="popup-container !max-w-[420px] !p-8 text-center">
             <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">

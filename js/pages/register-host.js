@@ -1,5 +1,5 @@
 import "../../src/style.css";
-import { isAuthenticated, getUser } from "../lib/session.js";
+import { isAuthenticated, getUser, isStudentVerified } from "../lib/session.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
@@ -16,6 +16,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const user = getUser();
+
+    // Check if user is verified or exempt (admin/host)
+    if (!isStudentVerified(user) && user.role !== 'admin' && user.role !== 'host') {
+        alert("You need to verify your student status before becoming a host. Please complete the verification process.");
+        window.location.href = "/student-verify.html";
+        return;
+    }
     const params = new URLSearchParams(window.location.search);
     const createMode = params.get("createMode") === "true";
     const isHost = user && user.role === "host";

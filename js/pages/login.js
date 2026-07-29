@@ -5,6 +5,7 @@ import { ensureSession } from "../api/client.js";
 import { GOOGLE_CLIENT_ID, API_BASE_URL, TURNSTILE_SITE_KEY } from "../config.js";
 import { initI18n, t } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
+import { isSchoolEmail } from "../lib/utils.js";
 
 let turnstileWidgetId = null;
 
@@ -87,8 +88,23 @@ function initLoginForm() {
             if (!data) return;
             createSession(data.token, data.user);
             await fetchSigningKey(data.token);
+
+            // Check verification status
             if (data.user && !data.user.emailVerified) {
                 showVerificationWarning(data.user.email);
+            } else if (data.user && !data.user.isStudentVerified) {
+                // User is logged in but not student verified
+                setStatus("Logged in successfully!", false);
+                setTimeout(() => {
+                    // Check if user has a school email that should be auto-verified
+                    if (data.user.email && isSchoolEmail(data.user.email)) {
+                        // This should have been auto-verified, show message
+                        alert("Your school email has been detected. You should be auto-verified. If you're seeing this, please contact support.");
+                    }
+
+                    // Redirect to home, user will see verification button in navbar
+                    window.location.href = "/index.html";
+                }, 800);
             } else {
                 setStatus("Logged in successfully! Redirecting...", false);
                 setTimeout(() => { window.location.href = "/index.html"; }, 800);
@@ -179,8 +195,22 @@ function initGoogleLogin() {
             createSession(data.token, data.user);
             await fetchSigningKey(data.token);
 
+            // Check verification status
             if (data.needsProfile) {
                 window.location.href = "/complete-profile.html";
+            } else if (data.user && !data.user.isStudentVerified) {
+                // Check if this is a school email that should be auto-verified
+                const { isSchoolEmail } = await import("../lib/utils.js");
+                const { SCHOOL_DOMAINS } = await import("../config.js");
+
+                if (data.user.email && isSchoolEmail(data.user.email)) {
+                    // Auto-verified school email
+                    alert("Your school email has been verified automatically! You can now participate in events.");
+                    window.location.href = "/index.html";
+                } else {
+                    // Not auto-verified, redirect to home with verification button
+                    window.location.href = "/index.html";
+                }
             } else {
                 window.location.href = "/index.html";
             }

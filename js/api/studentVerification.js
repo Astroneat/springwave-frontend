@@ -1,4 +1,4 @@
-import { get, put } from "./client.js";
+import { get, put, post } from "./client.js";
 
 export function getMyVerificationStatus() {
   return get('/student-verification/my-status');
@@ -25,4 +25,12 @@ export function approveVerification(id) {
 
 export function rejectVerification(id, reviewNote) {
   return put(`/student-verification/verifications/${id}/reject`, { reviewNote });
+}
+
+export function batchApproveVerifications(ids) {
+  return post(`/student-verification/verifications/batch/approve`, { ids });
+}
+
+export function batchRejectVerifications(ids, reviewNote) {
+  return post(`/student-verification/verifications/batch/reject`, { ids, reviewNote });
 }

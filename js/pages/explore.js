@@ -1,5 +1,5 @@
 import "../../src/style.css";
-import { isAuthenticated } from "../lib/session.js";
+import { isAuthenticated, getUser, isStudentVerified } from "../lib/session.js";
 import { getActivities, getActivityById, participateActivity, unparticipateActivity, checkParticipation, searchActivities, searchSemantic } from "../api/activities.js";
 import { listCategories } from "../api/categories.js";
 import { addFavourite, removeFavourite, checkFavourite, getFavourites } from "../api/user.js";
@@ -12,8 +12,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
-import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/utils.js";
-import { getUser } from "../lib/session.js";
+import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard } from "../lib/utils.js";
 
 let allActivities = [];
 let currentFilteredActivities = [];
@@ -717,6 +716,12 @@ function initCardClickHandlers() {
             if (!id) return;
             if (!isAuthenticated()) {
                 alert(t("explore.please_login") || "Please login first to favourite activities!");
+                return;
+            }
+
+            // Check verification status
+            const user = getUser();
+            if (!checkVerificationGuard(user, "favourite activities")) {
                 return;
             }
             const active = star.classList.contains("active");

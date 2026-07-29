@@ -1,4 +1,4 @@
-import { isAuthenticated, getUser, setUser, logout } from "../lib/session.js";
+import { isAuthenticated, getUser, setUser, logout, isStudentVerified } from "../lib/session.js";
 import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificationPolling, stopNotificationPolling } from "../lib/notifications.js";
 import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
@@ -438,6 +438,23 @@ function initUserDropdown() {
         const { showFavouritesGlobal } = await import("./favourites.js");
         showFavouritesGlobal();
     });
+
+    // Student verification button in user dropdown
+    const verifyBtn = document.getElementById("verify-student-btn");
+    if (verifyBtn) {
+        const u = getUser();
+        if (u && !isStudentVerified(u)) {
+            verifyBtn.style.display = "flex";
+        } else {
+            verifyBtn.style.display = "none";
+        }
+
+        verifyBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            userMenu.classList.remove("active");
+            window.location.href = "/student-verify.html";
+        });
+    }
 }
 
 function initLangSwitcher() {

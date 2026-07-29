@@ -1,5 +1,5 @@
 import "../../src/style.css";
-import { isAuthenticated, getUser, setUser } from "../lib/session.js";
+import { isAuthenticated, getUser, setUser, isStudentVerified } from "../lib/session.js";
 import { changeInfo, getFavourites, getUserContribution, uploadAvatar, getParticipatedActivities, getMyTickets } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
 import { getMyProfile } from "../api/profile.js";
@@ -87,6 +87,17 @@ async function loadUserProfile() {
 
     const roleMap = { student: t("user.student"), host: t("user.host"), admin: t("user.admin") };
     document.getElementById("profile-role").textContent = roleMap[user.role] || "Student";
+
+    // Add verification status
+    const verificationBadge = document.getElementById("verification-badge");
+    if (verificationBadge) {
+        if (isStudentVerified(user)) {
+            verificationBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${t("profile.verified_student")}`;
+            verificationBadge.classList.remove("hidden");
+        } else {
+            verificationBadge.classList.add("hidden");
+        }
+    }
 
     const initial = (user.username || user.fullname || "?").charAt(0).toUpperCase();
     const avatarImg = document.getElementById("avatar-image");
