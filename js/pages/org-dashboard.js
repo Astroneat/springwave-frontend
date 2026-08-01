@@ -1130,7 +1130,10 @@ function initQRScan() {
       const avatarContainer = document.getElementById("scan-feedback-avatar-container");
 
       if (nameEl) nameEl.textContent = user.fullname || "Unknown Attendee";
-      if (usernameEl) usernameEl.textContent = user.username ? `@${user.username}` : "";
+      if (usernameEl) {
+        const idText = user.studentId ? `ID: ${user.studentId}` : (user.username ? `@${user.username}` : "");
+        usernameEl.textContent = idText;
+      }
       if (emailEl) emailEl.textContent = user.email || "";
       if (codeEl) codeEl.textContent = ticketCode ? ticketCode.toUpperCase() : "N/A";
       if (statusLabel) {
@@ -1333,6 +1336,23 @@ function initQRScan() {
         ctx.drawImage(video, sx, sy, sourceSize, sourceSize, 0, 0, targetSize, targetSize);
 
         try {
+          if (typeof BarcodeDetector !== "undefined") {
+            if (!window.__nativeBarcodeDetector) {
+              try {
+                window.__nativeBarcodeDetector = new BarcodeDetector({
+                  formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'pdf417', 'codabar']
+                });
+              } catch (e) {
+                window.__nativeBarcodeDetector = new BarcodeDetector();
+              }
+            }
+            window.__nativeBarcodeDetector.detect(video).then(barcodes => {
+              if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                onScanSuccess(barcodes[0].rawValue);
+              }
+            }).catch(() => {});
+          }
+
           const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
           if (typeof jsQR !== "undefined") {
             // Alternate inversion attempts between frames to keep CPU usage low

@@ -88,11 +88,13 @@ function initRegisterForm() {
             _website: document.getElementById("_website")?.value || "",
         };
         const confirmPassword = document.getElementById("confirm-password").value.trim();
+        const studentId = document.getElementById("studentId")?.value.trim();
         const dob = document.getElementById("dob")?.value;
         const school = document.getElementById("school")?.value;
         const className = document.getElementById("class")?.value.trim();
         const major = document.getElementById("major")?.value.trim();
         const phoneNo = document.getElementById("phoneNo")?.value.trim();
+        if (studentId) data.studentId = studentId;
         if (dob) data.dob = dob;
         if (school) data.school = school;
         if (className) data.class = className;

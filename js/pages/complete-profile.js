@@ -62,6 +62,7 @@ function initCompleteProfileForm() {
 
         const data = {
             username: document.getElementById("username").value.trim(),
+            studentId: document.getElementById("studentId")?.value.trim() || '',
             dob: document.getElementById("dob").value,
             school: document.getElementById("school").value,
             class: document.getElementById("class").value.trim(),
@@ -69,8 +70,8 @@ function initCompleteProfileForm() {
             phoneNo: document.getElementById("phoneNo").value.trim(),
         };
 
-        if (!data.username || !data.dob || !data.school || !data.class || !data.major || !data.phoneNo) {
-            setStatus("Please fill in all fields.", true);
+        if (!data.username || !data.studentId || !data.dob || !data.school || !data.class || !data.major || !data.phoneNo) {
+            setStatus("Please fill in all required fields.", true);
             return;
         }
 

@@ -12,8 +12,8 @@ export function markAttendance(eventId, userId, status) {
   return put(`/attendance/events/${eventId}/attendance/${userId}`, { status });
 }
 
-export function scanAttendance(eventId, ticketCode) {
-  return post(`/attendance/events/${eventId}/attendance/scan`, { ticketCode });
+export function scanAttendance(eventId, code) {
+  return post(`/attendance/events/${eventId}/attendance/scan`, { code, ticketCode: code });
 }
 
 export function initAttendance(eventId) {
