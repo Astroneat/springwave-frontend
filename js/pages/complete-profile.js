@@ -70,7 +70,7 @@ function initCompleteProfileForm() {
             phoneNo: document.getElementById("phoneNo").value.trim(),
         };
 
-        if (!data.username || !data.studentId || !data.dob || !data.school || !data.class || !data.major || !data.phoneNo) {
+        if (!data.username || !data.dob || !data.school || !data.class || !data.major || !data.phoneNo) {
             setStatus("Please fill in all required fields.", true);
             return;
         }

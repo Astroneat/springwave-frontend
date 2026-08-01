@@ -17,10 +17,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const user = getUser();
 
-    // Check if user is verified or exempt (admin/host)
-    if (!isStudentVerified(user) && user.role !== 'admin' && user.role !== 'host') {
-        alert("You need to verify your student status before becoming a host. Please complete the verification process.");
-        window.location.href = "/student-verify.html";
+    // Check if user has verified email (Student verification is optional for Hosts)
+    if (user && !user.emailVerified && user.role !== 'admin') {
+        alert("Please verify your email address before registering as an event host.");
+        window.location.href = "/index.html";
         return;
     }
     const params = new URLSearchParams(window.location.search);
