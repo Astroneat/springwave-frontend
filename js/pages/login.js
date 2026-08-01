@@ -200,17 +200,15 @@ function initGoogleLogin() {
                 window.location.href = "/complete-profile.html";
             } else if (data.user && !data.user.isStudentVerified) {
                 // Check if this is a school email that should be auto-verified
-                const { isSchoolEmail } = await import("../lib/utils.js");
-                const { SCHOOL_DOMAINS } = await import("../config.js");
-
-                if (data.user.email && isSchoolEmail(data.user.email)) {
-                    // Auto-verified school email
-                    alert("Your school email has been verified automatically! You can now participate in events.");
-                    window.location.href = "/index.html";
-                } else {
-                    // Not auto-verified, redirect to home with verification button
-                    window.location.href = "/index.html";
-                }
+                try {
+                    const { checkSchoolEmail } = await import("../api/universities.js");
+                    const schoolResult = await checkSchoolEmail(data.user.email);
+                    if (schoolResult.isSchool) {
+                        // Mark session storage flag for one-time home page notice
+                        sessionStorage.setItem("show_auto_verified_notice", "true");
+                    }
+                } catch (e) {}
+                window.location.href = "/index.html";
             } else {
                 window.location.href = "/index.html";
             }

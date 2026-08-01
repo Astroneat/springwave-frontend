@@ -308,16 +308,19 @@ export function initDateValidation() {
     return { heldDate };
 }
 
+import { getUniversities } from "../api/universities.js";
+
 async function loadSchoolList() {
     const datalist = document.getElementById("schoolList");
     if (!datalist) return;
     try {
-        const resp = await fetch("/schools.json");
-        const data = await resp.json();
-        datalist.innerHTML = data.universities.map(u =>
-            `<option value="${u.name}">${u.shortName}</option>`
+        const universities = await getUniversities();
+        datalist.innerHTML = universities.map(u =>
+            `<option value="${u.name}">${u.shortName || u.name}</option>`
         ).join("");
-    } catch {}
+    } catch (e) {
+        console.error("Failed to load school list:", e);
+    }
 }
 
 function createDatePicker(config) {

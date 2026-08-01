@@ -4,7 +4,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
-import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership } from "../api/organizations.js";
+import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership, uploadOrgAvatar } from "../api/organizations.js";
 import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
 import { getHostReviews } from "../api/activities.js";
@@ -1808,9 +1808,59 @@ function loadSettings(org) {
   document.getElementById("settings-linkedin").value = org.socialLinks?.linkedin || "";
   document.getElementById("settings-instagram").value = org.socialLinks?.instagram || "";
   document.getElementById("settings-twitter").value = org.socialLinks?.twitter || "";
+  
+  const avatarPreview = document.getElementById("settings-avatar-preview");
+  if (avatarPreview) {
+    avatarPreview.src = org.avatar || "/assets/images/default-org-avatar.png";
+  }
 }
 
 function initSettingsForm() {
+  const avatarInput = document.getElementById("settings-avatar-input");
+  const changeAvatarBtn = document.getElementById("change-org-avatar-btn");
+  const avatarStatus = document.getElementById("org-avatar-status");
+  const avatarPreview = document.getElementById("settings-avatar-preview");
+
+  if (changeAvatarBtn && avatarInput) {
+    changeAvatarBtn.addEventListener("click", () => avatarInput.click());
+  }
+
+  if (avatarInput) {
+    avatarInput.addEventListener("change", async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !currentOrgId) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image must be smaller than 5MB");
+        return;
+      }
+
+      if (avatarStatus) {
+        avatarStatus.textContent = "Uploading...";
+        avatarStatus.className = "text-xs text-blue-600 font-medium";
+        avatarStatus.classList.remove("hidden");
+      }
+
+      try {
+        const res = await uploadOrgAvatar(currentOrgId, file);
+        if (res.avatar && avatarPreview) {
+          avatarPreview.src = res.avatar;
+        }
+        if (avatarStatus) {
+          avatarStatus.textContent = "Avatar updated successfully!";
+          avatarStatus.className = "text-xs text-green-600 font-medium";
+          setTimeout(() => avatarStatus.classList.add("hidden"), 3000);
+        }
+        await loadOrgs();
+      } catch (err) {
+        if (avatarStatus) {
+          avatarStatus.textContent = err.message || "Upload failed";
+          avatarStatus.className = "text-xs text-red-600 font-medium";
+        }
+      }
+    });
+  }
+
   document.getElementById("org-settings-form").addEventListener("submit", async e => {
     e.preventDefault();
     if (!currentOrgId) return;

@@ -51,32 +51,16 @@ export function timeAgo(dateString) {
     return `${diffInYears}y`;
 }
 
+import { checkSchoolEmail } from '../api/universities.js';
+
 /**
- * Check if an email belongs to a school domain
+ * Check if an email belongs to a school domain using API domain map
  * @param {string} email - The email address to check
- * @returns {boolean} - True if the email belongs to a school domain
+ * @returns {Promise<boolean>} - True if the email belongs to a school domain
  */
-export function isSchoolEmail(email) {
-    if (!email || typeof email !== 'string') return false;
-
-    // Extract domain from email
-    const domain = email.split('@')[1];
-    if (!domain) return false;
-
-    // School domains that qualify for auto-verification
-    const SCHOOL_DOMAINS = [
-        "vku.udn.vn",
-        "ued.udn.vn",
-        "dut.udn.vn",
-        "dne.udn.vn",
-        "dntu.udn.vn",
-        "daihocdanang.edu.vn"
-    ];
-
-    // Check if domain matches any school domain
-    return SCHOOL_DOMAINS.some(schoolDomain =>
-        domain === schoolDomain || domain.endsWith(`.${schoolDomain}`)
-    );
+export async function isSchoolEmail(email) {
+    const result = await checkSchoolEmail(email);
+    return result.isSchool;
 }
 
 /**
@@ -105,10 +89,11 @@ export function isUserVerifiedOrExempt(user) {
 
 /**
  * Show verification required message
- * @param {string} action - The action being attempted (e.g., "participate", "comment")
+ * @deprecated Use verificationGuard.js modal instead
+ * @param {string} action - The action being attempted
  */
 export function showVerificationRequired(action = "perform this action") {
-    alert(`You need to verify your student status to ${action}. Please complete the verification process.`);
+    console.warn('showVerificationRequired is deprecated. Use verificationGuard modal.');
 }
 
 /**

@@ -568,6 +568,11 @@
     "home": "Trang chủ",
     "heading": "Hoàn thiện hồ sơ của bạn",
     "desc": "Điền thông tin của bạn để hoàn tất thiết lập tài khoản",
+    "brand_headline": "Hành trình phát triển của bạn bắt đầu tại đây.",
+    "brand_subtext": "Hoàn thiện hồ sơ để mở khóa các sự kiện, cộng đồng sinh viên và gợi ý cá nhân hóa từ AI.",
+    "feature_recommendations": "Gợi ý hoạt động cá nhân hóa bằng AI",
+    "feature_community": "Mạng lưới sinh viên liên trường đại học",
+    "feature_badges": "Huy hiệu & chứng nhận sinh viên đã xác thực",
     "username": "Tên đăng nhập",
     "dob": "Ngày sinh",
     "school": "Trường học",
@@ -575,6 +580,18 @@
     "major": "Chuyên ngành",
     "phone": "Số điện thoại",
     "submit_btn": "HOÀN THIỆN HỒ SƠ"
+  },
+  "verification": {
+    "schoolEmailVerified": "Email trường của bạn đã được xác nhận tự động! Bạn hiện có thể tham gia vào các sự kiện.",
+    "modal_title": "Yêu cầu xác nhận sinh viên",
+    "modal_desc": "Bạn đang ở chế độ Chỉ đọc (Read-Only). Vui lòng xác nhận thông tin sinh viên để đăng ký tham gia sự kiện và gia nhập cộng đồng.",
+    "modal_verify_btn": "Xác nhận ngay",
+    "modal_cancel_btn": "Khám phá thêm"
+  },
+  "organizations": {
+    "avatar_title": "Ảnh đại diện tổ chức",
+    "avatar_desc": "Tải lên ảnh đại diện hoặc logo cho tổ chức của bạn (PNG, JPG, WebP tối đa 5MB).",
+    "upload_avatar": "Tải ảnh đại diện"
   },
   "chatbot": {
     "title": "Trợ lý SpringWave",

@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Trường Đại học Bách khoa - Đại học Đà Nẵng",
+    "shortName": "ĐH Bách khoa ĐN",
+    "domains": ["dut.udn.vn"],
+    "color": "#00429B"
+  },
+  {
+    "name": "Trường Đại học Kinh tế - Đại học Đà Nẵng",
+    "shortName": "ĐH Kinh tế ĐN",
+    "domains": ["due.udn.vn"],
+    "color": "#1755BA"
+  },
+  {
+    "name": "Trường Đại học Sư phạm - Đại học Đà Nẵng",
+    "shortName": "ĐH Sư phạm ĐN",
+    "domains": ["ued.udn.vn"],
+    "color": "#2A55B0"
+  },
+  {
+    "name": "Trường Đại học Ngoại ngữ - Đại học Đà Nẵng",
+    "shortName": "ĐH Ngoại ngữ ĐN",
+    "domains": ["ufl.udn.vn", "uflm.udn.vn"],
+    "color": "#3B6FD4"
+  },
+  {
+    "name": "Trường Đại học Sư phạm Kỹ thuật - Đại học Đà Nẵng",
+    "shortName": "ĐH SP Kỹ thuật ĐN",
+    "domains": ["ute.udn.vn"],
+    "color": "#1F5ABE"
+  },
+  {
+    "name": "Trường Đại học Công nghệ Thông tin và Truyền thông Việt - Hàn",
+    "shortName": "VKU",
+    "domains": ["vku.udn.vn"],
+    "color": "#00296B"
+  },
+  {
+    "name": "Trường Đại học Thể dục Thể thao - Đại học Đà Nẵng",
+    "shortName": "ĐH TDTT ĐN",
+    "domains": ["dntu.udn.vn"],
+    "color": "#2B4C7E"
+  },
+  {
+    "name": "Trường Đại học Duy Tân",
+    "shortName": "ĐH Duy Tân",
+    "domains": ["duytan.edu.vn", "dtu.edu.vn"],
+    "color": "#A61C1C"
+  },
+  {
+    "name": "Trường Đại học Đông Á",
+    "shortName": "ĐH Đông Á",
+    "domains": ["donga.edu.vn", "dntu.edu.vn"],
+    "color": "#D97706"
+  },
+  {
+    "name": "Trường Đại học Kiến trúc Đà Nẵng",
+    "shortName": "ĐH Kiến trúc ĐN",
+    "domains": ["dau.edu.vn"],
+    "color": "#059669"
+  },
+  {
+    "name": "Trường Đại học FPT Đà Nẵng",
+    "shortName": "FPT Đà Nẵng",
+    "domains": ["fpt.edu.vn", "fe.edu.vn"],
+    "color": "#F97316"
+  },
+  {
+    "name": "Trường Cao đẳng Công nghệ - Đại học Đà Nẵng",
+    "shortName": "CĐ Công nghệ ĐN",
+    "domains": ["dne.udn.vn"],
+    "color": "#475569"
+  },
+  {
+    "name": "Trường Cao đẳng Kỹ thuật - Đại học Đà Nẵng",
+    "shortName": "CĐ Kỹ thuật ĐN",
+    "domains": [],
+    "color": "#475569"
+  },
+  {
+    "name": "Phân hiệu Đại học Huế tại Đà Nẵng",
+    "shortName": "ĐH Huế tại ĐN",
+    "domains": [],
+    "color": "#7C3AED"
+  },
+  {
+    "name": "Đại học Đà Nẵng (Cơ sở đào tạo khác)",
+    "shortName": "ĐH Đà Nẵng",
+    "domains": ["daihocdanang.edu.vn", "udn.vn"],
+    "color": "#1755BA"
+  },
+  {
+    "name": "Trường Y Dược - Đại học Đà Nẵng",
+    "shortName": "Y Dược ĐN",
+    "domains": ["smp.udn.vn"],
+    "color": "#DC2626"
+  }
+]

@@ -1,6 +1,8 @@
 import "../../src/style.css";
 import { loadNavbar } from "../components/navbar.js";
 import { fetchContent } from "../lib/utils.js";
+import { showNoticeBox } from "../components/noticeBox.js";
+import { getUser, isAuthenticated } from "../lib/session.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const nav = await loadNavbar({ activeSection: "home" });
@@ -12,7 +14,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSmoothScroll();
   initWordRotation();
   initHeroMockupParallax();
+  checkAutoVerificationNotice();
 });
+
+function checkAutoVerificationNotice() {
+  const showFlag = sessionStorage.getItem("show_auto_verified_notice");
+  const user = getUser();
+
+  if (showFlag === "true" || (isAuthenticated() && user && (user.isStudentVerified || user.schoolLocked))) {
+    sessionStorage.removeItem("show_auto_verified_notice");
+    showNoticeBox({
+      id: 'auto_school_verification',
+      message: 'verification.schoolEmailVerified',
+      type: 'success',
+      once: true
+    });
+  }
+}
 
 async function loadFooter() {
   const html = await fetchContent("./components/footer.html");

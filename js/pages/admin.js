@@ -780,16 +780,19 @@ function initManualAdd() {
     });
 }
 
+import { getUniversities } from "../api/universities.js";
+
 async function loadEditSchoolList() {
     const datalist = document.getElementById("editSchoolList");
     if (!datalist) return;
     try {
-        const resp = await fetch("/schools.json");
-        const data = await resp.json();
-        datalist.innerHTML = data.universities.map(u =>
-            `<option value="${u.name}">${u.shortName}</option>`
+        const universities = await getUniversities();
+        datalist.innerHTML = universities.map(u =>
+            `<option value="${u.name}">${u.shortName || u.name}</option>`
         ).join("");
-    } catch {}
+    } catch (e) {
+        console.error("Failed to load edit school list:", e);
+    }
 }
 
 // ─── Expired Events Toggle ───

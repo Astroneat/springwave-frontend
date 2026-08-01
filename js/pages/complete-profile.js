@@ -3,6 +3,7 @@ import { getCurrentUser, completeProfile } from "../api/auth.js";
 import { isAuthenticated, getToken, createSession, setUser, getUser } from "../lib/session.js";
 import { initI18n } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
+import { populateUniversitySelect } from "../api/universities.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {
@@ -17,17 +18,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function loadSchools() {
     try {
-        const resp = await fetch("/schools.json");
-        const data = await resp.json();
-        const select = document.getElementById("school");
-        if (!select) return;
-        data.universities.forEach(u => {
-            const opt = document.createElement("option");
-            opt.value = u.name;
-            opt.textContent = `${u.name} (${u.shortName})`;
-            select.appendChild(opt);
-        });
-    } catch {}
+        await populateUniversitySelect("school");
+    } catch (e) {
+        console.error("Failed to populate university select:", e);
+    }
 }
 
 // If the school was set & locked from a verified email domain, pre-select it and

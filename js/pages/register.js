@@ -49,19 +49,14 @@ function initTurnstile() {
     });
 }
 
+import { populateUniversitySelect } from "../api/universities.js";
+
 async function loadSchools() {
     try {
-        const resp = await fetch("/schools.json");
-        const data = await resp.json();
-        const select = document.getElementById("school");
-        if (!select) return;
-        data.universities.forEach(u => {
-            const opt = document.createElement("option");
-            opt.value = u.name;
-            opt.textContent = `${u.name} (${u.shortName})`;
-            select.appendChild(opt);
-        });
-    } catch {}
+        await populateUniversitySelect("school");
+    } catch (e) {
+        console.error("Failed to populate university select:", e);
+    }
 }
 
 function initRegisterForm() {

@@ -1645,18 +1645,12 @@ function initUniDialog() {
   });
 }
 
+import { populateUniversitySelect } from "../api/universities.js";
+
 async function loadSchoolsIntoSelect(selectEl, editData) {
   try {
-    const resp = await fetch("/schools.json");
-    const data = await resp.json();
-    selectEl.innerHTML = '<option value="">-- Select university --</option>';
-    data.universities.forEach(u => {
-      const opt = document.createElement("option");
-      opt.value = u.name;
-      opt.textContent = `${u.name} (${u.shortName})`;
-      selectEl.appendChild(opt);
-    });
-  } catch {
+    await populateUniversitySelect(selectEl, editData?.name);
+  } catch (e) {
     selectEl.innerHTML = '<option value="">-- Select university --</option>';
   }
 }

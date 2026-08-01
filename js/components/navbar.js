@@ -14,6 +14,11 @@ export async function loadNavbar({ activeSection } = {}) {
         } catch (err) {
             console.warn("Sync session on navbar load failed:", err);
         }
+
+        try {
+            const { initVerificationGuard } = await import("./verificationGuard.js");
+            initVerificationGuard();
+        } catch (e) {}
     }
 
     const html = await fetchContent("/components/navbar.html");

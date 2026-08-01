@@ -568,6 +568,11 @@
     "home": "Home",
     "heading": "Complete Your Profile",
     "desc": "Fill in your details to complete your account setup",
+    "brand_headline": "Your growth journey begins here.",
+    "brand_subtext": "Complete your profile to unlock personalized events, campus communities, and AI-tailored recommendations.",
+    "feature_recommendations": "AI-powered activity recommendations",
+    "feature_community": "Cross-university student network",
+    "feature_badges": "Verified student status & achievements",
     "username": "Username",
     "dob": "Date of Birth",
     "school": "School",
@@ -575,6 +580,18 @@
     "major": "Major",
     "phone": "Phone Number",
     "submit_btn": "COMPLETE PROFILE"
+  },
+  "verification": {
+    "schoolEmailVerified": "Your school email has been verified automatically! You can now participate in events.",
+    "modal_title": "Student Verification Required",
+    "modal_desc": "You are currently in Read-Only mode. Please verify your student status to participate in events and join communities.",
+    "modal_verify_btn": "Verify Now",
+    "modal_cancel_btn": "Explore More"
+  },
+  "organizations": {
+    "avatar_title": "Organization Logo",
+    "avatar_desc": "Upload a logo or avatar for your organization (PNG, JPG, WebP up to 5MB).",
+    "upload_avatar": "Upload Avatar"
   },
   "chatbot": {
     "title": "SpringWave Assistant",

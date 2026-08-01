@@ -20,21 +20,27 @@ export async function initI18n() {
   return currentLang;
 }
 
-export function t(key, params = {}) {
+export function t(key, params = {}, fallback = '') {
+  let actualParams = {};
+  let defaultText = typeof params === 'string' ? params : (fallback || key);
+  if (typeof params === 'object' && params !== null) {
+    actualParams = params;
+  }
+
   const keys = key.split(".");
   let val = translations[currentLang];
   for (const k of keys) {
     val = val?.[k];
   }
-  if (val === undefined) {
+  if (val === undefined && translations.en) {
     val = translations.en;
     for (const k of keys) {
       val = val?.[k];
     }
   }
-  if (val === undefined) return key;
+  if (val === undefined) return defaultText;
   if (typeof val === "string") {
-    return val.replace(/\{\{(\w+)\}\}/g, (_, p) => params[p] ?? `{{${p}}}`);
+    return val.replace(/\{\{(\w+)\}\}/g, (_, p) => actualParams[p] ?? `{{${p}}}`);
   }
   return val;
 }

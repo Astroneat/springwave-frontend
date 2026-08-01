@@ -12478,3 +12478,16 @@ a.popup-host-row:hover .popup-host-avatar {
         display: none;
     }
 }
+
+/* Verification Read-Only Mode Blur Target */
+.verification-blur-target {
+    filter: blur(2px) opacity(0.85);
+    cursor: pointer !important;
+    position: relative;
+    transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.verification-blur-target:hover {
+    filter: blur(1px) opacity(0.95);
+}
+

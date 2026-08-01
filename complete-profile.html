@@ -8,84 +8,116 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
 
-<body class="min-h-screen overflow-y-auto bg-cover flex justify-center items-center p-10 max-sm:p-5"
-    style="background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url('assets/images/danang-17042710410701744932512.jpeg'); backdrop-filter: blur(3px);">
+<body>
+    <div class="auth-shell">
 
-    <div
-        class="w-[70%] max-w-[600px] bg-white/90 backdrop-blur-sm rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.12)] p-9 max-sm:w-full max-sm:p-6 max-sm:rounded-2xl my-5">
+        <!-- Brand panel (visual side, lg+ only) -->
+        <aside class="auth-brand-panel">
+            <div class="auth-brand-glow" aria-hidden="true"></div>
+            <div class="auth-brand-content">
+                <a href="index.html" class="auth-brand-logo">SpringWave</a>
 
-        <a href="index.html" class="inline-block mb-6 transition duration-200 hover:-translate-y-1">
-            <div
-                class="inline-flex items-center gap-2 text-[17px] font-semibold text-[#23499b] transition duration-200 hover:text-[#183a82]">
-                <i class="bi bi-house-door text-[24px]"></i>
-                <span data-i18n="complete_profile.home">Home</span>
-            </div>
-        </a>
+                <h1 class="auth-brand-headline" data-i18n="complete_profile.brand_headline">Your growth journey begins here.</h1>
+                <p class="auth-brand-subtext" data-i18n="complete_profile.brand_subtext">
+                    Complete your profile to unlock personalized events, campus communities, and AI-tailored recommendations.
+                </p>
 
-        <h1 class="text-[42px] max-sm:text-[30px] font-bold text-[#23499b] text-center mb-2" data-i18n="complete_profile.heading">Complete Your Profile</h1>
-        <p class="text-center text-gray-500 mb-8 text-sm" data-i18n="complete_profile.desc">Fill in your details to complete your account setup</p>
-
-        <form id="complete-profile-form">
-            <div class="mb-4">
-                <label class="block mb-2.5 font-semibold text-[#222] text-base">
-                    <span data-i18n="complete_profile.username">Username</span> <span class="text-red-500">*</span>
-                </label>
-                <input id="username" type="text" placeholder="Choose a username" required
-                    class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
-                        <span data-i18n="complete_profile.dob">Date of Birth</span> <span class="text-red-500">*</span>
-                    </label>
-                    <input id="dob" type="date" required
-                        class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
-                        <span data-i18n="complete_profile.school">School</span> <span class="text-red-500">*</span>
-                    </label>
-                    <select id="school" required
-                        class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
-                        <option value="">-- Select your school --</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
-                        <span data-i18n="complete_profile.class">Class</span> <span class="text-red-500">*</span>
-                    </label>
-                    <input id="class" type="text" placeholder="e.g. 12A" required
-                        class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
-                        <span data-i18n="complete_profile.major">Major</span> <span class="text-red-500">*</span>
-                    </label>
-                    <input id="major" type="text" placeholder="e.g. Computer Science" required
-                        class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2.5 font-semibold text-[#222] text-sm">
-                        <span data-i18n="complete_profile.phone">Phone Number</span> <span class="text-red-500">*</span>
-                    </label>
-                    <input id="phoneNo" type="tel" placeholder="e.g. 0123456789" required
-                        class="w-full p-[11px_14px] border-2 border-[#23499b] rounded-xl outline-none text-sm bg-white transition duration-200 focus:border-[#183a82] focus:ring-4 focus:ring-[#23499b]/20">
+                <div class="auth-feature-list">
+                    <div class="auth-feature-item">
+                        <span data-i18n="complete_profile.feature_recommendations">AI-powered activity recommendations</span>
+                    </div>
+                    <div class="auth-feature-item">
+                        <span data-i18n="complete_profile.feature_community">Cross-university student network</span>
+                    </div>
+                    <div class="auth-feature-item">
+                        <span data-i18n="complete_profile.feature_badges">Verified student status & achievements</span>
+                    </div>
                 </div>
             </div>
+        </aside>
 
-            <div id="status-msg" class="text-sm my-2"></div>
+        <!-- Form panel -->
+        <main class="auth-form-panel">
+            <div class="auth-form-wrap">
+                <a href="index.html" class="auth-mobile-brand">SpringWave</a>
 
-            <button type="submit" data-i18n="complete_profile.submit_btn"
-                class="w-full p-4 bg-[#ffde42] border-2 border-[#23499b] rounded-2xl text-xl font-bold cursor-pointer mt-2.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(255,222,66,0.4)]">
-                COMPLETE PROFILE
-            </button>
-        </form>
+                <a href="index.html" class="auth-back-link">
+                    <span data-i18n="complete_profile.home">Back to home</span>
+                </a>
+
+                <h1 class="auth-title" data-i18n="complete_profile.heading">Complete Your Profile</h1>
+                <p class="auth-subtitle" data-i18n="complete_profile.subtitle">Fill in your details to complete your account setup.</p>
+
+                <form id="complete-profile-form">
+                    <div class="auth-field">
+                        <label class="auth-label" for="username">
+                            <span data-i18n="complete_profile.username">Username</span> <span class="auth-required">*</span>
+                        </label>
+                        <div class="auth-input-group">
+                            <input id="username" type="text" placeholder="Albert_Epstein" required class="auth-input">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+                        <div class="auth-field">
+                            <label class="auth-label" for="dob">
+                                <span data-i18n="complete_profile.dob">Date of Birth</span> <span class="auth-required">*</span>
+                            </label>
+                            <div class="auth-input-group">
+                                <input id="dob" type="date" required class="auth-input">
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label class="auth-label" for="school">
+                                <span data-i18n="complete_profile.school">School</span> <span class="auth-required">*</span>
+                            </label>
+                            <div class="auth-input-group">
+                                <select id="school" required class="auth-input">
+                                    <option value="">-- Select your school --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label class="auth-label" for="class">
+                                <span data-i18n="complete_profile.class">Class</span> <span class="auth-required">*</span>
+                            </label>
+                            <div class="auth-input-group">
+                                <input id="class" type="text" placeholder="e.g. 23IT1" required class="auth-input">
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label class="auth-label" for="major">
+                                <span data-i18n="complete_profile.major">Major</span> <span class="auth-required">*</span>
+                            </label>
+                            <div class="auth-input-group">
+                                <input id="major" type="text" placeholder="e.g. Computer Science" required class="auth-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label" for="phoneNo">
+                            <span data-i18n="complete_profile.phone">Phone Number</span> <span class="auth-required">*</span>
+                        </label>
+                        <div class="auth-input-group">
+                            <input id="phoneNo" type="tel" placeholder="e.g. 0123456789" required class="auth-input">
+                        </div>
+                    </div>
+
+                    <div id="status-msg" class="auth-alert" role="status" aria-live="polite"></div>
+
+                    <button type="submit" class="auth-submit-btn" id="complete-btn" data-i18n="complete_profile.submit_btn">
+                        COMPLETE PROFILE
+                    </button>
+                </form>
+            </div>
+        </main>
     </div>
 
     <script type="module" src="js/pages/complete-profile.js"></script>

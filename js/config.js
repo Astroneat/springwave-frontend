@@ -8,13 +8,3 @@ export const GOOGLE_CLIENT_ID =
 const envTurnstileKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 export const TURNSTILE_SITE_KEY =
   envTurnstileKey !== undefined ? envTurnstileKey : "0x4AAAAAADnOtMcYHV27A0IZ";
-
-// School email domains that qualify for auto-verification
-export const SCHOOL_DOMAINS = [
-  "vku.udn.vn",
-  "ued.udn.vn",
-  "dut.udn.vn",
-  "dne.udn.vn",
-  "dntu.udn.vn",
-  "daihocdanang.edu.vn"
-];
