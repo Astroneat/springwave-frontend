@@ -1,8 +1,15 @@
+const contentCache = new Map();
+
 export async function fetchContent(url) {
+    if (contentCache.has(url)) {
+        return contentCache.get(url);
+    }
     try {
         const resp = await fetch(url);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        return resp.text();
+        const text = await resp.text();
+        contentCache.set(url, text);
+        return text;
     } catch (e) {
         console.error("fetchContent error:", url, e);
         return "";

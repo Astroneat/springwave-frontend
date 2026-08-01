@@ -2,8 +2,20 @@ import { isAuthenticated, getUser, setUser, logout, isStudentVerified } from "..
 import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificationPolling, stopNotificationPolling } from "../lib/notifications.js";
 import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
+import { initPageTransition } from "./pageLoader.js";
 
 export async function loadNavbar({ activeSection } = {}) {
+    try {
+        initPageTransition();
+    } catch (e) {}
+
+    const navbarContainer = document.getElementById("navbar-container");
+    const cachedNav = sessionStorage.getItem("cached_navbar_html");
+    if (navbarContainer && cachedNav && !navbarContainer.innerHTML.trim()) {
+        navbarContainer.innerHTML = cachedNav;
+        setActiveLink(activeSection);
+    }
+
     if (isAuthenticated()) {
         try {
             const { getCurrentUser } = await import("../api/auth.js");
@@ -22,7 +34,10 @@ export async function loadNavbar({ activeSection } = {}) {
     }
 
     const html = await fetchContent("/components/navbar.html");
-    document.getElementById("navbar-container").innerHTML = html;
+    if (html && navbarContainer) {
+        navbarContainer.innerHTML = html;
+        sessionStorage.setItem("cached_navbar_html", html);
+    }
 
     setActiveLink(activeSection);
     initMobileMenu();

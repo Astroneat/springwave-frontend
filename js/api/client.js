@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../config.js";
 import { getToken, getSigningKey, setToken, setSigningKey, clearSession } from "../lib/session.js";
+import { startProgress, completeProgress } from "../components/pageLoader.js";
 
 let requestQueue = 0;
 const MAX_CONCURRENT = 5;
@@ -120,6 +121,7 @@ async function request(endpoint, options = {}) {
         headers["X-Signature"] = signature;
     }
 
+    startProgress();
     try {
         let response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options, headers, credentials: "include",
@@ -185,6 +187,7 @@ async function request(endpoint, options = {}) {
         return data;
     } finally {
         requestQueue--;
+        completeProgress();
     }
 }
 

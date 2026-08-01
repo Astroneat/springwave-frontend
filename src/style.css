@@ -87,6 +87,21 @@
     --spacing-stack-md: 1rem;
 }
 
+@keyframes pageFadeIn {
+  from {
+    opacity: 0.9;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body {
+  animation: pageFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 html, body, button, input, select, textarea {
     font-family: "Aleo", serif !important;
 }
