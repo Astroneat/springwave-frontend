@@ -12203,7 +12203,7 @@ a.popup-host-row:hover .popup-host-avatar {
     background-color: var(--brand-dark);
     background-image:
         linear-gradient(160deg, rgba(15, 26, 58, 0.88) 0%, rgba(23, 85, 186, 0.82) 55%, rgba(35, 73, 155, 0.72) 100%),
-        url('/assets/images/danang-17042710410701744932512.jpeg');
+        url('/assets/images/banner-landscape-pixelart.png');
     background-size: cover;
     background-position: center;
 }
