@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Check if user already has a school email and shouldn't be here
     const user = getUser();
-    if (user && user.email && isSchoolEmail(user.email)) {
+    if (user && user.email && await isSchoolEmail(user.email)) {
         const banner = document.getElementById("status-banner");
         if (banner) {
             banner.classList.remove("hidden");

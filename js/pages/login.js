@@ -95,11 +95,10 @@ function initLoginForm() {
             } else if (data.user && !data.user.isStudentVerified) {
                 // User is logged in but not student verified
                 setStatus("Logged in successfully!", false);
-                setTimeout(() => {
+                setTimeout(async () => {
                     // Check if user has a school email that should be auto-verified
-                    if (data.user.email && isSchoolEmail(data.user.email)) {
-                        // This should have been auto-verified, show message
-                        alert("Your school email has been detected. You should be auto-verified. If you're seeing this, please contact support.");
+                    if (data.user.email && await isSchoolEmail(data.user.email)) {
+                        sessionStorage.setItem("show_auto_verified_notice", "true");
                     }
 
                     // Redirect to home, user will see verification button in navbar

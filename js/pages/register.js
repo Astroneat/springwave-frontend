@@ -121,7 +121,7 @@ function initRegisterForm() {
 
             if (result.emailSent) {
                 showVerificationMessage(data.email);
-            } else if (result.user && !result.user.isStudentVerified && isSchoolEmail(data.email)) {
+            } else if (result.user && !result.user.isStudentVerified && await isSchoolEmail(data.email)) {
                 // School email user who wasn't auto-verified
                 setStatus("Account created! Please verify your email.", false);
                 setTimeout(() => { window.location.href = "/login.html"; }, 1500);
