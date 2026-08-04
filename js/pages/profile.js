@@ -8,6 +8,7 @@ import {
     unparticipateActivity, checkParticipation
 } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
+import { getMyRoadmaps } from "../api/roadmap.js";
 import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
@@ -38,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadFooter();
     await initChatbot();
     await loadUserProfile();
+    await renderRoadmapSection();
     await renderParticipatedEventsPanel();
     await renderAIProfile();
     initEditProfile();
@@ -157,7 +159,59 @@ function updateEditButton(user) {
     }
 }
 
+async function renderRoadmapSection() {
+    const list = document.getElementById("roadmap-list");
+    if (!list) return;
 
+    // Render Skeleton Loader while fetching
+    list.innerHTML = `
+        <div class="space-y-2 animate-pulse">
+            <div class="h-14 bg-gray-100 rounded-xl"></div>
+            <div class="h-14 bg-gray-100 rounded-xl"></div>
+        </div>
+    `;
+
+    try {
+        const res = await getMyRoadmaps();
+        const roadmaps = res.roadmaps || [];
+        if (roadmaps.length === 0) {
+            list.innerHTML = `
+                <div class="text-center py-6 text-gray-400">
+                    <span class="material-symbols-outlined text-3xl mb-2">map</span>
+                    <p class="text-sm" data-i18n="profile.no_roadmaps">${t("profile.no_roadmaps")}</p>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = roadmaps.map(r => {
+            const statusClass = r.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+            const statusText = r.status === 'confirmed' ? t('roadmap.confirmed') : t('roadmap.draft');
+            const startDate = r.input?.timeframe?.startDate ? formatDate(r.input.timeframe.startDate) : '';
+            const endDate = r.input?.timeframe?.endDate ? formatDate(r.input.timeframe.endDate) : '';
+            const dates = startDate && endDate ? `${startDate} - ${endDate}` : formatDate(r.createdAt);
+            
+            return `
+                <a href="/roadmap.html?id=${r._id}" class="block bg-gray-50 hover:bg-gray-100 p-3.5 rounded-xl transition-colors border border-gray-100">
+                    <div class="flex justify-between items-start mb-1.5">
+                        <h3 class="font-bold text-sm text-gray-800 line-clamp-1 flex-1 mr-2">${r.input?.goal || 'Roadmap'}</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shrink-0 ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 flex items-center gap-1.5">
+                        <i class="fa-regular fa-calendar"></i> <span>${dates}</span>
+                    </div>
+                </a>
+            `;
+        }).join('');
+    } catch (err) {
+        console.warn("Failed to fetch roadmaps:", err);
+        list.innerHTML = `
+            <div class="text-center py-4 text-gray-400 text-sm">
+                <span>${t("profile.no_roadmaps")}</span>
+            </div>
+        `;
+    }
+}
 
 /* =========================
    POPUP

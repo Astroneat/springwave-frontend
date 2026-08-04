@@ -42,6 +42,7 @@ export default defineConfig({
         login: resolve(__dirname, "login.html"),
         register: resolve(__dirname, "register.html"),
         explore: resolve(__dirname, "explore.html"),
+        roadmap: resolve(__dirname, "roadmap.html"),
         profile: resolve(__dirname, "profile.html"),
         hostActivity: resolve(__dirname, "hostActivity.html"),
         completeProfile: resolve(__dirname, "complete-profile.html"),
