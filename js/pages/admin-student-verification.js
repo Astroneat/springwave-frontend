@@ -535,78 +535,101 @@ async function openDetail(id) {
     const v = data.verification;
     const user = v.submittedBy || {};
     const cardSideHtml = (src, caption) => {
-      const inner = src
-        ? `<img src="${src}" alt="${caption}" class="w-full rounded-xl border border-[#e2e8f0] shadow-sm object-cover max-h-48" onerror="this.parentElement.innerHTML='<div class=\\'p-8 text-center text-[#94a3b8]\\'><i class=\\'fa-solid fa-image-slash text-2xl mb-2\\'></i><p class=\\'text-sm\\'>Image unavailable</p></div>'"/>`
-        : '<div class="p-8 text-center text-[#94a3b8]"><i class="fa-solid fa-image-slash text-2xl mb-2"></i><p class="text-sm">No image</p></div>';
-      return `<div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] overflow-hidden">${inner}</div>`;
+      if (!src) {
+        return `
+          <div class="p-6 text-center text-[#94a3b8] bg-[#f8fafc] rounded-xl border border-[#e2e8f0]">
+            <i class="fa-solid fa-image-slash text-xl mb-1 block"></i>
+            <p class="text-xs font-semibold">No ${caption} Image</p>
+          </div>
+        `;
+      }
+      return `
+        <div class="space-y-1">
+          <p class="text-[10px] font-bold text-[#64748b] uppercase tracking-wider flex items-center justify-between">
+            <span>${caption}</span>
+            <span class="text-[10px] text-[#3b82f6] hover:underline cursor-pointer" onclick="window.open('${src}', '_blank')"><i class="fa-solid fa-expand mr-1"></i>View full</span>
+          </p>
+          <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] overflow-hidden group cursor-pointer" onclick="window.open('${src}', '_blank')">
+            <img src="${src}" alt="${caption}" class="w-full rounded-xl object-cover max-h-48 group-hover:scale-105 transition-transform duration-200" onerror="this.parentElement.innerHTML='<div class=\\'p-6 text-center text-[#94a3b8]\\'><i class=\\'fa-solid fa-image-slash text-xl mb-1 block\\'></i><p class=\\'text-xs\\'>Image unavailable</p></div>'"/>
+          </div>
+        </div>
+      `;
     };
+
     const cardImg = (v.studentCardFront || v.studentCardBack)
-      ? `<div class="grid grid-cols-2 gap-3">${cardSideHtml(v.studentCardFront, 'Front')}${cardSideHtml(v.studentCardBack, 'Back')}</div>`
+      ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${cardSideHtml(v.studentCardFront, 'Front Side')}${cardSideHtml(v.studentCardBack, 'Back Side')}</div>`
       : cardSideHtml(v.studentCardImage, 'Student Card');
 
-    // Build info rows
+    // Build info rows with col-span metadata
     const infoFields = [
-      { label: 'Full Name', value: user.fullname || 'Unknown', icon: 'fa-user' },
-      { label: 'Email', value: user.email || '—', icon: 'fa-envelope' },
-      { label: 'School', value: user.school || '—', icon: 'fa-building-columns' },
-      { label: 'Class / Major', value: `${user.class || '—'} ${user.major ? '/ ' + user.major : ''}`, icon: 'fa-graduation-cap' },
-      { label: 'Submitted', value: formatDate(v.createdAt), icon: 'fa-calendar' },
+      { label: 'Full Name', value: user.fullname || 'Unknown', icon: 'fa-user', fullWidth: false },
+      { label: 'Email', value: user.email || '—', icon: 'fa-envelope', fullWidth: false },
+      { label: 'School', value: user.school || '—', icon: 'fa-building-columns', fullWidth: true },
+      { label: 'Class / Major', value: `${user.class || '—'} ${user.major ? '/ ' + user.major : ''}`, icon: 'fa-graduation-cap', fullWidth: false },
+      { label: 'Submitted Date', value: formatDate(v.createdAt), icon: 'fa-calendar', fullWidth: false },
     ];
     if (v.reviewedBy?.fullname) {
-      infoFields.push({ label: 'Reviewed By', value: v.reviewedBy.fullname, icon: 'fa-user-check' });
+      infoFields.push({ label: 'Reviewed By', value: v.reviewedBy.fullname, icon: 'fa-user-check', fullWidth: true });
     }
 
     body.innerHTML = `
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <!-- Info column -->
-        <div class="lg:col-span-3 space-y-2">
-          <div class="flex items-center gap-3 mb-4 pb-3 border-b border-[#e2e8f0]">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+        <div class="lg:col-span-3 space-y-4">
+          <div class="flex items-center gap-3.5 pb-4 border-b border-[#e2e8f0]">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1755ba] to-blue-400 flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0">
               ${(user.fullname || '?').charAt(0).toUpperCase()}
             </div>
-            <div>
-              <h3 class="font-bold text-lg text-[#191b22]">${v.studentId}</h3>
-              <div class="flex items-center gap-2 mt-0.5">
+            <div class="min-w-0 flex-1">
+              <h3 class="font-bold text-xl text-[#191b22] truncate">${user.fullname || 'Student Verification'}</h3>
+              <div class="flex flex-wrap items-center gap-2 mt-1">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <i class="fa-solid fa-id-card mr-1"></i>${v.studentId || 'N/A'}
+                </span>
                 ${statusBadge(v.status)}
               </div>
             </div>
           </div>
+          
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             ${infoFields.map(f => `
-              <div class="bg-[#f8fafc] rounded-xl px-4 py-3 border border-[#e2e8f0]">
-                <p class="text-[11px] font-semibold text-[#64748b] uppercase tracking-wider mb-1">
-                  <i class="fa-regular ${f.icon} mr-1.5"></i>${f.label}
+              <div class="bg-[#f8fafc] rounded-xl px-4 py-3 border border-[#e2e8f0] ${f.fullWidth ? 'sm:col-span-2' : ''}">
+                <p class="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <i class="fa-regular ${f.icon} text-blue-500"></i>${f.label}
                 </p>
-                <p class="text-sm font-medium text-[#191b22]">${f.value}</p>
+                <p class="text-sm font-semibold text-[#191b22] break-words leading-relaxed">${f.value}</p>
               </div>
             `).join('')}
           </div>
+
           ${v.reviewNote ? `
-            <div class="bg-red-50 rounded-xl px-4 py-3 border border-red-200 mt-3">
-              <p class="text-[11px] font-semibold text-red-600 uppercase tracking-wider mb-1">
-                <i class="fa-solid fa-pen mr-1.5"></i>Review Note
+            <div class="bg-red-50/80 rounded-xl px-4 py-3 border border-red-200 mt-2">
+              <p class="text-[11px] font-bold text-red-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-pen"></i>Review Note
               </p>
-              <p class="text-sm text-red-700">${v.reviewNote}</p>
+              <p class="text-sm text-red-700 font-medium">${v.reviewNote}</p>
             </div>
           ` : ''}
         </div>
-        <!-- Card images -->
-        <div class="lg:col-span-2">
-          <p class="text-[11px] font-semibold text-[#64748b] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <i class="fa-regular fa-id-card"></i> Student Card
+
+        <!-- Card images column -->
+        <div class="lg:col-span-2 border-t lg:border-t-0 lg:border-l border-[#e2e8f0] pt-4 lg:pt-0 lg:pl-6">
+          <p class="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <i class="fa-regular fa-id-card text-blue-500"></i> Student Card Photos
           </p>
-          <div class="space-y-3">
+          <div class="space-y-4">
             ${cardImg}
           </div>
         </div>
       </div>
+
       ${v.status === 'pending' ? `
         <div class="flex gap-3 mt-6 pt-5 border-t border-[#e2e8f0] bg-gradient-to-r from-transparent via-blue-50/30 to-transparent -mx-6 -mb-6 px-6 pb-6">
-          <button class="btn btn-success flex-1 py-3 text-sm" id="detail-approve-btn" data-id="${v._id}" data-name="${user.fullname || ''}" data-sid="${v.studentId}">
-            <i class="fa-solid fa-check"></i> Approve Verification
+          <button class="btn btn-success flex-1 py-3 text-sm font-bold shadow-sm" id="detail-approve-btn" data-id="${v._id}" data-name="${user.fullname || ''}" data-sid="${v.studentId}">
+            <i class="fa-solid fa-check mr-1.5"></i> Approve Verification
           </button>
-          <button class="btn btn-danger flex-1 py-3 text-sm" id="detail-reject-btn" data-id="${v._id}" data-name="${user.fullname || ''}">
-            <i class="fa-solid fa-xmark"></i> Reject
+          <button class="btn btn-danger flex-1 py-3 text-sm font-bold shadow-sm" id="detail-reject-btn" data-id="${v._id}" data-name="${user.fullname || ''}">
+            <i class="fa-solid fa-xmark mr-1.5"></i> Reject
           </button>
         </div>
       ` : ''}

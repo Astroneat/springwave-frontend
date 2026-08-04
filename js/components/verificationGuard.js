@@ -13,6 +13,9 @@ export function initVerificationGuard() {
     const user = getUser();
     if (isUserVerifiedOrExempt(user)) return;
 
+    // Show sleek top-aligned Read-Only banner below navbar
+    showReadOnlyNoticeBanner();
+
     // Apply blur and click handlers to elements requiring verification
     applyVerificationBlur();
 
@@ -22,6 +25,64 @@ export function initVerificationGuard() {
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
+}
+
+/**
+ * Render a persistent, unified Read-Only Notice Banner for unverified users
+ */
+export function showReadOnlyNoticeBanner() {
+    if (sessionStorage.getItem('springwave_read_only_banner_dismissed')) return;
+    if (document.getElementById('read-only-banner')) return;
+
+    let container = document.getElementById('notice-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notice-container';
+        container.className = 'notice-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-2 relative z-30';
+        const main = document.querySelector('main') || document.body;
+        main.insertBefore(container, main.firstChild);
+    } else {
+        if (!container.classList.contains('pt-24') && !container.classList.contains('pt-28')) {
+            container.classList.add('pt-24', 'sm:pt-28', 'relative', 'z-30');
+        }
+    }
+
+    const titleText = t('verification.readonly_banner_title', 'Read-Only Mode Active');
+    const descText = t('verification.readonly_banner_desc', 'Verify your student status to unlock full access to events, AI roadmaps, and communities.');
+    const verifyBtnText = t('verification.modal_verify_btn', 'Verify Now');
+
+    const banner = document.createElement('div');
+    banner.id = 'read-only-banner';
+    banner.className = 'flex flex-col sm:flex-row items-center justify-between gap-3 p-4 mb-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 backdrop-blur-md shadow-sm transition-all duration-300';
+    
+    banner.innerHTML = `
+        <div class="flex items-center gap-3 text-left w-full sm:w-auto">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[24px]">shield_person</span>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-amber-900 dark:text-amber-200 leading-tight">${titleText}</h4>
+                <p class="text-xs text-amber-800/80 dark:text-amber-300/80 font-medium leading-relaxed mt-0.5">${descText}</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end shrink-0">
+            <a href="/student-verify.html" class="py-2 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition-all hover:-translate-y-0.5 whitespace-nowrap flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">verified</span>
+                <span>${verifyBtnText}</span>
+            </a>
+            <button type="button" id="dismiss-readonly-banner" class="p-1.5 rounded-lg text-amber-700/60 hover:text-amber-900 hover:bg-amber-500/10 transition-colors cursor-pointer" aria-label="Dismiss banner">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+    `;
+
+    banner.querySelector('#dismiss-readonly-banner').addEventListener('click', () => {
+        sessionStorage.setItem('springwave_read_only_banner_dismissed', 'true');
+        banner.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => banner.remove(), 300);
+    });
+
+    container.prepend(banner);
 }
 
 /**
