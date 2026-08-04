@@ -11,6 +11,7 @@
   },
   "user": {
     "profile": "Hồ sơ",
+    "roadmap": "Lộ trình",
     "control_events": "Quản lý sự kiện",
     "favourites": "Yêu thích",
     "logout": "Đăng xuất",

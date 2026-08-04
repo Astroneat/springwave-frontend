@@ -2,7 +2,8 @@ import '../../src/style.css';
 import { isAuthenticated, getUser } from '../lib/session.js';
 import { loadNavbar, initBasicScroll } from '../components/navbar.js';
 import { initChatbot } from '../components/chatbot.js';
-import { fetchContent, formatDate } from '../lib/utils.js';
+import { fetchContent, formatDate, isUserVerifiedOrExempt } from '../lib/utils.js';
+import { showVerificationModal } from '../components/verificationGuard.js';
 import { t } from '../lib/i18n.js';
 import { openEventPopup } from '../components/eventPopup.js';
 import { showNoticeBox } from '../components/noticeBox.js';
@@ -21,6 +22,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {
         window.location.href = "/login.html";
         return;
+    }
+
+    const user = getUser();
+    if (!isUserVerifiedOrExempt(user)) {
+        showVerificationModal('create a roadmap');
     }
 
     await loadNavbar();

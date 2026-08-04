@@ -11,6 +11,7 @@
   },
   "user": {
     "profile": "Profile",
+    "roadmap": "Roadmap",
     "control_events": "Control Events",
     "favourites": "Favourites",
     "logout": "Logout",
