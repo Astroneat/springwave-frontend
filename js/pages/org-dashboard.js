@@ -846,6 +846,196 @@ function initAttendanceEventSelect() {
   });
 }
 
+let attendanceCache = {
+  eventId: null,
+  records: [],
+  lookupMap: new Map(),
+  eventRules: { lateCheckinMinutes: 0, expiredCheckinMinutes: 0, heldDate: null },
+  isPastEvent: false
+};
+
+let backgroundQueue = [];
+let totalQueueEnqueued = 0;
+let totalQueueProcessed = 0;
+let isProcessingQueue = false;
+
+function updateQueueBadgeUI() {
+  const badge = document.getElementById("queue-status-badge");
+  const dot = document.getElementById("queue-status-dot");
+  const text = document.getElementById("queue-status-text");
+  if (!badge || !text) return;
+
+  if (totalQueueEnqueued === 0) {
+    badge.classList.add("opacity-0", "translate-y-4", "pointer-events-none");
+    badge.classList.remove("opacity-100", "translate-y-0");
+    return;
+  }
+
+  badge.classList.remove("opacity-0", "translate-y-4", "pointer-events-none");
+  badge.classList.add("opacity-100", "translate-y-0");
+
+  const pending = backgroundQueue.length;
+  if (pending > 0) {
+    if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+    text.textContent = `Sync: ${totalQueueProcessed}/${totalQueueEnqueued}`;
+  } else {
+    if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+    text.textContent = `Synced ${totalQueueProcessed}/${totalQueueEnqueued}`;
+    setTimeout(() => {
+      if (backgroundQueue.length === 0) {
+        totalQueueEnqueued = 0;
+        totalQueueProcessed = 0;
+        updateQueueBadgeUI();
+      }
+    }, 4000);
+  }
+}
+
+async function processBackgroundQueue() {
+  if (isProcessingQueue || backgroundQueue.length === 0) return;
+  isProcessingQueue = true;
+
+  while (backgroundQueue.length > 0) {
+    const job = backgroundQueue[0];
+    updateQueueBadgeUI();
+
+    let success = false;
+    try {
+      await scanAttendance(job.eventId, job.code);
+      success = true;
+    } catch (err) {
+      console.warn(`Background checkin attempt ${(job.attempts || 0) + 1} failed:`, err);
+      job.attempts = (job.attempts || 0) + 1;
+      if (job.attempts < 3) {
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
+      }
+    }
+
+    backgroundQueue.shift();
+    totalQueueProcessed++;
+    updateQueueBadgeUI();
+  }
+
+  isProcessingQueue = false;
+
+  if (attendanceCache.eventId) {
+    loadAttendance(attendanceCache.eventId).catch(() => {});
+  }
+}
+
+function rebuildAttendanceCache(eventId, records, event, isPastEvent) {
+  attendanceCache.eventId = eventId;
+  attendanceCache.records = records;
+  attendanceCache.isPastEvent = isPastEvent;
+  attendanceCache.eventRules = {
+    lateCheckinMinutes: event.lateCheckinMinutes || 0,
+    expiredCheckinMinutes: event.expiredCheckinMinutes || 0,
+    heldDate: event.heldDate
+  };
+
+  const map = new Map();
+  records.forEach(r => {
+    const user = r.user || {};
+    const ext = r.externalParticipant || {};
+
+    const keys = [
+      user.studentId,
+      user.verifiedStudentId,
+      user.username,
+      r.ticket?.qrCode,
+      ext.studentId
+    ].filter(Boolean);
+
+    keys.forEach(k => {
+      const normalized = String(k).trim().toLowerCase();
+      if (normalized) map.set(normalized, r);
+    });
+  });
+
+  attendanceCache.lookupMap = map;
+}
+
+function renderAttendanceTableRows(records, isPastEvent) {
+  const tbody = document.getElementById("attendance-table-body");
+  const empty = document.getElementById("attendance-empty");
+  if (!tbody || !empty) return;
+
+  if (!records || !records.length) {
+    tbody.innerHTML = "";
+    empty.classList.remove("hidden");
+    return;
+  }
+  empty.classList.add("hidden");
+
+  tbody.innerHTML = records.map(r => {
+    const user = r.user || (r.isExternal ? { fullname: r.externalParticipant?.fullname, email: `External (${r.externalParticipant?.studentId || 'ID'})` } : {});
+    const status = r.status || "absent";
+    let badge = '';
+    if (status === 'present') {
+      badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>';
+    } else if (status === 'late') {
+      badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Late</span>';
+    } else {
+      badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>';
+    }
+    const isCheckedIn = status === 'present' || status === 'late';
+    return `
+      <tr class="border-b border-[#ecedfa]">
+        <td class="py-3.5 px-4">
+          <div class="flex items-center gap-3">
+            ${user.avatar
+              ? `<img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover" />`
+              : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(user.fullname?.[0] || "?").toUpperCase()}</div>`}
+            <span class="font-semibold">${user.fullname || "Unknown"}</span>
+          </div>
+        </td>
+        <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${user.email || "—"}</td>
+        <td class="py-3.5 px-4">${badge}</td>
+        <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${r.checkedInAt ? formatDate(r.checkedInAt) : "—"}</td>
+        <td class="py-3.5 px-4 text-right">
+          ${isPastEvent
+            ? (isCheckedIn
+                ? `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Mark Absent</span>`
+                : `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Check In</span>`)
+            : (isCheckedIn
+                ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r._id}">Mark Absent</button>`
+                : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r._id}">Check In</button>`)}
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  tbody.querySelectorAll(".manual-checkin-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const userId = btn.dataset.userId;
+      const eventId = document.getElementById("attendance-event-select").value;
+      if (!eventId || !userId) return;
+      try {
+        await markAttendance(eventId, userId, "present");
+        await loadAttendance(eventId);
+      } catch (err) {
+        alert(err.message || "Check-in failed");
+      }
+    });
+  });
+
+  tbody.querySelectorAll(".manual-checkout-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const userId = btn.dataset.userId;
+      const eventId = document.getElementById("attendance-event-select").value;
+      if (!eventId || !userId) return;
+      if (!confirm("Change status to Absent for this participant?")) return;
+      try {
+        await markAttendance(eventId, userId, "absent");
+        await loadAttendance(eventId);
+      } catch (err) {
+        alert(err.message || "Operation failed");
+      }
+    });
+  });
+}
+
 async function loadAttendance(eventId) {
   try {
     const [attData, statsData, eventData] = await Promise.all([
@@ -861,6 +1051,9 @@ async function loadAttendance(eventId) {
       const nowDateString = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
       isPastEvent = nowDateString > eventDateString;
     }
+
+    const records = attData.attendance || [];
+    rebuildAttendanceCache(eventId, records, event, isPastEvent);
 
     const scanQrBtn = document.getElementById("scan-qr-btn");
     const initBtn = document.getElementById("init-attendance-btn");
@@ -949,7 +1142,6 @@ async function loadAttendance(eventId) {
         rulesEl.className = "text-xs text-[#64748b] mt-1";
       }
     }
-    const records = attData.attendance || [];
     const stats = statsData.stats || {};
 
     document.getElementById("stat-present").textContent = stats.present || 0;
@@ -957,82 +1149,7 @@ async function loadAttendance(eventId) {
     document.getElementById("stat-total-att").textContent = stats.totalParticipants || records.length;
     document.getElementById("attendance-count").textContent = `${records.length} record(s)`;
 
-    const tbody = document.getElementById("attendance-table-body");
-    const empty = document.getElementById("attendance-empty");
-
-    if (!records.length) {
-      tbody.innerHTML = "";
-      empty.classList.remove("hidden");
-      return;
-    }
-    empty.classList.add("hidden");
-
-    tbody.innerHTML = records.map(r => {
-      const user = r.user || {};
-      const status = r.status || "absent";
-      let badge = '';
-      if (status === 'present') {
-        badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>';
-      } else if (status === 'late') {
-        badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Late</span>';
-      } else {
-        badge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>';
-      }
-      const isCheckedIn = status === 'present' || status === 'late';
-      return `
-        <tr class="border-b border-[#ecedfa]">
-          <td class="py-3.5 px-4">
-            <div class="flex items-center gap-3">
-              ${user.avatar
-                ? `<img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover" />`
-                : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(user.fullname?.[0] || "?").toUpperCase()}</div>`}
-              <span class="font-semibold">${user.fullname || "Unknown"}</span>
-            </div>
-          </td>
-          <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${user.email || "—"}</td>
-          <td class="py-3.5 px-4">${badge}</td>
-          <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${r.checkedInAt ? formatDate(r.checkedInAt) : "—"}</td>
-          <td class="py-3.5 px-4 text-right">
-            ${isPastEvent
-              ? (isCheckedIn
-                  ? `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Mark Absent</span>`
-                  : `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Check In</span>`)
-              : (isCheckedIn
-                  ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Mark Absent</button>`
-                  : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r.user}">Check In</button>`)}
-          </td>
-        </tr>
-      `;
-    }).join("");
-
-    tbody.querySelectorAll(".manual-checkin-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const userId = btn.dataset.userId;
-        const eventId = document.getElementById("attendance-event-select").value;
-        if (!eventId || !userId) return;
-        try {
-          await markAttendance(eventId, userId, "present");
-          await loadAttendance(eventId);
-        } catch (err) {
-          alert(err.message || "Check-in failed");
-        }
-      });
-    });
-
-    tbody.querySelectorAll(".manual-checkout-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const userId = btn.dataset.userId;
-        const eventId = document.getElementById("attendance-event-select").value;
-        if (!eventId || !userId) return;
-        if (!confirm("Change status to Absent for this participant?")) return;
-        try {
-          await markAttendance(eventId, userId, "absent");
-          await loadAttendance(eventId);
-        } catch (err) {
-          alert(err.message || "Operation failed");
-        }
-      });
-    });
+    renderAttendanceTableRows(records, isPastEvent);
   } catch (err) {
     console.error("Load attendance error:", err);
   }
@@ -1586,6 +1703,57 @@ function initQRScan() {
     const eventId = document.getElementById("attendance-event-select").value;
     if (!ticketCode) return;
     if (!eventId) return alert("Select an event first");
+
+    const codeClean = String(ticketCode).trim().toLowerCase();
+    const cachedRecord = attendanceCache.eventId === eventId ? attendanceCache.lookupMap.get(codeClean) : null;
+
+    if (cachedRecord) {
+      const currentStatus = cachedRecord.status;
+      if (currentStatus === "present" || currentStatus === "late") {
+        playBeep(false);
+        setFeedbackWithTimeout("error", "Participant is already checked in!");
+        if (manualInput) manualInput.value = "";
+        return;
+      }
+
+      let newStatus = "present";
+      const rules = attendanceCache.eventRules;
+      if (rules.lateCheckinMinutes > 0 && rules.heldDate) {
+        const start = new Date(rules.heldDate);
+        const lateThreshold = new Date(start.getTime() + rules.lateCheckinMinutes * 60000);
+        if (new Date() > lateThreshold) newStatus = "late";
+      }
+
+      cachedRecord.status = newStatus;
+      cachedRecord.checkedInAt = new Date().toISOString();
+
+      playBeep(true);
+      const isLate = newStatus === "late";
+      const userPayload = cachedRecord.isExternal ? {
+        fullname: cachedRecord.externalParticipant?.fullname,
+        studentId: cachedRecord.externalParticipant?.studentId
+      } : (cachedRecord.user || {});
+
+      setFeedbackWithTimeout("success", `Checked in ${userPayload.fullname || 'participant'}`, userPayload, ticketCode, isLate);
+      addToHistory(userPayload, ticketCode, isLate);
+      if (manualInput) manualInput.value = "";
+
+      const presentEl = document.getElementById("stat-present");
+      const absentEl = document.getElementById("stat-absent");
+      if (presentEl && absentEl) {
+        let p = parseInt(presentEl.textContent) || 0;
+        let a = parseInt(absentEl.textContent) || 0;
+        presentEl.textContent = p + 1;
+        if (a > 0) absentEl.textContent = a - 1;
+      }
+      renderAttendanceTableRows(attendanceCache.records, attendanceCache.isPastEvent);
+
+      totalQueueEnqueued++;
+      backgroundQueue.push({ eventId, code: ticketCode, attempts: 0 });
+      updateQueueBadgeUI();
+      processBackgroundQueue();
+      return;
+    }
 
     setFeedbackWithTimeout("loading", "Processing check-in...");
 

@@ -850,6 +850,12 @@
         </div>
     </div>
 
+    <!-- Floating Queue Status Badge -->
+    <div id="queue-status-badge" class="fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-full bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/60 shadow-xl flex items-center gap-2.5 text-xs font-mono transition-all duration-300 pointer-events-none opacity-0 translate-y-4">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="queue-status-dot"></span>
+        <span id="queue-status-text" class="font-semibold text-slate-100">Sync: 0/0</span>
+    </div>
+
     <div id="chatbot-container"></div>
     <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script type="module" src="./js/pages/org-dashboard.js"></script>
