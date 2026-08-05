@@ -1,4 +1,4 @@
-import { get, put, post } from "./client.js";
+import { get, put, post, uploadFormData } from "./client.js";
 
 export function getAttendance(eventId) {
   return get(`/attendance/events/${eventId}/attendance`);
@@ -18,4 +18,8 @@ export function scanAttendance(eventId, code) {
 
 export function initAttendance(eventId) {
   return post(`/attendance/events/${eventId}/attendance/init`);
+}
+
+export function importExcelAttendance(eventId, formData) {
+  return uploadFormData(`/attendance/events/${eventId}/attendance/import-excel`, formData);
 }

@@ -5,9 +5,10 @@ import { loadNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
 import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership, uploadOrgAvatar } from "../api/organizations.js";
-import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance } from "../api/attendance.js";
+import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
 import { getHostReviews } from "../api/activities.js";
+import { getOrgAnalytics, downloadOrgExcelReport } from "../api/analytics.js";
 
 let currentOrgId = null;
 let currentOrgs = [];
@@ -251,6 +252,9 @@ function switchSection(section) {
   if (section === "certificates" && cs && cs.value) loadCertificates(cs.value);
   if (section === "reviews") {
     loadReviews();
+  }
+  if (section === "analytics") {
+    loadOrgAnalytics();
   }
 }
 
@@ -1602,19 +1606,65 @@ function initQRScan() {
 }
 
 function initAttendanceButtons() {
-  document.getElementById("init-attendance-btn").addEventListener("click", async () => {
-    if (document.getElementById("init-attendance-btn").disabled) return;
-    const eventId = document.getElementById("attendance-event-select").value;
-    if (!eventId) return alert("Select an event first");
-    if (!confirm("Initialize/refresh attendance records for all participants?")) return;
-    try {
-      await initAttendance(eventId);
-      await loadAttendance(eventId);
-      alert("Attendance initialized");
-    } catch (err) {
-      alert(err.message || "Failed to init attendance");
-    }
-  });
+  const initBtn = document.getElementById("init-attendance-btn");
+  if (initBtn) {
+    initBtn.addEventListener("click", async () => {
+      if (initBtn.disabled) return;
+      const eventId = document.getElementById("attendance-event-select")?.value;
+      if (!eventId) return alert("Select an event first");
+      if (!confirm("Initialize/refresh attendance records for all participants?")) return;
+      try {
+        await initAttendance(eventId);
+        await loadAttendance(eventId);
+        alert("Attendance initialized");
+      } catch (err) {
+        alert(err.message || "Failed to init attendance");
+      }
+    });
+  }
+
+  const excelInput = document.getElementById("excel-file-input");
+  if (excelInput) {
+    excelInput.addEventListener("change", async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const eventId = document.getElementById("attendance-event-select")?.value;
+      if (!eventId) {
+        alert("Select an event first before importing Excel");
+        excelInput.value = "";
+        return;
+      }
+
+      if (!confirm(`Import Excel list for this event?\nFile: ${file.name}`)) {
+        excelInput.value = "";
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await importExcelAttendance(eventId, formData);
+        excelInput.value = "";
+
+        const summary = res.summary || {};
+        let msg = res.message || "Import completed!";
+        if (summary.totalRows) {
+          msg += `\n- Total rows: ${summary.totalRows}\n- System users matched: ${summary.matchedSystemUsers || 0}\n- External participants added: ${summary.createdExternalParticipants || 0}`;
+        }
+        if (summary.errors && summary.errors.length) {
+          msg += `\n\nWarnings/Errors:\n${summary.errors.slice(0, 5).join("\n")}`;
+        }
+
+        alert(msg);
+        await loadAttendance(eventId);
+      } catch (err) {
+        excelInput.value = "";
+        alert(err.message || "Failed to import Excel attendance list");
+      }
+    });
+  }
 }
 
 // ─── Certificates ───
@@ -2120,3 +2170,125 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("close-review-modal-btn")?.addEventListener("click", closeReviewDetailsModal);
     document.getElementById("review-details-backdrop")?.addEventListener("click", closeReviewDetailsModal);
 });
+
+let orgDonutChartInstance = null;
+let orgMethodsChartInstance = null;
+
+async function loadOrgAnalytics() {
+  if (!currentOrgId) return;
+  try {
+    const data = await getOrgAnalytics(currentOrgId);
+    const summary = data.summary || {};
+    const att = data.attendanceBreakdown || {};
+    const methods = data.checkinMethods || {};
+
+    const elEvents = document.getElementById("analytics-stat-events");
+    if (elEvents) elEvents.textContent = summary.totalEvents || 0;
+    const elRegs = document.getElementById("analytics-stat-regs");
+    if (elRegs) elRegs.textContent = summary.totalRegistrations || 0;
+    const elRate = document.getElementById("analytics-stat-att-rate");
+    if (elRate) elRate.textContent = `${summary.overallAttendanceRate || 0}%`;
+    const elRating = document.getElementById("analytics-stat-rating");
+    if (elRating) elRating.textContent = `${summary.averageRating || 0} ★`;
+
+    const donutCtx = document.getElementById("chart-attendance-donut")?.getContext("2d");
+    if (donutCtx && typeof Chart !== "undefined") {
+      if (orgDonutChartInstance) orgDonutChartInstance.destroy();
+      orgDonutChartInstance = new Chart(donutCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["Present", "Late", "Absent"],
+          datasets: [{
+            data: [att.present || 0, att.late || 0, att.absent || 0],
+            backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } }
+        }
+      });
+    }
+
+    const methodsCtx = document.getElementById("chart-checkin-methods")?.getContext("2d");
+    if (methodsCtx && typeof Chart !== "undefined") {
+      if (orgMethodsChartInstance) orgMethodsChartInstance.destroy();
+      orgMethodsChartInstance = new Chart(methodsCtx, {
+        type: "bar",
+        data: {
+          labels: ["Ticket QR", "Student Card", "Manual", "Excel Import"],
+          datasets: [{
+            label: "Check-ins",
+            data: [methods.ticket_qr || 0, methods.student_card || 0, methods.manual || 0, methods.excel_import || 0],
+            backgroundColor: "#3b6fd4",
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    const schoolsContainer = document.getElementById("top-schools-container");
+    if (schoolsContainer) {
+      const topSchools = data.topSchools || [];
+      if (!topSchools.length) {
+        schoolsContainer.innerHTML = '<p class="text-xs text-[#94a3b8]">No university data recorded yet.</p>';
+      } else {
+        const maxCount = Math.max(...topSchools.map(s => s.count), 1);
+        schoolsContainer.innerHTML = topSchools.map(s => `
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="truncate max-w-[70%]">${s.name}</span>
+              <span class="text-primary">${s.count} attendees</span>
+            </div>
+            <div class="w-full h-2 bg-[#ecedfa] rounded-full overflow-hidden">
+              <div class="h-full bg-primary rounded-full" style="width: ${Math.round((s.count / maxCount) * 100)}%"></div>
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+
+    const majorsContainer = document.getElementById("top-majors-container");
+    if (majorsContainer) {
+      const topMajors = data.topMajors || [];
+      if (!topMajors.length) {
+        majorsContainer.innerHTML = '<p class="text-xs text-[#94a3b8]">No major data recorded yet.</p>';
+      } else {
+        const maxCount = Math.max(...topMajors.map(m => m.count), 1);
+        majorsContainer.innerHTML = topMajors.map(m => `
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="truncate max-w-[70%]">${m.name}</span>
+              <span class="text-emerald-600">${m.count} attendees</span>
+            </div>
+            <div class="w-full h-2 bg-[#ecedfa] rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-500 rounded-full" style="width: ${Math.round((m.count / maxCount) * 100)}%"></div>
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+
+    const exportBtn = document.getElementById("export-org-excel-btn");
+    if (exportBtn) {
+      exportBtn.onclick = async () => {
+        try {
+          const orgName = data.organization?.name || "Org";
+          await downloadOrgExcelReport(currentOrgId, orgName);
+        } catch (err) {
+          alert(err.message || "Failed to download Excel report");
+        }
+      };
+    }
+  } catch (err) {
+    console.error("Load Org Analytics error:", err);
+  }
+}

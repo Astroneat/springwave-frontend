@@ -60,6 +60,7 @@ export default defineConfig({
         adminCategories: resolve(__dirname, "admin-categories.html"),
         studentVerify: resolve(__dirname, "student-verify.html"),
         adminStudentVerification: resolve(__dirname, "admin-student-verification.html"),
+        adminAnalytics: resolve(__dirname, "admin-analytics.html"),
       },
       output: {
         assetFileNames: (assetInfo) => {

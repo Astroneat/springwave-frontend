@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         .sidenav-link { display: flex; align-items: center; gap: 12px; padding: 11px 15px; border-radius: 12px; border: 1px solid transparent; transition: all 0.2s; font-family: var(--font-label-md), 'Inter', sans-serif; font-size: var(--text-label-md); cursor: pointer; }
         .sidenav-link:hover { background: var(--color-surface-container); }
@@ -51,6 +52,10 @@
             <div class="sidenav-link" data-section="attendance">
                 <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
                 <span>Attendance</span>
+            </div>
+            <div class="sidenav-link" data-section="analytics">
+                <span class="material-symbols-outlined text-[20px]">analytics</span>
+                <span>Analytics & Reports</span>
             </div>
             <div class="sidenav-link" data-section="reviews">
                 <span class="material-symbols-outlined text-[20px]">reviews</span>
@@ -128,6 +133,9 @@
             </button>
             <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="attendance">
                 Attendance
+            </button>
+            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="analytics">
+                Analytics
             </button>
             <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="managers">
                 Managers
@@ -323,13 +331,17 @@
             </div>
 
             <!-- Actions -->
-            <div class="flex gap-3 mb-6">
+            <div class="flex gap-3 mb-6 flex-wrap">
                 <button id="scan-qr-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
-                    <i class="fa-solid fa-camera"></i> Scan QR Code
+                    <i class="fa-solid fa-camera"></i> Scan QR Code / Student Card
                 </button>
                 <button id="init-attendance-btn" class="py-2.5 px-5 rounded-full border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95">
                     <i class="fa-solid fa-rotate"></i> Init Attendance
                 </button>
+                <label id="import-excel-btn" class="py-2.5 px-5 rounded-full border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95">
+                    <i class="fa-solid fa-file-excel text-emerald-600"></i> Import Excel
+                    <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" class="hidden" />
+                </label>
             </div>
 
             <!-- Table -->
@@ -573,6 +585,71 @@
                         <button type="button" id="delete-org-btn" class="py-2.5 px-6 rounded-full border border-red-200 text-red-500 text-sm font-semibold cursor-pointer spring-ease hover:bg-red-50 active:scale-95">Delete Organization</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- SECTION: ANALYTICS & REPORTS -->
+        <div id="section-analytics" class="section-content hidden">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+                <div>
+                    <h2 class="font-headline-md text-2xl font-bold text-[#191b22]">Analytics & Reports</h2>
+                    <p class="text-sm text-[#64748b] mt-0.5">Real-time engagement metrics, demographics, and activity reports</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="export-org-excel-btn" class="py-2.5 px-5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease shadow-md active:scale-95">
+                        <i class="fa-solid fa-file-excel"></i> Export Excel Report (.xlsx)
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+                    <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Total Events</p>
+                    <p class="text-[28px] font-extrabold text-[#191b22] mt-1" id="analytics-stat-events">0</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+                    <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Total Registrations</p>
+                    <p class="text-[28px] font-extrabold text-primary mt-1" id="analytics-stat-regs">0</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+                    <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Attendance Rate</p>
+                    <p class="text-[28px] font-extrabold text-emerald-600 mt-1" id="analytics-stat-att-rate">0%</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
+                    <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Avg Rating</p>
+                    <p class="text-[28px] font-extrabold text-amber-500 mt-1" id="analytics-stat-rating">0.0 ★</p>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
+                    <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Attendance Status Distribution</h3>
+                    <div class="h-[240px] flex items-center justify-center relative">
+                        <canvas id="chart-attendance-donut"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
+                    <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Check-in Methods Breakdown</h3>
+                    <div class="h-[240px] flex items-center justify-center relative">
+                        <canvas id="chart-checkin-methods"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demographics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
+                    <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Top Participant Universities</h3>
+                    <div id="top-schools-container" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
+                    <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Top Participant Majors</h3>
+                    <div id="top-majors-container" class="space-y-3"></div>
+                </div>
             </div>
         </div>
     </main>

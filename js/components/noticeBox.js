@@ -34,13 +34,12 @@ export function showNoticeBox(options) {
         // Fallback: create notice container with top padding below fixed navbar
         container = document.createElement('div');
         container.id = containerId;
-        container.className = 'notice-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-2 relative z-30';
+        container.className = 'notice-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30';
         const main = document.querySelector('main') || document.body;
         main.insertBefore(container, main.firstChild);
     } else {
-        // Ensure existing container has proper top padding if it's placed directly under body/main
-        if (!container.classList.contains('pt-24') && !container.classList.contains('pt-28')) {
-            container.classList.add('pt-24', 'sm:pt-28', 'relative', 'z-30');
+        if (!container.classList.contains('notice-container')) {
+            container.classList.add('notice-container', 'relative', 'z-30');
         }
     }
 
