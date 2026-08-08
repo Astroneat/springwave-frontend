@@ -6,7 +6,6 @@ import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { getDeviceFingerprint } from "../lib/device.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
-import { isSchoolEmail } from "../lib/utils.js";
 
 let turnstileWidgetId = null;
 
@@ -108,7 +107,15 @@ function initRegisterForm() {
             data.cfTurnstileResponse = turnstile.getResponse(turnstileWidgetId);
         }
 
-        if(data.password.length < 6) {
+        if (!data.cfTurnstileResponse) {
+            setStatus("Please complete the captcha.", true);
+            if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+                turnstile.reset(turnstileWidgetId);
+            }
+            return;
+        }
+
+        if(data.password.length < 8) {
             setStatus("Password must be at least 6 characters.", true);
             return;
         }
@@ -123,17 +130,9 @@ function initRegisterForm() {
 
             if (result.emailSent) {
                 showVerificationMessage(data.email);
-            } else if (result.user && !result.user.isStudentVerified && await isSchoolEmail(data.email)) {
-                // School email user who wasn't auto-verified
-                setStatus("Account created! Please verify your email.", false);
-                setTimeout(() => { window.location.href = "/login.html"; }, 1500);
-            } else if (result.user && result.user.isStudentVerified) {
-                // Auto-verified student
-                setStatus("Account created! Your student status has been verified automatically.", false);
-                setTimeout(() => { window.location.href = "/login.html"; }, 1500);
             } else {
-                setStatus("Registered successfully! Redirecting to login...", false);
-                setTimeout(() => { window.location.href = "/login.html"; }, 1000);
+                setStatus("Account created! Redirecting to login...", false);
+                setTimeout(() => { window.location.href = "/login.html"; }, 1500);
             }
         } catch (err) {
             setStatus(err.message, true);

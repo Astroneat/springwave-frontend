@@ -60,16 +60,26 @@ function scheduleRefresh() {
     }
 }
 
+let refreshPromise = null;
+
 async function refreshTokens() {
-    const resp = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-    });
-    if (!resp.ok) throw new Error("Refresh failed");
-    const data = await resp.json();
-    setToken(data.token);
-    setSigningKey(data.signingKey);
+    if (refreshPromise) return refreshPromise;
+    refreshPromise = (async () => {
+        try {
+            const resp = await fetch(`${API_BASE_URL}/auth/refresh`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
+            if (!resp.ok) throw new Error("Refresh failed");
+            const data = await resp.json();
+            setToken(data.token);
+            setSigningKey(data.signingKey);
+        } finally {
+            refreshPromise = null;
+        }
+    })();
+    return refreshPromise;
 }
 
 export async function ensureSession() {

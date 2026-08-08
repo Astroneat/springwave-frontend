@@ -52,13 +52,16 @@ function initTurnstile() {
 async function fetchSigningKey(token) {
     try {
         const resp = await fetch(`${API_BASE_URL}/auth/session/init`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         if (resp.ok) {
             const data = await resp.json();
-            setSigningKey(data.signingKey);
+            if (data.signingKey) setSigningKey(data.signingKey);
         }
-    } catch {}
+    } catch (err) {
+        console.error("Failed to fetch signing key:", err);
+    }
 }
 
 function initLoginForm() {
@@ -83,11 +86,23 @@ function initLoginForm() {
             cfTurnstileResponse = turnstile.getResponse(turnstileWidgetId);
         }
 
+        if (!cfTurnstileResponse) {
+            setStatus("Please complete the captcha.", true);
+            if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
+                turnstile.reset(turnstileWidgetId);
+            }
+            return;
+        }
+
         try {
             const data = await login(username, password, cfTurnstileResponse);
             if (!data) return;
             createSession(data.token, data.user);
-            await fetchSigningKey(data.token);
+            if (data.signingKey) {
+                setSigningKey(data.signingKey);
+            } else {
+                await fetchSigningKey(data.token);
+            }
 
             // Check verification status
             if (data.user && !data.user.emailVerified) {
@@ -192,7 +207,11 @@ function initGoogleLogin() {
             console.log("Google login API response:", data);
 
             createSession(data.token, data.user);
-            await fetchSigningKey(data.token);
+            if (data.signingKey) {
+                setSigningKey(data.signingKey);
+            } else {
+                await fetchSigningKey(data.token);
+            }
 
             // Check verification status
             if (data.needsProfile) {
