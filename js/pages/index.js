@@ -199,7 +199,7 @@ function initHeroMockupParallax() {
     const rotateX = -(y - centerY) / 15;
     const rotateY = (x - centerX) / 15;
 
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    card.style.transform = `translateZ(0) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
   });
 
   container.addEventListener("mouseleave", () => {

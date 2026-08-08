@@ -385,9 +385,9 @@ function initSlidingIndicator() {
         const left = linkRect.left - menuRect.left;
         const width = linkRect.width;
 
-        // Reduce width of the indicator by 20% and shift left to center it
-        const reducedWidth = width * 0.8;
-        const centeredLeft = left + (width * 0.1);
+        // Keep the original width and position
+        const reducedWidth = width;
+        const centeredLeft = left;
 
         indicator.style.left = `${centeredLeft}px`;
         indicator.style.width = `${reducedWidth}px`;

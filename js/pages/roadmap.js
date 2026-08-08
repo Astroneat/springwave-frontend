@@ -462,7 +462,7 @@ window.openSwipeModal = (timelineIndex) => {
         const onMove = (x) => {
             if (!isDragging) return;
             currentX = x - startX;
-            card.style.transform = `translateX(${currentX}px) rotate(${currentX * 0.05}deg)`;
+            card.style.transform = `translateX(${currentX}px)`;
             card.style.opacity = Math.max(0.5, 1 - Math.abs(currentX) / 400);
         };
         const onEnd = () => {

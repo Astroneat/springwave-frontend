@@ -90,11 +90,9 @@
 @keyframes pageFadeIn {
   from {
     opacity: 0.9;
-    transform: translateY(2px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -8096,9 +8094,8 @@ html, body, button, input, select, textarea {
 
 .figma-navbar-inner {
     background: rgba(52, 137, 225, 0.82); /* Premium medium royal blue (not too dark, not too white, very blue) */
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(52, 137, 225, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     height: 72px; /* Smaller navbar height */
     padding: 0 28px;

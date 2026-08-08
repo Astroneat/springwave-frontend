@@ -117,7 +117,6 @@ export function initPageTransition() {
     startProgress();
     if (document.body) {
       document.body.style.transition = "opacity 0.15s ease-out";
-      document.body.style.opacity = "0.9";
     }
   });
 
