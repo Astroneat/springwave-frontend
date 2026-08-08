@@ -244,11 +244,32 @@ function showNavbarToast({ message, tone = "info", durationMs = 4000 }) {
    ========================= */
 
 function updateHostBtn() {
-    const desktopBtn = document.getElementById("desktop-become-host-btn");
-    if (!desktopBtn) return;
     const u = getUser();
-    if (u?.role === 'host' || u?.role === 'admin') {
+    const isHost = u?.role === 'host';
+    const isAdmin = u?.role === 'admin';
+
+    const desktopBtn = document.getElementById("desktop-become-host-btn");
+    if (desktopBtn && (isHost || isAdmin)) {
         desktopBtn.style.display = "none";
+    }
+
+    // Hosts get a direct Host Dashboard link; admins keep "Become a Host" hidden
+    // but only see the Host Dashboard if they also own an organization.
+    const hostDashboardBtn = document.getElementById("host-dashboard-btn");
+    if (hostDashboardBtn && isHost) {
+        hostDashboardBtn.style.display = "";
+        // Resolve the org id once so the link goes directly to the user's organization
+        import("../api/host.js").then(({ getMyHostStatus }) => {
+            getMyHostStatus().then((data) => {
+                const url = data?.orgId ? `/org-dashboard.html?orgId=${data.orgId}` : "/org-dashboard.html";
+                hostDashboardBtn.setAttribute("href", url);
+            }).catch(() => {
+                // Fallback to plain dashboard if status lookup fails
+                hostDashboardBtn.setAttribute("href", "/org-dashboard.html");
+            });
+        }).catch(() => {
+            hostDashboardBtn.setAttribute("href", "/org-dashboard.html");
+        });
     }
 }
 
@@ -331,11 +352,13 @@ function initUserDropdown() {
         desktopHostBtn.addEventListener("click", async (e) => {
             e.preventDefault();
             const u = getUser();
+            // Hosts and admins use the dedicated Host Dashboard link instead
             if (u?.role === 'host' || u?.role === 'admin') return;
             try {
                 const { getMyHostStatus } = await import("../api/host.js");
                 const data = await getMyHostStatus();
                 if (data.status === 'approved') {
+                    // Approved but role not yet set — go to the dashboard
                     const url = data.orgId ? `/org-dashboard.html?orgId=${data.orgId}` : "/org-dashboard.html";
                     window.location.href = url;
                     return;
