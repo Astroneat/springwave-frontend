@@ -344,30 +344,30 @@ html, body, button, input, select, textarea {
     position: fixed;
     right: 24px;
     width: 270px;
+    max-width: calc(100vw - 24px);
     padding: 10px;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
     z-index: 1200;
     opacity: 0;
     pointer-events: none;
     top: 88px;
+    transform: translateY(-8px);
     max-height: calc(100vh - 100px);
     overflow-y: auto;
-    transition: opacity 0.25s ease, top 0.3s cubic-bezier(.22, 1, .36, 1);
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(.22, 1, .36, 1);
 }
 
 .user-menu.active .user-dropdown {
     opacity: 1;
-    top: 76px;
+    transform: translateY(0);
     pointer-events: auto;
 }
 
 .dropdown-item {
     @apply w-full border-none bg-transparent py-2.5 px-3 rounded-[14px] flex items-center gap-3 text-slate-700 no-underline text-xs font-semibold font-body-md cursor-pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .dropdown-item:hover {
@@ -412,10 +412,7 @@ html, body, button, input, select, textarea {
     @apply text-[10px];
 }
 
-/* collapsed state adjusts */
-#navbar.collapsed .user-dropdown {
-    top: 64px;
-}
+/* Desktop: dropdown open/close via transform (compositor-only, no layout reflow). */
 
 /* ===== RESPONSIVE: 768px ===== */
 @media (max-width: 768px) {
@@ -8093,7 +8090,6 @@ html, body, button, input, select, textarea {
 }
 
 .figma-navbar-inner {
-    background: rgba(52, 137, 225, 0.82); /* Premium medium royal blue (not too dark, not too white, very blue) */
     background: rgba(52, 137, 225, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
@@ -8103,7 +8099,7 @@ html, body, button, input, select, textarea {
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 12px 35px rgba(28, 39, 76, 0.1);
-    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: height 0.35s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.35s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.35s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 #navbar.collapsed .figma-navbar-inner {
@@ -8149,8 +8145,9 @@ html, body, button, input, select, textarea {
     padding: 0 4px;
     gap: 2px;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
-    width: 786px; /* Decreased width to make buttons narrower */
-    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 786px; /* Cap, not a fixed width — flexes down on smaller screens */
 }
 
 .figma-navbar-search {
@@ -8171,7 +8168,7 @@ html, body, button, input, select, textarea {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
-    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1), transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .figma-navbar-search .search-icon {
@@ -11747,11 +11744,11 @@ html, body, button, input, select, textarea {
     }
     /* Shift user dropdown location due to lower navbar height */
     .user-dropdown {
-        top: 62px !important;
+        top: 62px;
         right: 12px !important;
     }
     #navbar.collapsed .user-dropdown {
-        top: 56px !important;
+        top: 56px;
     }
     #notif-dropdown {
         top: 62px !important;

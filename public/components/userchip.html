@@ -1,17 +1,17 @@
 <div class="user-menu">
 
     <!-- USER CHIP PILL -->
-    <button class="user-chip" id="user-chip" aria-label="User Account and Navigation Menu">
-        <div class="user-avatar" id="user-avatar">
+    <button type="button" class="user-chip" id="user-chip" aria-label="User Account and Navigation Menu" aria-haspopup="true" aria-expanded="false" aria-controls="user-dropdown">
+        <div class="user-avatar" id="user-avatar" aria-hidden="true">
           <img class="user-avatar-img" style="display:none;" alt="avatar"/>
           <span id="user-avatar-initial" class="user-avatar-initial" style="display:none;"></span>
         </div>
         <span class="chip-active-page font-extrabold text-xs text-[#1c274c] truncate max-w-[85px] sm:max-w-[110px]" id="chip-active-page-label">Home</span>
-        <i class="fa-solid fa-chevron-down text-[10px] text-[#1c274c]/70 transition-transform duration-300"></i>
+        <i class="fa-solid fa-chevron-down text-[10px] text-[#1c274c]/70 transition-transform duration-300" aria-hidden="true"></i>
     </button>
 
     <!-- USER DROPDOWN HUB -->
-    <div class="user-dropdown" id="user-dropdown">
+    <div class="user-dropdown" id="user-dropdown" role="menu" aria-label="User account menu">
 
         <!-- ACCOUNT INFO CARD -->
         <div class="user-info-card border-b border-slate-100/80 pb-3 mb-2 px-3 pt-2">

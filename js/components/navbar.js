@@ -124,9 +124,9 @@ export async function loadNavbar({ activeSection } = {}) {
             `;
             if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }
         }
+        updateHostBtn();
     }
 
-    updateHostBtn();
     await initI18n();
     initLangSwitcher();
     initSlidingIndicator();
@@ -186,6 +186,203 @@ export function setActiveLink(section) {
 }
 
 /* =========================
+   NAVBAR TOAST
+   ========================= */
+
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function showNavbarToast({ message, tone = "info", durationMs = 4000 }) {
+    let host = document.getElementById("navbar-toast-host");
+    if (!host) {
+        host = document.createElement("div");
+        host.id = "navbar-toast-host";
+        host.className = "fixed top-[88px] left-1/2 -translate-x-1/2 z-[1300] flex flex-col items-center gap-2 pointer-events-none max-w-[calc(100vw-32px)]";
+        document.body.appendChild(host);
+        const mq = window.matchMedia("(max-width: 768px)");
+        const updateTop = () => {
+            host.style.top = mq.matches ? "62px" : "88px";
+        };
+        mq.addEventListener("change", updateTop);
+        updateTop();
+    }
+    const tones = {
+        info: "bg-white text-[#191b22] border border-[#e2e8f0]",
+        warning: "bg-amber-50 text-amber-900 border border-amber-200",
+        error: "bg-red-50 text-red-700 border border-red-200",
+        success: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    };
+    const toast = document.createElement("div");
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    toast.className = `pointer-events-auto px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-2 spring-ease opacity-0 translate-y-[-8px] ${tones[tone] || tones.info}`;
+    const icon = {
+        info: "info", warning: "warning", error: "error", success: "check_circle"
+    }[tone] || "info";
+    // Escape message to avoid injecting HTML if it ever surfaces API/user content
+    const safeMessage = escapeHtml(message);
+    toast.innerHTML = `<span class="material-symbols-outlined text-base shrink-0" aria-hidden="true">${icon}</span><span>${safeMessage}</span>`;
+    host.appendChild(toast);
+    requestAnimationFrame(() => {
+        toast.classList.remove("opacity-0", "translate-y-[-8px]");
+        toast.classList.add("opacity-100", "translate-y-0");
+    });
+    const dismiss = () => {
+        toast.classList.remove("opacity-100", "translate-y-0");
+        toast.classList.add("opacity-0", "translate-y-[-8px]");
+        setTimeout(() => toast.remove(), 300);
+    };
+    toast.addEventListener("click", dismiss);
+    setTimeout(dismiss, durationMs);
+}
+
+/* =========================
+   USER DROPDOWN
+   ========================= */
+
+function updateHostBtn() {
+    const desktopBtn = document.getElementById("desktop-become-host-btn");
+    if (!desktopBtn) return;
+    const u = getUser();
+    if (u?.role === 'host' || u?.role === 'admin') {
+        desktopBtn.style.display = "none";
+    }
+}
+
+function initUserDropdown() {
+    const userMenu = document.querySelector(".user-menu");
+    const userChip = document.getElementById("user-chip");
+    const logoutBtn = document.getElementById("logout-btn");
+    if (!userMenu || !userChip) return;
+
+    const setUserMenuOpen = (open) => {
+        userMenu.classList.toggle("active", open);
+        userChip.setAttribute("aria-expanded", open ? "true" : "false");
+        if (open) {
+            const notif = document.getElementById("notif-dropdown");
+            if (notif) {
+                notif.classList.remove("active");
+                document.getElementById("bell-icon")?.setAttribute("aria-expanded", "false");
+            }
+            // Move focus into the dropdown for keyboard users
+            const firstItem = userMenu.querySelector(".dropdown-item, button, a[href]");
+            if (firstItem && typeof firstItem.focus === "function") {
+                firstItem.focus();
+            }
+        }
+    };
+
+    userChip.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setUserMenuOpen(!userMenu.classList.contains("active"));
+    });
+
+    userChip.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setUserMenuOpen(true);
+        } else if (e.key === "Escape" && userMenu.classList.contains("active")) {
+            e.preventDefault();
+            setUserMenuOpen(false);
+            userChip.focus();
+        }
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!userMenu.contains(e.target) && e.target !== userChip) {
+            setUserMenuOpen(false);
+        }
+    });
+    userMenu.addEventListener("click", (e) => e.stopPropagation());
+
+    // Arrow-key navigation inside the dropdown
+    const items = () => Array.from(userMenu.querySelectorAll(".dropdown-item, button:not(.dropdown-item), a[href]"))
+        .filter(el => el.offsetParent !== null && !el.hasAttribute("disabled"));
+    userMenu.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            e.preventDefault();
+            setUserMenuOpen(false);
+            userChip.focus();
+            return;
+        }
+        if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Home" && e.key !== "End") return;
+        const list = items();
+        if (!list.length) return;
+        const currentIndex = list.indexOf(document.activeElement);
+        let nextIndex = currentIndex;
+        if (e.key === "ArrowDown") nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % list.length;
+        if (e.key === "ArrowUp") nextIndex = currentIndex <= 0 ? list.length - 1 : currentIndex - 1;
+        if (e.key === "Home") nextIndex = 0;
+        if (e.key === "End") nextIndex = list.length - 1;
+        e.preventDefault();
+        list[nextIndex].focus();
+    });
+
+    logoutBtn?.addEventListener("click", () => {
+        logout();
+        window.location.href = "/login.html";
+    });
+
+    const desktopHostBtn = document.getElementById("desktop-become-host-btn");
+    if (desktopHostBtn) {
+        desktopHostBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const u = getUser();
+            if (u?.role === 'host' || u?.role === 'admin') return;
+            try {
+                const { getMyHostStatus } = await import("../api/host.js");
+                const data = await getMyHostStatus();
+                if (data.status === 'approved') {
+                    const url = data.orgId ? `/org-dashboard.html?orgId=${data.orgId}` : "/org-dashboard.html";
+                    window.location.href = url;
+                    return;
+                }
+                if (data.status === 'pending') {
+                    showNavbarToast({
+                        message: "Your host registration is pending review. Please wait for approval.",
+                        tone: "warning",
+                        durationMs: 5000
+                    });
+                    return;
+                }
+            } catch {}
+            if (!u?.dob || !u?.school || !u?.class || !u?.major || !u?.phoneNo) {
+                showNavbarToast({
+                    message: "Complete your profile (Date of birth, School, Class, Major, Phone) before registering as a Host.",
+                    tone: "warning",
+                    durationMs: 6000
+                });
+                setTimeout(() => { window.location.href = "/profile.html"; }, 1200);
+            } else {
+                window.location.href = "/register-host.html";
+            }
+        });
+    }
+
+    const favBtn = document.getElementById("favourites-btn");
+    favBtn?.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        userMenu.classList.remove("active");
+        const { showFavouritesGlobal } = await import("./favourites.js");
+        showFavouritesGlobal();
+    });
+
+    const verifyBtn = document.getElementById("verify-student-btn");
+    if (verifyBtn) {
+        const u = getUser();
+        verifyBtn.style.display = (u && !isStudentVerified(u)) ? "flex" : "none";
+        verifyBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            userMenu.classList.remove("active");
+            window.location.href = "/student-verify.html";
+        });
+    }
+}
+
+/* =========================
    NOTIFICATIONS
    ========================= */
 
@@ -199,11 +396,31 @@ function initNotifications() {
 
     startNotificationPolling();
 
+    const setNotifOpen = (open) => {
+        dropdown.classList.toggle("active", open);
+        bell.setAttribute("aria-expanded", open ? "true" : "false");
+        if (open) {
+            const userMenu = document.querySelector(".user-menu");
+            if (userMenu) {
+                userMenu.classList.remove("active");
+                document.getElementById("user-chip")?.setAttribute("aria-expanded", "false");
+            }
+        }
+    };
+
     bell.addEventListener("click", (e) => {
         e.stopPropagation();
-        dropdown.classList.toggle("active");
-        if (dropdown.classList.contains("active")) {
-            document.querySelector(".user-menu")?.classList.remove("active");
+        setNotifOpen(!dropdown.classList.contains("active"));
+    });
+
+    bell.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setNotifOpen(!dropdown.classList.contains("active"));
+        } else if (e.key === "Escape" && dropdown.classList.contains("active")) {
+            e.preventDefault();
+            setNotifOpen(false);
+            bell.focus();
         }
     });
 
@@ -328,13 +545,6 @@ function timeAgo(iso) {
     if (hrs < 24) return t("user.h_ago", { n: hrs });
     const days = Math.floor(hrs / 24);
     return t("user.d_ago", { n: days });
-}
-
-function escapeHtml(str) {
-    if (!str) return "";
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
 }
 
 function initLangSwitcher() {
