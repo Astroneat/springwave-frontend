@@ -40,7 +40,6 @@ export async function loadNavbar({ activeSection } = {}) {
     }
 
     setActiveLink(activeSection);
-    initMobileMenu();
 
     const authSection = document.getElementById("auth-section");
     const bellIcon = document.getElementById("bell-icon");
@@ -49,20 +48,53 @@ export async function loadNavbar({ activeSection } = {}) {
             const user = getUser();
             const userChipHTML = await fetchContent("/components/userchip.html");
             authSection.innerHTML = userChipHTML;
-            const avatarEl = document.getElementById("user-avatar");
+
             const avatarImg = document.querySelector(".user-avatar-img");
             const avatarInitial = document.getElementById("user-avatar-initial");
-            if (user.avatar && avatarImg) {
-                avatarImg.src = user.avatar;
-                avatarImg.style.display = "";
+            const dropdownAvatarImg = document.querySelector(".dropdown-avatar-img");
+            const dropdownAvatarInitial = document.querySelector(".dropdown-avatar-initial");
+            const userInitial = (user.username || user.fullname || user.email || "U").charAt(0).toUpperCase();
+
+            if (user.avatar) {
+                if (avatarImg) { avatarImg.src = user.avatar; avatarImg.style.display = ""; }
                 if (avatarInitial) avatarInitial.style.display = "none";
+                if (dropdownAvatarImg) { dropdownAvatarImg.src = user.avatar; dropdownAvatarImg.style.display = ""; }
+                if (dropdownAvatarInitial) dropdownAvatarInitial.style.display = "none";
             } else {
                 if (avatarImg) avatarImg.style.display = "none";
-                if (avatarInitial) {
-                    avatarInitial.textContent = (user.username || user.fullname || user.email || "U").charAt(0).toUpperCase();
-                    avatarInitial.style.display = "";
+                if (avatarInitial) { avatarInitial.textContent = userInitial; avatarInitial.style.display = ""; }
+                if (dropdownAvatarImg) dropdownAvatarImg.style.display = "none";
+                if (dropdownAvatarInitial) { dropdownAvatarInitial.textContent = userInitial; dropdownAvatarInitial.style.display = ""; }
+            }
+
+            const usernameEl = document.getElementById("dropdown-username");
+            const emailEl = document.getElementById("dropdown-email");
+            const roleEl = document.getElementById("dropdown-role-badge");
+
+            if (usernameEl) usernameEl.textContent = user.fullname || user.username || "User";
+            if (emailEl) emailEl.textContent = user.email || "";
+            if (roleEl) {
+                if (user.role === 'admin') {
+                    roleEl.textContent = "Admin";
+                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider";
+                } else if (user.role === 'host') {
+                    roleEl.textContent = "Host / Organizer";
+                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider";
+                } else if (isStudentVerified(user)) {
+                    roleEl.textContent = "Verified Student";
+                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wider";
+                } else {
+                    roleEl.textContent = "Student";
+                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider";
                 }
             }
+
+            const pageLabelEl = document.getElementById("chip-active-page-label");
+            if (pageLabelEl) {
+                const sectionName = activeSection || getSectionFromPath();
+                pageLabelEl.textContent = getSectionTitle(sectionName);
+            }
+
             const adminDashboardBtn = document.getElementById("admin-dashboard-btn");
             if (adminDashboardBtn) {
                 adminDashboardBtn.style.display = user?.role === "admin" ? "" : "none";
@@ -77,28 +109,23 @@ export async function loadNavbar({ activeSection } = {}) {
             window.addEventListener("avatar-updated", (e) => {
                 const avatarUrl = e.detail?.avatar;
                 if (avatarUrl) {
-                    if (avatarImg) {
-                        avatarImg.src = avatarUrl;
-                        avatarImg.style.display = "";
-                    }
+                    if (avatarImg) { avatarImg.src = avatarUrl; avatarImg.style.display = ""; }
                     if (avatarInitial) avatarInitial.style.display = "none";
-                    document.querySelectorAll(".mobile-avatar-img").forEach(img => {
-                        img.src = avatarUrl;
-                    });
+                    if (dropdownAvatarImg) { dropdownAvatarImg.src = avatarUrl; dropdownAvatarImg.style.display = ""; }
+                    if (dropdownAvatarInitial) dropdownAvatarInitial.style.display = "none";
                 }
             });
         } else {
             authSection.innerHTML = `
-                <a href="/login.html" class="figma-navbar-login-btn" data-i18n="nav.login_btn">
+                <a href="/login.html" class="figma-navbar-login-btn flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition spring-ease" data-i18n="nav.login_btn">
                     <span data-i18n="nav.login">Login</span>
-                    <img src="/assets/images/icon-login.svg" alt="Login Icon" />
+                    <img src="/assets/images/icon-login.svg" alt="Login Icon" class="w-4 h-4" />
                 </a>
             `;
             if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }
         }
     }
 
-    updateMobileMenu();
     updateHostBtn();
     await initI18n();
     initLangSwitcher();
@@ -115,15 +142,47 @@ export function initBasicScroll() {
     }, { passive: true });
 }
 
+export function getSectionFromPath() {
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes("explore")) return "explore";
+    if (path.includes("community")) return "community";
+    if (path.includes("about")) return "about";
+    if (path.includes("profile")) return "profile";
+    if (path.includes("my-events")) return "my-events";
+    if (path.includes("roadmap")) return "roadmap";
+    if (path.includes("org-dashboard")) return "org-dashboard";
+    if (path.includes("admin")) return "admin";
+    return "home";
+}
+
+export function getSectionTitle(sec) {
+    switch (sec) {
+        case "explore": return "Explore";
+        case "community": return "Community";
+        case "about": return "About Us";
+        case "profile": return "Profile";
+        case "my-events": return "My Events";
+        case "roadmap": return "Roadmap";
+        case "org-dashboard": return "Dashboard";
+        case "admin": return "Admin";
+        default: return "Home";
+    }
+}
+
 export function setActiveLink(section) {
-    if (!section) return;
-    const navLinks = document.querySelectorAll(".nav-links a, .figma-navbar-link, #mobileMenu a");
+    const sec = section || getSectionFromPath();
+    const navLinks = document.querySelectorAll(".nav-links a, .figma-navbar-link, .dropdown-item[data-section]");
     navLinks.forEach(link => {
         link.classList.remove("active");
-        if (link.dataset.section === section) {
+        if (link.dataset.section === sec) {
             link.classList.add("active");
         }
     });
+
+    const pageLabelEl = document.getElementById("chip-active-page-label");
+    if (pageLabelEl) {
+        pageLabelEl.textContent = getSectionTitle(sec);
+    }
 }
 
 /* =========================
@@ -271,82 +330,6 @@ function timeAgo(iso) {
     return t("user.d_ago", { n: days });
 }
 
-/* =========================
-   MOBILE MENU
-   ========================= */
-
-function initMobileMenu() {
-    const hamburger = document.getElementById("hamburgerBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const mobileOverlay = document.getElementById("mobileOverlay");
-    if (!hamburger || !mobileMenu) return;
-
-    hamburger.addEventListener("click", () => {
-        const userMenu = document.querySelector(".user-menu");
-        if (userMenu) userMenu.classList.remove("active");
-        mobileMenu.classList.toggle("open");
-    });
-    mobileOverlay?.addEventListener("click", () => {
-        mobileMenu.classList.remove("open");
-    });
-    mobileMenu.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => mobileMenu.classList.remove("open"));
-    });
-}
-
-function updateMobileMenu() {
-    const loginBtn = document.getElementById("mobileLoginBtn");
-    const getStartedBtn = document.getElementById("mobileGetStartedBtn");
-    if (!loginBtn || !getStartedBtn) return;
-
-    if (isAuthenticated()) {
-        const user = getUser();
-        loginBtn.outerHTML = createMobileUserHTML(user);
-        getStartedBtn.style.display = "none";
-
-        document.getElementById("mobileLogoutBtn")?.addEventListener("click", () => {
-            logout();
-            window.location.href = "/login.html";
-        });
-    }
-}
-
-function createMobileUserHTML(user) {
-    const initial = user.username?.charAt(0)?.toUpperCase() || "U";
-    const avatarHtml = user.avatar
-        ? `<img src="${user.avatar}" alt="" class="w-full h-full rounded-full object-cover mobile-avatar-img">`
-        : `<span class="text-primary font-bold text-sm">${initial}</span>`;
-    const safeUsername = escapeHtml(user.username || "");
-    const safeEmail = escapeHtml(user.email || "");
-    const isHostOrAdmin = user.role === 'host' || user.role === 'admin';
-    const hostLinkHtml = isHostOrAdmin
-        ? `
-        <a href="#" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-on-surface-variant hover:bg-primary-fixed/20 hover:text-primary font-headline-md text-lg font-medium spring-ease" id="mobile-become-host-btn">
-            <span class="material-symbols-outlined">dashboard</span> <span>Host Dashboard</span>
-        </a>
-        `
-        : '';
-
-    return `
-        <div class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-primary-fixed/10">
-            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-primary/20">
-                ${avatarHtml}
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-on-surface truncate">${safeUsername}</p>
-                <p class="text-xs text-on-surface-variant truncate">${safeEmail}</p>
-            </div>
-        </div>
-        <a href="/profile.html" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-on-surface-variant hover:bg-primary-fixed/20 hover:text-primary font-headline-md text-lg font-medium spring-ease">
-            <span class="material-symbols-outlined">person</span> <span data-i18n="nav.profile">Profile</span>
-        </a>
-        ${hostLinkHtml}
-        <button class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-600 hover:bg-red-50 font-headline-md text-lg font-medium spring-ease w-full text-left" id="mobileLogoutBtn">
-            <span class="material-symbols-outlined">logout</span> <span data-i18n="nav.logout">Logout</span>
-        </button>
-    `;
-}
-
 function escapeHtml(str) {
     if (!str) return "";
     const div = document.createElement("div");
@@ -354,149 +337,27 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-/* =========================
-   USER DROPDOWN
-   ========================= */
-
-export function updateHostBtn() {
-    const u = getUser();
-    if (u?.role !== 'host' && u?.role !== 'admin') return;
-    const desktopBtn = document.getElementById("desktop-become-host-btn");
-    const mobileBtn = document.getElementById("mobile-become-host-btn");
-    [desktopBtn, mobileBtn].forEach(btn => {
-        if (!btn) return;
-        const span = btn.querySelector('span');
-        if (span) span.textContent = 'Host Dashboard';
-        const iconI = btn.querySelector('i');
-        if (iconI) iconI.className = 'fa-solid fa-gauge-high';
-        const iconSpan = btn.querySelector('span.material-symbols-outlined');
-        if (iconSpan) iconSpan.textContent = 'dashboard';
-    });
-}
-
-function initUserDropdown() {
-    const userMenu = document.querySelector(".user-menu");
-    const userChip = document.getElementById("user-chip");
-    const logoutBtn = document.getElementById("logout-btn");
-    if (!userMenu || !userChip) return;
-
-    userChip.addEventListener("click", (e) => {
-        e.stopPropagation();
-        userMenu.classList.toggle("active");
-        if (userMenu.classList.contains("active")) {
-            document.getElementById("notif-dropdown")?.classList.remove("active");
-        }
-    });
-    document.addEventListener("click", () => userMenu.classList.remove("active"));
-    userMenu.addEventListener("click", (e) => e.stopPropagation());
-
-    logoutBtn?.addEventListener("click", () => {
-        logout();
-        window.location.href = "/login.html";
-    });
-
-    updateHostBtn();
-
-    const hostCheck = async (e) => {
-        e.preventDefault();
-
-        // Dynamic check with backend user session state to avoid forced logouts
-        try {
-            const { getCurrentUser } = await import("../api/auth.js");
-            const res = await getCurrentUser();
-            if (res && res.user) {
-                setUser(res.user);
-                updateHostBtn();
-            }
-        } catch (err) {
-            console.warn("Failed to check updated host role:", err);
-        }
-
-        const u = getUser();
-        if (u?.role === 'host' || u?.role === 'admin') {
-            const { getMyHostStatus } = await import("../api/host.js");
-            try {
-                const data = await getMyHostStatus();
-                const url = data.orgId ? `/org-dashboard.html?orgId=${data.orgId}` : "/org-dashboard.html";
-                window.location.href = url;
-            } catch {
-                window.location.href = "/org-dashboard.html";
-            }
-            return;
-        }
-        try {
-            const { getMyHostStatus } = await import("../api/host.js");
-            const data = await getMyHostStatus();
-            if (data.status === 'approved') {
-                const url = data.orgId ? `/org-dashboard.html?orgId=${data.orgId}` : "/org-dashboard.html";
-                window.location.href = url;
-                return;
-            }
-            if (data.status === 'pending') {
-                alert("Your host registration is pending review. Please wait for approval.");
-                return;
-            }
-        } catch {}
-        if (!u.dob || !u.school || !u.class || !u.major || !u.phoneNo) {
-            alert("Vui lòng cập nhật đầy đủ thông tin cá nhân (Ngày sinh, Trường, Lớp, Ngành, SĐT) trong Profile trước khi đăng ký làm Host.");
-            window.location.href = "/profile.html";
-        } else {
-            window.location.href = "/register-host.html";
-        }
-    };
-
-    const desktopHostBtn = document.getElementById("desktop-become-host-btn");
-    if (desktopHostBtn) desktopHostBtn.addEventListener("click", hostCheck);
-
-    const mobileHostBtn = document.getElementById("mobile-become-host-btn");
-    if (mobileHostBtn) mobileHostBtn.addEventListener("click", hostCheck);
-
-    const favBtn = document.getElementById("favourites-btn");
-    favBtn?.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        userMenu.classList.remove("active");
-        const { showFavouritesGlobal } = await import("./favourites.js");
-        showFavouritesGlobal();
-    });
-
-    // Student verification button in user dropdown
-    const verifyBtn = document.getElementById("verify-student-btn");
-    if (verifyBtn) {
-        const u = getUser();
-        if (u && !isStudentVerified(u)) {
-            verifyBtn.style.display = "flex";
-        } else {
-            verifyBtn.style.display = "none";
-        }
-
-        verifyBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            userMenu.classList.remove("active");
-            window.location.href = "/student-verify.html";
-        });
-    }
-}
-
 function initLangSwitcher() {
     const btn = document.getElementById("langSwitcher");
     const label = document.getElementById("langLabel");
-    const mobileBtn = document.getElementById("mobileLangSwitcher");
-    const mobileLabel = document.getElementById("mobileLangLabel");
+    const dropdownLangBtn = document.getElementById("dropdown-mobile-lang-btn");
+    const dropdownLangCode = document.getElementById("dropdown-lang-code");
     
     const updateLabel = () => {
         const lang = getLang().toUpperCase();
         if (label) label.textContent = lang;
-        if (mobileLabel) mobileLabel.textContent = lang;
+        if (dropdownLangCode) dropdownLangCode.textContent = lang;
     };
     updateLabel();
     
-    const toggleLang = () => {
+    const toggleLang = (e) => {
+        if (e) e.stopPropagation();
         const next = getLang() === "en" ? "vi" : "en";
         setLang(next).then(updateLabel);
     };
     
     btn?.addEventListener("click", toggleLang);
-    mobileBtn?.addEventListener("click", toggleLang);
+    dropdownLangBtn?.addEventListener("click", toggleLang);
     window.addEventListener("language-changed", updateLabel);
 }
 

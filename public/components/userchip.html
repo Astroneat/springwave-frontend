@@ -1,65 +1,108 @@
 <div class="user-menu">
 
-    <!-- CHIP -->
-
-    <button
-        class="user-chip"
-        id="user-chip"
-    >
-
+    <!-- USER CHIP PILL -->
+    <button class="user-chip" id="user-chip" aria-label="User Account and Navigation Menu">
         <div class="user-avatar" id="user-avatar">
           <img class="user-avatar-img" style="display:none;" alt="avatar"/>
           <span id="user-avatar-initial" class="user-avatar-initial" style="display:none;"></span>
         </div>
-
+        <span class="chip-active-page font-extrabold text-xs text-[#1c274c] truncate max-w-[85px] sm:max-w-[110px]" id="chip-active-page-label">Home</span>
+        <i class="fa-solid fa-chevron-down text-[10px] text-[#1c274c]/70 transition-transform duration-300"></i>
     </button>
 
-    <!-- DROPDOWN -->
+    <!-- USER DROPDOWN HUB -->
+    <div class="user-dropdown" id="user-dropdown">
 
-    <div
-        class="user-dropdown"
-        id="user-dropdown"
-    >
+        <!-- ACCOUNT INFO CARD -->
+        <div class="user-info-card border-b border-slate-100/80 pb-3 mb-2 px-3 pt-2">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0 ring-2 ring-primary/20" id="dropdown-user-avatar-box">
+                    <img class="w-full h-full object-cover dropdown-avatar-img" style="display:none;" alt="avatar"/>
+                    <span class="font-bold text-sm text-primary dropdown-avatar-initial" style="display:none;">U</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-slate-800 truncate" id="dropdown-username">User</p>
+                    <p class="text-xs text-slate-500 truncate" id="dropdown-email">user@email.com</p>
+                </div>
+            </div>
+            <div class="mt-2.5 flex items-center gap-2">
+                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider" id="dropdown-role-badge">Student</span>
+            </div>
+        </div>
 
-        <a href="/profile.html" class="dropdown-item">
-            <i class="fa-regular fa-user"></i>
-            <span data-i18n="user.profile">Profile</span>
-        </a>
+        <!-- QUICK NAVIGATION (MOBILE & DESKTOP EASY ACCESS) -->
+        <div class="dropdown-nav-group md:hidden border-b border-slate-100/80 pb-2 mb-2">
+            <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Navigation</div>
+            <a href="/index.html" class="dropdown-item" data-section="home">
+                <i class="fa-solid fa-house"></i>
+                <span data-i18n="nav.home">Home</span>
+            </a>
+            <a href="/explore.html" class="dropdown-item" data-section="explore">
+                <i class="fa-solid fa-compass"></i>
+                <span data-i18n="nav.explore">Explore</span>
+            </a>
+            <a href="/community.html" class="dropdown-item" data-section="community">
+                <i class="fa-solid fa-comments"></i>
+                <span data-i18n="nav.community">Community</span>
+            </a>
+            <a href="/about.html" class="dropdown-item" data-section="about">
+                <i class="fa-solid fa-circle-info"></i>
+                <span data-i18n="nav.about">About Us</span>
+            </a>
+        </div>
 
-        <a href="/roadmap.html" class="dropdown-item" data-requires-verified="true" data-action-name="create a roadmap">
-            <i class="fa-solid fa-route"></i>
-            <span data-i18n="user.roadmap">Roadmap</span>
-        </a>
+        <!-- PERSONAL TOOLS & ACCOUNT -->
+        <div class="dropdown-tools-group">
+            <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider hidden md:block">Account & Tools</div>
+            
+            <a href="/profile.html" class="dropdown-item">
+                <i class="fa-regular fa-user"></i>
+                <span data-i18n="user.profile">Profile</span>
+            </a>
 
-        <a href="#" class="dropdown-item" id="desktop-become-host-btn">
-            <i class="fa-solid fa-user-tie"></i>
-            <span data-i18n="user.become_host">Become a Host</span>
-        </a>
+            <a href="/my-events.html" class="dropdown-item">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>My Events</span>
+            </a>
 
-        <a href="/admin.html" class="dropdown-item" id="admin-dashboard-btn">
-            <i class="fa-solid fa-shield-halved"></i>
-            <span data-i18n="admin.dashboard">Admin Dashboard</span>
-        </a>
+            <a href="/roadmap.html" class="dropdown-item" data-requires-verified="true" data-action-name="create a roadmap">
+                <i class="fa-solid fa-route"></i>
+                <span data-i18n="user.roadmap">Roadmap</span>
+            </a>
 
-        <button class="dropdown-item" id="favourites-btn">
-            <i class="fa-regular fa-heart"></i>
-            <span data-i18n="user.favourites">Favourites</span>
-        </button>
+            <button class="dropdown-item" id="favourites-btn">
+                <i class="fa-regular fa-heart"></i>
+                <span data-i18n="user.favourites">Favourites</span>
+            </button>
 
-        <a href="/my-events.html" class="dropdown-item">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>My Events</span>
-        </a>
+            <a href="#" class="dropdown-item" id="desktop-become-host-btn">
+                <i class="fa-solid fa-user-tie"></i>
+                <span data-i18n="user.become_host">Become a Host</span>
+            </a>
 
-        <button class="dropdown-item" id="verify-student-btn" style="display: none;">
-            <i class="fa-solid fa-id-card"></i>
-            <span>Verify Student</span>
-        </button>
+            <a href="/admin.html" class="dropdown-item" id="admin-dashboard-btn" style="display:none;">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span data-i18n="admin.dashboard">Admin Dashboard</span>
+            </a>
 
-        <button class="dropdown-item logout-item" id="logout-btn">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            <span data-i18n="user.logout">Logout</span>
-        </button>
+            <button class="dropdown-item" id="verify-student-btn" style="display: none;">
+                <i class="fa-solid fa-id-card"></i>
+                <span>Verify Student</span>
+            </button>
+
+            <button class="dropdown-item md:hidden" id="dropdown-mobile-lang-btn">
+                <i class="fa-solid fa-language"></i>
+                <span>Language: <strong id="dropdown-lang-code" class="text-primary font-extrabold">EN</strong></span>
+            </button>
+        </div>
+
+        <!-- LOGOUT -->
+        <div class="border-t border-slate-100/80 pt-2 mt-2">
+            <button class="dropdown-item logout-item" id="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span data-i18n="user.logout">Logout</span>
+            </button>
+        </div>
 
     </div>
 
