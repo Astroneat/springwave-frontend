@@ -253,10 +253,9 @@ function updateHostBtn() {
         desktopBtn.style.display = "none";
     }
 
-    // Hosts get a direct Host Dashboard link; admins keep "Become a Host" hidden
-    // but only see the Host Dashboard if they also own an organization.
+    // Hosts and admins get a direct Host Dashboard link; admins keep "Become a Host" hidden
     const hostDashboardBtn = document.getElementById("host-dashboard-btn");
-    if (hostDashboardBtn && isHost) {
+    if (hostDashboardBtn && (isHost || isAdmin)) {
         hostDashboardBtn.style.display = "";
         // Resolve the org id once so the link goes directly to the user's organization
         import("../api/host.js").then(({ getMyHostStatus }) => {
