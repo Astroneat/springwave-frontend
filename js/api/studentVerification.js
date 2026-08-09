@@ -1,7 +1,12 @@
 import { get, put, post } from "./client.js";
+import { uploadFormData } from "./client.js";
 
 export function getMyVerificationStatus() {
   return get('/student-verification/my-status');
+}
+
+export function autoVerifyStudent(formData) {
+  return uploadFormData('/student-verification/auto-verify', formData);
 }
 
 export function getVerifications(params = {}) {

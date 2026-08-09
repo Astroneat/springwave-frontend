@@ -323,7 +323,12 @@ async function loadEvents() {
 
 function isEventExpired(heldDate) {
   if (!heldDate) return false;
-  return new Date(heldDate) < new Date();
+  // Use Vietnam timezone (Asia/Ho_Chi_Minh) for date-only comparison,
+  // consistent with how the backend checks event dates. This prevents
+  // newly created future events from appearing as expired due to UTC+7 offset.
+  const eventDateStr = new Date(heldDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+  const nowStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+  return eventDateStr < nowStr;
 }
 
 function canEditEvent(heldDate) {
@@ -1164,7 +1169,35 @@ function initQRScan() {
   let feedbackTimer = null;
   let sessionHistory = [];
   let lastScanTime = 0;
-  const SCAN_INTERVAL = 100; // scan every 100ms for zero lag and low CPU load
+  const SCAN_INTERVAL = 80; // scan every 80ms — fast enough for QR and barcode
+
+  // Lazy-init native BarcodeDetector with full barcode format support
+  // (code_128 / code_39 for student card barcodes, qr_code for ticket QRs)
+  let nativeBarcodeDetector = null;
+  async function getNativeBarcodeDetector() {
+    if (nativeBarcodeDetector) return nativeBarcodeDetector;
+    if (typeof BarcodeDetector === 'undefined') return null;
+    try {
+      const supported = await BarcodeDetector.getSupportedFormats?.() || [];
+      const allFormats = ['qr_code', 'code_128', 'code_39', 'ean_13', 'pdf417', 'codabar', 'code_93', 'data_matrix', 'aztec'];
+      const formats = allFormats.filter(f => supported.length === 0 || supported.includes(f));
+      nativeBarcodeDetector = new BarcodeDetector({ formats: formats.length > 0 ? formats : allFormats });
+      console.log('[Scanner] Native BarcodeDetector ready, formats:', formats);
+    } catch (e) {
+      try {
+        nativeBarcodeDetector = new BarcodeDetector();
+        console.log('[Scanner] Native BarcodeDetector ready (default formats)');
+      } catch (e2) {
+        nativeBarcodeDetector = null;
+        console.warn('[Scanner] BarcodeDetector unavailable, falling back to jsQR');
+      }
+    }
+    return nativeBarcodeDetector;
+  }
+  // Pre-warm the BarcodeDetector
+  getNativeBarcodeDetector().catch(() => {});
+
+  let scanType = 'qr'; // 'qr' | 'barcode' — updated dynamically per scan result
 
   function playBeep(success) {
     try {
@@ -1449,40 +1482,36 @@ function initQRScan() {
         const sx = (video.videoWidth - sourceSize) / 2;
         const sy = (video.videoHeight - sourceSize) / 2;
 
-        const targetSize = 350; // Optimized size for speed & high-density decodes
+        const targetSize = 350;
         canvas.width = targetSize;
         canvas.height = targetSize;
 
-        // Draw cropped center square from video source
         ctx.drawImage(video, sx, sy, sourceSize, sourceSize, 0, 0, targetSize, targetSize);
 
         try {
-          if (typeof BarcodeDetector !== "undefined") {
-            if (!window.__nativeBarcodeDetector) {
-              try {
-                window.__nativeBarcodeDetector = new BarcodeDetector({
-                  formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'pdf417', 'codabar']
-                });
-              } catch (e) {
-                window.__nativeBarcodeDetector = new BarcodeDetector();
-              }
-            }
-            window.__nativeBarcodeDetector.detect(video).then(barcodes => {
+          // 1. Prioritize native BarcodeDetector (fastest, handles QR + all barcode formats)
+          //    Detect directly from the video element for maximum performance
+          const detector = nativeBarcodeDetector;
+          if (detector) {
+            detector.detect(video).then(barcodes => {
               if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
-                onScanSuccess(barcodes[0].rawValue);
+                const raw = barcodes[0].rawValue;
+                const fmt = barcodes[0].format || '';
+                // Track scan type so UI can show barcode vs QR label
+                scanType = fmt === 'qr_code' ? 'qr' : 'barcode';
+                onScanSuccess(raw);
               }
             }).catch(() => {});
-          }
-
-          const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
-          if (typeof jsQR !== "undefined") {
-            // Alternate inversion attempts between frames to keep CPU usage low
-            const attempt = (Math.floor(now / SCAN_INTERVAL) % 2 === 0) ? "dontInvert" : "attemptBoth";
-            const code = jsQR(imageData.data, targetSize, targetSize, {
-              inversionAttempts: attempt
-            });
-            if (code && code.data) {
-              onScanSuccess(code.data);
+          } else {
+            // 2. Fallback: jsQR for QR-code-only environments
+            const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
+            if (typeof jsQR !== "undefined") {
+              const attempt = (Math.floor(now / SCAN_INTERVAL) % 2 === 0) ? "dontInvert" : "attemptBoth";
+              const code = jsQR(imageData.data, targetSize, targetSize, { inversionAttempts: attempt });
+              if (code && code.data) {
+                scanType = 'qr';
+                onScanSuccess(code.data);
+              }
             }
           }
         } catch (err) {

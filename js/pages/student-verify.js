@@ -4,7 +4,8 @@ import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { uploadFormData } from "../api/client.js";
-import { getMyVerificationStatus } from "../api/studentVerification.js";
+import { getMyVerificationStatus, autoVerifyStudent } from "../api/studentVerification.js";
+import { checkSchoolEmail } from "../api/universities.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import { isSchoolEmail } from "../lib/utils.js";
 
@@ -23,20 +24,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     await initChatbot();
 
-    // Check if user already has a school email and shouldn't be here
+    // Check if user has a school email → enable auto-verify (no admin review needed)
     const user = getUser();
-    if (user && user.email && await isSchoolEmail(user.email)) {
+    let isSchoolEmailUser = false;
+    if (user && user.email) {
+        try {
+            const schoolCheck = await checkSchoolEmail(user.email);
+            isSchoolEmailUser = schoolCheck.isSchool;
+        } catch (e) {}
+    }
+
+    if (isSchoolEmailUser) {
+        // Show auto-verify notice — same form, but instant approval
         const banner = document.getElementById("status-banner");
         if (banner) {
             banner.classList.remove("hidden");
             banner.innerHTML = `
-                <div class="rounded-xl bg-blue-50 border border-blue-200 p-6 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined text-blue-600 text-2xl">info</span>
+                <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-5 flex items-start gap-4 mb-2">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="material-symbols-outlined text-emerald-600 text-xl">verified</span>
                     </div>
                     <div>
-                        <h3 class="font-headline-md text-headline-md text-blue-800">School Email Detected</h3>
-                        <p class="text-sm text-blue-700">Your email (${user.email}) is recognized as a school email. You should be auto-verified. If auto-verification hasn't completed, please contact support.</p>
+                        <h3 class="font-semibold text-emerald-800 text-sm">Email trường được nhận diện — Xác thực tự động</h3>
+                        <p class="text-sm text-emerald-700 mt-1">Email <strong>${user.email}</strong> là email sinh viên. Sau khi điền MSSV và tải ảnh thẻ lên, tài khoản của bạn sẽ được xác thực <strong>ngay lập tức</strong> mà không cần chờ admin duyệt.</p>
                     </div>
                 </div>
             `;
@@ -45,6 +55,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     initTurnstile();
     await checkExistingStatus();
+
+    // UI customizations for school email auto-verify flow
+    if (isSchoolEmailUser) {
+        // Hide Turnstile widget (not required for auto-verify)
+        const turnstileContainer = document.getElementById('turnstile-container');
+        if (turnstileContainer) turnstileContainer.classList.add('hidden');
+
+        // Update submit button
+        const submitText = document.getElementById('verify-submit-text');
+        const submitIcon = document.getElementById('verify-submit-icon');
+        if (submitText) submitText.textContent = 'Xác thực ngay';
+        if (submitIcon) submitIcon.textContent = 'verified';
+
+        // Update page subtitle
+        const subtitle = document.getElementById('verify-page-subtitle');
+        if (subtitle) subtitle.textContent = 'Điền MSSV và tải ảnh thẻ sinh viên (2 mặt). Email trường của bạn được nhận diện — tài khoản sẽ được xác thực ngay lập tức mà không cần chờ admin.';
+    }
 
     const form = document.querySelector('form');
     if (!form) return;
@@ -146,6 +173,38 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.classList.add('opacity-80', 'pointer-events-none');
 
         const formData = new FormData(form);
+
+        // Auto-verify path: school email users are verified immediately (no admin review)
+        if (isSchoolEmailUser) {
+            try {
+                await autoVerifyStudent(formData);
+
+                btn.innerHTML = '<span class="material-symbols-outlined">verified</span> <span>Đã xác thực!</span>';
+                btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
+                btn.classList.add('bg-emerald-600');
+
+                setTimeout(() => {
+                    alert("Xác thực sinh viên thành công! Tài khoản của bạn đã được xác thực ngay lập tức.");
+                    window.location.href = "/profile.html";
+                }, 1200);
+            } catch (error) {
+                const msg = error?.message || "An unexpected error occurred. Please try again.";
+                let userMsg = msg;
+                if (msg.includes("already verified")) {
+                    userMsg = "Bạn đã được xác thực sinh viên rồi.";
+                } else if (msg.includes("student ID has already been")) {
+                    userMsg = "Mã số sinh viên này đã được xác thực bởi người khác.";
+                } else if (msg.includes("school email")) {
+                    userMsg = "Email của bạn không được nhận diện là email trường. Vui lòng sử dụng quy trình xác thực thông thường.";
+                }
+                alert("Lỗi: " + userMsg);
+                btn.innerHTML = originalText;
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+            }
+            return;
+        }
+
+        // Standard path: non-school email → submit for admin review
         if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
             formData.append("cfTurnstileResponse", turnstile.getResponse(turnstileWidgetId));
         }

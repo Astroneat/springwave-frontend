@@ -4,7 +4,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Student Verification | SpringWave</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&amp;family=satoshi:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 <style>
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -33,7 +33,7 @@
       <span class="font-label-md text-label-md">Student Identity Verification</span>
     </div>
     <h1 class="font-headline-lg text-headline-lg text-primary mb-4">Xác nhận sinh viên</h1>
-    <p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto">
+    <p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto" id="verify-page-subtitle">
       Vui lòng cung cấp mã số sinh viên và ảnh chụp thẻ sinh viên để xác thực danh tính. Admin sẽ xem xét và duyệt yêu cầu của bạn.
     </p>
   </section>
@@ -94,9 +94,9 @@
       <p class="font-caption text-outline text-center max-w-[500px]">
         By submitting, you confirm that the information provided is accurate. Your student card image is stored securely and only visible to admins.
       </p>
-      <button class="w-full h-14 rounded-full bg-gradient-to-r from-primary-container to-secondary text-white font-headline-md text-label-lg flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group" type="submit">
-        <span>Submit for Verification</span>
-        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">send</span>
+      <button class="w-full h-14 rounded-full bg-gradient-to-r from-primary-container to-secondary text-white font-headline-md text-label-lg flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group" type="submit" id="verify-submit-btn">
+        <span id="verify-submit-text">Submit for Verification</span>
+        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" id="verify-submit-icon">send</span>
       </button>
     </div>
   </form>
