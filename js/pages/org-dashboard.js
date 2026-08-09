@@ -10,6 +10,7 @@ import { getEventCertificates, issueCertificates } from "../api/certificates.js"
 import { getHostReviews } from "../api/activities.js";
 import { getOrgAnalytics, downloadOrgExcelReport } from "../api/analytics.js";
 import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 
 let currentOrgId = null;
 let currentOrgs = [];
@@ -1170,28 +1171,23 @@ function initQRScan() {
   let feedbackTimer = null;
   let sessionHistory = [];
   let lastScanTime = 0;
-  const SCAN_INTERVAL = 16; // Scan on virtually every frame (~60fps) for instant detection
+  const SCAN_INTERVAL = 30; // 33 FPS — smooth, responsive, low CPU consumption
   let isProcessingFrame = false;
 
-  // Lazy-init native BarcodeDetector with full barcode format support
-  // (code_128 / code_39 for student card barcodes, qr_code for ticket QRs)
+  // Lazy-init native BarcodeDetector restricted to required formats for maximum speed
   let nativeBarcodeDetector = null;
   async function getNativeBarcodeDetector() {
     if (nativeBarcodeDetector) return nativeBarcodeDetector;
     if (typeof BarcodeDetector === 'undefined') return null;
     try {
-      const supported = await BarcodeDetector.getSupportedFormats?.() || [];
-      const allFormats = ['qr_code', 'code_128', 'code_39', 'ean_13', 'pdf417', 'codabar', 'code_93', 'data_matrix', 'aztec'];
-      const formats = allFormats.filter(f => supported.length === 0 || supported.includes(f));
-      nativeBarcodeDetector = new BarcodeDetector({ formats: formats.length > 0 ? formats : allFormats });
-      console.log('[Scanner] Native BarcodeDetector ready, formats:', formats);
+      const targetFormats = ['qr_code', 'code_128', 'code_39'];
+      nativeBarcodeDetector = new BarcodeDetector({ formats: targetFormats });
+      console.log('[Scanner] Native BarcodeDetector ready (target formats only)');
     } catch (e) {
       try {
         nativeBarcodeDetector = new BarcodeDetector();
-        console.log('[Scanner] Native BarcodeDetector ready (default formats)');
       } catch (e2) {
         nativeBarcodeDetector = null;
-        console.warn('[Scanner] BarcodeDetector unavailable, falling back to ZXing');
       }
     }
     return nativeBarcodeDetector;
@@ -1199,15 +1195,20 @@ function initQRScan() {
   // Pre-warm the BarcodeDetector
   getNativeBarcodeDetector().catch(() => {});
 
-  // ZXing fallback for browsers without native BarcodeDetector (Safari/iOS).
-  // ZXing's BrowserMultiFormatReader handles both QR codes AND 1D/2D barcodes.
+  // ZXing fallback restricted to target formats only (QR_CODE, CODE_128, CODE_39)
   let zxingReader = null;
   async function getZXingReader() {
     if (zxingReader) return zxingReader;
     if (typeof BrowserMultiFormatReader === 'undefined') return null;
     try {
-      zxingReader = new BrowserMultiFormatReader();
-      console.log('[Scanner] ZXing fallback reader ready');
+      const hints = new Map();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.QR_CODE,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39
+      ]);
+      zxingReader = new BrowserMultiFormatReader(hints);
+      console.log('[Scanner] ZXing format-restricted reader ready');
       return zxingReader;
     } catch (e) {
       console.warn('[Scanner] ZXing unavailable:', e);
@@ -1431,8 +1432,6 @@ function initQRScan() {
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  const flippedCanvas = document.createElement("canvas");
-  const flippedCtx = flippedCanvas.getContext("2d", { willReadFrequently: true });
 
   function updateVideoMirrorStyle() {
     const video = document.getElementById("qr-video");
@@ -1518,8 +1517,8 @@ function initQRScan() {
         lastScanTime = now;
         isProcessingFrame = true;
 
-        // High-res full frame (up to 960px) to keep 1D Code 128 / Code 39 barcode lines crisp
-        const maxDim = 960;
+        // Optimal 480px resolution for ultra-fast JS binarization (~180k pixels)
+        const maxDim = 480;
         const vw = video.videoWidth || 640;
         const vh = video.videoHeight || 480;
         const scale = Math.min(maxDim / vw, maxDim / vh, 1.0);
@@ -1529,27 +1528,26 @@ function initQRScan() {
         if (canvas.width !== targetW || canvas.height !== targetH) {
           canvas.width = targetW;
           canvas.height = targetH;
-          flippedCanvas.width = targetW;
-          flippedCanvas.height = targetH;
         }
 
-        // Draw standard frame
+        // Single-pass draw: if mirrored (front camera), flip horizontally so canvas is ALWAYS in readable left-to-right orientation
+        ctx.save();
+        if (isMirrored) {
+          ctx.translate(targetW, 0);
+          ctx.scale(-1, 1);
+        }
         ctx.drawImage(video, 0, 0, targetW, targetH);
-
-        // Draw un-mirrored (horizontally flipped) frame for front cameras / mirrored barcodes
-        flippedCtx.save();
-        flippedCtx.translate(targetW, 0);
-        flippedCtx.scale(-1, 1);
-        flippedCtx.drawImage(video, 0, 0, targetW, targetH);
-        flippedCtx.restore();
+        ctx.restore();
 
         const finalizeFrame = () => { isProcessingFrame = false; };
 
         try {
           const detector = nativeBarcodeDetector;
           if (detector) {
-            // 1. Try native BarcodeDetector on raw video
-            detector.detect(video).then(barcodes => {
+            // 1. Native BarcodeDetector (Chrome / Edge / Android) — hardware C++ accelerated
+            // Pass canvas if mirrored (so text reads left-to-right), otherwise raw video
+            const source = isMirrored ? canvas : video;
+            detector.detect(source).then(barcodes => {
               if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
                 const raw = barcodes[0].rawValue;
                 const fmt = barcodes[0].format || '';
@@ -1559,38 +1557,24 @@ function initQRScan() {
               } else if (!isScanning) {
                 finalizeFrame();
               } else {
-                // 1b. If raw video failed (e.g. mirrored front camera 1D barcode), try un-mirrored flipped canvas!
-                detector.detect(flippedCanvas).then(flippedBarcodes => {
-                  if (flippedBarcodes && flippedBarcodes.length > 0 && flippedBarcodes[0].rawValue) {
-                    const raw = flippedBarcodes[0].rawValue;
-                    const fmt = flippedBarcodes[0].format || '';
-                    scanType = fmt === 'qr_code' ? 'qr' : 'barcode';
-                    onScanSuccess(raw);
-                    finalizeFrame();
-                  } else {
-                    tryZXingFallback().finally(finalizeFrame);
-                  }
-                }).catch(() => {
-                  tryZXingFallback().finally(finalizeFrame);
-                });
+                tryZXingFallback().finally(finalizeFrame);
               }
             }).catch(() => {
               tryZXingFallback().finally(finalizeFrame);
             });
           } else {
-            // 2. No native BarcodeDetector — try ZXing directly
+            // 2. ZXing fallback (Safari / iOS)
             tryZXingFallback().finally(finalizeFrame);
           }
         } catch (err) {
           finalizeFrame();
         }
 
-        // Shared ZXing fallback: decodes both standard and un-mirrored frames
+        // Shared ZXing fallback: decodes format-restricted 480px canvas in ~3ms
         async function tryZXingFallback() {
           const zxing = await getZXingReader();
           if (zxing && isScanning) {
             try {
-              // Try standard canvas orientation first
               const result = zxing.decodeFromCanvas(canvas);
               if (result && result.getText && result.getText()) {
                 const fmt = result.getBarcodeFormat?.();
@@ -1599,20 +1583,9 @@ function initQRScan() {
                 return;
               }
             } catch (e) {}
-
-            try {
-              // Try un-mirrored canvas orientation for front-camera 1D barcodes
-              const flippedResult = zxing.decodeFromCanvas(flippedCanvas);
-              if (flippedResult && flippedResult.getText && flippedResult.getText()) {
-                const fmt = flippedResult.getBarcodeFormat?.();
-                scanType = (fmt === 11) ? 'qr' : 'barcode';
-                onScanSuccess(flippedResult.getText());
-                return;
-              }
-            } catch (e) {}
           }
 
-          // 3. Legacy jsQR fallback
+          // 3. Fast jsQR fallback
           if (isScanning && typeof jsQR !== "undefined") {
             const imageData = ctx.getImageData(0, 0, targetW, targetH);
             const attempt = (Math.floor(now / 50) % 2 === 0) ? "dontInvert" : "attemptBoth";
