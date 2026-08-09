@@ -1171,18 +1171,39 @@ function initQRScan() {
   let feedbackTimer = null;
   let sessionHistory = [];
   let lastScanTime = 0;
-  const SCAN_INTERVAL = 30; // 33 FPS — smooth, responsive, low CPU consumption
+  const SCAN_INTERVAL = 16; // ~60 FPS — ultra-fast real-time response
   let isProcessingFrame = false;
 
-  // Lazy-init native BarcodeDetector restricted to required formats for maximum speed
+  let rotCanvas = null;
+  let rotCtx = null;
+  function getRotatedCanvas(srcCanvas) {
+    if (!rotCanvas) {
+      rotCanvas = document.createElement("canvas");
+      rotCtx = rotCanvas.getContext("2d", { willReadFrequently: true });
+    }
+    const w = srcCanvas.width;
+    const h = srcCanvas.height;
+    if (rotCanvas.width !== h || rotCanvas.height !== w) {
+      rotCanvas.width = h;
+      rotCanvas.height = w;
+    }
+    rotCtx.save();
+    rotCtx.translate(h, 0);
+    rotCtx.rotate(Math.PI / 2);
+    rotCtx.drawImage(srcCanvas, 0, 0);
+    rotCtx.restore();
+    return rotCanvas;
+  }
+
+  // Lazy-init native BarcodeDetector restricted to required formats for maximum speed & omnidirectional support
   let nativeBarcodeDetector = null;
   async function getNativeBarcodeDetector() {
     if (nativeBarcodeDetector) return nativeBarcodeDetector;
     if (typeof BarcodeDetector === 'undefined') return null;
     try {
-      const targetFormats = ['qr_code', 'code_128', 'code_39'];
+      const targetFormats = ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'pdf417', 'data_matrix'];
       nativeBarcodeDetector = new BarcodeDetector({ formats: targetFormats });
-      console.log('[Scanner] Native BarcodeDetector ready (target formats only)');
+      console.log('[Scanner] Native BarcodeDetector ready (multi-format omnidirectional)');
     } catch (e) {
       try {
         nativeBarcodeDetector = new BarcodeDetector();
@@ -1192,10 +1213,9 @@ function initQRScan() {
     }
     return nativeBarcodeDetector;
   }
-  // Pre-warm the BarcodeDetector
   getNativeBarcodeDetector().catch(() => {});
 
-  // ZXing fallback restricted to target formats only (QR_CODE, CODE_128, CODE_39)
+  // ZXing fallback with TRY_HARDER hint enabled for 360-degree omnidirectional decoding
   let zxingReader = null;
   async function getZXingReader() {
     if (zxingReader) return zxingReader;
@@ -1205,17 +1225,20 @@ function initQRScan() {
       hints.set(DecodeHintType.POSSIBLE_FORMATS, [
         BarcodeFormat.QR_CODE,
         BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.UPC_A
       ]);
+      hints.set(DecodeHintType.TRY_HARDER, true);
       zxingReader = new BrowserMultiFormatReader(hints);
-      console.log('[Scanner] ZXing format-restricted reader ready');
+      console.log('[Scanner] ZXing multi-angle omnidirectional reader ready');
       return zxingReader;
     } catch (e) {
       console.warn('[Scanner] ZXing unavailable:', e);
       return null;
     }
   }
-  // Pre-warm the ZXing reader
   getZXingReader().catch(() => {});
 
   let scanType = 'qr'; // 'qr' | 'barcode' — updated dynamically per scan result
@@ -1544,8 +1567,7 @@ function initQRScan() {
         try {
           const detector = nativeBarcodeDetector;
           if (detector) {
-            // 1. Native BarcodeDetector (Chrome / Edge / Android) — hardware C++ accelerated
-            // Pass canvas if mirrored (so text reads left-to-right), otherwise raw video
+            // 1. Native BarcodeDetector (Chrome / Edge / Android) — hardware C++ accelerated (Pass 0: Normal 0 deg)
             const source = isMirrored ? canvas : video;
             detector.detect(source).then(barcodes => {
               if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
@@ -1557,7 +1579,21 @@ function initQRScan() {
               } else if (!isScanning) {
                 finalizeFrame();
               } else {
-                tryZXingFallback().finally(finalizeFrame);
+                // Pass 90: Rotated 90 deg for vertical & tilted barcodes/cards
+                const rCanvas = getRotatedCanvas(canvas);
+                detector.detect(rCanvas).then(rBarcodes => {
+                  if (rBarcodes && rBarcodes.length > 0 && rBarcodes[0].rawValue) {
+                    const raw = rBarcodes[0].rawValue;
+                    const fmt = rBarcodes[0].format || '';
+                    scanType = fmt === 'qr_code' ? 'qr' : 'barcode';
+                    onScanSuccess(raw);
+                    finalizeFrame();
+                  } else {
+                    tryZXingFallback().finally(finalizeFrame);
+                  }
+                }).catch(() => {
+                  tryZXingFallback().finally(finalizeFrame);
+                });
               }
             }).catch(() => {
               tryZXingFallback().finally(finalizeFrame);
@@ -1570,12 +1606,16 @@ function initQRScan() {
           finalizeFrame();
         }
 
-        // Shared ZXing fallback: decodes format-restricted 480px canvas in ~3ms
+        // Shared ZXing + jsQR multi-angle fallback
         async function tryZXingFallback() {
           const zxing = await getZXingReader();
           if (zxing && isScanning) {
             try {
-              const result = zxing.decodeFromCanvas(canvas);
+              let result = zxing.decodeFromCanvas(canvas);
+              if (!result || !result.getText || !result.getText()) {
+                const rCanvas = getRotatedCanvas(canvas);
+                result = zxing.decodeFromCanvas(rCanvas);
+              }
               if (result && result.getText && result.getText()) {
                 const fmt = result.getBarcodeFormat?.();
                 scanType = (fmt === 11) ? 'qr' : 'barcode';
@@ -1585,11 +1625,15 @@ function initQRScan() {
             } catch (e) {}
           }
 
-          // 3. Fast jsQR fallback
+          // 3. Fast jsQR multi-angle fallback
           if (isScanning && typeof jsQR !== "undefined") {
             const imageData = ctx.getImageData(0, 0, targetW, targetH);
-            const attempt = (Math.floor(now / 50) % 2 === 0) ? "dontInvert" : "attemptBoth";
-            const code = jsQR(imageData.data, targetW, targetH, { inversionAttempts: attempt });
+            let code = jsQR(imageData.data, targetW, targetH, { inversionAttempts: "attemptBoth" });
+            if (!code || !code.data) {
+              const rCanvas = getRotatedCanvas(canvas);
+              const rImageData = rotCtx.getImageData(0, 0, rCanvas.width, rCanvas.height);
+              code = jsQR(rImageData.data, rCanvas.width, rCanvas.height, { inversionAttempts: "attemptBoth" });
+            }
             if (code && code.data) {
               scanType = 'qr';
               onScanSuccess(code.data);
