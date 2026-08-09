@@ -23,13 +23,11 @@ function isInactive(t) {
 
 function isEventExpired(t) {
   const event = t.event || {};
-  if (!event.heldDate) return false;
-  // Use Vietnam timezone (Asia/Ho_Chi_Minh) for date-only comparison,
-  // consistent with how the backend checks event dates. This prevents
-  // newly created future events from appearing as expired due to UTC+7 offset.
-  const eventDateStr = new Date(event.heldDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
-  const nowStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
-  return eventDateStr < nowStr;
+  if (!event.heldDate && !event.heldDateEnd) return false;
+  const endDate = event.heldDateEnd
+    ? new Date(event.heldDateEnd).getTime()
+    : new Date(event.heldDate).getTime() + 24 * 60 * 60 * 1000;
+  return Date.now() > endDate;
 }
 
 function statusBadgeHTML(status) {

@@ -217,11 +217,60 @@
         </section>
 
 
-        <!-- HELD DATE & TIME -->
+        <!-- DATE & TIME LIFECYCLE -->
         <section class="section">
-            <div class="date-grid">
+            <!-- 1. REGISTRATION DEADLINE -->
+            <h3 class="font-bold text-base text-[#1e293b] mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-600">timer</span>
+                Hạn đăng ký sự kiện (Registration Deadline)
+            </h3>
+            <div class="date-grid mb-6">
                 <div class="date-card">
-                    <label class="label" data-i18n="host.held_date">Held Date</label>
+                    <label class="label" data-i18n="explore.registration_deadline">Hạn đăng ký</label>
+
+                    <div class="dp-trigger">
+                        <span class="material-symbols-outlined">event</span>
+                        <input type="text" id="applicationDeadlineInput" class="dp-input" placeholder="dd/mm/yyyy" autocomplete="off">
+                    </div>
+
+                    <div class="dp-dropdown" id="applicationDeadlineDropdown">
+                        <div class="dp-cal-header">
+                            <button class="dp-nav" id="applicationDeadlinePrev" type="button">‹</button>
+                            <span class="dp-month-label" id="applicationDeadlineMonthLabel">Month Year</span>
+                            <button class="dp-nav" id="applicationDeadlineNext" type="button">›</button>
+                        </div>
+                        <div class="dp-cal-grid" id="applicationDeadlineCalGrid"></div>
+                        <div class="dp-cal-footer">
+                            <button class="dp-clear" id="applicationDeadlineClear" type="button" data-i18n="common.clear">Clear</button>
+                            <button class="dp-close" id="applicationDeadlineClose" type="button" data-i18n="common.close">Close</button>
+                        </div>
+                    </div>
+
+                    <input id="applicationDeadline" name="applicationDeadline" type="hidden">
+                </div>
+
+                <div class="time-picker-card">
+                    <label class="label">Giờ hết hạn đăng ký</label>
+                    <div class="time-input-row">
+                        <div class="time-field">
+                            <span class="material-symbols-outlined">schedule</span>
+                            <select id="deadlineHour" class="time-select"></select>
+                            <span class="time-sep">:</span>
+                            <select id="deadlineMinute" class="time-select"></select>
+                        </div>
+                    </div>
+                    <p class="sub-text">Hệ thống sẽ tự động khóa đăng ký sau thời điểm này.</p>
+                </div>
+            </div>
+
+            <!-- 2. START DATE & TIME -->
+            <h3 class="font-bold text-base text-[#1e293b] mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-green-600">play_circle</span>
+                Thời gian Bắt đầu Sự kiện (Start Date & Time)
+            </h3>
+            <div class="date-grid mb-6">
+                <div class="date-card">
+                    <label class="label" data-i18n="host.held_date">Ngày bắt đầu</label>
 
                     <div class="dp-trigger">
                         <span class="material-symbols-outlined">event</span>
@@ -245,7 +294,7 @@
                 </div>
 
                 <div class="time-picker-card">
-                    <label class="label" data-i18n="host.held_time">Start Time</label>
+                    <label class="label" data-i18n="host.held_time">Giờ bắt đầu</label>
                     <div class="time-input-row">
                         <div class="time-field">
                             <span class="material-symbols-outlined">schedule</span>
@@ -254,7 +303,51 @@
                             <select id="heldMinute" class="time-select"></select>
                         </div>
                     </div>
-                    <p class="sub-text">Select the event start time.</p>
+                    <p class="sub-text">Chuyển sang trạng thái "Đang diễn ra" vào mốc giờ này.</p>
+                </div>
+            </div>
+
+            <!-- 3. END DATE & TIME -->
+            <h3 class="font-bold text-base text-[#1e293b] mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-red-600">stop_circle</span>
+                Thời gian Kết thúc Sự kiện (End Date & Time)
+            </h3>
+            <div class="date-grid">
+                <div class="date-card">
+                    <label class="label">Ngày kết thúc</label>
+
+                    <div class="dp-trigger">
+                        <span class="material-symbols-outlined">event</span>
+                        <input type="text" id="heldDateEndInput" class="dp-input" placeholder="dd/mm/yyyy" autocomplete="off">
+                    </div>
+
+                    <div class="dp-dropdown" id="heldDateEndDropdown">
+                        <div class="dp-cal-header">
+                            <button class="dp-nav" id="heldDateEndPrev" type="button">‹</button>
+                            <span class="dp-month-label" id="heldDateEndMonthLabel">Month Year</span>
+                            <button class="dp-nav" id="heldDateEndNext" type="button">›</button>
+                        </div>
+                        <div class="dp-cal-grid" id="heldDateEndCalGrid"></div>
+                        <div class="dp-cal-footer">
+                            <button class="dp-clear" id="heldDateEndClear" type="button" data-i18n="common.clear">Clear</button>
+                            <button class="dp-close" id="heldDateEndClose" type="button" data-i18n="common.close">Close</button>
+                        </div>
+                    </div>
+
+                    <input id="heldDateEnd" name="heldDateEnd" type="hidden">
+                </div>
+
+                <div class="time-picker-card">
+                    <label class="label">Giờ kết thúc</label>
+                    <div class="time-input-row">
+                        <div class="time-field">
+                            <span class="material-symbols-outlined">schedule</span>
+                            <select id="endHour" class="time-select"></select>
+                            <span class="time-sep">:</span>
+                            <select id="endMinute" class="time-select"></select>
+                        </div>
+                    </div>
+                    <p class="sub-text">Chuyển sang trạng thái "Đã kết thúc" ngay sau mốc giờ này.</p>
                 </div>
             </div>
         </section>

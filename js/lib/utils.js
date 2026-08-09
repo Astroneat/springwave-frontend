@@ -170,3 +170,31 @@ export function isUpcomingDate(dateStr) {
     return getVietnameseDateStr(dateStr) > getTodayVietnameseDateStr();
 }
 
+/**
+ * Evaluates real-time event status:
+ * - 'registration_open': now < applicationDeadline (or now < heldDate)
+ * - 'registration_closed': applicationDeadline <= now < heldDate
+ * - 'ongoing': heldDate <= now <= heldDateEnd
+ * - 'ended': now > heldDateEnd
+ * @param {Object} event 
+ * @returns {'registration_open'|'registration_closed'|'ongoing'|'ended'}
+ */
+export function getEventStatus(event) {
+    if (!event) return 'registration_open';
+    const now = Date.now();
+    const startDate = event.heldDate ? new Date(event.heldDate).getTime() : null;
+    const endDate = event.heldDateEnd ? new Date(event.heldDateEnd).getTime() : (startDate ? startDate + 24 * 60 * 60 * 1000 : null);
+    const deadline = event.applicationDeadline ? new Date(event.applicationDeadline).getTime() : startDate;
+
+    if (endDate && now > endDate) {
+        return 'ended';
+    }
+    if (startDate && now >= startDate && (!endDate || now <= endDate)) {
+        return 'ongoing';
+    }
+    if (deadline && now >= deadline) {
+        return 'registration_closed';
+    }
+    return 'registration_open';
+}
+

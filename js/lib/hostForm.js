@@ -272,25 +272,30 @@ export function initCheckinRulesToggle() {
 }
 
 export function initTimePicker() {
-    const hourSel = document.getElementById("heldHour");
-    const minSel = document.getElementById("heldMinute");
-    if (!hourSel || !minSel) return;
-
-    if (hourSel.options.length === 0) {
-        for (let i = 0; i < 24; i++) {
-            const v = String(i).padStart(2, '0');
-            hourSel.appendChild(new Option(v, v));
+    const timeFields = [
+        { hour: 'heldHour', min: 'heldMinute', defaultHour: new Date().getHours(), defaultMin: new Date().getMinutes() },
+        { hour: 'endHour', min: 'endMinute', defaultHour: 23, defaultMin: 59 },
+        { hour: 'deadlineHour', min: 'deadlineMinute', defaultHour: 23, defaultMin: 59 },
+    ];
+    timeFields.forEach(tf => {
+        const hourSel = document.getElementById(tf.hour);
+        const minSel = document.getElementById(tf.min);
+        if (!hourSel || !minSel) return;
+        if (hourSel.options.length === 0) {
+            for (let i = 0; i < 24; i++) {
+                const v = String(i).padStart(2, '0');
+                hourSel.appendChild(new Option(v, v));
+            }
         }
-    }
-    if (minSel.options.length === 0) {
-        for (let i = 0; i < 60; i++) {
-            const v = String(i).padStart(2, '0');
-            minSel.appendChild(new Option(v, v));
+        if (minSel.options.length === 0) {
+            for (let i = 0; i < 60; i += 5) {
+                const v = String(i).padStart(2, '0');
+                minSel.appendChild(new Option(v, v));
+            }
         }
-    }
-    const now = new Date();
-    hourSel.value = String(now.getHours()).padStart(2, '0');
-    minSel.value = String(now.getMinutes()).padStart(2, '0');
+        hourSel.value = String(tf.defaultHour).padStart(2, '0');
+        minSel.value = String(tf.defaultMin).padStart(2, '0');
+    });
 }
 
 export function initDateValidation() {
@@ -302,10 +307,26 @@ export function initDateValidation() {
         hiddenInputId: "heldDate"
     });
 
+    const applicationDeadline = createDatePicker({
+        triggerId: "applicationDeadlineInput", dropdownId: "applicationDeadlineDropdown",
+        gridId: "applicationDeadlineCalGrid", monthLabelId: "applicationDeadlineMonthLabel",
+        prevBtnId: "applicationDeadlinePrev", nextBtnId: "applicationDeadlineNext",
+        clearBtnId: "applicationDeadlineClear", closeBtnId: "applicationDeadlineClose",
+        hiddenInputId: "applicationDeadline"
+    });
+
+    const heldDateEnd = createDatePicker({
+        triggerId: "heldDateEndInput", dropdownId: "heldDateEndDropdown",
+        gridId: "heldDateEndCalGrid", monthLabelId: "heldDateEndMonthLabel",
+        prevBtnId: "heldDateEndPrev", nextBtnId: "heldDateEndNext",
+        clearBtnId: "heldDateEndClear", closeBtnId: "heldDateEndClose",
+        hiddenInputId: "heldDateEnd"
+    });
+
     loadSchoolList();
     initTimePicker();
 
-    return { heldDate };
+    return { heldDate, applicationDeadline, heldDateEnd };
 }
 
 import { getUniversities } from "../api/universities.js";
@@ -607,6 +628,30 @@ async function initEditMode(eventId) {
       }
     }
 
+    if (event.heldDateEnd) {
+      const d = new Date(event.heldDateEnd);
+      if (!isNaN(d)) {
+        const endDateInput = document.getElementById("heldDateEnd");
+        if (endDateInput) endDateInput.value = toLocalISODate(d);
+        const endHourEl = document.getElementById("endHour");
+        const endMinEl = document.getElementById("endMinute");
+        if (endHourEl) endHourEl.value = String(d.getHours()).padStart(2, '0');
+        if (endMinEl) endMinEl.value = String(d.getMinutes()).padStart(2, '0');
+      }
+    }
+
+    if (event.applicationDeadline) {
+      const d = new Date(event.applicationDeadline);
+      if (!isNaN(d)) {
+        const deadlineInput = document.getElementById("applicationDeadline");
+        if (deadlineInput) deadlineInput.value = toLocalISODate(d);
+        const deadlineHourEl = document.getElementById("deadlineHour");
+        const deadlineMinEl = document.getElementById("deadlineMinute");
+        if (deadlineHourEl) deadlineHourEl.value = String(d.getHours()).padStart(2, '0');
+        if (deadlineMinEl) deadlineMinEl.value = String(d.getMinutes()).padStart(2, '0');
+      }
+    }
+
     if (hasCertificateEl) hasCertificateEl.checked = event.hasCertificate === true || event.hasCertificate === 'true';
     if (hasAttendanceEl) hasAttendanceEl.checked = event.hasAttendance === true || event.hasAttendance === 'true';
     if (event.lateCheckinMinutes > 0 || event.expiredCheckinMinutes > 0) {
@@ -725,6 +770,22 @@ export function initFormSubmit(orgId, onSuccess) {
             ? `${heldDate}T${heldHour}:${heldMinute}:00+07:00`
             : heldDate;
         formData.append("heldDate", heldDateISO);
+
+        const heldDateEndVal = document.getElementById("heldDateEnd")?.value;
+        const endHour = document.getElementById("endHour")?.value || "23";
+        const endMinute = document.getElementById("endMinute")?.value || "59";
+        if (heldDateEndVal) {
+            const heldDateEndISO = `${heldDateEndVal}T${endHour}:${endMinute}:00+07:00`;
+            formData.append("heldDateEnd", heldDateEndISO);
+        }
+
+        const deadlineVal = document.getElementById("applicationDeadline")?.value;
+        const deadlineHour = document.getElementById("deadlineHour")?.value || "23";
+        const deadlineMinute = document.getElementById("deadlineMinute")?.value || "59";
+        if (deadlineVal) {
+            const deadlineISO = `${deadlineVal}T${deadlineHour}:${deadlineMinute}:00+07:00`;
+            formData.append("applicationDeadline", deadlineISO);
+        }
 
         const categories = await ensureCategories();
         const matched = findCategoryByType(type);

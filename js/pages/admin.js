@@ -321,6 +321,16 @@ function buildEditHTML(e) {
         const d = new Date(e.heldDate);
         if (!isNaN(d)) heldDate = toLocalISODate(d);
     }
+    let heldDateEnd = "";
+    if (e.heldDateEnd) {
+        const d = new Date(e.heldDateEnd);
+        if (!isNaN(d)) heldDateEnd = toLocalISODate(d);
+    }
+    let applicationDeadline = "";
+    if (e.applicationDeadline) {
+        const d = new Date(e.applicationDeadline);
+        if (!isNaN(d)) applicationDeadline = toLocalISODate(d);
+    }
     const classificationHTML = e.classificationReason
         ? `<div class="mt-4">
             <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Classification Reason</label>
@@ -349,9 +359,19 @@ function buildEditHTML(e) {
                     ).join('')}
                 </select>
             </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Date</label>
+                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Hạn đăng ký</label>
+                <input id="edit-applicationDeadline" type="date" value="${applicationDeadline}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+            </div>
+            <div>
+                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Ngày bắt đầu</label>
                 <input id="edit-heldDate" type="date" value="${heldDate}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
+            </div>
+            <div>
+                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Ngày kết thúc</label>
+                <input id="edit-heldDateEnd" type="date" value="${heldDateEnd}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
             </div>
         </div>
         <div>
@@ -399,6 +419,8 @@ document.getElementById("popup-actions")?.addEventListener("click", async e => {
             location: document.getElementById("edit-location")?.value.trim(),
             type: document.getElementById("edit-type")?.value.trim(),
             heldDate: document.getElementById("edit-heldDate")?.value || null,
+            heldDateEnd: document.getElementById("edit-heldDateEnd")?.value || null,
+            applicationDeadline: document.getElementById("edit-applicationDeadline")?.value || null,
             description: document.getElementById("edit-description")?.value.trim(),
             thumbnail: document.getElementById("edit-thumbnail")?.value.trim(),
             hostName: document.getElementById("edit-hostName")?.value.trim() || undefined,

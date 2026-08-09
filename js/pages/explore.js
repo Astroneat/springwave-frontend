@@ -12,7 +12,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
-import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate } from "../lib/utils.js";
+import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
 
 let allActivities = [];
 let currentFilteredActivities = [];
@@ -424,11 +424,13 @@ async function applyFiltersAndSort() {
     }
 
     if (currentStatus === "upcoming") {
-        filtered = filtered.filter(a => isUpcomingDate(a.heldDate || a.createdAt));
+        filtered = filtered.filter(a => getEventStatus(a) === 'registration_open');
     } else if (currentStatus === "ongoing") {
-        filtered = filtered.filter(a => isToday(a.heldDate || a.createdAt));
+        filtered = filtered.filter(a => getEventStatus(a) === 'ongoing');
     } else if (currentStatus === "past") {
-        filtered = filtered.filter(a => isPastDate(a.heldDate || a.createdAt));
+        filtered = filtered.filter(a => getEventStatus(a) === 'ended');
+    } else if (currentStatus === "registration_closed") {
+        filtered = filtered.filter(a => getEventStatus(a) === 'registration_closed');
     }
 
     switch (currentSort) {
@@ -504,10 +506,9 @@ async function renderCardsDirect(activities) {
         const hostSpan = card.querySelector(".info-host");
         if (hostSpan) hostSpan.textContent = activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
         
-        const isPast = isPastDate(activity.heldDate || activity.createdAt);
-        const isOngoing = isToday(activity.heldDate || activity.createdAt);
+        const status = getEventStatus(activity);
 
-        if (isPast) {
+        if (status === 'ended') {
             card.classList.add("opacity-75", "grayscale-[0.5]");
             
             const btn = card.querySelector(".details-btn");
@@ -522,16 +523,24 @@ async function renderCardsDirect(activities) {
             if (tagContainer) {
                 const endedBadge = document.createElement("div");
                 endedBadge.className = "absolute top-3 left-3 bg-red-100 px-3 py-1 rounded-lg text-xs font-bold text-red-600 flex items-center gap-1.5 border border-red-200 z-10 shadow-sm";
-                endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[10px]"></i><span>Ended</span>`;
+                endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[10px]"></i><span>${t("explore.ended") || "Ended"}</span>`;
                 card.appendChild(endedBadge);
             }
-        } else if (isOngoing) {
+        } else if (status === 'ongoing') {
             const tagContainer = card.querySelector(".absolute");
             if (tagContainer) {
                 const ongoingBadge = document.createElement("div");
                 ongoingBadge.className = "absolute top-3 left-3 bg-green-100 px-3 py-1 rounded-lg text-xs font-bold text-green-600 flex items-center gap-1.5 border border-green-200 z-10 shadow-sm";
                 ongoingBadge.innerHTML = `<i class="fa-solid fa-circle-play text-[10px] animate-pulse"></i><span>${t("explore.ongoing") || "Ongoing"}</span>`;
                 card.appendChild(ongoingBadge);
+            }
+        } else if (status === 'registration_closed') {
+            const tagContainer = card.querySelector(".absolute");
+            if (tagContainer) {
+                const closedBadge = document.createElement("div");
+                closedBadge.className = "absolute top-3 left-3 bg-amber-100 px-3 py-1 rounded-lg text-xs font-bold text-amber-700 flex items-center gap-1.5 border border-amber-200 z-10 shadow-sm";
+                closedBadge.innerHTML = `<i class="fa-solid fa-user-xmark text-[10px]"></i><span>${t("explore.registration_closed") || "Hết hạn đăng ký"}</span>`;
+                card.appendChild(closedBadge);
             }
         }
         card.dataset.id = activity.activityID;

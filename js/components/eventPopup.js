@@ -4,7 +4,7 @@ import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { t } from "../lib/i18n.js";
 import { isAuthenticated, getUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
-import { formatDate, capitalize, timeAgo, isToday, isPastDate } from "../lib/utils.js";
+import { formatDate, capitalize, timeAgo, isToday, isPastDate, getEventStatus } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
 import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
@@ -165,12 +165,26 @@ export function closeEventPopup() {
 }
 
 function buildPopupHTML(a, backText) {
+    const status = getEventStatus(a);
     const heldDate = formatDate(a.heldDate);
+    const endDateFormatted = a.heldDateEnd ? formatDate(a.heldDateEnd) : null;
+    const deadlineFormatted = a.applicationDeadline ? formatDate(a.applicationDeadline) : null;
     const type = capitalize(String(a.type || "Activity"));
     const hasCoords = a.locationLat && a.locationLng;
     const googleMapsLink = hasCoords
         ? `https://www.google.com/maps?q=${a.locationLat},${a.locationLng}`
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
+
+    let statusBadgeHTML = "";
+    if (status === 'ongoing') {
+        statusBadgeHTML = `<span class="popup-category-badge !bg-green-100 !text-green-700 !border-green-300"><i class="fa-solid fa-circle-play animate-pulse"></i><span>${t("explore.ongoing") || "Đang diễn ra"}</span></span>`;
+    } else if (status === 'registration_closed') {
+        statusBadgeHTML = `<span class="popup-category-badge !bg-amber-100 !text-amber-800 !border-amber-300"><i class="fa-solid fa-user-xmark"></i><span>${t("explore.registration_closed") || "Hết hạn đăng ký"}</span></span>`;
+    } else if (status === 'ended') {
+        statusBadgeHTML = `<span class="popup-category-badge !bg-red-100 !text-red-700 !border-red-300"><i class="fa-solid fa-clock-rotate-left"></i><span>${t("explore.ended") || "Đã kết thúc"}</span></span>`;
+    } else {
+        statusBadgeHTML = `<span class="popup-category-badge !bg-blue-100 !text-blue-700 !border-blue-300"><i class="fa-solid fa-user-check"></i><span>${t("explore.registration_open") || "Đang nhận đăng ký"}</span></span>`;
+    }
 
     const filesHTML = (a.attachments || []).map(f => {
         const link = f.link || f.activityAttachLink || "";
@@ -195,7 +209,10 @@ function buildPopupHTML(a, backText) {
             <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
             <div class="popup-hero-overlay"></div>
             <button class="back-btn-floating" id="back-btn" title="${backText}"><i class="fa-solid fa-arrow-left"></i></button>
-            <span class="popup-category-badge"><i class="fa-solid fa-tag"></i><span>${type}</span></span>
+            <div class="flex items-center gap-2">
+                <span class="popup-category-badge"><i class="fa-solid fa-tag"></i><span>${type}</span></span>
+                ${statusBadgeHTML}
+            </div>
         </div>
 
         <!-- Content Grid Section -->
@@ -221,10 +238,18 @@ function buildPopupHTML(a, backText) {
                     <div class="quick-info-item" style="margin-bottom:12px">
                         <i class="fa-regular fa-calendar"></i>
                         <div>
-                            <span>Date & Time</span>
-                            <p>${heldDate}</p>
+                            <span>Bắt đầu ${endDateFormatted ? '→ Kết thúc' : ''}</span>
+                            <p>${heldDate} ${endDateFormatted ? ` → ${endDateFormatted}` : ''}</p>
                         </div>
                     </div>
+                    ${deadlineFormatted ? `
+                    <div class="quick-info-item" style="margin-bottom:12px">
+                        <i class="fa-solid fa-hourglass-half text-amber-600"></i>
+                        <div>
+                            <span>Hạn đăng ký</span>
+                            <p style="color:#b45309;font-weight:600">${deadlineFormatted}</p>
+                        </div>
+                    </div>` : ''}
                     <div class="quick-info-item">
                         <i class="fa-solid fa-location-dot"></i>
                         <div>
@@ -276,10 +301,18 @@ function buildPopupHTML(a, backText) {
                         <div class="sidebar-detail-item">
                             <i class="fa-regular fa-calendar"></i>
                             <div>
-                                <span>Date & Time</span>
-                                <p>${heldDate}</p>
+                                <span>Thời gian sự kiện</span>
+                                <p>${heldDate} ${endDateFormatted ? ` → ${endDateFormatted}` : ''}</p>
                             </div>
                         </div>
+                        ${deadlineFormatted ? `
+                        <div class="sidebar-detail-item">
+                            <i class="fa-solid fa-hourglass-half text-amber-600"></i>
+                            <div>
+                                <span>Hạn đăng ký</span>
+                                <p class="text-amber-700 font-semibold">${deadlineFormatted}</p>
+                            </div>
+                        </div>` : ''}
                         <div class="sidebar-detail-item">
                             <i class="fa-solid fa-location-dot"></i>
                             <div>
@@ -370,10 +403,9 @@ function setParticipated(activity) {
 }
 
 function disableParticipationButtons(activity) {
-    if (!activity || !activity.heldDate) return;
-    const isPast = isPastDate(activity.heldDate);
-    const isOngoing = isToday(activity.heldDate);
-    if (isPast || isOngoing) {
+    if (!activity) return;
+    const status = getEventStatus(activity);
+    if (status === 'ended' || status === 'ongoing' || status === 'registration_closed') {
         const btns = document.querySelectorAll(".participate");
         btns.forEach(btn => {
             if (btn.dataset.externalUrl) return;
@@ -382,8 +414,10 @@ function disableParticipationButtons(activity) {
             btn.style.pointerEvents = "none";
             const span = btn.querySelector("span");
             if (span) {
-                if (isOngoing) {
+                if (status === 'ongoing') {
                     span.textContent = t("explore.ongoing") || "Ongoing";
+                } else if (status === 'registration_closed') {
+                    span.textContent = t("explore.registration_closed") || "Registration Closed";
                 } else {
                     span.textContent = t("explore.ended") || "Ended";
                 }
