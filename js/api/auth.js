@@ -23,3 +23,15 @@ export function googleLogin(credential) {
 export function completeProfile(data) {
     return put("/auth/complete-profile", data);
 }
+
+export function forgotPassword(email) {
+    return post("/auth/forgot-password", { email });
+}
+
+export function resetPassword(token, newPassword, confirmPassword) {
+    return post("/auth/reset-password", { token, newPassword, confirmPassword });
+}
+
+export function changePassword(currentPassword, newPassword, confirmPassword) {
+    return post("/auth/change-password", { currentPassword, newPassword, confirmPassword });
+}

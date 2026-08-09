@@ -950,6 +950,7 @@ function rebuildAttendanceCache(eventId, records, event, isPastEvent) {
       user.studentId,
       user.verifiedStudentId,
       user.username,
+      r.ticketCode,
       r.ticket?.qrCode,
       ext.studentId
     ].filter(Boolean);
@@ -1931,6 +1932,17 @@ function initQRScan() {
       addToHistory(response.user || {}, ticketCode, isLate);
 
       if (manualInput) manualInput.value = "";
+
+      if (response.attendance && attendanceCache.lookupMap) {
+        const newRec = response.attendance;
+        newRec.user = response.user || newRec.user || {};
+        const codeClean = String(ticketCode).trim().toLowerCase();
+        attendanceCache.lookupMap.set(codeClean, newRec);
+        if (response.user?.studentId) {
+          attendanceCache.lookupMap.set(String(response.user.studentId).trim().toLowerCase(), newRec);
+        }
+      }
+
       await loadAttendance(eventId);
     } catch (err) {
       playBeep(false);

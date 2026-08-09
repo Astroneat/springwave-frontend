@@ -64,9 +64,14 @@
                     </div>
 
                     <div class="auth-field">
-                        <label class="auth-label" for="password">
-                            <span data-i18n="login.password">Password</span> <span class="auth-required">*</span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="auth-label" for="password" style="margin-bottom: 0;">
+                                <span data-i18n="login.password">Password</span> <span class="auth-required">*</span>
+                            </label>
+                            <button type="button" id="open-forgot-modal" class="text-xs font-semibold text-[#1755ba] hover:underline bg-transparent border-none cursor-pointer">
+                                Quên mật khẩu?
+                            </button>
+                        </div>
                         <div class="auth-input-group">
                             <input id="password" type="password" placeholder="Enter password" data-i18n="login.enter_password"
                                 autocomplete="current-password" required class="auth-input has-toggle">
@@ -100,6 +105,56 @@
                 </form>
             </div>
         </main>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative animate-fadeIn">
+            <button id="close-forgot-modal" type="button" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#1755ba] flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-2xl">lock_reset</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">Quên mật khẩu?</h3>
+            <p class="text-xs text-slate-500 mb-6">Nhập địa chỉ email tài khoản của bạn để nhận liên kết đặt lại mật khẩu bảo mật qua email.</p>
+
+            <form id="forgot-password-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Email đăng ký</label>
+                    <input type="email" id="forgot-email" required placeholder="example@domain.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#1755ba] focus:ring-2 focus:ring-[#1755ba]/20 transition-all" />
+                </div>
+                <div id="forgot-status-msg" class="text-xs rounded-xl p-3 hidden font-medium"></div>
+                <button type="submit" id="forgot-submit-btn" class="w-full py-3 bg-[#1755ba] text-white text-sm font-bold rounded-xl hover:bg-[#1755ba]/90 transition-all shadow-md cursor-pointer">GỬI YÊU CẦU</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="reset-password-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative animate-fadeIn">
+            <button id="close-reset-modal" type="button" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-2xl">key</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">Đặt lại mật khẩu mới</h3>
+            <p class="text-xs text-slate-500 mb-6">Nhập mật khẩu mới cho tài khoản của bạn. Mật khẩu cần tối thiểu 8 ký tự, bao gồm cả chữ và số.</p>
+
+            <form id="reset-password-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu mới</label>
+                    <input type="password" id="reset-new-password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#1755ba] focus:ring-2 focus:ring-[#1755ba]/20 transition-all" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Xác nhận mật khẩu mới</label>
+                    <input type="password" id="reset-confirm-password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#1755ba] focus:ring-2 focus:ring-[#1755ba]/20 transition-all" />
+                </div>
+                <div id="reset-status-msg" class="text-xs rounded-xl p-3 hidden font-medium"></div>
+                <button type="submit" id="reset-submit-btn" class="w-full py-3 bg-[#1755ba] text-white text-sm font-bold rounded-xl hover:bg-[#1755ba]/90 transition-all shadow-md cursor-pointer">XÁC NHẬN ĐẶT LẠI MẬT KHẨU</button>
+            </form>
+        </div>
     </div>
 
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>

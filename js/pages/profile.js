@@ -1,7 +1,7 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser, setUser, isStudentVerified } from "../lib/session.js";
 import { changeInfo, getFavourites, getUserContribution, uploadAvatar, getParticipatedActivities, getMyTickets } from "../api/user.js";
-import { getCurrentUser } from "../api/auth.js";
+import { getCurrentUser, changePassword } from "../api/auth.js";
 import { getMyProfile } from "../api/profile.js";
 import {
     getActivityById, participateActivity,
@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await renderParticipatedEventsPanel();
     await renderAIProfile();
     initEditProfile();
+    initChangePasswordModal();
     
     // Expose for onclick handlers
     window.openReviewModal = openReviewModal;
@@ -848,4 +849,74 @@ function showBadgeToast(badge) {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 400);
   }, 4500);
+}
+
+function initChangePasswordModal() {
+  const btn = document.getElementById("change-pass-btn");
+  const modal = document.getElementById("change-pass-modal");
+  const backdrop = document.getElementById("change-pass-backdrop");
+  const closeBtn = document.getElementById("change-pass-modal-close");
+  const cancelBtn = document.getElementById("change-pass-btn-cancel");
+  const form = document.getElementById("change-pass-form");
+  const statusEl = document.getElementById("change-pass-status");
+  const submitBtn = document.getElementById("change-pass-submit-btn");
+
+  if (!btn || !modal) return;
+
+  const closeModal = () => {
+    modal.style.display = "none";
+    if (form) form.reset();
+    if (statusEl) statusEl.classList.add("hidden");
+  };
+
+  btn.addEventListener("click", () => {
+    modal.style.display = "flex";
+    if (statusEl) statusEl.classList.add("hidden");
+  });
+
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+  if (backdrop) backdrop.addEventListener("click", closeModal);
+  if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const currPass = document.getElementById("change-curr-pass")?.value;
+      const newPass = document.getElementById("change-new-pass")?.value;
+      const confirmPass = document.getElementById("change-confirm-pass")?.value;
+
+      if (!currPass || !newPass || !confirmPass) return;
+      if (newPass !== confirmPass) {
+        if (statusEl) {
+          statusEl.textContent = "Mật khẩu mới và mật khẩu xác nhận không trùng khớp.";
+          statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+        return;
+      }
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (statusEl) {
+        statusEl.textContent = "Đang xử lý đổi mật khẩu...";
+        statusEl.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
+      }
+
+      try {
+        const res = await changePassword(currPass, newPass, confirmPass);
+        if (statusEl) {
+          statusEl.textContent = res.message || "Đổi mật khẩu thành công!";
+          statusEl.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block";
+        }
+        setTimeout(() => {
+          closeModal();
+        }, 1800);
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent = err.message || "Thao tác đổi mật khẩu thất bại. Vui lòng thử lại.";
+          statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
 }

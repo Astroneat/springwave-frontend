@@ -1,5 +1,4 @@
-import "../../src/style.css";
-import { login, googleLogin } from "../api/auth.js";
+import { login, googleLogin, forgotPassword, resetPassword } from "../api/auth.js";
 import { createSession, setSigningKey, isAuthenticated } from "../lib/session.js";
 import { ensureSession } from "../api/client.js";
 import { GOOGLE_CLIENT_ID, API_BASE_URL, TURNSTILE_SITE_KEY } from "../config.js";
@@ -18,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initGoogleLogin();
     initTurnstile();
     initPasswordToggles();
+    initPasswordResetModals();
 });
 
 function initPasswordToggles() {
@@ -267,4 +267,115 @@ function initGoogleLogin() {
         }
     };
     tryInit();
+}
+
+function initPasswordResetModals() {
+    const openForgotBtn = document.getElementById("open-forgot-modal");
+    const closeForgotBtn = document.getElementById("close-forgot-modal");
+    const forgotModal = document.getElementById("forgot-password-modal");
+    const forgotForm = document.getElementById("forgot-password-form");
+    const forgotStatus = document.getElementById("forgot-status-msg");
+    const forgotSubmitBtn = document.getElementById("forgot-submit-btn");
+
+    const closeResetBtn = document.getElementById("close-reset-modal");
+    const resetModal = document.getElementById("reset-password-modal");
+    const resetForm = document.getElementById("reset-password-form");
+    const resetStatus = document.getElementById("reset-status-msg");
+    const resetSubmitBtn = document.getElementById("reset-submit-btn");
+
+    if (openForgotBtn && forgotModal) {
+        openForgotBtn.addEventListener("click", () => {
+            forgotModal.classList.remove("hidden");
+            if (forgotStatus) forgotStatus.classList.add("hidden");
+        });
+    }
+
+    if (closeForgotBtn && forgotModal) {
+        closeForgotBtn.addEventListener("click", () => {
+            forgotModal.classList.add("hidden");
+        });
+    }
+
+    if (closeResetBtn && resetModal) {
+        closeResetBtn.addEventListener("click", () => {
+            resetModal.classList.add("hidden");
+        });
+    }
+
+    if (forgotForm) {
+        forgotForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = document.getElementById("forgot-email")?.value.trim();
+            if (!email) return;
+
+            if (forgotSubmitBtn) forgotSubmitBtn.disabled = true;
+            if (forgotStatus) {
+                forgotStatus.textContent = "Đang gửi yêu cầu...";
+                forgotStatus.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
+            }
+
+            try {
+                const res = await forgotPassword(email);
+                if (forgotStatus) {
+                    forgotStatus.textContent = res.message || "Đã gửi liên kết đặt lại mật khẩu đến email của bạn.";
+                    forgotStatus.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block";
+                }
+            } catch (err) {
+                if (forgotStatus) {
+                    forgotStatus.textContent = err.message || "Gửi yêu cầu thất bại. Vui lòng thử lại.";
+                    forgotStatus.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+                }
+            } finally {
+                if (forgotSubmitBtn) forgotSubmitBtn.disabled = false;
+            }
+        });
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get("action");
+    const token = urlParams.get("token");
+
+    if (action === "reset-password" && token && resetModal) {
+        resetModal.classList.remove("hidden");
+        if (resetForm) {
+            resetForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const newPass = document.getElementById("reset-new-password")?.value;
+                const confirmPass = document.getElementById("reset-confirm-password")?.value;
+
+                if (!newPass || !confirmPass) return;
+                if (newPass !== confirmPass) {
+                    if (resetStatus) {
+                        resetStatus.textContent = "Mật khẩu xác nhận không trùng khớp.";
+                        resetStatus.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+                    }
+                    return;
+                }
+
+                if (resetSubmitBtn) resetSubmitBtn.disabled = true;
+                if (resetStatus) {
+                    resetStatus.textContent = "Đang cập nhật mật khẩu mới...";
+                    resetStatus.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
+                }
+
+                try {
+                    const res = await resetPassword(token, newPass, confirmPass);
+                    if (resetStatus) {
+                        resetStatus.textContent = res.message || "Đã cập nhật mật khẩu thành công!";
+                        resetStatus.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block";
+                    }
+                    setTimeout(() => {
+                        window.location.href = "/login.html";
+                    }, 1500);
+                } catch (err) {
+                    if (resetStatus) {
+                        resetStatus.textContent = err.message || "Đặt lại mật khẩu thất bại. Mã có thể đã hết hạn.";
+                        resetStatus.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+                    }
+                } finally {
+                    if (resetSubmitBtn) resetSubmitBtn.disabled = false;
+                }
+            });
+        }
+    }
 }
