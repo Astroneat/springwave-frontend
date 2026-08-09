@@ -13,5 +13,8 @@
     "@tailwindcss/vite": "^4.3.0",
     "tailwindcss": "^4.3.0",
     "vite": "^8.0.16"
+  },
+  "dependencies": {
+    "@zxing/browser": "^0.2.1"
   }
 }

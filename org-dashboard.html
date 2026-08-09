@@ -730,8 +730,9 @@
                             <span class="material-symbols-outlined text-5xl text-slate-400 select-none animate-pulse">qr_code_scanner</span>
                             <div>
                                 <h3 class="font-bold text-slate-700 text-lg">Ready to Scan</h3>
-                                <p class="text-xs text-slate-500 mt-1">Position the attendee's ticket QR code inside the camera viewfinder.</p>
+                                <p class="text-xs text-slate-500 mt-1">Position the attendee's ticket QR code or barcode inside the camera viewfinder.</p>
                             </div>
+                            <span id="scan-feedback-format" class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">QR or Barcode</span>
                         </div>
 
                         <!-- Success view (Greeting panel - Hidden by default) -->
@@ -746,7 +747,10 @@
                                 </span>
                             </div>
                             <div class="space-y-1">
-                                <span id="scan-feedback-status-label" class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-wider">Checked In Successfully</span>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span id="scan-feedback-status-label" class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-wider">Checked In Successfully</span>
+                                    <span id="scan-feedback-format" class="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">QR Ticket</span>
+                                </div>
                                 <h3 id="scan-feedback-name" class="font-extrabold text-2xl text-slate-800 tracking-tight leading-tight">Full Name</h3>
                                 <p id="scan-feedback-username" class="text-xs text-slate-400">@username</p>
                                 <p id="scan-feedback-email" class="text-xs text-slate-500 truncate max-w-[250px] mx-auto">email@example.com</p>
@@ -857,7 +861,6 @@
     </div>
 
     <div id="chatbot-container"></div>
-    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script type="module" src="./js/pages/org-dashboard.js"></script>
 </body>
 </html>

@@ -718,7 +718,13 @@ export function initFormSubmit(orgId, onSuccess) {
         formData.append("description", description);
         formData.append("location", location);
         formData.append("type", type);
-        formData.append("heldDate", heldDate);
+
+        // Combine date + hour + minute into timezone-aware ISO string.
+        // Fixes: time was being silently dropped (09:35 → 07:00 display bug).
+        const heldDateISO = heldDate
+            ? `${heldDate}T${heldHour}:${heldMinute}:00+07:00`
+            : heldDate;
+        formData.append("heldDate", heldDateISO);
 
         const categories = await ensureCategories();
         const matched = findCategoryByType(type);

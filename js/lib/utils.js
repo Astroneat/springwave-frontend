@@ -20,6 +20,7 @@ export function formatDate(dateString) {
     if (!dateString) return "Unknown Date";
     const lang = localStorage.getItem("springwave_lang") || "en";
     return new Date(dateString).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-GB", {
+        timeZone: "Asia/Ho_Chi_Minh",
         day: "2-digit", month: "2-digit", year: "numeric"
     });
 }

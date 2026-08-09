@@ -9,6 +9,7 @@ import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, init
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
 import { getHostReviews } from "../api/activities.js";
 import { getOrgAnalytics, downloadOrgExcelReport } from "../api/analytics.js";
+import { BrowserMultiFormatReader } from "@zxing/browser";
 
 let currentOrgId = null;
 let currentOrgs = [];
@@ -1189,13 +1190,31 @@ function initQRScan() {
         console.log('[Scanner] Native BarcodeDetector ready (default formats)');
       } catch (e2) {
         nativeBarcodeDetector = null;
-        console.warn('[Scanner] BarcodeDetector unavailable, falling back to jsQR');
+        console.warn('[Scanner] BarcodeDetector unavailable, falling back to ZXing');
       }
     }
     return nativeBarcodeDetector;
   }
   // Pre-warm the BarcodeDetector
   getNativeBarcodeDetector().catch(() => {});
+
+  // ZXing fallback for browsers without native BarcodeDetector (Safari/iOS).
+  // ZXing's BrowserMultiFormatReader handles both QR codes AND 1D/2D barcodes.
+  let zxingReader = null;
+  async function getZXingReader() {
+    if (zxingReader) return zxingReader;
+    if (typeof BrowserMultiFormatReader === 'undefined') return null;
+    try {
+      zxingReader = new BrowserMultiFormatReader();
+      console.log('[Scanner] ZXing fallback reader ready');
+      return zxingReader;
+    } catch (e) {
+      console.warn('[Scanner] ZXing unavailable:', e);
+      return null;
+    }
+  }
+  // Pre-warm the ZXing reader
+  getZXingReader().catch(() => {});
 
   let scanType = 'qr'; // 'qr' | 'barcode' — updated dynamically per scan result
 
@@ -1255,8 +1274,14 @@ function initQRScan() {
       defaultView.classList.remove("hidden");
       container.classList.add("border-slate-200/60", "bg-slate-50");
       const textEl = defaultView.querySelector("p");
-      if (textEl) textEl.textContent = message || (state === "loading" ? "Processing check-in..." : "Position the attendee's ticket QR code inside the camera viewfinder.");
-      
+      if (textEl) textEl.textContent = message || (state === "loading" ? "Processing check-in..." : "Position the attendee's ticket QR code or barcode inside the camera viewfinder.");
+
+      const formatLabelEl = document.getElementById("scan-feedback-format");
+      if (formatLabelEl) {
+        formatLabelEl.textContent = "QR or Barcode";
+        formatLabelEl.className = "text-[9px] font-semibold text-slate-400 uppercase tracking-wider";
+      }
+
       const placeholderEl = document.getElementById("scan-feedback-avatar-placeholder");
       if (placeholderEl) {
         placeholderEl.textContent = "person";
@@ -1282,6 +1307,17 @@ function initQRScan() {
       const placeholderEl = document.getElementById("scan-feedback-avatar-placeholder");
       const statusLabel = document.getElementById("scan-feedback-status-label");
       const avatarContainer = document.getElementById("scan-feedback-avatar-container");
+      const formatLabel = document.getElementById("scan-feedback-format");
+
+      if (formatLabel) {
+        const isBarcode = scanType === 'barcode';
+        formatLabel.textContent = isBarcode ? 'Barcode (ID Card)' : 'QR Ticket';
+        formatLabel.className = `text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${
+          isBarcode
+            ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+            : 'bg-slate-100 text-slate-600 border-slate-200'
+        }`;
+      }
 
       if (nameEl) nameEl.textContent = user.fullname || "Unknown Attendee";
       if (usernameEl) {
@@ -1500,22 +1536,50 @@ function initQRScan() {
                 // Track scan type so UI can show barcode vs QR label
                 scanType = fmt === 'qr_code' ? 'qr' : 'barcode';
                 onScanSuccess(raw);
+              } else if (!isScanning) {
+                return; // stopped mid-scan
+              } else {
+                // 1b. Native detector found nothing — try ZXing on the same frame
+                tryZXingFallback();
               }
-            }).catch(() => {});
+            }).catch(() => {
+              // detector error — try ZXing fallback
+              tryZXingFallback();
+            });
           } else {
-            // 2. Fallback: jsQR for QR-code-only environments
-            const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
-            if (typeof jsQR !== "undefined") {
-              const attempt = (Math.floor(now / SCAN_INTERVAL) % 2 === 0) ? "dontInvert" : "attemptBoth";
-              const code = jsQR(imageData.data, targetSize, targetSize, { inversionAttempts: attempt });
-              if (code && code.data) {
-                scanType = 'qr';
-                onScanSuccess(code.data);
-              }
-            }
+            // 2. No native BarcodeDetector (Safari/iOS) — try ZXing first
+            tryZXingFallback();
           }
         } catch (err) {
           // Suppress canvas reading noise
+        }
+
+        // Shared ZXing fallback: ZXing handles both QR and 1D/2D barcodes
+        async function tryZXingFallback() {
+          const zxing = await getZXingReader();
+          if (zxing && isScanning) {
+            try {
+              // ZXing can decode from a canvas element directly
+              const result = await zxing.decodeFromImage(undefined, canvas);
+              if (result?.getText && result.getText()) {
+                scanType = 'barcode'; // ZXing handles both QR and barcode formats
+                onScanSuccess(result.getText());
+                return;
+              }
+            } catch (e) {
+              // ZXing decode failed on this frame, continue scanning
+            }
+          }
+          // 3. Final fallback: jsQR for QR-code-only environments (legacy)
+          if (isScanning && typeof jsQR !== "undefined") {
+            const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
+            const attempt = (Math.floor(now / SCAN_INTERVAL) % 2 === 0) ? "dontInvert" : "attemptBoth";
+            const code = jsQR(imageData.data, targetSize, targetSize, { inversionAttempts: attempt });
+            if (code && code.data) {
+              scanType = 'qr';
+              onScanSuccess(code.data);
+            }
+          }
         }
       }
     }
@@ -1588,6 +1652,9 @@ function initQRScan() {
         activeStream.getTracks().forEach(t => t.stop());
       } catch {}
       activeStream = null;
+    }
+    if (zxingReader && typeof zxingReader.reset === 'function') {
+      try { zxingReader.reset(); } catch {}
     }
     const video = document.getElementById("qr-video");
     if (video) {
