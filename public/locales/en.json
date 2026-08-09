@@ -345,7 +345,9 @@
     "comments": "Comments",
     "my_roadmaps": "My Roadmaps",
     "create_roadmap": "+ New Roadmap",
-    "no_roadmaps": "No roadmaps yet. Create your personalized activity roadmap!"
+    "no_roadmaps": "No roadmaps yet. Create your personalized activity roadmap!",
+    "verified_student": "Verified Student",
+    "no_participated_events": "You haven't participated in any events yet."
   },
   "quiz": {
     "title": "SpringWave - AI Quiz",
@@ -595,7 +597,12 @@
     "modal_title": "Student Verification Required",
     "modal_desc": "You are currently in Read-Only mode. Please verify your student status to participate in events and join communities.",
     "modal_verify_btn": "Verify Now",
-    "modal_cancel_btn": "Explore More"
+    "modal_cancel_btn": "Explore More",
+    "readonly_banner_title": "Read-Only Mode Active",
+    "readonly_banner_desc": "Verify student status to unlock full access to events & communities.",
+    "profile_banner_title": "Profile Incomplete",
+    "profile_banner_desc": "Complete your profile (DOB, class, major, phone) to register for events.",
+    "profile_btn": "Complete Now"
   },
   "organizations": {
     "avatar_title": "Organization Logo",

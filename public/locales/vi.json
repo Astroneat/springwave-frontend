@@ -345,7 +345,9 @@
     "comments": "Bình luận",
     "my_roadmaps": "Lộ trình của tôi",
     "create_roadmap": "+ Tạo mới",
-    "no_roadmaps": "Chưa có lộ trình. Hãy tạo lộ trình cá nhân hóa!"
+    "no_roadmaps": "Chưa có lộ trình. Hãy tạo lộ trình cá nhân hóa!",
+    "verified_student": "Verified Student",
+    "no_participated_events": "You haven't participated in any event yet"
   },
   "quiz": {
     "title": "SpringWave - Bài trắc nghiệm AI",
@@ -595,7 +597,12 @@
     "modal_title": "Yêu cầu xác nhận sinh viên",
     "modal_desc": "Bạn đang ở chế độ Chỉ đọc (Read-Only). Vui lòng xác nhận thông tin sinh viên để đăng ký tham gia sự kiện và gia nhập cộng đồng.",
     "modal_verify_btn": "Xác nhận ngay",
-    "modal_cancel_btn": "Khám phá thêm"
+    "modal_cancel_btn": "Khám phá thêm",
+    "readonly_banner_title": "Chế độ Chỉ đọc đang hoạt động",
+    "readonly_banner_desc": "Xác thực sinh viên để mở khóa toàn bộ tính năng tham gia sự kiện và cộng đồng.",
+    "profile_banner_title": "Hồ sơ chưa hoàn thiện",
+    "profile_banner_desc": "Cập nhật thông tin cá nhân (ngày sinh, trường, lớp, ngành, SĐT) để đăng ký tham gia.",
+    "profile_btn": "Hoàn thiện ngay"
   },
   "organizations": {
     "avatar_title": "Ảnh đại diện tổ chức",

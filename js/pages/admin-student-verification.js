@@ -97,16 +97,22 @@ async function loadData() {
 
 function showTableLoading() {
   const tbody = document.getElementById("table-body");
-  const empty = document.getElementById("table-empty");
-  const loading = document.getElementById("table-loading");
-  if (tbody) tbody.innerHTML = "";
-  if (empty) empty.classList.add("hidden");
-  if (loading) loading.classList.remove("hidden");
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-16 text-center text-[#94a3b8]">
+          <div class="flex flex-col items-center justify-center">
+            <div class="spinner"></div>
+            <p class="text-base font-semibold mt-4">Loading verification requests...</p>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
 }
 
 function hideTableLoading() {
-  const loading = document.getElementById("table-loading");
-  if (loading) loading.classList.add("hidden");
+  // Overwritten by renderTable or showEmpty
 }
 
 async function renderStats() {
@@ -130,17 +136,13 @@ async function renderStats() {
 
 function renderTable(verifications) {
   const tbody = document.getElementById("table-body");
-  const empty = document.getElementById("table-empty");
   const count = document.getElementById("table-count");
 
   if (!verifications.length) {
-    tbody.innerHTML = "";
-    empty.classList.remove("hidden");
-    count.textContent = "0 requests";
+    showEmpty();
     return;
   }
 
-  empty.classList.add("hidden");
   count.textContent = `${totalItems || verifications.length} requests`;
 
   tbody.innerHTML = verifications.map(v => `
@@ -260,8 +262,19 @@ function initPagination() {
 }
 
 function showEmpty() {
-  document.getElementById("table-body").innerHTML = "";
-  document.getElementById("table-empty").classList.remove("hidden");
+  const tbody = document.getElementById("table-body");
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-16 text-center text-[#94a3b8]">
+          <div class="flex flex-col items-center justify-center">
+            <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
+            <p class="text-base font-semibold">No verification requests found</p>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
   document.getElementById("table-count").textContent = "0 requests";
 }
 

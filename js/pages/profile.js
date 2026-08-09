@@ -78,10 +78,7 @@ async function loadUserProfile() {
     document.getElementById("profile-username").textContent = user.fullname || "-";
 
     if (user.dob) {
-        const d = new Date(user.dob);
-        document.getElementById("profile-dob").textContent = d.toLocaleDateString("en-US", {
-            year: "numeric", month: "long", day: "numeric"
-        });
+        document.getElementById("profile-dob").textContent = formatDate(user.dob);
     }
 
     if (user.school) {
@@ -678,7 +675,7 @@ async function renderParticipatedEventsPanel() {
                     ${starsHtml}
                   </div>
                   <div class="text-xs text-gray-500 mt-1 flex items-center gap-2">
-                    <span><i class="fa-regular fa-calendar mr-1"></i>${new Date(e.heldDate).toLocaleDateString()}</span>
+                    <span><i class="fa-regular fa-calendar mr-1"></i>${formatDate(e.heldDate)}</span>
                   </div>
                 </div>
               </div>

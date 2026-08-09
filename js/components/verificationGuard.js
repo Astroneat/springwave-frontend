@@ -1,4 +1,4 @@
-import { getUser, isAuthenticated } from '../lib/session.js';
+import { getUser, isAuthenticated, isProfileComplete } from '../lib/session.js';
 import { isUserVerifiedOrExempt } from '../lib/utils.js';
 import { t } from '../lib/i18n.js';
 
@@ -10,8 +10,15 @@ let verificationModalOpen = false;
 export async function initVerificationGuard() {
     if (!isAuthenticated()) return;
 
+    // Reset dismissed states on landing page loads
+    const path = window.location.pathname.toLowerCase();
+    const isLandingPage = path === "/" || path === "/index.html" || path.endsWith("/index.html");
+    if (isLandingPage) {
+        sessionStorage.removeItem('springwave_read_only_banner_dismissed');
+        sessionStorage.removeItem('springwave_profile_banner_dismissed');
+    }
+
     let user = getUser();
-    if (isUserVerifiedOrExempt(user)) return;
 
     // Double-check with backend (/auth/me) if local state claims unverified, in case verification was recently completed
     try {
@@ -21,80 +28,142 @@ export async function initVerificationGuard() {
         if (res?.user) {
             setUser(res.user);
             user = res.user;
-            if (isUserVerifiedOrExempt(user)) return;
         }
     } catch (e) {}
 
-    // Show sleek top-aligned Read-Only banner below navbar
-    showReadOnlyNoticeBanner();
+    const needsVerification = !isUserVerifiedOrExempt(user);
+    const needsProfileComplete = !isProfileComplete(user);
 
-    // Apply blur and click handlers to elements requiring verification
-    applyVerificationBlur();
+    if (!needsVerification && !needsProfileComplete) return;
 
-    // Observe DOM mutations to blur dynamically added elements (e.g. popups, list items)
-    const observer = new MutationObserver(() => {
+    // Show floating notifications in the bottom-left corner
+    showFloatingWarnings(needsVerification, needsProfileComplete);
+
+    // Apply blur and click handlers to elements requiring verification (only if verification is missing)
+    if (needsVerification) {
         applyVerificationBlur();
-    });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+        // Observe DOM mutations to blur dynamically added elements (e.g. popups, list items)
+        const observer = new MutationObserver(() => {
+            applyVerificationBlur();
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
 }
 
 /**
- * Render a persistent, unified Read-Only Notice Banner for unverified users
+ * Render floating glassmorphism popups at bottom-left corner
  */
-export function showReadOnlyNoticeBanner() {
-    if (sessionStorage.getItem('springwave_read_only_banner_dismissed')) return;
-    if (document.getElementById('read-only-banner')) return;
+export function showFloatingWarnings(needsVerification, needsProfileComplete) {
+    const verificationDismissed = sessionStorage.getItem('springwave_read_only_banner_dismissed');
+    const profileDismissed = sessionStorage.getItem('springwave_profile_banner_dismissed');
 
-    let container = document.getElementById('notice-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'notice-container';
-        container.className = 'notice-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30';
-        const main = document.querySelector('main') || document.body;
-        main.insertBefore(container, main.firstChild);
-    } else {
-        if (!container.classList.contains('notice-container')) {
-            container.classList.add('notice-container', 'relative', 'z-30');
-        }
+    if ((!needsVerification || verificationDismissed) && (!needsProfileComplete || profileDismissed)) {
+        return;
     }
 
-    const titleText = t('verification.readonly_banner_title', 'Read-Only Mode Active');
-    const descText = t('verification.readonly_banner_desc', 'Verify your student status to unlock full access to events, AI roadmaps, and communities.');
-    const verifyBtnText = t('verification.modal_verify_btn', 'Verify Now');
+    // Get or create floating container in the bottom-left corner
+    let container = document.getElementById('floating-notice-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'floating-notice-container';
+        container.className = 'fixed bottom-6 left-6 z-[9999] flex flex-col gap-3 max-w-sm w-[calc(100vw-48px)] pointer-events-none';
+        document.body.appendChild(container);
+    }
 
-    const banner = document.createElement('div');
-    banner.id = 'read-only-banner';
-    banner.className = 'flex flex-col sm:flex-row items-center justify-between gap-3 p-4 mb-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 backdrop-blur-md shadow-sm transition-all duration-300';
-    
-    banner.innerHTML = `
-        <div class="flex items-center gap-3 text-left w-full sm:w-auto">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+    // 1. Profile Completion Warning Card
+    if (needsProfileComplete && !profileDismissed && !document.getElementById('profile-complete-banner')) {
+        const profileTitle = t('verification.profile_banner_title', 'Profile Incomplete');
+        const profileDesc = t('verification.profile_banner_desc', 'Complete your profile (DOB, class, major, phone) to register.');
+        const profileBtn = t('verification.profile_btn', 'Complete Now');
+
+        const card = document.createElement('div');
+        card.id = 'profile-complete-banner';
+        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-indigo-500/30 dark:border-indigo-500/20 backdrop-blur-md shadow-xl flex gap-3 transform translate-y-0 opacity-100 transition-all duration-300';
+        
+        card.innerHTML = `
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[24px]">contact_page</span>
+            </div>
+            <div class="pr-6 text-left">
+                <h4 class="text-sm font-bold text-indigo-950 dark:text-indigo-200 leading-tight">${profileTitle}</h4>
+                <p class="text-xs text-indigo-800/80 dark:text-indigo-300/80 font-medium leading-relaxed mt-1">${profileDesc}</p>
+                <div class="mt-3 flex gap-2">
+                    <a href="/profile.html" class="py-1.5 px-3 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
+                        ${profileBtn}
+                    </a>
+                </div>
+            </div>
+            <button type="button" id="dismiss-profile-banner" class="absolute top-2.5 right-2.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer" aria-label="Dismiss">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+            </button>
+        `;
+
+        card.querySelector('#dismiss-profile-banner').addEventListener('click', () => {
+            sessionStorage.setItem('springwave_profile_banner_dismissed', 'true');
+            card.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => {
+                card.remove();
+                checkEmptyContainer(container);
+            }, 300);
+        });
+
+        container.appendChild(card);
+    }
+
+    // 2. Student Verification Warning Card
+    if (needsVerification && !verificationDismissed && !document.getElementById('read-only-banner')) {
+        const verifyTitle = t('verification.readonly_banner_title', 'Read-Only Mode Active');
+        const verifyDesc = t('verification.readonly_banner_desc', 'Verify student status to unlock full access.');
+        const verifyBtn = t('verification.modal_verify_btn', 'Verify Now');
+
+        const card = document.createElement('div');
+        card.id = 'read-only-banner';
+        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-amber-500/30 dark:border-amber-500/20 backdrop-blur-md shadow-xl flex gap-3 transform translate-y-0 opacity-100 transition-all duration-300';
+        
+        card.innerHTML = `
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[24px]">shield_person</span>
             </div>
-            <div>
-                <h4 class="text-sm font-bold text-amber-900 dark:text-amber-200 leading-tight">${titleText}</h4>
-                <p class="text-xs text-amber-800/80 dark:text-amber-300/80 font-medium leading-relaxed mt-0.5">${descText}</p>
+            <div class="pr-6 text-left">
+                <h4 class="text-sm font-bold text-amber-950 dark:text-amber-200 leading-tight">${verifyTitle}</h4>
+                <p class="text-xs text-amber-800/80 dark:text-amber-300/80 font-medium leading-relaxed mt-1">${verifyDesc}</p>
+                <div class="mt-3 flex gap-2">
+                    <a href="/student-verify.html" class="py-1.5 px-3 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
+                        ${verifyBtn}
+                    </a>
+                </div>
             </div>
-        </div>
-        <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end shrink-0">
-            <a href="/student-verify.html" class="py-2 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition-all hover:-translate-y-0.5 whitespace-nowrap flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px]">verified</span>
-                <span>${verifyBtnText}</span>
-            </a>
-            <button type="button" id="dismiss-readonly-banner" class="p-1.5 rounded-lg text-amber-700/60 hover:text-amber-900 hover:bg-amber-500/10 transition-colors cursor-pointer" aria-label="Dismiss banner">
-                <span class="material-symbols-outlined text-[18px]">close</span>
+            <button type="button" id="dismiss-readonly-banner" class="absolute top-2.5 right-2.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer" aria-label="Dismiss">
+                <span class="material-symbols-outlined text-[16px]">close</span>
             </button>
-        </div>
-    `;
+        `;
 
-    banner.querySelector('#dismiss-readonly-banner').addEventListener('click', () => {
-        sessionStorage.setItem('springwave_read_only_banner_dismissed', 'true');
-        banner.classList.add('opacity-0', '-translate-y-2');
-        setTimeout(() => banner.remove(), 300);
-    });
+        card.querySelector('#dismiss-readonly-banner').addEventListener('click', () => {
+            sessionStorage.setItem('springwave_read_only_banner_dismissed', 'true');
+            card.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => {
+                card.remove();
+                checkEmptyContainer(container);
+            }, 300);
+        });
 
-    container.prepend(banner);
+        container.appendChild(card);
+    }
+}
+
+function checkEmptyContainer(container) {
+    if (container && container.children.length === 0) {
+        container.remove();
+    }
+}
+
+/**
+ * Legacy compatibility stub
+ */
+export function showReadOnlyNoticeBanner() {
+    showFloatingWarnings(true, false);
 }
 
 /**
