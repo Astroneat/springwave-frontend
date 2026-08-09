@@ -4,6 +4,7 @@ import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate } from "../lib/utils.js";
 import { getVerifications, getVerificationById, approveVerification, rejectVerification, batchApproveVerifications, batchRejectVerifications } from "../api/studentVerification.js";
+import { populateUniversitySelect } from "../api/universities.js";
 
 let currentTab = "all";
 let currentPage = 1;
@@ -61,8 +62,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   initPagination();
   initPopups();
   initBatchActions();
+  await loadSchools();
   await loadData();
 });
+
+async function loadSchools() {
+  try {
+    await populateUniversitySelect("school-filter");
+  } catch (e) {
+    console.error("Failed to populate school filter:", e);
+  }
+}
 
 /* =========================
    DATA LOADING
