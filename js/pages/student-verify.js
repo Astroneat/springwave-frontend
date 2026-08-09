@@ -1,5 +1,6 @@
 import "../../src/style.css";
-import { isAuthenticated, getUser } from "../lib/session.js";
+import { isAuthenticated, getUser, setUser } from "../lib/session.js";
+import { getCurrentUser } from "../api/auth.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
@@ -177,7 +178,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Auto-verify path: school email users are verified immediately (no admin review)
         if (isSchoolEmailUser) {
             try {
-                await autoVerifyStudent(formData);
+                const res = await autoVerifyStudent(formData);
+                if (res?.user) {
+                    setUser(res.user);
+                } else {
+                    try {
+                        const meRes = await getCurrentUser();
+                        if (meRes?.user) setUser(meRes.user);
+                    } catch {}
+                }
 
                 btn.innerHTML = '<span class="material-symbols-outlined">verified</span> <span>Đã xác thực!</span>';
                 btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
@@ -263,6 +272,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!banner) return;
 
             if (data.status === 'approved') {
+                try {
+                    const meRes = await getCurrentUser();
+                    if (meRes?.user) setUser(meRes.user);
+                } catch {}
                 banner.classList.remove("hidden");
                 banner.innerHTML = `
                     <div class="rounded-xl bg-green-50 border border-green-200 p-6 flex items-center gap-4">

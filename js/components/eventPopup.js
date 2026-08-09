@@ -11,8 +11,17 @@ import { getMyProfile } from "../api/profile.js";
 import { getSimilarEvents } from "../api/activities.js";
 
 // Unverified students are view-only: prompt + redirect to the verify page.
-function requireVerifiedOrRedirect() {
+async function requireVerifiedOrRedirect() {
     if (isStudentVerified(getUser())) return true;
+    try {
+        const { getCurrentUser } = await import("../api/auth.js");
+        const { setUser } = await import("../lib/session.js");
+        const res = await getCurrentUser();
+        if (res?.user) {
+            setUser(res.user);
+            if (isStudentVerified(res.user)) return true;
+        }
+    } catch {}
     alert("Bạn cần xác thực sinh viên trước khi tham gia hoặc tương tác. Vui lòng hoàn tất xác thực.");
     window.location.href = "/student-verify.html";
     return false;
@@ -383,7 +392,15 @@ function initParticipateButton(activityID) {
                 return;
             }
 
-            if (!requireVerifiedOrRedirect()) return;
+            const verified = await requireVerifiedOrRedirect();
+            if (!verified) return;
+
+            const user = getUser();
+            if (!isProfileComplete(user)) {
+                alert('Vui lòng cập nhật đầy đủ thông tin cá nhân (Ngày sinh, Trường, Lớp, Ngành, SĐT) trong trang Cá nhân trước khi tham gia sự kiện.');
+                window.location.href = '/profile.html';
+                return;
+            }
 
             const isActive = btn.classList.contains("active");
 
@@ -688,7 +705,8 @@ async function initEventComments(eventId, container) {
             window.location.href = '/profile.html';
             return;
         }
-        if (!requireVerifiedOrRedirect()) return;
+        const verified = await requireVerifiedOrRedirect();
+        if (!verified) return;
 
         const text = inputEl.value.trim();
         if (!text) return;

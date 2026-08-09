@@ -7,11 +7,23 @@ let verificationModalOpen = false;
 /**
  * Initialize verification guard for read-only mode and action blurring
  */
-export function initVerificationGuard() {
+export async function initVerificationGuard() {
     if (!isAuthenticated()) return;
 
-    const user = getUser();
+    let user = getUser();
     if (isUserVerifiedOrExempt(user)) return;
+
+    // Double-check with backend (/auth/me) if local state claims unverified, in case verification was recently completed
+    try {
+        const { getCurrentUser } = await import('../api/auth.js');
+        const { setUser } = await import('../lib/session.js');
+        const res = await getCurrentUser();
+        if (res?.user) {
+            setUser(res.user);
+            user = res.user;
+            if (isUserVerifiedOrExempt(user)) return;
+        }
+    } catch (e) {}
 
     // Show sleek top-aligned Read-Only banner below navbar
     showReadOnlyNoticeBanner();
