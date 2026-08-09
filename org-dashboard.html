@@ -655,35 +655,35 @@
     </main>
 
     <!-- QR Scan Modal -->
-    <div class="popup-overlay" hidden id="scan-overlay">
+    <div class="popup-overlay p-4 md:p-6 flex items-center justify-center overflow-y-auto" hidden id="scan-overlay">
         <div class="popup-backdrop" id="scan-backdrop"></div>
-        <div class="popup-container !max-w-[850px] !p-0 max-h-[95vh] overflow-y-auto">
-            <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
-                <div class="flex items-center gap-2.5">
-                    <span class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                        <span class="material-symbols-outlined">qr_code_scanner</span>
+        <div class="popup-container !max-w-[820px] w-full !p-0 max-h-[92vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-slate-200/80 my-auto">
+            <div class="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+                        <span class="material-symbols-outlined text-xl font-semibold">qr_code_scanner</span>
                     </span>
                     <div>
-                        <h2 class="text-lg font-bold text-[#191b22] leading-tight">Check-In Console</h2>
-                        <p class="text-xs text-[#64748b]">Continuous attendance QR scanning</p>
+                        <h2 class="text-lg font-bold text-slate-800 leading-tight tracking-tight">Check-In Console</h2>
+                        <p class="text-xs text-slate-500 font-medium">Continuous attendance QR & Barcode scanner</p>
                     </div>
                 </div>
-                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] spring-ease cursor-pointer" id="scan-close">
-                    <i class="fa-solid fa-xmark"></i>
+                <button class="w-9 h-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-800 spring-ease cursor-pointer shadow-sm" id="scan-close">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-6">
+            <div class="p-6 space-y-6 overflow-y-auto flex-1 bg-white">
                 <!-- Side-by-side scanner & greeting -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                     <!-- Scanner Panel (Left) -->
-                    <div class="flex flex-col justify-between bg-slate-50 border border-slate-200/60 p-4 rounded-2xl relative min-h-[380px]">
-                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#1755ba]/10 text-[#1755ba] flex items-center gap-1 uppercase tracking-wider select-none z-10">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live Scanner
+                    <div class="flex flex-col justify-between bg-slate-50/80 border border-slate-200/80 p-4 rounded-2xl relative min-h-[380px]">
+                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-primary/10 text-primary flex items-center gap-1.5 uppercase tracking-wider select-none z-10 border border-primary/20 backdrop-blur-sm">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Live Scanner
                         </span>
                         <!-- Camera frame with custom scanner viewfinder -->
-                        <div id="scanner-viewfinder-container" class="relative w-full max-w-[340px] mx-auto rounded-xl overflow-hidden shadow-inner border border-slate-200 bg-black mt-6 aspect-square flex items-center justify-center transition-all duration-300">
-                            <video id="qr-video" class="w-full h-full object-cover rounded-xl transition-all duration-300" playsinline></video>
-                            <div id="scanner-viewfinder" class="absolute inset-0 border-[3px] border-dashed border-primary/40 rounded-xl pointer-events-none m-8 animate-pulse transition-all duration-300"></div>
+                        <div id="scanner-viewfinder-container" class="relative w-full max-w-[340px] mx-auto rounded-2xl overflow-hidden shadow-md border border-slate-300 bg-black mt-6 aspect-square flex items-center justify-center transition-all duration-300">
+                            <video id="qr-video" class="w-full h-full object-cover rounded-2xl transition-all duration-300" playsinline></video>
+                            <div id="scanner-viewfinder" class="absolute inset-0 border-[3px] border-dashed border-primary/50 rounded-2xl pointer-events-none m-7 animate-pulse transition-all duration-300"></div>
                         </div>
                         
                         <!-- Camera controls (Camera switch, exposure, zoom) -->
@@ -692,10 +692,10 @@
                             <div class="flex flex-col gap-1">
                                 <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Select Camera</label>
                                 <div class="flex gap-2">
-                                    <select id="scanner-camera-select" class="flex-grow px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-primary">
+                                    <select id="scanner-camera-select" class="flex-grow px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-primary font-medium shadow-sm">
                                         <option value="">Detecting cameras...</option>
                                     </select>
-                                    <button id="scanner-mirror-btn" title="Toggle Mirror View" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[#64748b] hover:bg-slate-50 hover:text-primary spring-ease flex items-center justify-center cursor-pointer">
+                                    <button id="scanner-mirror-btn" title="Toggle Mirror View" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-primary spring-ease flex items-center justify-center cursor-pointer shadow-sm">
                                         <span class="material-symbols-outlined text-sm">flip</span>
                                     </button>
                                 </div>
@@ -709,7 +709,7 @@
                                         <span>Zoom</span>
                                         <span id="zoom-value" class="font-mono text-slate-400">N/A</span>
                                     </div>
-                                    <input type="range" id="scanner-zoom-slider" min="1" max="5" step="0.1" value="1" disabled class="w-full accent-primary h-1 rounded-lg cursor-pointer bg-slate-200" />
+                                    <input type="range" id="scanner-zoom-slider" min="1" max="5" step="0.1" value="1" disabled class="w-full accent-primary h-1.5 rounded-lg cursor-pointer bg-slate-200" />
                                 </div>
                                 <!-- Exposure Slider -->
                                 <div class="flex flex-col gap-1">
@@ -717,56 +717,58 @@
                                         <span>Exposure</span>
                                         <span id="exposure-value" class="font-mono text-slate-400">N/A</span>
                                     </div>
-                                    <input type="range" id="scanner-exposure-slider" min="-3" max="3" step="0.5" value="0" disabled class="w-full accent-primary h-1 rounded-lg cursor-pointer bg-slate-200" />
+                                    <input type="range" id="scanner-exposure-slider" min="-3" max="3" step="0.5" value="0" disabled class="w-full accent-primary h-1.5 rounded-lg cursor-pointer bg-slate-200" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Greeting & Scan Feedback Panel (Right) -->
-                    <div id="scan-feedback-container" class="flex flex-col items-center justify-center p-6 border border-slate-200/60 bg-slate-50 rounded-2xl min-h-[280px] text-center transition-all duration-300">
+                    <div id="scan-feedback-container" class="flex flex-col items-center justify-center p-6 border border-slate-200/80 bg-slate-50/80 rounded-2xl min-h-[380px] text-center transition-all duration-300 relative">
                         <!-- Default view -->
-                        <div id="scan-feedback-default" class="space-y-3">
-                            <span class="material-symbols-outlined text-5xl text-slate-400 select-none animate-pulse">qr_code_scanner</span>
-                            <div>
-                                <h3 class="font-bold text-slate-700 text-lg">Ready to Scan</h3>
-                                <p class="text-xs text-slate-500 mt-1">Position the attendee's ticket QR code or barcode inside the camera viewfinder.</p>
+                        <div id="scan-feedback-default" class="space-y-3 my-auto">
+                            <div class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-sm">
+                                <span class="material-symbols-outlined text-3xl font-semibold animate-pulse">qr_code_scanner</span>
                             </div>
-                            <span id="scan-feedback-format" class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">QR or Barcode</span>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-lg">Ready to Scan</h3>
+                                <p class="text-xs text-slate-500 mt-1 max-w-[240px] mx-auto leading-relaxed">Position the attendee's ticket QR code or student card barcode inside the camera viewfinder.</p>
+                            </div>
+                            <span id="scan-feedback-format" class="inline-block text-[10px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-200/60 px-2.5 py-1 rounded-md">QR or Barcode</span>
                         </div>
 
                         <!-- Success view (Greeting panel - Hidden by default) -->
-                        <div id="scan-feedback-success" class="hidden w-full space-y-4">
-                            <div class="relative inline-flex">
-                                <div id="scan-feedback-avatar-container" class="w-20 h-20 rounded-full border-4 border-emerald-400 overflow-hidden shadow-md mx-auto bg-slate-200 flex items-center justify-center">
-                                    <img id="scan-feedback-avatar" src="" class="w-full h-full object-cover hidden" alt="Avatar" />
+                        <div id="scan-feedback-success" class="hidden w-full space-y-4 my-auto">
+                            <div class="relative inline-flex mx-auto">
+                                <div id="scan-feedback-avatar-container" class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-emerald-400 to-teal-500 shadow-lg mx-auto flex items-center justify-center overflow-hidden">
+                                    <img id="scan-feedback-avatar" src="" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" />
                                     <span id="scan-feedback-avatar-placeholder" class="material-symbols-outlined text-4xl text-slate-400">person</span>
                                 </div>
-                                <span class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow">
+                                <span class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-md">
                                     <span class="material-symbols-outlined text-base font-bold">check</span>
                                 </span>
                             </div>
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span id="scan-feedback-status-label" class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-wider">Checked In Successfully</span>
+                            <div class="space-y-1.5 text-center">
+                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                    <span id="scan-feedback-status-label" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-wider shadow-xs">Checked In</span>
                                     <span id="scan-feedback-format" class="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">QR Ticket</span>
                                 </div>
                                 <h3 id="scan-feedback-name" class="font-extrabold text-2xl text-slate-800 tracking-tight leading-tight">Full Name</h3>
-                                <p id="scan-feedback-username" class="text-xs text-slate-400">@username</p>
+                                <p id="scan-feedback-username" class="text-xs text-slate-400 font-mono">@username</p>
                                 <p id="scan-feedback-email" class="text-xs text-slate-500 truncate max-w-[250px] mx-auto">email@example.com</p>
                             </div>
-                            <div class="pt-2 border-t border-slate-200/60 text-xs text-slate-400 font-mono">
-                                TICKET CODE: <span id="scan-feedback-code" class="font-semibold text-slate-700">SW-XXXXX</span>
+                            <div class="pt-3 border-t border-slate-200/60 text-xs text-slate-400 font-mono">
+                                TICKET CODE: <span id="scan-feedback-code" class="font-bold text-slate-800">SW-XXXXX</span>
                             </div>
                         </div>
 
                         <!-- Error view (Hidden by default) -->
-                        <div id="scan-feedback-error" class="hidden w-full space-y-3">
+                        <div id="scan-feedback-error" class="hidden w-full space-y-3 my-auto">
                             <div class="w-16 h-16 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-500 shadow-sm animate-bounce">
                                 <span class="material-symbols-outlined text-3xl font-bold">warning</span>
                             </div>
-                            <div class="space-y-1 px-4">
-                                <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-100 text-[10px] font-bold uppercase tracking-wider">Scan Failed</span>
+                            <div class="space-y-1 px-4 text-center">
+                                <span class="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-100 text-[10px] font-bold uppercase tracking-wider">Scan Failed</span>
                                 <h4 id="scan-feedback-error-title" class="font-bold text-lg text-slate-800 leading-tight mt-1">Check-in Error</h4>
                                 <p id="scan-feedback-error-message" class="text-xs text-rose-500 font-medium">Invalid or expired ticket code.</p>
                             </div>

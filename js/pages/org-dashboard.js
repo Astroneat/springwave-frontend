@@ -1338,7 +1338,8 @@ function initQRScan() {
       }
 
       if (avatarContainer) {
-        avatarContainer.className = `w-20 h-20 rounded-full border-4 ${isLate ? 'border-amber-400' : 'border-emerald-400'} overflow-hidden shadow-md mx-auto bg-slate-200 flex items-center justify-center`;
+        const ringGradient = isLate ? 'from-amber-400 to-amber-500' : 'from-emerald-400 to-teal-500';
+        avatarContainer.className = `w-24 h-24 rounded-full p-1 bg-gradient-to-tr ${ringGradient} shadow-lg mx-auto flex items-center justify-center overflow-hidden`;
       }
 
       if (avatarEl && placeholderEl) {
@@ -1430,6 +1431,8 @@ function initQRScan() {
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const flippedCanvas = document.createElement("canvas");
+  const flippedCtx = flippedCanvas.getContext("2d", { willReadFrequently: true });
 
   function updateVideoMirrorStyle() {
     const video = document.getElementById("qr-video");
@@ -1515,8 +1518,8 @@ function initQRScan() {
         lastScanTime = now;
         isProcessingFrame = true;
 
-        // Scale video full frame keeping natural aspect ratio (e.g. 640x360 or 640x480)
-        const maxDim = 640;
+        // High-res full frame (up to 960px) to keep 1D Code 128 / Code 39 barcode lines crisp
+        const maxDim = 960;
         const vw = video.videoWidth || 640;
         const vh = video.videoHeight || 480;
         const scale = Math.min(maxDim / vw, maxDim / vh, 1.0);
@@ -1526,17 +1529,26 @@ function initQRScan() {
         if (canvas.width !== targetW || canvas.height !== targetH) {
           canvas.width = targetW;
           canvas.height = targetH;
+          flippedCanvas.width = targetW;
+          flippedCanvas.height = targetH;
         }
 
+        // Draw standard frame
         ctx.drawImage(video, 0, 0, targetW, targetH);
+
+        // Draw un-mirrored (horizontally flipped) frame for front cameras / mirrored barcodes
+        flippedCtx.save();
+        flippedCtx.translate(targetW, 0);
+        flippedCtx.scale(-1, 1);
+        flippedCtx.drawImage(video, 0, 0, targetW, targetH);
+        flippedCtx.restore();
 
         const finalizeFrame = () => { isProcessingFrame = false; };
 
         try {
-          // 1. Prioritize native BarcodeDetector (instant hardware-accelerated detection)
-          //    Detect directly from the video element full frame
           const detector = nativeBarcodeDetector;
           if (detector) {
+            // 1. Try native BarcodeDetector on raw video
             detector.detect(video).then(barcodes => {
               if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
                 const raw = barcodes[0].rawValue;
@@ -1547,25 +1559,38 @@ function initQRScan() {
               } else if (!isScanning) {
                 finalizeFrame();
               } else {
-                // 1b. Native detector returned empty — fallback to ZXing on current full-frame canvas
-                tryZXingFallback().finally(finalizeFrame);
+                // 1b. If raw video failed (e.g. mirrored front camera 1D barcode), try un-mirrored flipped canvas!
+                detector.detect(flippedCanvas).then(flippedBarcodes => {
+                  if (flippedBarcodes && flippedBarcodes.length > 0 && flippedBarcodes[0].rawValue) {
+                    const raw = flippedBarcodes[0].rawValue;
+                    const fmt = flippedBarcodes[0].format || '';
+                    scanType = fmt === 'qr_code' ? 'qr' : 'barcode';
+                    onScanSuccess(raw);
+                    finalizeFrame();
+                  } else {
+                    tryZXingFallback().finally(finalizeFrame);
+                  }
+                }).catch(() => {
+                  tryZXingFallback().finally(finalizeFrame);
+                });
               }
             }).catch(() => {
               tryZXingFallback().finally(finalizeFrame);
             });
           } else {
-            // 2. No native BarcodeDetector (Safari/iOS) — try ZXing directly on full-frame canvas
+            // 2. No native BarcodeDetector — try ZXing directly
             tryZXingFallback().finally(finalizeFrame);
           }
         } catch (err) {
           finalizeFrame();
         }
 
-        // Shared ZXing fallback: decodes from full-frame canvas for maximum range
+        // Shared ZXing fallback: decodes both standard and un-mirrored frames
         async function tryZXingFallback() {
           const zxing = await getZXingReader();
           if (zxing && isScanning) {
             try {
+              // Try standard canvas orientation first
               const result = zxing.decodeFromCanvas(canvas);
               if (result && result.getText && result.getText()) {
                 const fmt = result.getBarcodeFormat?.();
@@ -1573,11 +1598,21 @@ function initQRScan() {
                 onScanSuccess(result.getText());
                 return;
               }
-            } catch (e) {
-              // Code not found in frame — expected
-            }
+            } catch (e) {}
+
+            try {
+              // Try un-mirrored canvas orientation for front-camera 1D barcodes
+              const flippedResult = zxing.decodeFromCanvas(flippedCanvas);
+              if (flippedResult && flippedResult.getText && flippedResult.getText()) {
+                const fmt = flippedResult.getBarcodeFormat?.();
+                scanType = (fmt === 11) ? 'qr' : 'barcode';
+                onScanSuccess(flippedResult.getText());
+                return;
+              }
+            } catch (e) {}
           }
-          // 3. Final fallback: jsQR for legacy QR decoding
+
+          // 3. Legacy jsQR fallback
           if (isScanning && typeof jsQR !== "undefined") {
             const imageData = ctx.getImageData(0, 0, targetW, targetH);
             const attempt = (Math.floor(now / 50) % 2 === 0) ? "dontInvert" : "attemptBoth";
