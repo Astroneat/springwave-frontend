@@ -233,6 +233,63 @@ function initLogoUpload() {
     }
 }
 
+function closeForm() {
+    const overlay = document.getElementById("form-overlay");
+    if (!overlay) return;
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+    setTimeout(() => {
+        overlay.setAttribute("hidden", "");
+        actionTarget = null;
+    }, 300);
+}
+
+function openForm(uni) {
+    actionTarget = uni;
+    const overlay = document.getElementById("form-overlay");
+    const title = document.getElementById("form-title");
+    const imgPreview = document.getElementById("logo-preview-img");
+    const fallbackIcon = document.getElementById("logo-fallback-icon");
+
+    if (uni) {
+        title.textContent = "Edit University";
+        document.getElementById("field-name").value = uni.name || "";
+        document.getElementById("field-short-name").value = uni.shortName || "";
+        document.getElementById("field-domains").value = (uni.domains || []).join(", ");
+        document.getElementById("field-logo-url").value = uni.logo || "";
+        document.getElementById("field-color").value = uni.color || "#3B6FD4";
+        document.getElementById("field-color-text").value = uni.color || "#3B6FD4";
+        document.getElementById("field-description").value = uni.description || "";
+        document.getElementById("field-active").checked = uni.isActive !== false;
+
+        if (uni.logo) {
+            imgPreview.src = uni.logo;
+            imgPreview.classList.remove("hidden");
+            fallbackIcon.classList.add("hidden");
+        } else {
+            imgPreview.classList.add("hidden");
+            fallbackIcon.classList.remove("hidden");
+        }
+    } else {
+        title.textContent = "Add University";
+        document.getElementById("field-name").value = "";
+        document.getElementById("field-short-name").value = "";
+        document.getElementById("field-domains").value = "";
+        document.getElementById("field-logo-url").value = "";
+        document.getElementById("field-color").value = "#3B6FD4";
+        document.getElementById("field-color-text").value = "#3B6FD4";
+        document.getElementById("field-description").value = "";
+        document.getElementById("field-active").checked = true;
+
+        imgPreview.classList.add("hidden");
+        fallbackIcon.classList.remove("hidden");
+    }
+
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+}
+
 function initForm() {
     const overlay = document.getElementById("form-overlay");
     const backdrop = document.getElementById("form-backdrop");
@@ -245,14 +302,13 @@ function initForm() {
         addBtn.addEventListener("click", () => openForm(null));
     }
 
-    const closeForm = () => {
-        overlay.hidden = true;
-        actionTarget = null;
-    };
-
     if (closeBtn) closeBtn.addEventListener("click", closeForm);
     if (cancelBtn) cancelBtn.addEventListener("click", closeForm);
     if (backdrop) backdrop.addEventListener("click", closeForm);
+
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && overlay && !overlay.hasAttribute("hidden")) closeForm();
+    });
 
     if (saveBtn) {
         saveBtn.addEventListener("click", async () => {
@@ -304,48 +360,26 @@ function initForm() {
     }
 }
 
-function openForm(uni) {
+function closeDelete() {
+    const overlay = document.getElementById("delete-overlay");
+    if (!overlay) return;
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+    setTimeout(() => {
+        overlay.setAttribute("hidden", "");
+        actionTarget = null;
+    }, 300);
+}
+
+function openDelete(uni) {
     actionTarget = uni;
-    const overlay = document.getElementById("form-overlay");
-    const title = document.getElementById("form-title");
-    const imgPreview = document.getElementById("logo-preview-img");
-    const fallbackIcon = document.getElementById("logo-fallback-icon");
+    const overlay = document.getElementById("delete-overlay");
+    const nameEl = document.getElementById("delete-name");
+    if (nameEl) nameEl.textContent = uni.shortName ? `${uni.name} (${uni.shortName})` : uni.name;
 
-    if (uni) {
-        title.textContent = "Edit University";
-        document.getElementById("field-name").value = uni.name || "";
-        document.getElementById("field-short-name").value = uni.shortName || "";
-        document.getElementById("field-domains").value = (uni.domains || []).join(", ");
-        document.getElementById("field-logo-url").value = uni.logo || "";
-        document.getElementById("field-color").value = uni.color || "#3B6FD4";
-        document.getElementById("field-color-text").value = uni.color || "#3B6FD4";
-        document.getElementById("field-description").value = uni.description || "";
-        document.getElementById("field-active").checked = uni.isActive !== false;
-
-        if (uni.logo) {
-            imgPreview.src = uni.logo;
-            imgPreview.classList.remove("hidden");
-            fallbackIcon.classList.add("hidden");
-        } else {
-            imgPreview.classList.add("hidden");
-            fallbackIcon.classList.remove("hidden");
-        }
-    } else {
-        title.textContent = "Add University";
-        document.getElementById("field-name").value = "";
-        document.getElementById("field-short-name").value = "";
-        document.getElementById("field-domains").value = "";
-        document.getElementById("field-logo-url").value = "";
-        document.getElementById("field-color").value = "#3B6FD4";
-        document.getElementById("field-color-text").value = "#3B6FD4";
-        document.getElementById("field-description").value = "";
-        document.getElementById("field-active").checked = true;
-
-        imgPreview.classList.add("hidden");
-        fallbackIcon.classList.remove("hidden");
-    }
-
-    overlay.hidden = false;
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
 }
 
 function initDelete() {
@@ -354,13 +388,12 @@ function initDelete() {
     const cancelBtn = document.getElementById("delete-cancel");
     const confirmBtn = document.getElementById("delete-confirm");
 
-    const closeDelete = () => {
-        overlay.hidden = true;
-        actionTarget = null;
-    };
-
     if (cancelBtn) cancelBtn.addEventListener("click", closeDelete);
     if (backdrop) backdrop.addEventListener("click", closeDelete);
+
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && overlay && !overlay.hasAttribute("hidden")) closeDelete();
+    });
 
     if (confirmBtn) {
         confirmBtn.addEventListener("click", async () => {
@@ -375,18 +408,11 @@ function initDelete() {
                 await loadData();
             } catch (err) {
                 alert(err.message || "Failed to delete university");
+                closeDelete();
             } finally {
                 confirmBtn.disabled = false;
                 confirmBtn.textContent = "Delete";
             }
         });
     }
-}
-
-function openDelete(uni) {
-    actionTarget = uni;
-    const overlay = document.getElementById("delete-overlay");
-    const nameEl = document.getElementById("delete-name");
-    if (nameEl) nameEl.textContent = uni.shortName ? `${uni.name} (${uni.shortName})` : uni.name;
-    overlay.hidden = false;
 }

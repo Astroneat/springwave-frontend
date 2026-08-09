@@ -1,4 +1,4 @@
-import { get, post, put, del } from "./client.js";
+import { get, post, put, del, uploadFormData } from "./client.js";
 
 const CACHE_KEY = 'springwave_universities';
 const DOMAIN_CACHE_KEY = 'springwave_university_domains';
@@ -173,24 +173,5 @@ export async function deleteUniversity(id) {
 export async function uploadUniversityLogo(file) {
   const formData = new FormData();
   formData.append('logo', file);
-
-  const { getToken, getSigningKey } = await import('../lib/session.js');
-  const token = getToken();
-  const signingKey = getSigningKey();
-
-  const headers = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  if (signingKey) headers['X-Signing-Key'] = signingKey;
-
-  const response = await fetch('/api/universities/upload-logo', {
-    method: 'POST',
-    headers,
-    body: formData
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to upload university logo');
-  }
-  return data;
+  return await uploadFormData('/universities/upload-logo', formData);
 }
