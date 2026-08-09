@@ -1,8 +1,15 @@
-import { get } from "./client.js";
+import { get, post, put, del } from "./client.js";
 
 const CACHE_KEY = 'springwave_universities';
 const DOMAIN_CACHE_KEY = 'springwave_university_domains';
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+export function clearUniversityCache() {
+  try {
+    sessionStorage.removeItem(CACHE_KEY);
+    sessionStorage.removeItem(DOMAIN_CACHE_KEY);
+  } catch (e) {}
+}
 
 /**
  * Get all active universities. Cached in sessionStorage.
@@ -108,4 +115,82 @@ export async function populateUniversitySelect(selectElOrId, selectedValue = '')
   if (selectedValue) {
     selectEl.value = selectedValue;
   }
+}
+
+/* ==========================================================================
+   ADMIN API METHODS
+   ========================================================================== */
+
+/**
+ * Get all universities including inactive ones (Admin only).
+ * @param {string} [search]
+ * @returns {Promise<{universities: Array}>}
+ */
+export async function getAllUniversitiesAdmin(search = '') {
+  const query = search ? `?search=${encodeURIComponent(search)}` : '';
+  return await get(`/universities/admin/all${query}`);
+}
+
+/**
+ * Create a new university (Admin only).
+ * @param {Object} data
+ * @returns {Promise<{message: string, university: Object}>}
+ */
+export async function createUniversity(data) {
+  const res = await post('/universities', data);
+  clearUniversityCache();
+  return res;
+}
+
+/**
+ * Update an existing university (Admin only).
+ * @param {string} id
+ * @param {Object} data
+ * @returns {Promise<{message: string, university: Object}>}
+ */
+export async function updateUniversity(id, data) {
+  const res = await put(`/universities/${id}`, data);
+  clearUniversityCache();
+  return res;
+}
+
+/**
+ * Delete a university (Admin only).
+ * @param {string} id
+ * @returns {Promise<{message: string}>}
+ */
+export async function deleteUniversity(id) {
+  const res = await del(`/universities/${id}`);
+  clearUniversityCache();
+  return res;
+}
+
+/**
+ * Upload a logo image for a university (Admin only).
+ * @param {File} file
+ * @returns {Promise<{logoUrl: string}>}
+ */
+export async function uploadUniversityLogo(file) {
+  const formData = new FormData();
+  formData.append('logo', file);
+
+  const { getToken, getSigningKey } = await import('../lib/session.js');
+  const token = getToken();
+  const signingKey = getSigningKey();
+
+  const headers = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (signingKey) headers['X-Signing-Key'] = signingKey;
+
+  const response = await fetch('/api/universities/upload-logo', {
+    method: 'POST',
+    headers,
+    body: formData
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to upload university logo');
+  }
+  return data;
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="admin_categories.title">Category Management — SpringWave Admin</title>
+    <title data-i18n="admin_universities.title">University Management — SpringWave Admin</title>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,6 +25,7 @@
         .tab-btn:not(.active) { background: transparent; color: #64748b; }
         .tab-btn:not(.active):hover { background: #f1f5f9; }
         .color-preview { width: 24px; height: 24px; border-radius: 6px; display: inline-block; border: 1px solid #e2e2eb; }
+        .domain-tag { display: inline-flex; items-center: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-family: monospace; background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; }
     </style>
 </head>
 <body class="bg-[#faf8ff] text-[#191b22] font-body-md antialiased min-h-screen">
@@ -34,25 +35,26 @@
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div>
-                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]" data-i18n="admin_categories.title">Category Management</h1>
-                <p class="text-[#64748b] text-base mt-1" data-i18n="admin_categories.desc">Manage activity categories</p>
+                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]" data-i18n="admin_universities.title">University Management</h1>
+                <p class="text-[#64748b] text-base mt-1" data-i18n="admin_universities.desc">Manage universities, logos, and auto-verification email domains</p>
             </div>
             <div class="flex items-center gap-3">
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-sm"></i>
-                    <input type="text" id="search-input" placeholder="Search categories..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[200px] outline-none focus:border-primary transition-colors" />
+                    <input type="text" id="search-input" placeholder="Search university or domain..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[240px] outline-none focus:border-primary transition-colors" />
                 </div>
                 <button id="refresh-btn" class="w-10 h-10 rounded-full border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f1f5f9] transition-all spring-ease" title="Refresh">
                     <i class="fa-solid fa-rotate"></i>
                 </button>
-                <button id="add-category-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
+                <button id="add-university-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
                     <i class="fa-solid fa-plus"></i>
-                    <span data-i18n="admin_categories.add">Add Category</span>
+                    <span data-i18n="admin_universities.add">Add University</span>
                 </button>
             </div>
         </div>
 
-        <div class="flex gap-3 mb-6">
+        <!-- ADMIN NAVIGATION TABS -->
+        <div class="flex flex-wrap gap-2 md:gap-3 mb-6">
             <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
                 <i class="fa-solid fa-calendar-days mr-1.5"></i> Events
             </a>
@@ -62,10 +64,10 @@
             <a href="/admin-student-verification.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
                 <i class="fa-solid fa-graduation-cap mr-1.5"></i> Student Verification
             </a>
-            <a href="/admin-categories.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md">
+            <a href="/admin-categories.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
                 <i class="fa-solid fa-tags mr-1.5"></i> Categories
             </a>
-            <a href="/admin-universities.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
+            <a href="/admin-universities.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md">
                 <i class="fa-solid fa-building-columns mr-1.5"></i> Universities
             </a>
             <a href="/admin-analytics.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-transparent text-[#64748b] hover:bg-[#f1f5f9]">
@@ -75,18 +77,18 @@
 
         <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-[#ecedfa]">
-                <h2 class="font-headline-md text-xl font-bold text-[#191b22]" data-i18n="admin_categories.list">Categories</h2>
-                <span class="text-sm text-[#64748b] font-medium" id="table-count">0 categories</span>
+                <h2 class="font-headline-md text-xl font-bold text-[#191b22]" data-i18n="admin_universities.list">Universities</h2>
+                <span class="text-sm text-[#64748b] font-medium" id="table-count">0 universities</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Icon</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Name</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell">Slug</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell">Color</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell">Sort</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Logo</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Full Name</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Short Name</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell">Auto-Verify Domains</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell">Color</th>
                             <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Status</th>
                             <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Actions</th>
                         </tr>
@@ -95,8 +97,8 @@
                 </table>
             </div>
             <div id="table-empty" class="hidden text-center py-16 text-[#94a3b8]">
-                <i class="fa-solid fa-tags text-4xl mb-3 block"></i>
-                <p class="text-base font-semibold" data-i18n="admin_categories.no_categories">No categories found</p>
+                <i class="fa-solid fa-building-columns text-4xl mb-3 block"></i>
+                <p class="text-base font-semibold" data-i18n="admin_universities.no_universities">No universities found</p>
             </div>
         </div>
     </main>
@@ -104,36 +106,58 @@
     <!-- CREATE / EDIT POPUP -->
     <div class="popup-overlay" hidden id="form-overlay">
         <div class="popup-backdrop" id="form-backdrop"></div>
-        <div class="popup-container !max-w-[520px] !p-8">
+        <div class="popup-container !max-w-[600px] !p-8">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-[#191b22]" id="form-title" data-i18n="admin_categories.add_category">Add Category</h3>
+                <h3 class="text-xl font-bold text-[#191b22]" id="form-title" data-i18n="admin_universities.add_title">Add University</h3>
                 <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] spring-ease" id="form-close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
                 <div>
-                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Name *</label>
-                    <input id="field-name" type="text" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" placeholder="e.g. Workshop" />
+                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Full Name *</label>
+                    <input id="field-name" type="text" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" placeholder="e.g. Trường Đại học Bách khoa - Đại học Đà Nẵng" />
                 </div>
                 <div>
-                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Icon (FontAwesome class)</label>
-                    <input id="field-icon" type="text" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" placeholder="e.g. fa-solid fa-screwdriver-wrench" />
+                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Short Name / Abbreviation *</label>
+                    <input id="field-short-name" type="text" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" placeholder="e.g. VKU, DUT" />
                 </div>
                 <div>
-                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Color</label>
+                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Auto-Verify Email Domains (comma or newline separated)</label>
+                    <textarea id="field-domains" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22] font-mono" placeholder="e.g. vku.udn.vn, sv.vku.udn.vn"></textarea>
+                    <p class="text-xs text-[#94a3b8] mt-1">Users registering with emails ending in these domains will be automatically verified for this university.</p>
+                </div>
+                <div>
+                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">University Logo</label>
                     <div class="flex items-center gap-3">
-                        <input id="field-color" type="color" class="w-10 h-10 rounded-lg border border-[#e2e2eb] cursor-pointer p-0.5" value="#10b981" />
-                        <input id="field-color-text" type="text" class="flex-1 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" placeholder="#10b981" value="#10b981" />
+                        <div id="logo-preview-container" class="w-12 h-12 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] flex items-center justify-center overflow-hidden shrink-0">
+                            <i class="fa-solid fa-building-columns text-[#94a3b8] text-xl" id="logo-fallback-icon"></i>
+                            <img id="logo-preview-img" class="w-full h-full object-contain hidden" alt="Logo preview" />
+                        </div>
+                        <div class="flex-1 flex items-center gap-2">
+                            <input id="field-logo-url" type="text" class="flex-1 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" placeholder="https://... or upload" />
+                            <label class="py-2.5 px-4 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold cursor-pointer hover:bg-[#f8f9fc] flex items-center gap-1.5 shrink-0">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                Upload
+                                <input type="file" id="field-logo-file" accept="image/*" class="hidden" />
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Sort Order</label>
-                    <input id="field-sort" type="number" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" value="0" />
+                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Brand Color</label>
+                    <div class="flex items-center gap-3">
+                        <input id="field-color" type="color" class="w-10 h-10 rounded-lg border border-[#e2e2eb] cursor-pointer p-0.5" value="#3B6FD4" />
+                        <input id="field-color-text" type="text" class="flex-1 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" placeholder="#3B6FD4" value="#3B6FD4" />
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div>
+                    <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Description</label>
+                    <textarea id="field-description" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" placeholder="Optional description..."></textarea>
+                </div>
+                <div class="flex items-center gap-2 pt-2">
                     <input id="field-active" type="checkbox" class="w-4 h-4 rounded border-[#c3c6d5] text-primary cursor-pointer accent-primary" checked />
-                    <label for="field-active" class="text-sm font-medium text-[#191b22]">Active</label>
+                    <label for="field-active" class="text-sm font-medium text-[#191b22]">Active (Available for user selection)</label>
                 </div>
             </div>
             <div class="flex gap-3 mt-8">
@@ -146,12 +170,12 @@
     <!-- DELETE CONFIRMATION POPUP -->
     <div class="popup-overlay" hidden id="delete-overlay">
         <div class="popup-backdrop" id="delete-backdrop"></div>
-        <div class="popup-container !max-w-[420px] !p-8 text-center">
+        <div class="popup-container !max-w-[440px] !p-8 text-center">
             <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-trash-can text-red-500 text-2xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_categories.delete_title">Delete Category</h3>
-            <p class="text-sm text-[#64748b] mb-6">Delete <strong id="delete-name">this category</strong>? This cannot be undone if no events use it.</p>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_universities.delete_title">Delete University</h3>
+            <p class="text-sm text-[#64748b] mb-6">Are you sure you want to delete <strong id="delete-name">this university</strong>? If any users or events are associated with it, you should deactivate it instead.</p>
             <div class="flex gap-3">
                 <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="delete-cancel" data-i18n="common.cancel">Cancel</button>
                 <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="delete-confirm" data-i18n="common.delete">
@@ -164,6 +188,6 @@
     <div id="footer-container"></div>
     <div id="chatbot-container"></div>
 
-    <script type="module" src="./js/pages/admin-categories.js"></script>
+    <script type="module" src="./js/pages/admin-universities.js"></script>
 </body>
 </html>

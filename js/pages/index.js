@@ -20,11 +20,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 function checkAutoVerificationNotice() {
   const showFlag = sessionStorage.getItem("show_auto_verified_notice");
   const user = getUser();
+  if (!user) return;
 
-  if (showFlag === "true" || (isAuthenticated() && user && (user.isStudentVerified || user.schoolLocked))) {
+  if (showFlag === "true") {
     sessionStorage.removeItem("show_auto_verified_notice");
     showNoticeBox({
-      id: 'auto_school_verification',
+      id: `auto_school_verification_${user._id}`,
       message: 'verification.schoolEmailVerified',
       type: 'success',
       once: true

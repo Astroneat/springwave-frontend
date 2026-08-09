@@ -16,6 +16,7 @@ import { openReviewModal } from "../components/reviewModal.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { t } from "../lib/i18n.js";
+import { populateUniversitySelect } from "../api/universities.js";
 
 const popupOverlay = document.getElementById("popup-overlay");
 const popupContainer = document.getElementById("popup-container");
@@ -284,16 +285,17 @@ function openEditModal() {
     document.getElementById("edit-dob").value = user.dob ? user.dob.split("T")[0] : "";
     document.getElementById("edit-phone").value = user.phoneNo || "";
     const schoolInput = document.getElementById("edit-school");
-    schoolInput.value = user.school || "";
-    // School locked from a verified email domain can't be edited.
-    if (user.schoolLocked) {
-        schoolInput.readOnly = true;
-        schoolInput.classList.add("opacity-70", "cursor-not-allowed");
-        schoolInput.title = "Trường học đã được xác thực qua email và không thể thay đổi.";
-    } else {
-        schoolInput.readOnly = false;
-        schoolInput.classList.remove("opacity-70", "cursor-not-allowed");
-        schoolInput.title = "";
+    if (schoolInput) {
+        populateUniversitySelect(schoolInput, user.school || "");
+        if (user.schoolLocked) {
+            schoolInput.disabled = true;
+            schoolInput.classList.add("opacity-70", "cursor-not-allowed");
+            schoolInput.title = "Trường học đã được xác thực qua email và không thể thay đổi.";
+        } else {
+            schoolInput.disabled = false;
+            schoolInput.classList.remove("opacity-70", "cursor-not-allowed");
+            schoolInput.title = "";
+        }
     }
     document.getElementById("edit-class").value = user.class || "";
     document.getElementById("edit-major").value = user.major || "";

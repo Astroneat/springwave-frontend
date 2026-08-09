@@ -113,7 +113,10 @@ function initLoginForm() {
                 setTimeout(async () => {
                     // Check if user has a school email that should be auto-verified
                     if (data.user.email && await isSchoolEmail(data.user.email)) {
-                        sessionStorage.setItem("show_auto_verified_notice", "true");
+                        const noticeKey = `springwave_notice_seen_auto_school_verification_${data.user._id}`;
+                        if (!localStorage.getItem(noticeKey)) {
+                            sessionStorage.setItem("show_auto_verified_notice", "true");
+                        }
                     }
 
                     // Redirect to home, user will see verification button in navbar
@@ -222,8 +225,11 @@ function initGoogleLogin() {
                     const { checkSchoolEmail } = await import("../api/universities.js");
                     const schoolResult = await checkSchoolEmail(data.user.email);
                     if (schoolResult.isSchool) {
-                        // Mark session storage flag for one-time home page notice
-                        sessionStorage.setItem("show_auto_verified_notice", "true");
+                        // Mark session storage flag for one-time home page notice if not seen before
+                        const noticeKey = `springwave_notice_seen_auto_school_verification_${data.user._id}`;
+                        if (!localStorage.getItem(noticeKey)) {
+                            sessionStorage.setItem("show_auto_verified_notice", "true");
+                        }
                     }
                 } catch (e) {}
                 window.location.href = "/index.html";

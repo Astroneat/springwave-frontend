@@ -61,6 +61,7 @@ export default defineConfig({
         studentVerify: resolve(__dirname, "student-verify.html"),
         adminStudentVerification: resolve(__dirname, "admin-student-verification.html"),
         adminAnalytics: resolve(__dirname, "admin-analytics.html"),
+        adminUniversities: resolve(__dirname, "admin-universities.html"),
       },
       output: {
         assetFileNames: (assetInfo) => {
