@@ -1559,15 +1559,19 @@ function initQRScan() {
           const zxing = await getZXingReader();
           if (zxing && isScanning) {
             try {
-              // ZXing can decode from a canvas element directly
-              const result = await zxing.decodeFromImage(undefined, canvas);
-              if (result?.getText && result.getText()) {
-                scanType = 'barcode'; // ZXing handles both QR and barcode formats
+              // decodeFromCanvas(canvas) is the correct API for @zxing/browser v0.2.x
+              // It is synchronous and returns a Result object or throws NotFoundException
+              const result = zxing.decodeFromCanvas(canvas);
+              if (result && result.getText && result.getText()) {
+                // Determine scanType from barcode format
+                const fmt = result.getBarcodeFormat?.();
+                // BarcodeFormat.QR_CODE = 11 in @zxing/library
+                scanType = (fmt === 11) ? 'qr' : 'barcode';
                 onScanSuccess(result.getText());
                 return;
               }
             } catch (e) {
-              // ZXing decode failed on this frame, continue scanning
+              // NotFoundException is expected when no code is in frame — silently continue
             }
           }
           // 3. Final fallback: jsQR for QR-code-only environments (legacy)
