@@ -117,3 +117,56 @@ export function checkVerificationGuard(user, action = "perform this action") {
     }
     return true;
 }
+
+/**
+ * Format a date as YYYY-MM-DD in Vietnam timezone (Asia/Ho_Chi_Minh)
+ * @param {string|Date} dateInput 
+ * @returns {string} YYYY-MM-DD
+ */
+export function getVietnameseDateStr(dateInput) {
+    if (!dateInput) return "";
+    try {
+        return new Date(dateInput).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+    } catch (e) {
+        return "";
+    }
+}
+
+/**
+ * Get today's date as YYYY-MM-DD in Vietnam timezone (Asia/Ho_Chi_Minh)
+ * @returns {string} YYYY-MM-DD
+ */
+export function getTodayVietnameseDateStr() {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+}
+
+/**
+ * Check if the event date is today in Vietnam timezone
+ * @param {string|Date} dateStr 
+ * @returns {boolean}
+ */
+export function isToday(dateStr) {
+    if (!dateStr) return false;
+    return getVietnameseDateStr(dateStr) === getTodayVietnameseDateStr();
+}
+
+/**
+ * Check if the event date is strictly before today in Vietnam timezone
+ * @param {string|Date} dateStr 
+ * @returns {boolean}
+ */
+export function isPastDate(dateStr) {
+    if (!dateStr) return false;
+    return getVietnameseDateStr(dateStr) < getTodayVietnameseDateStr();
+}
+
+/**
+ * Check if the event date is strictly after today in Vietnam timezone
+ * @param {string|Date} dateStr 
+ * @returns {boolean}
+ */
+export function isUpcomingDate(dateStr) {
+    if (!dateStr) return false;
+    return getVietnameseDateStr(dateStr) > getTodayVietnameseDateStr();
+}
+

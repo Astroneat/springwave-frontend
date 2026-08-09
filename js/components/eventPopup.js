@@ -4,7 +4,7 @@ import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { t } from "../lib/i18n.js";
 import { isAuthenticated, getUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
-import { formatDate, capitalize, timeAgo } from "../lib/utils.js";
+import { formatDate, capitalize, timeAgo, isToday, isPastDate } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
 import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
@@ -91,6 +91,7 @@ export async function openEventPopup(activityID, options = {}) {
     container.innerHTML = buildPopupHTML(activity, backText);
 
     initParticipateButton(activityID);
+    disableParticipationButtons(activity);
 
     container.querySelector("#back-btn")?.addEventListener("click", closeEventPopup);
 
@@ -357,6 +358,38 @@ function setParticipated(activity) {
             text.textContent = t("explore.joined_activity") || "Joined activity";
         }
     });
+
+    if (activity && activity.heldDate && (isPastDate(activity.heldDate) || isToday(activity.heldDate))) {
+        btns.forEach(btn => {
+            if (btn.dataset.externalUrl) return;
+            btn.disabled = true;
+            btn.classList.add("disabled", "opacity-50", "cursor-not-allowed");
+            btn.style.pointerEvents = "none";
+        });
+    }
+}
+
+function disableParticipationButtons(activity) {
+    if (!activity || !activity.heldDate) return;
+    const isPast = isPastDate(activity.heldDate);
+    const isOngoing = isToday(activity.heldDate);
+    if (isPast || isOngoing) {
+        const btns = document.querySelectorAll(".participate");
+        btns.forEach(btn => {
+            if (btn.dataset.externalUrl) return;
+            btn.disabled = true;
+            btn.classList.add("disabled", "opacity-50", "cursor-not-allowed");
+            btn.style.pointerEvents = "none";
+            const span = btn.querySelector("span");
+            if (span) {
+                if (isOngoing) {
+                    span.textContent = t("explore.ongoing") || "Ongoing";
+                } else {
+                    span.textContent = t("explore.ended") || "Ended";
+                }
+            }
+        });
+    }
 }
 
 function setFavourited() {
