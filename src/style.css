@@ -3032,6 +3032,17 @@ html, body, button, input, select, textarea {
     min-width: 48px;
 }
 
+.time-input-editable {
+    @apply text-sm font-semibold text-[#191b22] bg-white border border-[#e2e2eb] rounded-lg outline-none text-center transition-all;
+    width: 54px;
+    height: 36px;
+    padding: 2px 4px;
+}
+
+.time-input-editable:focus {
+    @apply border-[#1755ba] ring-2 ring-[#1755ba]/20;
+}
+
 .time-select:hover {
     @apply text-[#1755ba];
 }

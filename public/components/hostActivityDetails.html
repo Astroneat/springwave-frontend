@@ -254,12 +254,12 @@
                     <div class="time-input-row">
                         <div class="time-field">
                             <span class="material-symbols-outlined">schedule</span>
-                            <select id="deadlineHour" class="time-select"></select>
+                            <input id="deadlineHour" list="hoursList" type="text" maxlength="2" class="time-input-editable" placeholder="HH" autocomplete="off" />
                             <span class="time-sep">:</span>
-                            <select id="deadlineMinute" class="time-select"></select>
+                            <input id="deadlineMinute" list="minutesList" type="text" maxlength="2" class="time-input-editable" placeholder="MM" autocomplete="off" />
                         </div>
                     </div>
-                    <p class="sub-text">Hệ thống sẽ tự động khóa đăng ký sau thời điểm này.</p>
+                    <p class="sub-text">Nhập tay hoặc chọn giờ (00-23 : 00-59).</p>
                 </div>
             </div>
 
@@ -298,9 +298,9 @@
                     <div class="time-input-row">
                         <div class="time-field">
                             <span class="material-symbols-outlined">schedule</span>
-                            <select id="heldHour" class="time-select"></select>
+                            <input id="heldHour" list="hoursList" type="text" maxlength="2" class="time-input-editable" placeholder="HH" autocomplete="off" />
                             <span class="time-sep">:</span>
-                            <select id="heldMinute" class="time-select"></select>
+                            <input id="heldMinute" list="minutesList" type="text" maxlength="2" class="time-input-editable" placeholder="MM" autocomplete="off" />
                         </div>
                     </div>
                     <p class="sub-text">Chuyển sang trạng thái "Đang diễn ra" vào mốc giờ này.</p>
@@ -342,14 +342,18 @@
                     <div class="time-input-row">
                         <div class="time-field">
                             <span class="material-symbols-outlined">schedule</span>
-                            <select id="endHour" class="time-select"></select>
+                            <input id="endHour" list="hoursList" type="text" maxlength="2" class="time-input-editable" placeholder="HH" autocomplete="off" />
                             <span class="time-sep">:</span>
-                            <select id="endMinute" class="time-select"></select>
+                            <input id="endMinute" list="minutesList" type="text" maxlength="2" class="time-input-editable" placeholder="MM" autocomplete="off" />
                         </div>
                     </div>
                     <p class="sub-text">Chuyển sang trạng thái "Đã kết thúc" ngay sau mốc giờ này.</p>
                 </div>
             </div>
+
+            <!-- Datalists for Time Pickers (00-23 hours, 00-59 minutes step 1) -->
+            <datalist id="hoursList"></datalist>
+            <datalist id="minutesList"></datalist>
         </section>
 
 

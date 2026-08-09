@@ -272,29 +272,66 @@ export function initCheckinRulesToggle() {
 }
 
 export function initTimePicker() {
+    const hoursList = document.getElementById("hoursList");
+    const minutesList = document.getElementById("minutesList");
+    if (hoursList && hoursList.options.length === 0) {
+        for (let i = 0; i < 24; i++) {
+            const opt = document.createElement("option");
+            opt.value = String(i).padStart(2, '0');
+            hoursList.appendChild(opt);
+        }
+    }
+    if (minutesList && minutesList.options.length === 0) {
+        for (let i = 0; i < 60; i++) { // Step 1 minute!
+            const opt = document.createElement("option");
+            opt.value = String(i).padStart(2, '0');
+            minutesList.appendChild(opt);
+        }
+    }
+
     const timeFields = [
         { hour: 'heldHour', min: 'heldMinute', defaultHour: new Date().getHours(), defaultMin: new Date().getMinutes() },
         { hour: 'endHour', min: 'endMinute', defaultHour: 23, defaultMin: 59 },
         { hour: 'deadlineHour', min: 'deadlineMinute', defaultHour: 23, defaultMin: 59 },
     ];
     timeFields.forEach(tf => {
-        const hourSel = document.getElementById(tf.hour);
-        const minSel = document.getElementById(tf.min);
-        if (!hourSel || !minSel) return;
-        if (hourSel.options.length === 0) {
+        const hourEl = document.getElementById(tf.hour);
+        const minEl = document.getElementById(tf.min);
+        if (!hourEl || !minEl) return;
+
+        if (hourEl.tagName === 'SELECT' && hourEl.options.length === 0) {
             for (let i = 0; i < 24; i++) {
                 const v = String(i).padStart(2, '0');
-                hourSel.appendChild(new Option(v, v));
+                hourEl.appendChild(new Option(v, v));
             }
         }
-        if (minSel.options.length === 0) {
-            for (let i = 0; i < 60; i += 5) {
+        if (minEl.tagName === 'SELECT' && minEl.options.length === 0) {
+            for (let i = 0; i < 60; i++) { // Step 1 minute!
                 const v = String(i).padStart(2, '0');
-                minSel.appendChild(new Option(v, v));
+                minEl.appendChild(new Option(v, v));
             }
         }
-        hourSel.value = String(tf.defaultHour).padStart(2, '0');
-        minSel.value = String(tf.defaultMin).padStart(2, '0');
+
+        if (!hourEl.value) hourEl.value = String(tf.defaultHour).padStart(2, '0');
+        if (!minEl.value) minEl.value = String(tf.defaultMin).padStart(2, '0');
+
+        [hourEl, minEl].forEach(el => {
+            const isHour = el === hourEl;
+            const maxVal = isHour ? 23 : 59;
+            el.addEventListener("blur", () => {
+                if (!el.value.trim()) return;
+                let val = parseInt(el.value, 10);
+                if (isNaN(val) || val < 0) val = 0;
+                if (val > maxVal) val = maxVal;
+                el.value = String(val).padStart(2, '0');
+            });
+            el.addEventListener("input", () => {
+                el.value = el.value.replace(/[^0-9]/g, '');
+                if (el.value.length > 2) {
+                    el.value = el.value.slice(0, 2);
+                }
+            });
+        });
     });
 }
 

@@ -104,17 +104,13 @@ function renderTickets() {
 
   list.innerHTML = ticketsToDisplay.map(t => {
     const event = t.event || {};
-    const eventDate = event.heldDate
-      ? new Date(event.heldDate).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
-      : "TBD";
+    const eventDate = event.heldDate ? formatDate(event.heldDate) : "TBD";
     const status = getTicketStatus(t);
     const showQR = status === 'active';
 
     let checkInInfo = '';
     if (t.checkIn && t.checkIn.status === 'present') {
-      const time = t.checkIn.checkedInAt
-        ? new Date(t.checkIn.checkedInAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" })
-        : '';
+      const time = t.checkIn.checkedInAt ? formatDate(t.checkIn.checkedInAt) : '';
       const label = 'Checked in';
       checkInInfo = `
         <div class="flex items-center gap-1.5 text-xs text-emerald-600">

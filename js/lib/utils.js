@@ -16,13 +16,26 @@ export async function fetchContent(url) {
     }
 }
 
-export function formatDate(dateString) {
-    if (!dateString) return "Unknown Date";
-    const lang = localStorage.getItem("springwave_lang") || "en";
-    return new Date(dateString).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-GB", {
-        timeZone: "Asia/Ho_Chi_Minh",
-        day: "2-digit", month: "2-digit", year: "numeric"
-    });
+export function formatDate(dateString, opts = true) {
+    if (!dateString) return "N/A";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "N/A";
+
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+
+    const dateOnly = `${day}/${month}/${year}`;
+    const timeOnly = `${hours}:${minutes}`;
+
+    const includeTime = typeof opts === "boolean" ? opts : (opts.includeTime ?? true);
+
+    if (includeTime) {
+        return `${dateOnly}, ${timeOnly}`;
+    }
+    return dateOnly;
 }
 
 export function capitalize(str) {
