@@ -1170,7 +1170,8 @@ function initQRScan() {
   let feedbackTimer = null;
   let sessionHistory = [];
   let lastScanTime = 0;
-  const SCAN_INTERVAL = 80; // scan every 80ms — fast enough for QR and barcode
+  const SCAN_INTERVAL = 16; // Scan on virtually every frame (~60fps) for instant detection
+  let isProcessingFrame = false;
 
   // Lazy-init native BarcodeDetector with full barcode format support
   // (code_128 / code_39 for student card barcodes, qr_code for ticket QRs)
@@ -1508,77 +1509,79 @@ function initQRScan() {
     const video = document.getElementById("qr-video");
     if (!video) return;
 
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessingFrame) {
       const now = Date.now();
       if (now - lastScanTime >= SCAN_INTERVAL) {
         lastScanTime = now;
+        isProcessingFrame = true;
 
-        // Crop centered square area corresponding to the smaller dimension
-        const sourceSize = Math.min(video.videoWidth, video.videoHeight);
-        const sx = (video.videoWidth - sourceSize) / 2;
-        const sy = (video.videoHeight - sourceSize) / 2;
+        // Scale video full frame keeping natural aspect ratio (e.g. 640x360 or 640x480)
+        const maxDim = 640;
+        const vw = video.videoWidth || 640;
+        const vh = video.videoHeight || 480;
+        const scale = Math.min(maxDim / vw, maxDim / vh, 1.0);
+        const targetW = Math.round(vw * scale);
+        const targetH = Math.round(vh * scale);
 
-        const targetSize = 350;
-        canvas.width = targetSize;
-        canvas.height = targetSize;
+        if (canvas.width !== targetW || canvas.height !== targetH) {
+          canvas.width = targetW;
+          canvas.height = targetH;
+        }
 
-        ctx.drawImage(video, sx, sy, sourceSize, sourceSize, 0, 0, targetSize, targetSize);
+        ctx.drawImage(video, 0, 0, targetW, targetH);
+
+        const finalizeFrame = () => { isProcessingFrame = false; };
 
         try {
-          // 1. Prioritize native BarcodeDetector (fastest, handles QR + all barcode formats)
-          //    Detect directly from the video element for maximum performance
+          // 1. Prioritize native BarcodeDetector (instant hardware-accelerated detection)
+          //    Detect directly from the video element full frame
           const detector = nativeBarcodeDetector;
           if (detector) {
             detector.detect(video).then(barcodes => {
               if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
                 const raw = barcodes[0].rawValue;
                 const fmt = barcodes[0].format || '';
-                // Track scan type so UI can show barcode vs QR label
                 scanType = fmt === 'qr_code' ? 'qr' : 'barcode';
                 onScanSuccess(raw);
+                finalizeFrame();
               } else if (!isScanning) {
-                return; // stopped mid-scan
+                finalizeFrame();
               } else {
-                // 1b. Native detector found nothing — try ZXing on the same frame
-                tryZXingFallback();
+                // 1b. Native detector returned empty — fallback to ZXing on current full-frame canvas
+                tryZXingFallback().finally(finalizeFrame);
               }
             }).catch(() => {
-              // detector error — try ZXing fallback
-              tryZXingFallback();
+              tryZXingFallback().finally(finalizeFrame);
             });
           } else {
-            // 2. No native BarcodeDetector (Safari/iOS) — try ZXing first
-            tryZXingFallback();
+            // 2. No native BarcodeDetector (Safari/iOS) — try ZXing directly on full-frame canvas
+            tryZXingFallback().finally(finalizeFrame);
           }
         } catch (err) {
-          // Suppress canvas reading noise
+          finalizeFrame();
         }
 
-        // Shared ZXing fallback: ZXing handles both QR and 1D/2D barcodes
+        // Shared ZXing fallback: decodes from full-frame canvas for maximum range
         async function tryZXingFallback() {
           const zxing = await getZXingReader();
           if (zxing && isScanning) {
             try {
-              // decodeFromCanvas(canvas) is the correct API for @zxing/browser v0.2.x
-              // It is synchronous and returns a Result object or throws NotFoundException
               const result = zxing.decodeFromCanvas(canvas);
               if (result && result.getText && result.getText()) {
-                // Determine scanType from barcode format
                 const fmt = result.getBarcodeFormat?.();
-                // BarcodeFormat.QR_CODE = 11 in @zxing/library
                 scanType = (fmt === 11) ? 'qr' : 'barcode';
                 onScanSuccess(result.getText());
                 return;
               }
             } catch (e) {
-              // NotFoundException is expected when no code is in frame — silently continue
+              // Code not found in frame — expected
             }
           }
-          // 3. Final fallback: jsQR for QR-code-only environments (legacy)
+          // 3. Final fallback: jsQR for legacy QR decoding
           if (isScanning && typeof jsQR !== "undefined") {
-            const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
-            const attempt = (Math.floor(now / SCAN_INTERVAL) % 2 === 0) ? "dontInvert" : "attemptBoth";
-            const code = jsQR(imageData.data, targetSize, targetSize, { inversionAttempts: attempt });
+            const imageData = ctx.getImageData(0, 0, targetW, targetH);
+            const attempt = (Math.floor(now / 50) % 2 === 0) ? "dontInvert" : "attemptBoth";
+            const code = jsQR(imageData.data, targetW, targetH, { inversionAttempts: attempt });
             if (code && code.data) {
               scanType = 'qr';
               onScanSuccess(code.data);
@@ -1610,15 +1613,26 @@ function initQRScan() {
       } catch {}
 
       const constraints = {
-        video: cameraId ? { deviceId: { exact: cameraId } } : { facingMode: "environment" }
+        video: cameraId ? { deviceId: { exact: cameraId } } : { facingMode: { ideal: "environment" } }
       };
 
       constraints.video.width = { min: 640, ideal: 1280, max: 1920 };
       constraints.video.height = { min: 480, ideal: 720, max: 1080 };
+      constraints.video.frameRate = { ideal: 60, min: 30 };
 
       activeStream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = activeStream;
       await video.play();
+
+      // Enable continuous auto-focus if hardware supports it
+      try {
+        const track = activeStream.getVideoTracks()[0];
+        if (track && track.applyConstraints) {
+          await track.applyConstraints({
+            advanced: [{ focusMode: "continuous" }]
+          }).catch(() => {});
+        }
+      } catch {}
 
       isScanning = true;
       requestAnimationFrame(scanFrame);
