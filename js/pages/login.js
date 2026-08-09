@@ -1,3 +1,4 @@
+import "../../src/style.css";
 import { login, googleLogin, forgotPassword, resetPassword } from "../api/auth.js";
 import { createSession, setSigningKey, isAuthenticated } from "../lib/session.js";
 import { ensureSession } from "../api/client.js";
