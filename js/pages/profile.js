@@ -20,6 +20,8 @@ import { populateUniversitySelect } from "../api/universities.js";
 
 const popupOverlay = document.getElementById("popup-overlay");
 const popupContainer = document.getElementById("popup-container");
+let currentUser = null;
+let cropperInstance = null;
 
 function closePopup() {
     if (!popupOverlay) return;
@@ -263,9 +265,6 @@ async function showFavPopup() {
 /* =========================
    EDIT PROFILE
 ========================= */
-
-let currentUser = null;
-let cropperInstance = null;
 
 function initEditProfile() {
     const editBtn = document.getElementById("edit-profile-btn");
@@ -882,7 +881,8 @@ function initChangePasswordModal() {
   };
 
   btn.addEventListener("click", () => {
-    const isCreateMode = currentUser?.hasPassword === false;
+    const activeUser = currentUser || getUser();
+    const isCreateMode = activeUser?.hasPassword === false;
     modal.style.display = "flex";
     if (statusEl) statusEl.classList.add("hidden");
 
@@ -910,7 +910,8 @@ function initChangePasswordModal() {
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const isCreateMode = currentUser?.hasPassword === false;
+      const activeUser = currentUser || getUser();
+      const isCreateMode = activeUser?.hasPassword === false;
       const currPass = isCreateMode ? "" : (currPassInput?.value || "");
       const newPass = document.getElementById("change-new-pass")?.value;
       const confirmPass = document.getElementById("change-confirm-pass")?.value;
@@ -932,9 +933,11 @@ function initChangePasswordModal() {
 
       try {
         const res = await changePassword(currPass, newPass, confirmPass);
-        if (currentUser) {
-          currentUser.hasPassword = true;
-          setUser(currentUser);
+        const updatedUser = currentUser || getUser();
+        if (updatedUser) {
+          updatedUser.hasPassword = true;
+          setUser(updatedUser);
+          currentUser = updatedUser;
           if (btn) btn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> Change Password`;
         }
         if (statusEl) {
