@@ -8,6 +8,10 @@ export function getAllOrganizations() {
   return get("/organizations/all");
 }
 
+export function toggleDisableOrganizationAdmin(id, disable = true) {
+  return put(`/organizations/admin/${id}/toggle-disable`, { disable });
+}
+
 export function getOrganizationById(id) {
   return get(`/organizations/${id}`);
 }

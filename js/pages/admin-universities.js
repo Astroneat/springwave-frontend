@@ -3,12 +3,15 @@ import { isAuthenticated, getUser } from "../lib/session.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
+import { t } from "../lib/i18n.js";
 import {
   getAllUniversitiesAdmin,
   createUniversity,
   updateUniversity,
   deleteUniversity,
-  uploadUniversityLogo
+  uploadUniversityLogo,
+  getUniversityStudentsAdmin,
+  deleteUniversityStudentAdmin
 } from "../api/universities.js";
 
 let universities = [];
@@ -37,6 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initRefresh();
     initForm();
     initDelete();
+    initStudentsModal();
     initColorSync();
     initLogoUpload();
     await loadData();
@@ -124,6 +128,9 @@ function renderTable() {
                 <td class="py-3.5 px-4">${statusBadge}</td>
                 <td class="py-3.5 px-4 text-right">
                     <div class="flex items-center justify-end gap-1.5">
+                        <button class="students-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-primary hover:bg-[#dae1ff] hover:border-primary/30 transition-all spring-ease" title="View Students">
+                            <i class="fa-solid fa-graduation-cap text-sm"></i>
+                        </button>
                         <button class="edit-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="Edit">
                             <i class="fa-regular fa-pen-to-square text-sm"></i>
                         </button>
@@ -143,7 +150,7 @@ function initRowActions() {
         btn.addEventListener("click", e => {
             e.stopPropagation();
             const id = btn.closest("tr").dataset.id;
-            const uni = universities.find(u => u._id === id);
+            const uni = universities.find(u => String(u._id) === String(id));
             if (uni) openForm(uni);
         });
     });
@@ -152,8 +159,17 @@ function initRowActions() {
         btn.addEventListener("click", e => {
             e.stopPropagation();
             const id = btn.closest("tr").dataset.id;
-            const uni = universities.find(u => u._id === id);
+            const uni = universities.find(u => String(u._id) === String(id));
             if (uni) openDelete(uni);
+        });
+    });
+
+    document.querySelectorAll(".students-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const id = btn.closest("tr").dataset.id;
+            const uni = universities.find(u => String(u._id) === String(id));
+            if (uni) openStudentsModal(uni);
         });
     });
 }
@@ -241,6 +257,7 @@ function closeForm() {
     const overlay = document.getElementById("form-overlay");
     if (!overlay) return;
     overlay.classList.remove("active");
+    overlay.style.display = "none";
     document.body.style.overflow = "";
     setTimeout(() => {
         overlay.setAttribute("hidden", "");
@@ -265,6 +282,7 @@ function openForm(uni) {
         document.getElementById("field-color").value = uni.color || "#3B6FD4";
         document.getElementById("field-color-text").value = uni.color || "#3B6FD4";
         document.getElementById("field-description").value = uni.description || "";
+        document.getElementById("field-autoverify").checked = uni.autoVerify !== false;
         document.getElementById("field-active").checked = uni.isActive !== false;
 
         if (uni.logo) {
@@ -285,12 +303,14 @@ function openForm(uni) {
         document.getElementById("field-color").value = "#3B6FD4";
         document.getElementById("field-color-text").value = "#3B6FD4";
         document.getElementById("field-description").value = "";
+        document.getElementById("field-autoverify").checked = true;
         document.getElementById("field-active").checked = true;
 
         imgPreview.classList.add("hidden");
         fallbackIcon.classList.remove("hidden");
     }
 
+    overlay.style.display = "flex";
     overlay.removeAttribute("hidden");
     overlay.classList.add("active");
     document.body.style.overflow = "hidden";
@@ -325,6 +345,7 @@ function initForm() {
             const logo = document.getElementById("field-logo-url").value.trim();
             const color = document.getElementById("field-color-text").value.trim();
             const description = document.getElementById("field-description").value.trim();
+            const autoVerify = document.getElementById("field-autoverify").checked;
             const isActive = document.getElementById("field-active").checked;
 
             if (!name) {
@@ -344,6 +365,7 @@ function initForm() {
                 logo,
                 color: color || "#3B6FD4",
                 description,
+                autoVerify,
                 isActive
             };
 
@@ -372,6 +394,7 @@ function closeDelete() {
     const overlay = document.getElementById("delete-overlay");
     if (!overlay) return;
     overlay.classList.remove("active");
+    overlay.style.display = "none";
     document.body.style.overflow = "";
     setTimeout(() => {
         overlay.setAttribute("hidden", "");
@@ -382,9 +405,10 @@ function closeDelete() {
 function openDelete(uni) {
     actionTarget = uni;
     const overlay = document.getElementById("delete-overlay");
-    const nameEl = document.getElementById("delete-name");
+    const nameEl = document.getElementById("delete-uni-name");
     if (nameEl) nameEl.textContent = uni.shortName ? `${uni.name} (${uni.shortName})` : uni.name;
 
+    overlay.style.display = "flex";
     overlay.removeAttribute("hidden");
     overlay.classList.add("active");
     document.body.style.overflow = "hidden";
@@ -423,4 +447,132 @@ function initDelete() {
             }
         });
     }
+}
+
+/* ==========================================================================
+   STUDENTS MODAL
+   ========================================================================== */
+
+function closeStudentsModal() {
+    const overlay = document.getElementById("students-overlay");
+    if (!overlay) return;
+    overlay.classList.remove("active");
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+    setTimeout(() => {
+        overlay.setAttribute("hidden", "");
+    }, 300);
+}
+
+function initStudentsModal() {
+    const overlay = document.getElementById("students-overlay");
+    const backdrop = document.getElementById("students-backdrop");
+    const closeBtn = document.getElementById("students-close");
+
+    if (closeBtn) closeBtn.addEventListener("click", closeStudentsModal);
+    if (backdrop) backdrop.addEventListener("click", closeStudentsModal);
+
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && overlay && !overlay.hasAttribute("hidden")) closeStudentsModal();
+    });
+}
+
+async function openStudentsModal(uni) {
+    const overlay = document.getElementById("students-overlay");
+    const title = document.getElementById("students-title");
+    const subtitle = document.getElementById("students-subtitle");
+    const body = document.getElementById("students-body");
+
+    title.textContent = `Students in ${uni.shortName || uni.name}`;
+    subtitle.textContent = `Danh sách sinh viên thuộc ${uni.name}`;
+    body.innerHTML = `<div class="flex items-center justify-center py-12 text-[#94a3b8]"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></div>`;
+
+    overlay.style.display = "flex";
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    try {
+        const { students } = await getUniversityStudentsAdmin(uni._id);
+        renderStudentsList(uni, students);
+    } catch (err) {
+        body.innerHTML = `<p class="text-center text-[#ef4444] py-8">Failed to load students: ${err.message}</p>`;
+    }
+}
+
+function renderStudentsList(uni, students) {
+    const body = document.getElementById("students-body");
+    if (!students || students.length === 0) {
+        body.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fa-solid fa-user-slash text-4xl text-[#94a3b8] mb-3"></i>
+                <p class="text-[#64748b] font-medium">Chưa có sinh viên nào thuộc trường này.</p>
+            </div>`;
+        return;
+    }
+
+    body.innerHTML = `
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-[#e2e2eb] text-xs font-semibold text-[#64748b] uppercase">
+                        <th class="py-3 px-3">Sinh viên</th>
+                        <th class="py-3 px-3">Mã SV</th>
+                        <th class="py-3 px-3">Trạng thái</th>
+                        <th class="py-3 px-3 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${students.map(s => {
+                        const verifiedBadge = s.isStudentVerified
+                            ? `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#d1fae5] text-[#059669]">Đã xác thực</span>`
+                            : s.studentVerificationStatus === 'pending'
+                            ? `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#fef3c7] text-[#d97706]">Chờ duyệt</span>`
+                            : `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#f1f5f9] text-[#64748b]">Chưa xác thực</span>`;
+
+                        return `
+                            <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] text-sm" data-user-id="${s._id}">
+                                <td class="py-3 px-3">
+                                    <div class="flex items-center gap-2.5">
+                                        <img src="${s.avatar || '/vite.svg'}" class="w-8 h-8 rounded-full object-cover border border-[#e2e2eb]" onerror="this.src='/vite.svg'" />
+                                        <div>
+                                            <p class="font-semibold text-[#191b22] line-clamp-1">${s.fullname || s.username}</p>
+                                            <p class="text-xs text-[#64748b]">${s.email}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-3 font-mono font-medium text-[#191b22]">
+                                    ${s.studentId || s.verifiedStudentId || '—'}
+                                </td>
+                                <td class="py-3 px-3">${verifiedBadge}</td>
+                                <td class="py-3 px-3 text-right">
+                                    <button class="remove-student-btn px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 spring-ease" data-user-id="${s._id}" data-name="${s.fullname || s.username}">
+                                        <i class="fa-solid fa-user-minus mr-1"></i> Xóa khỏi trường
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    body.querySelectorAll('.remove-student-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const userId = btn.dataset.userId;
+            const name = btn.dataset.name;
+            if (confirm(`Bạn có chắc chắn muốn xóa sinh viên "${name}" ra khỏi trường? Tài khoản sẽ trở thành người dùng bình thường và thông tin sinh viên sẽ bị xóa.`)) {
+                btn.disabled = true;
+                btn.textContent = "Đang xóa...";
+                try {
+                    await deleteUniversityStudentAdmin(uni._id, userId);
+                    const { students: updated } = await getUniversityStudentsAdmin(uni._id);
+                    renderStudentsList(uni, updated);
+                } catch (err) {
+                    alert("Xóa thất bại: " + err.message);
+                }
+            }
+        });
+    });
 }

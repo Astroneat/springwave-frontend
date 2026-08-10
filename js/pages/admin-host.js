@@ -5,6 +5,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { t } from "../lib/i18n.js";
 import { getRegistrations, getRegistrationById, approveRegistration, rejectRegistration } from "../api/host.js";
+import { toggleDisableOrganizationAdmin } from "../api/organizations.js";
 
 let currentTab = "all";
 let currentPage = 1;
@@ -85,7 +86,10 @@ function renderTable(registrations) {
   count.textContent = `${registrations.length} registration${registrations.length !== 1 ? "s" : ""}`;
 
   tbody.innerHTML = registrations.map(reg => {
-    const statusBadge = reg.status === "pending" ? `<span class="badge-pending">Pending</span>`
+    const isOrgDisabled = reg.organization && (reg.organization.isActive === false || reg.organization.status === 'disabled');
+
+    const statusBadge = isOrgDisabled ? `<span class="badge-rejected">Disabled</span>`
+      : reg.status === "pending" ? `<span class="badge-pending">Pending</span>`
       : reg.status === "approved" ? `<span class="badge-approved">Approved</span>`
       : `<span class="badge-rejected">Rejected</span>`;
 
@@ -95,6 +99,10 @@ function renderTable(registrations) {
       </button>
       <button class="reject-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Reject">
         <i class="fa-solid fa-ban text-sm"></i>
+      </button>
+    ` : reg.organization ? `
+      <button class="toggle-disable-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center ${isOrgDisabled ? 'text-[#059669] hover:bg-green-50 hover:border-green-200' : 'text-[#d97706] hover:bg-amber-50 hover:border-amber-200'} transition-all spring-ease" title="${isOrgDisabled ? 'Kích hoạt lại CLB/Tổ chức' : 'Vô hiệu hóa CLB/Tổ chức'}" data-org-id="${reg.organization._id}" data-disable="${!isOrgDisabled}">
+        <i class="fa-solid fa-power-off text-sm"></i>
       </button>
     ` : `<span class="text-xs text-[#94a3b8]">—</span>`;
 
@@ -149,6 +157,25 @@ function renderTable(registrations) {
       const id = btn.closest("tr").dataset.id;
       const name = btn.closest("tr").querySelector("td:first-child .font-semibold")?.textContent || "this organization";
       openReject(id, name);
+    });
+  });
+
+  tbody.querySelectorAll(".toggle-disable-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      e.stopPropagation();
+      const orgId = btn.dataset.orgId;
+      const shouldDisable = btn.dataset.disable === "true";
+      const orgName = btn.closest("tr").querySelector("td:first-child .font-semibold")?.textContent || "tổ chức này";
+      const actionText = shouldDisable ? "vô hiệu hóa" : "kích hoạt lại";
+      if (confirm(`Bạn có chắc chắn muốn ${actionText} ${orgName}?`)) {
+        try {
+          btn.disabled = true;
+          await toggleDisableOrganizationAdmin(orgId, shouldDisable);
+          await loadData();
+        } catch (err) {
+          alert(`Thao tác thất bại: ${err.message}`);
+        }
+      }
     });
   });
 }

@@ -778,6 +778,8 @@
     "domains_desc": "Người dùng đăng ký với email kết thúc bằng các tên miền này sẽ được xác thực tự động cho trường.",
     "logo": "Logo Trường Đại học",
     "color": "Màu thương hiệu",
+    "auto_verify": "Tự động duyệt xác thực sinh viên",
+    "view_students": "Xem danh sách sinh viên",
     "delete_title": "Xóa Trường Đại học",
     "no_universities": "Không tìm thấy trường đại học nào"
   }

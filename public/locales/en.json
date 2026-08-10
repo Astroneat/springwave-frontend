@@ -778,6 +778,8 @@
     "domains_desc": "Users registering with emails ending in these domains will be automatically verified for this university.",
     "logo": "University Logo",
     "color": "Brand Color",
+    "auto_verify": "Auto-approve student verifications",
+    "view_students": "View Enrolled Students",
     "delete_title": "Delete University",
     "no_universities": "No universities found"
   }

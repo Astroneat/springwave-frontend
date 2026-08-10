@@ -194,12 +194,52 @@ async function selectOrg(orgId) {
     document.getElementById("org-meta").textContent = isAdminUser()
       ? `Impersonating · Owner: ${org.owner?.fullname || org.owner?.email || "Unknown"}`
       : (org.membershipRole === "owner" ? "You are the owner" : "You are a manager");
+
+    checkOrgDisabledState(org);
   }
   await loadDashboard();
   await loadEvents();
   await loadManagers();
   await loadReviews();
   loadSettings(org);
+}
+
+function checkOrgDisabledState(org) {
+  const isDisabled = org && (org.isActive === false || org.status === 'disabled');
+  let banner = document.getElementById("org-disabled-warning-banner");
+  
+  if (isDisabled) {
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "org-disabled-warning-banner";
+      banner.className = "mb-6 p-4.5 rounded-2xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3.5 shadow-sm";
+      banner.innerHTML = `
+        <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+          <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h4 class="font-bold text-base text-red-900">Tổ chức / CLB của bạn đã bị Quản trị viên vô hiệu hóa</h4>
+          <p class="text-xs text-red-700 mt-1">Tất cả thông tin và sự kiện thuộc tổ chức này đã bị ẩn hoàn toàn khỏi SpringWave. Bạn không thể tạo hoặc cập nhật sự kiện mới. Vui lòng liên hệ ban quản trị để biết thêm chi tiết.</p>
+        </div>
+      `;
+      const mainContainer = document.querySelector("main");
+      if (mainContainer) {
+        mainContainer.insertBefore(banner, mainContainer.firstChild);
+      }
+    }
+    const createEventBtn = document.getElementById("create-event-btn");
+    if (createEventBtn) {
+      createEventBtn.disabled = true;
+      createEventBtn.classList.add("opacity-50", "pointer-events-none");
+    }
+  } else {
+    if (banner) banner.remove();
+    const createEventBtn = document.getElementById("create-event-btn");
+    if (createEventBtn) {
+      createEventBtn.disabled = false;
+      createEventBtn.classList.remove("opacity-50", "pointer-events-none");
+    }
+  }
 }
 
 // ─── Side Nav ───

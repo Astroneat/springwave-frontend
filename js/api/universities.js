@@ -175,3 +175,22 @@ export async function uploadUniversityLogo(file) {
   formData.append('logo', file);
   return await uploadFormData('/universities/upload-logo', formData);
 }
+
+/**
+ * Get all students associated with a university (Admin only).
+ * @param {string} id
+ * @returns {Promise<{university: Object, students: Array}>}
+ */
+export async function getUniversityStudentsAdmin(id) {
+  return await get(`/universities/admin/${id}/students`);
+}
+
+/**
+ * Remove a student from a university (Admin only).
+ * @param {string} id
+ * @param {string} userId
+ * @returns {Promise<{message: string, user: Object}>}
+ */
+export async function deleteUniversityStudentAdmin(id, userId) {
+  return await del(`/universities/admin/${id}/students/${userId}`);
+}
