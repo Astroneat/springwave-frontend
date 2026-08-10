@@ -263,7 +263,11 @@
                     <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Participants</h2>
                     <p class="text-[#64748b] mt-1">View participants per event</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="participants-search-input" placeholder="Search by name, email, student ID..." class="pl-9 pr-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-xs w-[240px] md:w-[280px] outline-none focus:border-primary transition-colors shadow-2xs" />
+                    </div>
                     <div id="participant-event-select-wrapper" class="relative"></div>
                 </div>
             </div>
@@ -346,9 +350,15 @@
 
             <!-- Table -->
             <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-[#ecedfa] flex items-center justify-between">
+                <div class="px-6 py-4 border-b border-[#ecedfa] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Attendance List</h3>
-                    <span class="text-sm text-[#64748b]" id="attendance-count">0 records</span>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="attendance-search-input" placeholder="Search by name, email, student ID..." class="pl-9 pr-4 py-2 rounded-xl border border-[#e2e2eb] bg-white text-xs w-[220px] md:w-[260px] outline-none focus:border-primary transition-colors shadow-2xs" />
+                        </div>
+                        <span class="text-sm text-[#64748b]" id="attendance-count">0 records</span>
+                    </div>
                 </div>
                 <div class="px-6 pt-3" id="checkin-rules-display"></div>
                 <div class="overflow-x-auto">
@@ -374,10 +384,13 @@
 
         <!-- Section: Reviews -->
         <section id="section-reviews" class="section-content hidden animate-fade-in pb-20">
-            <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+            <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-[#191b22] tracking-tight">Event Reviews & Ratings</h2>
-                    <p class="text-[15px] text-[#64748b] mt-2">See what participants are saying about your events.</p>
+                    <h2 class="text-3xl font-extrabold text-[#191b22] tracking-tight">Analytics & Event Reports</h2>
+                    <p class="text-[15px] text-[#64748b] mt-1">Select an event to view detailed ratings, reviews, and reports.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="analytics-event-select-wrapper" class="relative"></div>
                 </div>
             </div>
 

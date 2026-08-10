@@ -442,57 +442,131 @@ function renderEventsTable() {
 
 // ─── Event Detail Modal ───
 
-function openEventDetailModal(eventId) {
-  const event = currentEvents.find(e => e._id === eventId);
+async function openEventDetailModal(eventId) {
+  let event = currentEvents.find(e => e._id === eventId);
   if (!event) return;
 
   const overlay = document.getElementById("event-detail-overlay");
   const body = document.getElementById("event-detail-body");
   if (!overlay || !body) return;
 
+  try {
+    const res = await get(`/events/${eventId}`);
+    if (res?.event) event = { ...event, ...res.event };
+  } catch (e) {}
+
   const heldDate = formatDate(event.heldDate);
+  const heldDateEnd = event.heldDateEnd ? formatDate(event.heldDateEnd) : null;
+  const deadlineFormatted = event.applicationDeadline ? formatDate(event.applicationDeadline) : null;
   const type = capitalize(event.type || "Event");
-  const source = event.createdByName || "—";
+  const categoryName = event.category?.name || type;
+  const hostOrgName = typeof event.organization === 'object' ? event.organization?.name : null;
+  const source = hostOrgName || event.hostName || event.createdByName || "Unknown";
+
+  const filesHTML = (event.attachments || []).map(f => {
+    const link = f.link || f.activityAttachLink || "";
+    const fileName = decodeURIComponent(link.split('/').pop());
+    const href = (link.startsWith("http://") || link.startsWith("https://")) ? link : `${CDN_DOMAIN}/${link}`;
+    return `<div class="flex items-center justify-between p-2.5 bg-white rounded-xl border border-slate-200 text-xs shadow-2xs">
+      <div class="flex items-center gap-2 truncate">
+        <i class="fa-solid fa-file-arrow-down text-primary"></i>
+        <span class="truncate font-medium text-slate-700">${fileName}</span>
+      </div>
+      <a href="${href}" target="_blank" class="text-primary hover:underline font-semibold shrink-0 ml-2">Tải về</a>
+    </div>`;
+  }).join("");
 
   body.innerHTML = `
     <div class="flex flex-col md:flex-row gap-6">
       <div class="md:w-[340px] shrink-0">
         ${event.thumbnail
-          ? `<img src="${event.thumbnail}" class="w-full h-[240px] object-cover rounded-2xl" alt="${event.title}" />`
+          ? `<img src="${event.thumbnail}" class="w-full h-[240px] object-cover rounded-2xl shadow-sm" alt="${event.title}" />`
           : `<div class="w-full h-[240px] rounded-2xl bg-[#ecedfa] flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-4xl"></i></div>`
         }
         <div class="mt-4 space-y-3">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-regular fa-calendar"></i></div>
-            <div><p class="text-[13px] text-[#64748b]">Date</p><p class="font-semibold text-[#191b22]">${heldDate}</p></div>
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-regular fa-calendar"></i></div>
+            <div>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Thời gian</p>
+              <p class="font-semibold text-[#191b22] text-sm">${heldDate} ${heldDateEnd ? `<br/><span class="text-xs text-slate-500 font-normal">Đến: ${heldDateEnd}</span>` : ''}</p>
+            </div>
           </div>
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-regular fa-user"></i></div>
-            <div><p class="text-[13px] text-[#64748b]">Host</p><p class="font-semibold text-[#191b22]">${source}</p></div>
+          ${deadlineFormatted ? `
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 mt-0.5"><i class="fa-solid fa-hourglass-half text-sm"></i></div>
+            <div>
+              <p class="text-[12px] font-semibold text-amber-800 uppercase tracking-wide">Hạn đăng ký</p>
+              <p class="font-semibold text-amber-900 text-sm">${deadlineFormatted}</p>
+            </div>
+          </div>` : ''}
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-building-user text-sm"></i></div>
+            <div>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Đơn vị chủ trì (Host)</p>
+              <p class="font-semibold text-[#191b22] text-sm">${source}</p>
+            </div>
           </div>
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-solid fa-tag"></i></div>
-            <div><p class="text-[13px] text-[#64748b]">Type</p><p class="font-semibold text-[#191b22]">${type}</p></div>
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-layer-group text-sm"></i></div>
+            <div>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Thể loại / Danh mục</p>
+              <p class="font-semibold text-[#191b22] text-sm">${categoryName}</p>
+            </div>
           </div>
           ${event.location ? `
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-solid fa-location-dot"></i></div>
-            <div><p class="text-[13px] text-[#64748b]">Location</p><p class="font-semibold text-[#191b22]">${event.location}</p></div>
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-location-dot text-sm"></i></div>
+            <div>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Địa điểm</p>
+              <p class="font-semibold text-[#191b22] text-sm">${event.location}</p>
+            </div>
           </div>` : ''}
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0"><i class="fa-regular fa-user"></i></div>
-            <div><p class="text-[13px] text-[#64748b]">Participants</p><p class="font-semibold text-[#191b22]">${event.participants?.length || 0}</p></div>
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-award text-sm"></i></div>
+            <div>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Certificate</p>
+              <p class="font-semibold text-[#191b22] text-sm">${event.hasCertificate ? '<span class="text-emerald-600">✓ Có cấp Certificate</span>' : '<span class="text-slate-400">Không hỗ trợ Certificate</span>'}</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-qrcode text-sm"></i></div>
+            <div>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Quy định Điểm danh</p>
+              <p class="font-semibold text-[#191b22] text-xs leading-snug">
+                ${event.hasAttendance 
+                  ? `Có điểm danh (${(event.lateCheckinMinutes || 0) > 0 ? `Trễ: ${event.lateCheckinMinutes}p` : 'Không tính trễ'}, ${(event.expiredCheckinMinutes || 0) > 0 ? `Hết hạn: ${event.expiredCheckinMinutes}p` : 'Không hết hạn'})` 
+                  : 'Tắt điểm danh'}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-regular fa-user text-sm"></i></div>
+            <div>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Số người tham gia</p>
+              <p class="font-semibold text-[#191b22] text-sm">${event.participants?.length || 0} người</p>
+            </div>
           </div>
         </div>
       </div>
-      <div class="flex-1 min-w-0">
+      <div class="flex-1 min-w-0 flex flex-col">
         <h2 class="font-headline-md text-2xl font-bold text-[#191b22] mb-2">${event.title}</h2>
         <div class="flex flex-wrap gap-2 mb-4">
           ${(event.tags || []).map(t => `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#dae1ff] text-primary">${t}</span>`).join('')}
         </div>
-        <div class="bg-[#f8f9fc] rounded-2xl p-5 max-h-[400px] overflow-y-auto text-sm leading-relaxed text-[#475569] whitespace-pre-wrap">
+        ${event.registrationLink ? `
+        <div class="mb-4 p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-xs flex items-center gap-2">
+          <i class="fa-solid fa-link text-primary text-sm"></i>
+          <span class="font-semibold text-slate-700">Link đăng ký ngoài:</span>
+          <a href="${event.registrationLink}" target="_blank" class="text-primary font-bold hover:underline truncate">${event.registrationLink}</a>
+        </div>` : ''}
+        <div class="flex-1 bg-[#f8f9fc] rounded-2xl p-5 max-h-[350px] overflow-y-auto text-sm leading-relaxed text-[#475569] whitespace-pre-wrap border border-slate-100">
           ${event.description || "No description"}
         </div>
+        ${filesHTML ? `
+        <div class="mt-4">
+          <p class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Tệp đính kèm (${(event.attachments || []).length})</p>
+          <div class="space-y-2 max-h-[140px] overflow-y-auto pr-1">${filesHTML}</div>
+        </div>` : ''}
       </div>
     </div>`;
 
@@ -541,8 +615,8 @@ function initCreateEvent() {
 function populateEventSelects() {
   renderCustomSelect("participant-event-select-wrapper", "participant-event-select", currentEvents, "Select an event...");
   renderCustomSelect("attendance-event-select-wrapper", "attendance-event-select", currentEvents, "Select an event...");
-  
   renderCustomSelect("cert-event-select-wrapper", "cert-event-select", currentEvents, "Select an event...");
+  renderCustomSelect("analytics-event-select-wrapper", "analytics-event-select", currentEvents, "All Events");
 }
 
 function renderCustomSelect(wrapperId, hiddenInputId, events, placeholder = "Select an event...") {
@@ -768,60 +842,116 @@ function initParticipantEventSelect() {
   });
 }
 
+let currentParticipantsList = [];
+
+function renderParticipantsTable(list) {
+  const tbody = document.getElementById("participants-table-body");
+  const empty = document.getElementById("participants-empty");
+  if (!tbody) return;
+  if (!list || !list.length) {
+    tbody.innerHTML = "";
+    if (empty) empty.classList.remove("hidden");
+    return;
+  }
+  if (empty) empty.classList.add("hidden");
+
+  tbody.innerHTML = list.map(p => {
+    const studentIdDisplay = p.studentId || p.username || "";
+    return `
+      <tr class="border-b border-[#ecedfa] hover:bg-slate-50/50 transition-colors">
+        <td class="py-3.5 px-4">
+          <div class="flex items-center gap-3">
+            ${p.avatar
+              ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover" />`
+              : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(p.fullname?.[0] || "?").toUpperCase()}</div>`}
+            <div>
+              <span class="font-semibold text-[#191b22] block">${p.fullname || "Unknown"}</span>
+              ${studentIdDisplay ? `<span class="text-xs text-slate-400 block">${studentIdDisplay}</span>` : ""}
+            </div>
+          </div>
+        </td>
+        <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${p.email || "—"}</td>
+        <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${p.joinedAt ? formatDate(p.joinedAt) : "—"}</td>
+        <td class="py-3.5 px-4"><span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Joined</span></td>
+      </tr>
+    `;
+  }).join("");
+}
+
 async function loadParticipants(eventId) {
   try {
     const { event } = await get(`/events/${eventId}?includeParticipants=true`);
     const participants = event?.participants || [];
     document.getElementById("participant-count").textContent = participants.length;
-    const tbody = document.getElementById("participants-table-body");
-    const empty = document.getElementById("participants-empty");
 
     if (!participants.length) {
-      tbody.innerHTML = "";
-      empty.classList.remove("hidden");
+      currentParticipantsList = [];
+      renderParticipantsTable([]);
       return;
     }
-    empty.classList.add("hidden");
 
-    // If participants are populated objects
     if (participants.length && typeof participants[0] === "object") {
-      tbody.innerHTML = participants.map(p => `
-        <tr class="border-b border-[#ecedfa]">
-          <td class="py-3.5 px-4">
-            <div class="flex items-center gap-3">
-              ${p.avatar
-          ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover" />`
-          : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(p.fullname?.[0] || "?").toUpperCase()}</div>`}
-              <span class="font-semibold">${p.fullname || "Unknown"}</span>
-            </div>
-          </td>
-          <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${p.email || "—"}</td>
-          <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${formatDate(p.joinedAt || event.createdAt)}</td>
-          <td class="py-3.5 px-4"><span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Joined</span></td>
-        </tr>
-      `).join("");
+      currentParticipantsList = participants.map(p => ({ ...p, joinedAt: p.joinedAt || event.createdAt }));
     } else {
-      // If only IDs, fetch user details
       const { users } = await post("/user/batch", { ids: participants });
-      tbody.innerHTML = (users || []).map(u => `
-        <tr class="border-b border-[#ecedfa]">
-          <td class="py-3.5 px-4">
-            <div class="flex items-center gap-3">
-              ${u.avatar ? `<img src="${u.avatar}" class="w-8 h-8 rounded-full object-cover" />`
-          : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(u.fullname?.[0] || "?").toUpperCase()}</div>`}
-              <span class="font-semibold">${u.fullname || "Unknown"}</span>
-            </div>
-          </td>
-          <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${u.email || "—"}</td>
-          <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">—</td>
-          <td class="py-3.5 px-4"><span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Joined</span></td>
-        </tr>
-      `).join("");
+      currentParticipantsList = users || [];
+    }
+
+    const searchInput = document.getElementById("participants-search-input");
+    const q = searchInput?.value?.toLowerCase().trim() || "";
+    if (q) {
+      const filtered = currentParticipantsList.filter(p => {
+        const fn = (p.fullname || "").toLowerCase();
+        const em = (p.email || "").toLowerCase();
+        const sid = (p.studentId || p.username || "").toLowerCase();
+        const un = (p.username || "").toLowerCase();
+        return fn.includes(q) || em.includes(q) || sid.includes(q) || un.includes(q);
+      });
+      renderParticipantsTable(filtered);
+    } else {
+      renderParticipantsTable(currentParticipantsList);
     }
   } catch (err) {
     console.error("Load participants error:", err);
   }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("participants-search-input")?.addEventListener("input", (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    if (!q) {
+      renderParticipantsTable(currentParticipantsList);
+      return;
+    }
+    const filtered = currentParticipantsList.filter(p => {
+      const fn = (p.fullname || "").toLowerCase();
+      const em = (p.email || "").toLowerCase();
+      const sid = (p.studentId || p.username || "").toLowerCase();
+      const un = (p.username || "").toLowerCase();
+      return fn.includes(q) || em.includes(q) || sid.includes(q) || un.includes(q);
+    });
+    renderParticipantsTable(filtered);
+  });
+
+  document.getElementById("attendance-search-input")?.addEventListener("input", (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    const records = attendanceState.cachedAttendanceRecords || [];
+    if (!q) {
+      renderAttendanceTableRows(records, attendanceState.isCurrentEventPast);
+      return;
+    }
+    const filtered = records.filter(r => {
+      const u = r.user || {};
+      const ext = r.externalParticipant || {};
+      const fn = (u.fullname || ext.fullname || "").toLowerCase();
+      const em = (u.email || "").toLowerCase();
+      const sid = (u.studentId || u.username || ext.studentId || r.ticketCode || "").toLowerCase();
+      const un = (u.username || "").toLowerCase();
+      return fn.includes(q) || em.includes(q) || sid.includes(q) || un.includes(q);
+    });
+    renderAttendanceTableRows(filtered, attendanceState.isCurrentEventPast);
+  });
+});
 
 // ─── Attendance ───
 
@@ -2349,30 +2479,72 @@ function initCreateOrg() {
 // ─── Reviews ───
 
 let globalEventRatings = [];
+let allEventRatingsCache = [];
+let orgTotalAvgRating = "0.0";
+let orgTotalReviewsCount = 0;
 let currentEventRatingsPage = 1;
 const EVENTS_RATINGS_PER_PAGE = 5;
 
+function initAnalyticsEventSelect() {
+  const wrapper = document.getElementById("analytics-event-select-wrapper");
+  if (!wrapper) return;
+  wrapper.addEventListener("change", (e) => {
+    if (e.target.id === "analytics-event-select") {
+      filterAnalyticsBySelectedEvent(e.target.value);
+    }
+  });
+}
+
+function filterAnalyticsBySelectedEvent(eventId) {
+  const avgEl = document.getElementById("review-avg-rating");
+  const countEl = document.getElementById("review-total-count");
+
+  if (!eventId) {
+    globalEventRatings = [...allEventRatingsCache];
+    if (avgEl) avgEl.textContent = orgTotalAvgRating;
+    if (countEl) countEl.textContent = orgTotalReviewsCount;
+  } else {
+    const selectedEvent = allEventRatingsCache.find(e => e._id === eventId);
+    if (selectedEvent) {
+      globalEventRatings = [selectedEvent];
+      if (avgEl) avgEl.textContent = selectedEvent.averageRating;
+      if (countEl) countEl.textContent = selectedEvent.reviewCount;
+    } else {
+      globalEventRatings = [];
+      if (avgEl) avgEl.textContent = "0.0";
+      if (countEl) countEl.textContent = "0";
+    }
+  }
+
+  currentEventRatingsPage = 1;
+  renderEventRatingsPage(1);
+}
+
 async function loadReviews() {
   try {
+    initAnalyticsEventSelect();
     const data = await getHostReviews(currentOrgId);
     const reviews = data.reviews || [];
     
-    // Filter reviews to only show those for the currently selected org (though backend already filters if orgId is passed)
+    // Filter reviews to only show those for the currently selected org
     const orgReviews = reviews.filter(r => r.organization === currentOrgId || r.organization?._id === currentOrgId);
     
     // Calculate total org summary
     let orgTotalRating = 0;
     orgReviews.forEach(r => { orgTotalRating += r.rating; });
-    const orgAvgRating = orgReviews.length > 0 ? (orgTotalRating / orgReviews.length).toFixed(1) : "0.0";
+    orgTotalAvgRating = orgReviews.length > 0 ? (orgTotalRating / orgReviews.length).toFixed(1) : "0.0";
+    orgTotalReviewsCount = orgReviews.length;
     
-    document.getElementById("review-avg-rating").textContent = orgAvgRating;
-    document.getElementById("review-total-count").textContent = orgReviews.length;
+    const avgEl = document.getElementById("review-avg-rating");
+    const countEl = document.getElementById("review-total-count");
+    if (avgEl) avgEl.textContent = orgTotalAvgRating;
+    if (countEl) countEl.textContent = orgTotalReviewsCount;
 
     // Fetch org events to show all organized events
     const { events: rawEvents = [] } = await getOrgActivities(currentOrgId);
     
     // Map events with their reviews
-    globalEventRatings = rawEvents.map(event => {
+    allEventRatingsCache = rawEvents.map(event => {
         const evReviews = orgReviews.filter(r => r.event?._id === event._id || r.event === event._id);
         const totalScore = evReviews.reduce((sum, r) => sum + r.rating, 0);
         const avg = evReviews.length > 0 ? (totalScore / evReviews.length).toFixed(1) : "0.0";
@@ -2382,10 +2554,10 @@ async function loadReviews() {
             averageRating: avg,
             reviewCount: evReviews.length
         };
-    }).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); // Sort by newest event
+    }).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-    currentEventRatingsPage = 1;
-    renderEventRatingsPage(1);
+    const selectedEventId = document.getElementById("analytics-event-select")?.value;
+    filterAnalyticsBySelectedEvent(selectedEventId);
 
   } catch (err) {
     console.error("Failed to load reviews:", err);

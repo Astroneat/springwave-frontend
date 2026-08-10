@@ -79,11 +79,20 @@ async function loadUserProfile() {
     document.getElementById("profile-username").textContent = user.fullname || "-";
 
     if (user.dob) {
-        document.getElementById("profile-dob").textContent = formatDate(user.dob);
+        document.getElementById("profile-dob").textContent = formatDate(user.dob, false);
     }
 
     if (user.school) {
         document.getElementById("profile-school").textContent = user.school;
+    }
+
+    const changePassBtn = document.getElementById("change-pass-btn");
+    if (changePassBtn) {
+        if (user.hasPassword === false) {
+            changePassBtn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> Create Password`;
+        } else {
+            changePassBtn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> Change Password`;
+        }
     }
 
     const roleMap = { student: t("user.student"), host: t("user.host"), admin: t("user.admin") };
@@ -860,6 +869,9 @@ function initChangePasswordModal() {
   const form = document.getElementById("change-pass-form");
   const statusEl = document.getElementById("change-pass-status");
   const submitBtn = document.getElementById("change-pass-submit-btn");
+  const currPassInput = document.getElementById("change-curr-pass");
+  const currPassGroup = currPassInput?.closest(".edit-form-group");
+  const modalTitle = modal?.querySelector("h2");
 
   if (!btn || !modal) return;
 
@@ -870,8 +882,25 @@ function initChangePasswordModal() {
   };
 
   btn.addEventListener("click", () => {
+    const isCreateMode = currentUser?.hasPassword === false;
     modal.style.display = "flex";
     if (statusEl) statusEl.classList.add("hidden");
+
+    if (isCreateMode) {
+      if (modalTitle) {
+        modalTitle.innerHTML = `<span class="material-symbols-outlined text-[#1755ba]">key</span> Create Password`;
+      }
+      if (currPassGroup) currPassGroup.style.display = "none";
+      if (currPassInput) currPassInput.removeAttribute("required");
+      if (submitBtn) submitBtn.textContent = "Tạo mật khẩu";
+    } else {
+      if (modalTitle) {
+        modalTitle.innerHTML = `<span class="material-symbols-outlined text-[#1755ba]">lock</span> Change Password`;
+      }
+      if (currPassGroup) currPassGroup.style.display = "";
+      if (currPassInput) currPassInput.setAttribute("required", "");
+      if (submitBtn) submitBtn.textContent = "Lưu mật khẩu mới";
+    }
   });
 
   if (closeBtn) closeBtn.addEventListener("click", closeModal);
@@ -881,11 +910,12 @@ function initChangePasswordModal() {
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const currPass = document.getElementById("change-curr-pass")?.value;
+      const isCreateMode = currentUser?.hasPassword === false;
+      const currPass = isCreateMode ? "" : (currPassInput?.value || "");
       const newPass = document.getElementById("change-new-pass")?.value;
       const confirmPass = document.getElementById("change-confirm-pass")?.value;
 
-      if (!currPass || !newPass || !confirmPass) return;
+      if ((!isCreateMode && !currPass) || !newPass || !confirmPass) return;
       if (newPass !== confirmPass) {
         if (statusEl) {
           statusEl.textContent = "Mật khẩu mới và mật khẩu xác nhận không trùng khớp.";
@@ -896,14 +926,19 @@ function initChangePasswordModal() {
 
       if (submitBtn) submitBtn.disabled = true;
       if (statusEl) {
-        statusEl.textContent = "Đang xử lý đổi mật khẩu...";
+        statusEl.textContent = isCreateMode ? "Đang tạo mật khẩu..." : "Đang xử lý đổi mật khẩu...";
         statusEl.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
       }
 
       try {
         const res = await changePassword(currPass, newPass, confirmPass);
+        if (currentUser) {
+          currentUser.hasPassword = true;
+          setUser(currentUser);
+          if (btn) btn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> Change Password`;
+        }
         if (statusEl) {
-          statusEl.textContent = res.message || "Đổi mật khẩu thành công!";
+          statusEl.textContent = res.message || (isCreateMode ? "Tạo mật khẩu thành công!" : "Đổi mật khẩu thành công!");
           statusEl.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block";
         }
         setTimeout(() => {
@@ -911,7 +946,7 @@ function initChangePasswordModal() {
         }, 1800);
       } catch (err) {
         if (statusEl) {
-          statusEl.textContent = err.message || "Thao tác đổi mật khẩu thất bại. Vui lòng thử lại.";
+          statusEl.textContent = err.message || "Thao tác thất bại. Vui lòng thử lại.";
           statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
         }
       } finally {

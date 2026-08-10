@@ -202,6 +202,11 @@ function buildPopupHTML(a, backText) {
     const tagsHTML = (a.tags || []).map(tag => `<span class="event-tag">${tag}</span>`).join("");
     const participantCount = a.participants?.length || 0;
 
+    const hostOrgName = typeof a.organization === 'object' ? a.organization?.name : null;
+    const hostUnitName = hostOrgName || a.hostName || a.createdByName || t("common.unknown");
+    const hostAvatar = typeof a.organization === 'object' && a.organization?.avatar ? a.organization.avatar : null;
+    const orgId = typeof a.organization === 'object' ? a.organization?._id : (a.organization || a.createdBy);
+
     return `
     <div class="activity-popup-layout">
         <!-- Hero Cover Section -->
@@ -209,7 +214,7 @@ function buildPopupHTML(a, backText) {
             <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
             <div class="popup-hero-overlay"></div>
             <button class="back-btn-floating" id="back-btn" title="${backText}"><i class="fa-solid fa-arrow-left"></i></button>
-            <div class="flex items-center gap-2">
+            <div class="popup-badges-container">
                 <span class="popup-category-badge"><i class="fa-solid fa-tag"></i><span>${type}</span></span>
                 ${statusBadgeHTML}
             </div>
@@ -222,11 +227,11 @@ function buildPopupHTML(a, backText) {
                 
                 ${tagsHTML ? `<div class="event-tags-container">${tagsHTML}</div>` : ""}
 
-                <a href="/org-profile.html?orgId=${a.organization || a.createdBy}" class="popup-host-row-new" style="text-decoration: none; color: inherit;">
-                    <div class="popup-host-avatar-new">${(a.hostName || a.createdByName || "U")[0].toUpperCase()}</div>
+                <a href="/org-profile.html?orgId=${orgId}" class="popup-host-row-new" style="text-decoration: none; color: inherit;">
+                    <div class="popup-host-avatar-new overflow-hidden">${hostAvatar ? `<img src="${hostAvatar}" class="w-full h-full object-cover rounded-full" />` : (hostUnitName[0] || "U").toUpperCase()}</div>
                     <div class="popup-host-info-new">
                         <span class="host-label-new">Hosted by</span>
-                        <h4 class="host-name-new">${a.hostName || a.createdByName || t("common.unknown")}</h4>
+                        <h4 class="host-name-new">${hostUnitName}</h4>
                     </div>
                     <div class="popup-host-arrow-icon"><i class="fa-solid fa-chevron-right"></i></div>
                 </a>

@@ -9533,10 +9533,19 @@ html, body, button, input, select, textarea {
     transform: scale(1.08);
 }
 
-.popup-category-badge {
+.popup-badges-container {
     position: absolute;
     top: 20px;
     right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    z-index: 10;
+}
+
+.popup-category-badge {
+    position: relative;
     background: rgba(52, 147, 250, 0.95) !important;
     color: #ffffff !important;
     border-radius: 12px !important;
@@ -9545,10 +9554,9 @@ html, body, button, input, select, textarea {
     font-weight: 700;
     font-size: 0.72rem;
     box-shadow: 0 4px 12px rgba(52, 147, 250, 0.25);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    z-index: 10;
 }
 
 .popup-body-grid {
@@ -12560,5 +12568,60 @@ a.popup-host-row:hover .popup-host-avatar {
 
 .verification-blur-target:hover {
     filter: blur(1px) opacity(0.95);
+}
+
+/* Mobile Responsive Optimization Polish */
+@media (max-width: 768px) {
+    .popup-hero-cover {
+        height: 200px !important;
+    }
+    .popup-badges-container {
+        top: 14px !important;
+        right: 14px !important;
+        gap: 6px !important;
+    }
+    .popup-category-badge, .status-badge {
+        font-size: 0.68rem !important;
+        padding: 4px 10px !important;
+    }
+    .popup-main-title {
+        font-size: 1.6rem !important;
+    }
+    .activity-popup-layout {
+        padding-bottom: 24px !important;
+    }
+    .edit-modal {
+        max-width: 94vw !important;
+        margin: 12px !important;
+        padding: 16px !important;
+    }
+    .edit-modal-header h2 {
+        font-size: 1.1rem !important;
+    }
+    #event-detail-overlay .edit-modal-body,
+    #event-detail-body {
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+        padding: 12px !important;
+    }
+    .custom-select-container {
+        min-width: 100% !important;
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .popup-hero-cover {
+        height: 175px !important;
+    }
+    .popup-main-title {
+        font-size: 1.35rem !important;
+    }
+    .back-btn-floating {
+        top: 12px !important;
+        left: 12px !important;
+        width: 36px !important;
+        height: 36px !important;
+    }
 }
 
