@@ -29,15 +29,19 @@ export function t(key, params = {}, fallback = '') {
 
   const keys = key.split(".");
   let val = translations[currentLang];
-  for (const k of keys) {
-    val = val?.[k];
+  if (val) {
+    for (const k of keys) {
+      val = val?.[k];
+    }
   }
+
   if (val === undefined && translations.en) {
     val = translations.en;
     for (const k of keys) {
       val = val?.[k];
     }
   }
+
   if (val === undefined) return defaultText;
   if (typeof val === "string") {
     return val.replace(/\{\{(\w+)\}\}/g, (_, p) => actualParams[p] ?? `{{${p}}}`);
@@ -59,8 +63,9 @@ export async function setLang(lang) {
   window.dispatchEvent(new CustomEvent("language-changed", { detail: { lang } }));
 }
 
-function applyTranslation() {
-  document.querySelectorAll("[data-i18n]").forEach(el => {
+export function applyTranslation(scope = document) {
+  const root = scope || document;
+  root.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.dataset.i18n;
     const text = t(key);
     if (text !== key) {
@@ -73,11 +78,15 @@ function applyTranslation() {
       }
     }
   });
-  document.querySelectorAll("[data-i18n-title]").forEach(el => {
+  root.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const text = t(el.dataset.i18nPlaceholder);
+    if (text !== el.dataset.i18nPlaceholder) el.placeholder = text;
+  });
+  root.querySelectorAll("[data-i18n-title]").forEach(el => {
     const text = t(el.dataset.i18nTitle);
     if (text !== el.dataset.i18nTitle) el.title = text;
   });
-  document.querySelectorAll("[data-i18n-html]").forEach(el => {
+  root.querySelectorAll("[data-i18n-html]").forEach(el => {
     const text = t(el.dataset.i18nHtml);
     if (text !== el.dataset.i18nHtml) el.innerHTML = text;
   });

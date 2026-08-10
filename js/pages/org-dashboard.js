@@ -472,7 +472,7 @@ async function openEventDetailModal(eventId) {
         <i class="fa-solid fa-file-arrow-down text-primary"></i>
         <span class="truncate font-medium text-slate-700">${fileName}</span>
       </div>
-      <a href="${href}" target="_blank" class="text-primary hover:underline font-semibold shrink-0 ml-2">Tải về</a>
+      <a href="${href}" target="_blank" class="text-primary hover:underline font-semibold shrink-0 ml-2">${t("common.download", "Download")}</a>
     </div>`;
   }).join("");
 
@@ -487,29 +487,29 @@ async function openEventDetailModal(eventId) {
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-regular fa-calendar"></i></div>
             <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Thời gian</p>
-              <p class="font-semibold text-[#191b22] text-sm">${heldDate} ${heldDateEnd ? `<br/><span class="text-xs text-slate-500 font-normal">Đến: ${heldDateEnd}</span>` : ''}</p>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.date", "Date / Time")}</p>
+              <p class="font-semibold text-[#191b22] text-sm">${heldDate} ${heldDateEnd ? `<br/><span class="text-xs text-slate-500 font-normal">→ ${heldDateEnd}</span>` : ''}</p>
             </div>
           </div>
           ${deadlineFormatted ? `
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 mt-0.5"><i class="fa-solid fa-hourglass-half text-sm"></i></div>
             <div>
-              <p class="text-[12px] font-semibold text-amber-800 uppercase tracking-wide">Hạn đăng ký</p>
+              <p class="text-[12px] font-semibold text-amber-800 uppercase tracking-wide">${t("profile.apply_deadline", "Deadline")}</p>
               <p class="font-semibold text-amber-900 text-sm">${deadlineFormatted}</p>
             </div>
           </div>` : ''}
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-building-user text-sm"></i></div>
             <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Đơn vị chủ trì (Host)</p>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.hosted_by", "Hosted by")}</p>
               <p class="font-semibold text-[#191b22] text-sm">${source}</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-layer-group text-sm"></i></div>
             <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Thể loại / Danh mục</p>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.type", "Category")}</p>
               <p class="font-semibold text-[#191b22] text-sm">${categoryName}</p>
             </div>
           </div>
@@ -517,7 +517,7 @@ async function openEventDetailModal(eventId) {
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-location-dot text-sm"></i></div>
             <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Địa điểm</p>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.location", "Location")}</p>
               <p class="font-semibold text-[#191b22] text-sm">${event.location}</p>
             </div>
           </div>` : ''}
@@ -525,25 +525,25 @@ async function openEventDetailModal(eventId) {
             <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-award text-sm"></i></div>
             <div>
               <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Certificate</p>
-              <p class="font-semibold text-[#191b22] text-sm">${event.hasCertificate ? '<span class="text-emerald-600">✓ Có cấp Certificate</span>' : '<span class="text-slate-400">Không hỗ trợ Certificate</span>'}</p>
+              <p class="font-semibold text-[#191b22] text-sm">${event.hasCertificate ? `<span class="text-emerald-600">✓ ${t("common.has_cert", "Certificate Supported")}</span>` : `<span class="text-slate-400">${t("common.no_cert", "No Certificate Support")}</span>`}</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-qrcode text-sm"></i></div>
             <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Quy định Điểm danh</p>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("common.attendance", "Attendance Rules")}</p>
               <p class="font-semibold text-[#191b22] text-xs leading-snug">
                 ${event.hasAttendance 
-                  ? `Có điểm danh (${(event.lateCheckinMinutes || 0) > 0 ? `Trễ: ${event.lateCheckinMinutes}p` : 'Không tính trễ'}, ${(event.expiredCheckinMinutes || 0) > 0 ? `Hết hạn: ${event.expiredCheckinMinutes}p` : 'Không hết hạn'})` 
-                  : 'Tắt điểm danh'}
+                  ? `${t("common.enable_attendance", "Attendance Enabled")} (${(event.lateCheckinMinutes || 0) > 0 ? t("common.late_minutes", { n: event.lateCheckinMinutes }, `Late: ${event.lateCheckinMinutes}m`) : ''}, ${(event.expiredCheckinMinutes || 0) > 0 ? t("common.expired_minutes", { n: event.expiredCheckinMinutes }, `Expired: ${event.expiredCheckinMinutes}m`) : ''})` 
+                  : t("common.disable_attendance", "Attendance Disabled")}
               </p>
             </div>
           </div>
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-regular fa-user text-sm"></i></div>
             <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Số người tham gia</p>
-              <p class="font-semibold text-[#191b22] text-sm">${event.participants?.length || 0} người</p>
+              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.participants", "Participants")}</p>
+              <p class="font-semibold text-[#191b22] text-sm">${t("explore.registered_count", { n: event.participants?.length || 0 }, `${event.participants?.length || 0} registered`)}</p>
             </div>
           </div>
         </div>
@@ -556,15 +556,15 @@ async function openEventDetailModal(eventId) {
         ${event.registrationLink ? `
         <div class="mb-4 p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-xs flex items-center gap-2">
           <i class="fa-solid fa-link text-primary text-sm"></i>
-          <span class="font-semibold text-slate-700">Link đăng ký ngoài:</span>
+          <span class="font-semibold text-slate-700">${t("common.registration_link", "Registration Link")}:</span>
           <a href="${event.registrationLink}" target="_blank" class="text-primary font-bold hover:underline truncate">${event.registrationLink}</a>
         </div>` : ''}
         <div class="flex-1 bg-[#f8f9fc] rounded-2xl p-5 max-h-[350px] overflow-y-auto text-sm leading-relaxed text-[#475569] whitespace-pre-wrap border border-slate-100">
-          ${event.description || "No description"}
+          ${event.description || t("common.no_description", "No description provided.")}
         </div>
         ${filesHTML ? `
         <div class="mt-4">
-          <p class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Tệp đính kèm (${(event.attachments || []).length})</p>
+          <p class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">${t("explore.attached_files", "Attachments")} (${(event.attachments || []).length})</p>
           <div class="space-y-2 max-h-[140px] overflow-y-auto pr-1">${filesHTML}</div>
         </div>` : ''}
       </div>

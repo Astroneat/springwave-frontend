@@ -230,7 +230,7 @@ function buildPopupHTML(a, backText) {
                 <a href="/org-profile.html?orgId=${orgId}" class="popup-host-row-new" style="text-decoration: none; color: inherit;">
                     <div class="popup-host-avatar-new overflow-hidden">${hostAvatar ? `<img src="${hostAvatar}" class="w-full h-full object-cover rounded-full" />` : (hostUnitName[0] || "U").toUpperCase()}</div>
                     <div class="popup-host-info-new">
-                        <span class="host-label-new">Hosted by</span>
+                        <span class="host-label-new">${t("description.hosted_by", "Hosted by")}</span>
                         <h4 class="host-name-new">${hostUnitName}</h4>
                     </div>
                     <div class="popup-host-arrow-icon"><i class="fa-solid fa-chevron-right"></i></div>
@@ -243,7 +243,7 @@ function buildPopupHTML(a, backText) {
                     <div class="quick-info-item" style="margin-bottom:12px">
                         <i class="fa-regular fa-calendar"></i>
                         <div>
-                            <span>Bắt đầu ${endDateFormatted ? '→ Kết thúc' : ''}</span>
+                            <span>${t("description.date", "Time")} ${endDateFormatted ? '→' : ''}</span>
                             <p>${heldDate} ${endDateFormatted ? ` → ${endDateFormatted}` : ''}</p>
                         </div>
                     </div>
@@ -251,20 +251,20 @@ function buildPopupHTML(a, backText) {
                     <div class="quick-info-item" style="margin-bottom:12px">
                         <i class="fa-solid fa-hourglass-half text-amber-600"></i>
                         <div>
-                            <span>Hạn đăng ký</span>
+                            <span>${t("profile.apply_deadline", "Application Deadline")}</span>
                             <p style="color:#b45309;font-weight:600">${deadlineFormatted}</p>
                         </div>
                     </div>` : ''}
                     <div class="quick-info-item">
                         <i class="fa-solid fa-location-dot"></i>
                         <div>
-                            <span>Location</span>
+                            <span>${t("description.location", "Location")}</span>
                             <p>${a.location}</p>
                         </div>
                     </div>
                 </div>
 
-                <h3 class="popup-section-title">About this Activity</h3>
+                <h3 class="popup-section-title">${t("explore.about_activity", "About this Activity")}</h3>
                 <div class="popup-description-text">
                     ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
                 </div>
@@ -272,20 +272,20 @@ function buildPopupHTML(a, backText) {
                 ${filesHTML ? `
                 <div class="popup-section-divider"></div>
                 <div class="popup-attachments-section">
-                    <h3>${t("explore.attached_files")} (${(a.attachments || []).length})</h3>
+                    <h3>${t("explore.attached_files", "Attachments")} (${(a.attachments || []).length})</h3>
                     <div class="popup-files-list">${filesHTML}</div>
                 </div>` : ""}
 
                 <div class="popup-section-divider"></div>
                 <div class="popup-comments-section" id="popup-comments-container">
-                    <h3 class="popup-section-title">Comments</h3>
+                    <h3 class="popup-section-title">${t("profile.comments", "Comments")}</h3>
                     
                     <div class="event-comment-input-area">
                         <div class="event-comment-avatar">
                             <span id="current-user-avatar-initial">?</span>
                         </div>
                         <div class="event-comment-input-wrapper">
-                            <input type="text" id="event-comment-input" placeholder="Write a comment..." autocomplete="off">
+                            <input type="text" id="event-comment-input" placeholder="${t("explore.write_comment", "Write a comment...")}" autocomplete="off">
                             <button id="event-comment-submit"><i class="fa-solid fa-paper-plane"></i></button>
                         </div>
                     </div>
@@ -294,19 +294,19 @@ function buildPopupHTML(a, backText) {
                         <div class="popup-loading-small"><div class="spinner"></div></div>
                     </div>
                     
-                    <button id="event-comments-see-more" class="event-comments-see-more" style="display: none;">See more comments</button>
+                    <button id="event-comments-see-more" class="event-comments-see-more" style="display: none;">${t("explore.see_more_comments", "See more comments")}</button>
                 </div>
             </div>
 
             <!-- Sticky Action Sidebar -->
             <aside class="popup-sidebar">
                 <div class="popup-sidebar-card">
-                    <h3 class="sidebar-card-title">Activity Details</h3>
+                    <h3 class="sidebar-card-title">${t("explore.activity_details", "Activity Details")}</h3>
                     <div class="sidebar-details-list">
                         <div class="sidebar-detail-item">
                             <i class="fa-regular fa-calendar"></i>
                             <div>
-                                <span>Thời gian sự kiện</span>
+                                <span>${t("description.date", "Time")}</span>
                                 <p>${heldDate} ${endDateFormatted ? ` → ${endDateFormatted}` : ''}</p>
                             </div>
                         </div>
@@ -314,22 +314,22 @@ function buildPopupHTML(a, backText) {
                         <div class="sidebar-detail-item">
                             <i class="fa-solid fa-hourglass-half text-amber-600"></i>
                             <div>
-                                <span>Hạn đăng ký</span>
+                                <span>${t("profile.apply_deadline", "Application Deadline")}</span>
                                 <p class="text-amber-700 font-semibold">${deadlineFormatted}</p>
                             </div>
                         </div>` : ''}
                         <div class="sidebar-detail-item">
                             <i class="fa-solid fa-location-dot"></i>
                             <div>
-                                <span>Location</span>
+                                <span>${t("description.location", "Location")}</span>
                                 <p><a href="${googleMapsLink}" target="_blank" class="sidebar-location-link">${a.location} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></p>
                             </div>
                         </div>
                         <div class="sidebar-detail-item">
                             <i class="fa-solid fa-users"></i>
                             <div>
-                                <span>Participants</span>
-                                <p>${participantCount} registered</p>
+                                <span>${t("description.participants", "Participants")}</span>
+                                <p>${t("explore.registered_count", { n: participantCount }, `${participantCount} registered`)}</p>
                             </div>
                         </div>
                     </div>
@@ -337,15 +337,15 @@ function buildPopupHTML(a, backText) {
                     <div class="sidebar-actions-group">
                         <button class="action-btn-primary participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
                             <i class="fa-solid fa-${a.source?.url ? 'arrow-up-right-from-square' : 'circle-check'}"></i>
-                            <span>${a.source?.url ? "Explore more" : t("explore.participate")}</span>
+                            <span>${a.source?.url ? t("explore.explore_more", "Explore more") : t("explore.participate", "Participate")}</span>
                         </button>
                         
                         <div class="action-btn-row">
                             <button class="action-btn-secondary discuss discuss-btn" data-event-id="${a.activityID || a._id}" data-event-title="${a.title}" type="button">
-                                <i class="fa-solid fa-comments"></i> Discuss
+                                <i class="fa-solid fa-comments"></i> ${t("explore.discuss", "Discuss")}
                             </button>
                             <button class="action-btn-secondary ai-match-btn" type="button">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> Match
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> ${t("explore.match", "Match")}
                             </button>
                         </div>
                         

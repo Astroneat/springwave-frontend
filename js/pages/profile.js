@@ -91,9 +91,9 @@ async function loadUserProfile() {
     const changePassBtn = document.getElementById("change-pass-btn");
     if (changePassBtn) {
         if (user.hasPassword === false) {
-            changePassBtn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> Create Password`;
+            changePassBtn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> ${t("profile.create_password", "Create Password")}`;
         } else {
-            changePassBtn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> Change Password`;
+            changePassBtn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> ${t("profile.change_password", "Change Password")}`;
         }
     }
 
@@ -888,18 +888,18 @@ function initChangePasswordModal() {
 
     if (isCreateMode) {
       if (modalTitle) {
-        modalTitle.innerHTML = `<span class="material-symbols-outlined text-[#1755ba]">key</span> Create Password`;
+        modalTitle.innerHTML = `<span class="material-symbols-outlined text-[#1755ba]">key</span> ${t("profile.create_pass_title", "Create Password")}`;
       }
       if (currPassGroup) currPassGroup.style.display = "none";
       if (currPassInput) currPassInput.removeAttribute("required");
-      if (submitBtn) submitBtn.textContent = "Tạo mật khẩu";
+      if (submitBtn) submitBtn.textContent = t("profile.create_password", "Create Password");
     } else {
       if (modalTitle) {
-        modalTitle.innerHTML = `<span class="material-symbols-outlined text-[#1755ba]">lock</span> Change Password`;
+        modalTitle.innerHTML = `<span class="material-symbols-outlined text-[#1755ba]">lock</span> ${t("profile.change_pass_title", "Change Password")}`;
       }
       if (currPassGroup) currPassGroup.style.display = "";
       if (currPassInput) currPassInput.setAttribute("required", "");
-      if (submitBtn) submitBtn.textContent = "Lưu mật khẩu mới";
+      if (submitBtn) submitBtn.textContent = t("profile.save_password", "Save Password");
     }
   });
 

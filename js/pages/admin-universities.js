@@ -77,9 +77,10 @@ function renderTable() {
         .filter(u => {
             if (!q) return true;
             const nameMatch = u.name.toLowerCase().includes(q);
+            const engMatch = (u.englishName || "").toLowerCase().includes(q);
             const shortMatch = (u.shortName || "").toLowerCase().includes(q);
             const domainMatch = (u.domains || []).some(d => d.toLowerCase().includes(q));
-            return nameMatch || shortMatch || domainMatch;
+            return nameMatch || engMatch || shortMatch || domainMatch;
         })
         .map(u => {
             const statusBadge = u.isActive !== false
@@ -102,6 +103,9 @@ function renderTable() {
                 <td class="py-3.5 px-4">
                     <div class="font-semibold text-[#191b22] line-clamp-1">${u.name}</div>
                     ${u.description ? `<div class="text-xs text-[#64748b] line-clamp-1 mt-0.5">${u.description}</div>` : ''}
+                </td>
+                <td class="py-3.5 px-4 text-[#64748b] font-medium">
+                    ${u.englishName || "—"}
                 </td>
                 <td class="py-3.5 px-4">
                     <span class="font-semibold text-primary">${u.shortName || "—"}</span>
@@ -252,8 +256,9 @@ function openForm(uni) {
     const fallbackIcon = document.getElementById("logo-fallback-icon");
 
     if (uni) {
-        title.textContent = "Edit University";
+        title.textContent = t("admin_universities.edit_title", "Edit University");
         document.getElementById("field-name").value = uni.name || "";
+        document.getElementById("field-english-name").value = uni.englishName || "";
         document.getElementById("field-short-name").value = uni.shortName || "";
         document.getElementById("field-domains").value = (uni.domains || []).join(", ");
         document.getElementById("field-logo-url").value = uni.logo || "";
@@ -271,8 +276,9 @@ function openForm(uni) {
             fallbackIcon.classList.remove("hidden");
         }
     } else {
-        title.textContent = "Add University";
+        title.textContent = t("admin_universities.add_title", "Add University");
         document.getElementById("field-name").value = "";
+        document.getElementById("field-english-name").value = "";
         document.getElementById("field-short-name").value = "";
         document.getElementById("field-domains").value = "";
         document.getElementById("field-logo-url").value = "";
@@ -313,6 +319,7 @@ function initForm() {
     if (saveBtn) {
         saveBtn.addEventListener("click", async () => {
             const name = document.getElementById("field-name").value.trim();
+            const englishName = document.getElementById("field-english-name").value.trim();
             const shortName = document.getElementById("field-short-name").value.trim();
             const domainsRaw = document.getElementById("field-domains").value.trim();
             const logo = document.getElementById("field-logo-url").value.trim();
@@ -331,6 +338,7 @@ function initForm() {
 
             const payload = {
                 name,
+                englishName,
                 shortName,
                 domains: domainsRaw,
                 logo,
