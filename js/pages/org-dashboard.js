@@ -1,4 +1,6 @@
 import "../../src/style.css";
+import { CDN_DOMAIN } from "../config.js";
+import { t } from "../lib/i18n.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
