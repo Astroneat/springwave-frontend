@@ -504,7 +504,10 @@ async function renderCardsDirect(activities) {
         }
 
         const hostSpan = card.querySelector(".info-host");
-        if (hostSpan) hostSpan.textContent = activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
+        if (hostSpan) {
+            const hostOrgName = typeof activity.organization === 'object' ? activity.organization?.name : null;
+            hostSpan.textContent = hostOrgName || activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
+        }
         
         const status = getEventStatus(activity);
 
@@ -824,6 +827,9 @@ function buildPopupHTML(a, backText) {
         </div>`;
     }).join("");
 
+    const hostOrgName = typeof a.organization === 'object' ? a.organization?.name : null;
+    const displayHost = hostOrgName || a.hostName || a.createdByName || t("common.unknown");
+
     return `
     <div class="activity-popup-layout">
         <div class="popup-hero-cover">
@@ -837,10 +843,10 @@ function buildPopupHTML(a, backText) {
             <div class="popup-body-main">
                 <h1 class="popup-main-title">${a.title}</h1>
                 <div class="popup-host-row">
-                    <div class="popup-host-avatar">${(a.hostName || a.createdByName || "U")[0].toUpperCase()}</div>
+                    <div class="popup-host-avatar">${(displayHost || "U")[0].toUpperCase()}</div>
                     <div class="popup-host-info">
                         <span class="host-label">Hosted by</span>
-                        <h4 class="host-name">${a.hostName || a.createdByName || t("common.unknown")}</h4>
+                        <h4 class="host-name">${displayHost}</h4>
                     </div>
                 </div>
                 <div class="popup-section-divider"></div>
