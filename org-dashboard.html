@@ -856,16 +856,10 @@
     </div>
 
     <!-- Event Detail Modal -->
-    <div class="popup-overlay" hidden id="event-detail-overlay">
+    <div class="popup-overlay p-3 sm:p-6" hidden id="event-detail-overlay">
         <div class="popup-backdrop" id="event-detail-backdrop"></div>
-        <div class="popup-container !max-w-[800px]">
-            <div class="flex items-center justify-between p-6 border-b border-[#ecedfa]">
-                <h3 class="font-headline-md text-xl font-bold text-[#191b22]">Event Details</h3>
-                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] transition-all cursor-pointer" id="event-detail-close">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="p-6 max-h-[80vh] overflow-y-auto" id="event-detail-body"></div>
+        <div class="popup-container !max-w-[940px] !p-0 overflow-hidden shadow-2xl rounded-3xl bg-white border border-[#ecedfa]">
+            <div class="max-h-[90vh] overflow-y-auto relative" id="event-detail-body"></div>
         </div>
     </div>
 

@@ -500,6 +500,8 @@ async function openEventDetailModal(eventId) {
   const heldDate = formatDate(event.heldDate);
   const heldDateEnd = event.heldDateEnd ? formatDate(event.heldDateEnd) : null;
   const deadlineFormatted = event.applicationDeadline ? formatDate(event.applicationDeadline) : null;
+  const expired = isEventExpired(event.heldDate);
+  const canEdit = canEditEvent(event.heldDate);
   const type = capitalize(event.type || "Event");
   const categoryName = event.category?.name || type;
   const hostOrgName = typeof event.organization === 'object' ? event.organization?.name : null;
@@ -509,108 +511,255 @@ async function openEventDetailModal(eventId) {
     const link = f.link || f.activityAttachLink || "";
     const fileName = decodeURIComponent(link.split('/').pop());
     const href = (link.startsWith("http://") || link.startsWith("https://")) ? link : `${CDN_DOMAIN}/${link}`;
-    return `<div class="flex items-center justify-between p-2.5 bg-white rounded-xl border border-slate-200 text-xs shadow-2xs">
-      <div class="flex items-center gap-2 truncate">
-        <i class="fa-solid fa-file-arrow-down text-primary"></i>
-        <span class="truncate font-medium text-slate-700">${fileName}</span>
-      </div>
-      <a href="${href}" target="_blank" class="text-primary hover:underline font-semibold shrink-0 ml-2">${t("common.download", "Download")}</a>
-    </div>`;
+    return `
+      <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200/80 hover:border-primary/40 shadow-xs transition-all">
+        <div class="flex items-center gap-3 truncate min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-file-arrow-down text-sm"></i>
+          </div>
+          <span class="truncate font-medium text-slate-800 text-xs sm:text-sm">${fileName}</span>
+        </div>
+        <a href="${href}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-primary hover:text-white text-slate-700 font-semibold text-xs transition-colors shrink-0 ml-3">
+          <i class="fa-solid fa-download text-[11px]"></i> ${t("common.download", "Download")}
+        </a>
+      </div>`;
   }).join("");
 
   body.innerHTML = `
-    <div class="flex flex-col md:flex-row gap-6">
-      <div class="md:w-[340px] shrink-0">
-        ${event.thumbnail
-          ? `<img src="${event.thumbnail}" class="w-full h-[240px] object-cover rounded-2xl shadow-sm" alt="${event.title}" />`
-          : `<div class="w-full h-[240px] rounded-2xl bg-[#ecedfa] flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-4xl"></i></div>`
+    <!-- Hero Banner -->
+    <div class="relative h-[220px] sm:h-[260px] w-full overflow-hidden bg-slate-900 group">
+      ${event.thumbnail
+        ? `<img src="${event.thumbnail}" class="w-full h-full object-cover opacity-85 transition-transform duration-700 ease-out group-hover:scale-105" alt="${event.title}" />`
+        : `<div class="w-full h-full bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-800 flex items-center justify-center"><i class="fa-regular fa-image text-6xl text-white/15"></i></div>`
+      }
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-black/30"></div>
+
+      <!-- Top Action Floating Bar -->
+      <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <a href="/explore.html?id=${event._id}" target="_blank" class="px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/35 text-white backdrop-blur-md text-xs font-semibold flex items-center gap-1.5 border border-white/25 transition-all shadow-sm" title="View public page">
+          <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> <span class="hidden sm:inline">Public Page</span>
+        </a>
+        <button id="detail-modal-edit-btn" class="px-3.5 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md border border-white/20 transition-all ${canEdit ? 'cursor-pointer active:scale-95' : 'opacity-50 cursor-not-allowed'}" ${canEdit ? '' : 'disabled'}>
+          <i class="fa-solid fa-pen text-[11px]"></i> Edit
+        </button>
+        <button id="event-detail-close-btn" class="w-8 h-8 rounded-xl bg-black/40 hover:bg-black/70 text-white backdrop-blur-md flex items-center justify-center border border-white/25 transition-all cursor-pointer active:scale-95">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Hero Bottom Badges & Category -->
+      <div class="absolute bottom-4 left-4 right-4 z-10 flex flex-wrap items-center gap-2">
+        ${event.status === "published"
+          ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Published</span>`
+          : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Draft</span>`
         }
-        <div class="mt-4 space-y-3">
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-regular fa-calendar"></i></div>
-            <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.date", "Date / Time")}</p>
-              <p class="font-semibold text-[#191b22] text-sm">${heldDate} ${heldDateEnd ? `<br/><span class="text-xs text-slate-500 font-normal">→ ${heldDateEnd}</span>` : ''}</p>
-            </div>
-          </div>
-          ${deadlineFormatted ? `
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 mt-0.5"><i class="fa-solid fa-hourglass-half text-sm"></i></div>
-            <div>
-              <p class="text-[12px] font-semibold text-amber-800 uppercase tracking-wide">${t("profile.apply_deadline", "Deadline")}</p>
-              <p class="font-semibold text-amber-900 text-sm">${deadlineFormatted}</p>
-            </div>
+        ${expired ? `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/50 text-rose-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider">Expired</span>` : ''}
+        <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/15 border border-white/20 text-white backdrop-blur-md text-xs font-medium">${categoryName}</span>
+      </div>
+    </div>
+
+    <!-- Main Content Body -->
+    <div class="p-6 sm:p-8 space-y-6 bg-[#fcfdfe]">
+      <!-- Header Title & Tags -->
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">${event.title}</h2>
+        ${(event.tags || []).length ? `
+          <div class="flex flex-wrap gap-1.5 mt-3">
+            ${event.tags.map(t => `<span class="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">${t}</span>`).join('')}
           </div>` : ''}
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-building-user text-sm"></i></div>
-            <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.hosted_by", "Hosted by")}</p>
-              <p class="font-semibold text-[#191b22] text-sm">${source}</p>
-            </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+        <div class="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-users text-lg"></i>
           </div>
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-layer-group text-sm"></i></div>
-            <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.type", "Category")}</p>
-              <p class="font-semibold text-[#191b22] text-sm">${categoryName}</p>
-            </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide truncate">${t("description.participants", "Participants")}</p>
+            <p class="text-lg font-bold text-slate-900 truncate">${event.participants?.length || 0}</p>
           </div>
-          ${event.location ? `
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-location-dot text-sm"></i></div>
-            <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.location", "Location")}</p>
-              <p class="font-semibold text-[#191b22] text-sm">${event.location}</p>
-            </div>
-          </div>` : ''}
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-award text-sm"></i></div>
-            <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">Certificate</p>
-              <p class="font-semibold text-[#191b22] text-sm">${event.hasCertificate ? `<span class="text-emerald-600">✓ ${t("common.has_cert", "Certificate Supported")}</span>` : `<span class="text-slate-400">${t("common.no_cert", "No Certificate Support")}</span>`}</p>
-            </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-award text-lg"></i>
           </div>
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-solid fa-qrcode text-sm"></i></div>
-            <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("common.attendance", "Attendance Rules")}</p>
-              <p class="font-semibold text-[#191b22] text-xs leading-snug">
-                ${event.hasAttendance 
-                  ? `${t("common.enable_attendance", "Attendance Enabled")} (${(event.lateCheckinMinutes || 0) > 0 ? t("common.late_minutes", { n: event.lateCheckinMinutes }, `Late: ${event.lateCheckinMinutes}m`) : ''}, ${(event.expiredCheckinMinutes || 0) > 0 ? t("common.expired_minutes", { n: event.expiredCheckinMinutes }, `Expired: ${event.expiredCheckinMinutes}m`) : ''})` 
-                  : t("common.disable_attendance", "Attendance Disabled")}
-              </p>
-            </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide truncate">Certificate</p>
+            <p class="text-sm font-bold ${event.hasCertificate ? 'text-emerald-700' : 'text-slate-500'} truncate">
+              ${event.hasCertificate ? t("common.has_cert", "Supported") : t("common.no_cert", "None")}
+            </p>
           </div>
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-[#dae1ff] flex items-center justify-center text-primary shrink-0 mt-0.5"><i class="fa-regular fa-user text-sm"></i></div>
-            <div>
-              <p class="text-[12px] font-semibold text-[#64748b] uppercase tracking-wide">${t("description.participants", "Participants")}</p>
-              <p class="font-semibold text-[#191b22] text-sm">${t("explore.registered_count", { n: event.participants?.length || 0 }, `${event.participants?.length || 0} registered`)}</p>
-            </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-qrcode text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide truncate">Attendance</p>
+            <p class="text-sm font-bold ${event.hasAttendance ? 'text-indigo-700' : 'text-slate-500'} truncate">
+              ${event.hasAttendance ? t("common.enable_attendance", "Active") : t("common.disable_attendance", "Disabled")}
+            </p>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-100 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-hourglass-half text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide truncate">${t("profile.apply_deadline", "Deadline")}</p>
+            <p class="text-xs sm:text-sm font-bold text-slate-900 truncate">${deadlineFormatted || 'No limit'}</p>
           </div>
         </div>
       </div>
-      <div class="flex-1 min-w-0 flex flex-col">
-        <h2 class="font-headline-md text-2xl font-bold text-[#191b22] mb-2">${event.title}</h2>
-        <div class="flex flex-wrap gap-2 mb-4">
-          ${(event.tags || []).map(t => `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#dae1ff] text-primary">${t}</span>`).join('')}
+
+      <!-- Main Columns Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+        <!-- Main Info Left Column -->
+        <div class="lg:col-span-2 space-y-6">
+          ${event.registrationLink ? `
+            <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between gap-3 shadow-xs">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <i class="fa-solid fa-link text-sm"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">${t("common.registration_link", "External Registration Link")}</p>
+                  <a href="${event.registrationLink}" target="_blank" class="text-sm text-primary font-semibold hover:underline truncate block">${event.registrationLink}</a>
+                </div>
+              </div>
+              <button id="copy-reg-link-btn" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold text-xs transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                <i class="fa-regular fa-copy text-xs"></i> <span>Copy</span>
+              </button>
+            </div>` : ''}
+
+          <!-- Description Section -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-align-left text-primary"></i> About Event
+            </h3>
+            <div class="text-slate-700 leading-relaxed text-sm sm:text-base whitespace-pre-wrap">
+              ${event.description || t("common.no_description", "No description provided.")}
+            </div>
+          </div>
+
+          <!-- Attachments Section -->
+          ${filesHTML ? `
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs">
+              <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-paperclip text-primary"></i> ${t("explore.attached_files", "Attachments")} (${(event.attachments || []).length})
+              </h3>
+              <div class="space-y-2.5">${filesHTML}</div>
+            </div>` : ''}
         </div>
-        ${event.registrationLink ? `
-        <div class="mb-4 p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-xs flex items-center gap-2">
-          <i class="fa-solid fa-link text-primary text-sm"></i>
-          <span class="font-semibold text-slate-700">${t("common.registration_link", "Registration Link")}:</span>
-          <a href="${event.registrationLink}" target="_blank" class="text-primary font-bold hover:underline truncate">${event.registrationLink}</a>
-        </div>` : ''}
-        <div class="flex-1 bg-[#f8f9fc] rounded-2xl p-5 max-h-[350px] overflow-y-auto text-sm leading-relaxed text-[#475569] whitespace-pre-wrap border border-slate-100">
-          ${event.description || t("common.no_description", "No description provided.")}
+
+        <!-- Sidebar Right Column -->
+        <div class="space-y-4">
+          <!-- Schedule Card -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+              <i class="fa-regular fa-calendar-days text-primary"></i> Event Schedule
+            </h3>
+            <div class="space-y-3 text-xs sm:text-sm">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-primary flex items-center justify-center shrink-0 mt-0.5"><i class="fa-regular fa-clock text-xs"></i></div>
+                <div>
+                  <p class="text-[11px] font-semibold text-slate-400 uppercase">${t("description.date", "Start Date")}</p>
+                  <p class="font-bold text-slate-900">${heldDate}</p>
+                </div>
+              </div>
+              ${heldDateEnd ? `
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-50 text-primary flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-flag-checkered text-xs"></i></div>
+                  <div>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase">End Date</p>
+                    <p class="font-bold text-slate-900">${heldDateEnd}</p>
+                  </div>
+                </div>` : ''}
+              ${deadlineFormatted ? `
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-hourglass-half text-xs"></i></div>
+                  <div>
+                    <p class="text-[11px] font-semibold text-amber-700 uppercase">${t("profile.apply_deadline", "Application Deadline")}</p>
+                    <p class="font-bold text-amber-900">${deadlineFormatted}</p>
+                  </div>
+                </div>` : ''}
+            </div>
+          </div>
+
+          <!-- Location Card -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+              <i class="fa-solid fa-location-dot text-rose-500"></i> ${t("description.location", "Location")}
+            </h3>
+            <div class="flex items-start gap-3 text-xs sm:text-sm">
+              <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-map-pin text-xs"></i></div>
+              <p class="font-semibold text-slate-800 leading-snug">${event.location || 'Online / Unspecified'}</p>
+            </div>
+          </div>
+
+          <!-- Host Info Card -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+              <i class="fa-solid fa-building-user text-indigo-500"></i> Organizer
+            </h3>
+            <div class="flex items-center gap-3 text-xs sm:text-sm">
+              <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-user-tie text-xs"></i></div>
+              <p class="font-bold text-slate-900 truncate">${source}</p>
+            </div>
+          </div>
+
+          <!-- Attendance Rules Card -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+              <i class="fa-solid fa-shield-halved text-emerald-600"></i> Check-in Policy
+            </h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                <span class="text-slate-500">Status</span>
+                <span class="font-bold ${event.hasAttendance ? 'text-emerald-600' : 'text-slate-400'}">${event.hasAttendance ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              ${event.hasAttendance ? `
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span class="text-slate-500">Late Grace</span>
+                  <span class="font-semibold text-slate-800">${(event.lateCheckinMinutes || 0) > 0 ? `${event.lateCheckinMinutes}m` : 'None'}</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-slate-500">Expiration</span>
+                  <span class="font-semibold text-slate-800">${(event.expiredCheckinMinutes || 0) > 0 ? `${event.expiredCheckinMinutes}m` : 'None'}</span>
+                </div>` : ''}
+            </div>
+          </div>
         </div>
-        ${filesHTML ? `
-        <div class="mt-4">
-          <p class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">${t("explore.attached_files", "Attachments")} (${(event.attachments || []).length})</p>
-          <div class="space-y-2 max-h-[140px] overflow-y-auto pr-1">${filesHTML}</div>
-        </div>` : ''}
       </div>
     </div>`;
+
+  // Attach Event Handlers
+  const closeBtn = document.getElementById("event-detail-close-btn");
+  if (closeBtn) closeBtn.addEventListener("click", closeEventDetailModal);
+
+  const editBtn = document.getElementById("detail-modal-edit-btn");
+  if (editBtn && canEdit) {
+    editBtn.addEventListener("click", () => {
+      closeEventDetailModal();
+      window.location.href = `/hostActivity.html?edit=${eventId}&org=${currentOrgId}`;
+    });
+  }
+
+  const copyLinkBtn = document.getElementById("copy-reg-link-btn");
+  if (copyLinkBtn && event.registrationLink) {
+    copyLinkBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(event.registrationLink).then(() => {
+        copyLinkBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-600 text-xs"></i> <span class="text-emerald-700">Copied!</span>`;
+        setTimeout(() => {
+          copyLinkBtn.innerHTML = `<i class="fa-regular fa-copy text-xs"></i> <span>Copy</span>`;
+        }, 2000);
+      });
+    });
+  }
 
   overlay.removeAttribute("hidden");
   overlay.classList.add("active");
