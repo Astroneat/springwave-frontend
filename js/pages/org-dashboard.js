@@ -10,7 +10,7 @@ import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrga
 import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
 import { getHostReviews } from "../api/activities.js";
-import { getOrgAnalytics, downloadOrgExcelReport } from "../api/analytics.js";
+import { getOrgAnalytics, getEventAnalytics, downloadOrgExcelReport, downloadEventExcelReport } from "../api/analytics.js";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 
@@ -18,6 +18,10 @@ let currentOrgId = null;
 let currentOrgs = [];
 let currentEvents = [];
 let currentSection = "dashboard";
+
+// Analytics scope state
+let analyticsScope = "all"; // "all" or "event"
+let analyticsEventId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!isAuthenticated()) {
@@ -203,6 +207,8 @@ async function selectOrg(orgId) {
   await loadEvents();
   await loadManagers();
   await loadReviews();
+  initAnalyticsScopeControls();
+  initAnalyticsReportEventSelect();
   loadSettings(org);
 }
 
@@ -808,6 +814,7 @@ function populateEventSelects() {
   renderCustomSelect("attendance-event-select-wrapper", "attendance-event-select", currentEvents, "Select an event...");
   renderCustomSelect("cert-event-select-wrapper", "cert-event-select", currentEvents, "Select an event...");
   renderCustomSelect("analytics-event-select-wrapper", "analytics-event-select", currentEvents, "All Events");
+  renderCustomSelect("analytics-report-event-select-wrapper", "analytics-report-event-select", currentEvents, "Select an event...");
 }
 
 function renderCustomSelect(wrapperId, hiddenInputId, events, placeholder = "Select an event...") {
@@ -2676,14 +2683,73 @@ let orgTotalReviewsCount = 0;
 let currentEventRatingsPage = 1;
 const EVENTS_RATINGS_PER_PAGE = 5;
 
-function initAnalyticsEventSelect() {
+function initReviewRatingsEventSelect() {
   const wrapper = document.getElementById("analytics-event-select-wrapper");
-  if (!wrapper) return;
+  if (!wrapper || wrapper.dataset.reviewRatingsInitialized === "true") return;
+  wrapper.dataset.reviewRatingsInitialized = "true";
   wrapper.addEventListener("change", (e) => {
     if (e.target.id === "analytics-event-select") {
       filterAnalyticsBySelectedEvent(e.target.value);
     }
   });
+}
+
+function initAnalyticsReportEventSelect() {
+  const wrapper = document.getElementById("analytics-report-event-select-wrapper");
+  if (!wrapper || wrapper.dataset.analyticsInitialized === "true") return;
+  wrapper.dataset.analyticsInitialized = "true";
+  wrapper.addEventListener("change", (e) => {
+    if (e.target.id === "analytics-report-event-select") {
+      analyticsEventId = e.target.value || null;
+      if (currentSection === "analytics") {
+        loadOrgAnalytics();
+      }
+    }
+  });
+}
+
+function initAnalyticsScopeControls() {
+  const buttons = document.querySelectorAll(".analytics-scope-btn");
+  if (!buttons.length) return;
+
+  buttons.forEach(btn => {
+    if (btn.dataset.scopeInitialized === "true") return;
+    btn.dataset.scopeInitialized = "true";
+    btn.addEventListener("click", () => {
+      analyticsScope = btn.dataset.analyticsScope || "all";
+      updateAnalyticsScopeUI();
+      if (currentSection === "analytics") {
+        loadOrgAnalytics();
+      }
+    });
+  });
+
+  updateAnalyticsScopeUI();
+}
+
+function updateAnalyticsScopeUI() {
+  document.querySelectorAll(".analytics-scope-btn").forEach(btn => {
+    const active = btn.dataset.analyticsScope === analyticsScope;
+    btn.classList.toggle("active", active);
+    btn.classList.toggle("bg-primary", active);
+    btn.classList.toggle("text-white", active);
+    btn.classList.toggle("text-[#64748b]", !active);
+    btn.classList.toggle("hover:bg-[#f8f9fc]", !active);
+  });
+
+  const wrapper = document.getElementById("analytics-report-event-select-wrapper");
+  if (wrapper) wrapper.classList.toggle("hidden", analyticsScope !== "event");
+
+  const selectedEvent = currentEvents.find(e => e._id === analyticsEventId);
+  const exportBtn = document.getElementById("export-org-excel-btn");
+  if (exportBtn) {
+    exportBtn.innerHTML = analyticsScope === "event"
+      ? `<i class="fa-solid fa-file-excel"></i> Export Event Report (.xlsx)`
+      : `<i class="fa-solid fa-file-excel"></i> Export Excel Report (.xlsx)`;
+    exportBtn.disabled = analyticsScope === "event" && !selectedEvent;
+    exportBtn.classList.toggle("opacity-50", exportBtn.disabled);
+    exportBtn.classList.toggle("cursor-not-allowed", exportBtn.disabled);
+  }
 }
 
 function filterAnalyticsBySelectedEvent(eventId) {
@@ -2713,7 +2779,7 @@ function filterAnalyticsBySelectedEvent(eventId) {
 
 async function loadReviews() {
   try {
-    initAnalyticsEventSelect();
+    initReviewRatingsEventSelect();
     const data = await getHostReviews(currentOrgId);
     const reviews = data.reviews || [];
     
@@ -2883,115 +2949,147 @@ document.addEventListener("DOMContentLoaded", () => {
 let orgDonutChartInstance = null;
 let orgMethodsChartInstance = null;
 
+function renderAnalyticsData(data) {
+  const summary = data.summary || {};
+  const att = data.attendanceBreakdown || {};
+  const methods = data.checkinMethods || {};
+
+  const elEvents = document.getElementById("analytics-stat-events");
+  if (elEvents) elEvents.textContent = summary.totalEvents || 0;
+  const elRegs = document.getElementById("analytics-stat-regs");
+  if (elRegs) elRegs.textContent = summary.totalRegistrations || 0;
+  const elRate = document.getElementById("analytics-stat-att-rate");
+  if (elRate) elRate.textContent = `${summary.overallAttendanceRate || 0}%`;
+  const elRating = document.getElementById("analytics-stat-rating");
+  if (elRating) elRating.textContent = `${summary.averageRating || 0} ★`;
+
+  const donutCtx = document.getElementById("chart-attendance-donut")?.getContext("2d");
+  if (donutCtx && typeof Chart !== "undefined") {
+    if (orgDonutChartInstance) orgDonutChartInstance.destroy();
+    orgDonutChartInstance = new Chart(donutCtx, {
+      type: "doughnut",
+      data: {
+        labels: ["Present", "Late", "Absent"],
+        datasets: [{
+          data: [att.present || 0, att.late || 0, att.absent || 0],
+          backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } }
+      }
+    });
+  }
+
+  const methodsCtx = document.getElementById("chart-checkin-methods")?.getContext("2d");
+  if (methodsCtx && typeof Chart !== "undefined") {
+    if (orgMethodsChartInstance) orgMethodsChartInstance.destroy();
+    orgMethodsChartInstance = new Chart(methodsCtx, {
+      type: "bar",
+      data: {
+        labels: ["Ticket QR", "Student Card", "Manual", "Excel Import"],
+        datasets: [{
+          label: "Check-ins",
+          data: [methods.ticket_qr || 0, methods.student_card || 0, methods.manual || 0, methods.excel_import || 0],
+          backgroundColor: "#3b6fd4",
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  const schoolsContainer = document.getElementById("top-schools-container");
+  if (schoolsContainer) {
+    const topSchools = data.topSchools || [];
+    if (!topSchools.length) {
+      schoolsContainer.innerHTML = '<p class="text-xs text-[#94a3b8]">No university data recorded yet.</p>';
+    } else {
+      const maxCount = Math.max(...topSchools.map(s => s.count), 1);
+      schoolsContainer.innerHTML = topSchools.map(s => `
+        <div>
+          <div class="flex justify-between text-xs font-semibold mb-1">
+            <span class="truncate max-w-[70%]">${s.name}</span>
+            <span class="text-primary">${s.count} attendees</span>
+          </div>
+          <div class="w-full h-2 bg-[#ecedfa] rounded-full overflow-hidden">
+            <div class="h-full bg-primary rounded-full" style="width: ${Math.round((s.count / maxCount) * 100)}%"></div>
+          </div>
+        </div>
+      `).join("");
+    }
+  }
+
+  const majorsContainer = document.getElementById("top-majors-container");
+  if (majorsContainer) {
+    const topMajors = data.topMajors || [];
+    if (!topMajors.length) {
+      majorsContainer.innerHTML = '<p class="text-xs text-[#94a3b8]">No major data recorded yet.</p>';
+    } else {
+      const maxCount = Math.max(...topMajors.map(m => m.count), 1);
+      majorsContainer.innerHTML = topMajors.map(m => `
+        <div>
+          <div class="flex justify-between text-xs font-semibold mb-1">
+            <span class="truncate max-w-[70%]">${m.name}</span>
+            <span class="text-emerald-600">${m.count} attendees</span>
+          </div>
+          <div class="w-full h-2 bg-[#ecedfa] rounded-full overflow-hidden">
+            <div class="h-full bg-emerald-500 rounded-full" style="width: ${Math.round((m.count / maxCount) * 100)}%"></div>
+          </div>
+        </div>
+      `).join("");
+    }
+  }
+}
+
+function setAnalyticsEmptyState(show) {
+  const empty = document.getElementById("analytics-scope-empty");
+  const content = document.getElementById("analytics-content");
+  if (empty) empty.classList.toggle("hidden", !show);
+  if (content) content.classList.toggle("hidden", show);
+  const exportBtn = document.getElementById("export-org-excel-btn");
+  if (exportBtn) exportBtn.disabled = show;
+}
+
 async function loadOrgAnalytics() {
   if (!currentOrgId) return;
+  initAnalyticsScopeControls();
+  initAnalyticsReportEventSelect();
   try {
-    const data = await getOrgAnalytics(currentOrgId);
-    const summary = data.summary || {};
-    const att = data.attendanceBreakdown || {};
-    const methods = data.checkinMethods || {};
+    updateAnalyticsScopeUI();
 
-    const elEvents = document.getElementById("analytics-stat-events");
-    if (elEvents) elEvents.textContent = summary.totalEvents || 0;
-    const elRegs = document.getElementById("analytics-stat-regs");
-    if (elRegs) elRegs.textContent = summary.totalRegistrations || 0;
-    const elRate = document.getElementById("analytics-stat-att-rate");
-    if (elRate) elRate.textContent = `${summary.overallAttendanceRate || 0}%`;
-    const elRating = document.getElementById("analytics-stat-rating");
-    if (elRating) elRating.textContent = `${summary.averageRating || 0} ★`;
-
-    const donutCtx = document.getElementById("chart-attendance-donut")?.getContext("2d");
-    if (donutCtx && typeof Chart !== "undefined") {
-      if (orgDonutChartInstance) orgDonutChartInstance.destroy();
-      orgDonutChartInstance = new Chart(donutCtx, {
-        type: "doughnut",
-        data: {
-          labels: ["Present", "Late", "Absent"],
-          datasets: [{
-            data: [att.present || 0, att.late || 0, att.absent || 0],
-            backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: "bottom" } }
-        }
-      });
+    // Event scope with no event picked → show empty state, hide report
+    if (analyticsScope === "event" && !analyticsEventId) {
+      setAnalyticsEmptyState(true);
+      return;
     }
+    setAnalyticsEmptyState(false);
 
-    const methodsCtx = document.getElementById("chart-checkin-methods")?.getContext("2d");
-    if (methodsCtx && typeof Chart !== "undefined") {
-      if (orgMethodsChartInstance) orgMethodsChartInstance.destroy();
-      orgMethodsChartInstance = new Chart(methodsCtx, {
-        type: "bar",
-        data: {
-          labels: ["Ticket QR", "Student Card", "Manual", "Excel Import"],
-          datasets: [{
-            label: "Check-ins",
-            data: [methods.ticket_qr || 0, methods.student_card || 0, methods.manual || 0, methods.excel_import || 0],
-            backgroundColor: "#3b6fd4",
-            borderRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-    }
+    const data = analyticsScope === "event"
+      ? await getEventAnalytics(currentOrgId, analyticsEventId)
+      : await getOrgAnalytics(currentOrgId);
 
-    const schoolsContainer = document.getElementById("top-schools-container");
-    if (schoolsContainer) {
-      const topSchools = data.topSchools || [];
-      if (!topSchools.length) {
-        schoolsContainer.innerHTML = '<p class="text-xs text-[#94a3b8]">No university data recorded yet.</p>';
-      } else {
-        const maxCount = Math.max(...topSchools.map(s => s.count), 1);
-        schoolsContainer.innerHTML = topSchools.map(s => `
-          <div>
-            <div class="flex justify-between text-xs font-semibold mb-1">
-              <span class="truncate max-w-[70%]">${s.name}</span>
-              <span class="text-primary">${s.count} attendees</span>
-            </div>
-            <div class="w-full h-2 bg-[#ecedfa] rounded-full overflow-hidden">
-              <div class="h-full bg-primary rounded-full" style="width: ${Math.round((s.count / maxCount) * 100)}%"></div>
-            </div>
-          </div>
-        `).join("");
-      }
-    }
-
-    const majorsContainer = document.getElementById("top-majors-container");
-    if (majorsContainer) {
-      const topMajors = data.topMajors || [];
-      if (!topMajors.length) {
-        majorsContainer.innerHTML = '<p class="text-xs text-[#94a3b8]">No major data recorded yet.</p>';
-      } else {
-        const maxCount = Math.max(...topMajors.map(m => m.count), 1);
-        majorsContainer.innerHTML = topMajors.map(m => `
-          <div>
-            <div class="flex justify-between text-xs font-semibold mb-1">
-              <span class="truncate max-w-[70%]">${m.name}</span>
-              <span class="text-emerald-600">${m.count} attendees</span>
-            </div>
-            <div class="w-full h-2 bg-[#ecedfa] rounded-full overflow-hidden">
-              <div class="h-full bg-emerald-500 rounded-full" style="width: ${Math.round((m.count / maxCount) * 100)}%"></div>
-            </div>
-          </div>
-        `).join("");
-      }
-    }
+    renderAnalyticsData(data);
 
     const exportBtn = document.getElementById("export-org-excel-btn");
     if (exportBtn) {
       exportBtn.onclick = async () => {
         try {
-          const orgName = data.organization?.name || "Org";
-          await downloadOrgExcelReport(currentOrgId, orgName);
+          if (analyticsScope === "event") {
+            const eventName = data.event?.title || currentEvents.find(e => e._id === analyticsEventId)?.title || "Event";
+            await downloadEventExcelReport(currentOrgId, analyticsEventId, eventName);
+          } else {
+            const orgName = data.organization?.name || "Org";
+            await downloadOrgExcelReport(currentOrgId, orgName);
+          }
         } catch (err) {
           alert(err.message || "Failed to download Excel report");
         }

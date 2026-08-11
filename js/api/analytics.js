@@ -6,6 +6,10 @@ export function getOrgAnalytics(orgId) {
   return get(`/analytics/org/${orgId}/overview`);
 }
 
+export function getEventAnalytics(orgId, eventId) {
+  return get(`/analytics/org/${orgId}/event/${eventId}/overview`);
+}
+
 export async function downloadOrgExcelReport(orgId, orgName = "Org") {
   const token = getToken();
   const headers = {};
@@ -25,6 +29,31 @@ export async function downloadOrgExcelReport(orgId, orgName = "Org") {
   const a = document.createElement("a");
   a.href = url;
   a.download = `Analytics_Report_${orgName.replace(/[^a-zA-Z0-9_-]/g, "_")}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+export async function downloadEventExcelReport(orgId, eventId, eventName = "Event") {
+  const token = getToken();
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE_URL}/analytics/org/${orgId}/event/${eventId}/export-excel`, {
+    headers,
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to export event analytics report");
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Event_Report_${eventName.replace(/[^a-zA-Z0-9_-]/g, "_")}.xlsx`;
   document.body.appendChild(a);
   a.click();
   a.remove();

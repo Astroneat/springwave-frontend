@@ -608,14 +608,29 @@
                     <h2 class="font-headline-md text-2xl font-bold text-[#191b22]">Analytics & Reports</h2>
                     <p class="text-sm text-[#64748b] mt-0.5">Real-time engagement metrics, demographics, and activity reports</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button id="export-org-excel-btn" class="py-2.5 px-5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease shadow-md active:scale-95">
+                <div class="flex flex-col items-stretch md:items-end gap-3">
+                    <div class="flex flex-wrap items-center gap-2 p-1 bg-white border border-[#ecedfa] rounded-2xl shadow-sm w-fit md:ml-auto">
+                        <button type="button" class="analytics-scope-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all spring-ease active" data-analytics-scope="all">All Events</button>
+                        <button type="button" class="analytics-scope-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all spring-ease" data-analytics-scope="event">Specific Event</button>
+                    </div>
+                    <div id="analytics-report-event-select-wrapper" class="relative hidden md:min-w-[280px]"></div>
+                    <button id="export-org-excel-btn" class="py-2.5 px-5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease shadow-md active:scale-95 md:ml-auto">
                         <i class="fa-solid fa-file-excel"></i> Export Excel Report (.xlsx)
                     </button>
                 </div>
             </div>
 
+            <!-- Analytics Scope Empty State (shown in event mode before an event is picked) -->
+            <div id="analytics-scope-empty" class="hidden bg-white rounded-[24px] border border-[#ecedfa] border-dashed shadow-sm p-10 text-center mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-[#dae1ff] flex items-center justify-center text-primary mx-auto mb-4">
+                    <i class="fa-solid fa-chart-simple text-2xl"></i>
+                </div>
+                <h4 class="text-lg font-bold text-[#191b22] mb-1">Select an event to view its report</h4>
+                <p class="text-sm text-[#64748b] max-w-md mx-auto">Choose a specific event from the dropdown above to see its KPIs, attendance breakdown, and participant demographics.</p>
+            </div>
+
             <!-- KPI Grid -->
+            <div id="analytics-content">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
                     <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Total Events</p>
@@ -663,6 +678,7 @@
                     <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Top Participant Majors</h3>
                     <div id="top-majors-container" class="space-y-3"></div>
                 </div>
+            </div>
             </div>
         </div>
     </main>
@@ -754,7 +770,7 @@
                         <div id="scan-feedback-success" class="hidden w-full space-y-4 my-auto">
                             <div class="relative inline-flex mx-auto">
                                 <div id="scan-feedback-avatar-container" class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-emerald-400 to-teal-500 shadow-lg mx-auto flex items-center justify-center overflow-hidden">
-                                    <img id="scan-feedback-avatar" src="" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" />
+                                    <img id="scan-feedback-avatar" src="" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" onerror="this.style.display='none'" /><!-- impeccable-disable broken-image: dynamically populated by JS, hidden by default -->
                                     <span id="scan-feedback-avatar-placeholder" class="material-symbols-outlined text-4xl text-slate-400">person</span>
                                 </div>
                                 <span class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-md">
