@@ -182,13 +182,42 @@
                     placeholder="Provide a detailed overview of what participants can expect..."></textarea>
             </div>
 
-            <!-- REGISTRATION LINK -->
-            <div style="margin-bottom: 25px;">
-                <label class="label">Registration Link (optional)</label>
-                <input id="registrationLink" name="registrationLink" type="url" class="input" placeholder="https://forms.example.com/register">
+            <!-- EVENT MODE SELECTOR (FOR ADMIN) -->
+            <div id="event-mode-container" style="margin-bottom: 25px; display: none;" class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <label class="label text-slate-800 font-bold mb-2 block">Loại bài đăng (Event Mode)</label>
+                <div class="grid grid-cols-2 gap-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-300 bg-white cursor-pointer hover:border-primary transition-all" style="display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer; background: #fff;">
+                        <input type="radio" name="isNonPartnerMode" value="false" checked class="accent-primary" style="accent-color: var(--primary, #4f46e5); width: 16px; height: 16px;">
+                        <div>
+                            <p class="text-sm font-bold text-slate-800" style="font-size: 14px; font-weight: 700; margin: 0;"><i class="fa-solid fa-handshake text-primary"></i> Sự kiện Đối tác (Partner)</p>
+                            <p class="text-xs text-slate-500" style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Quản lý vé & đăng ký nội bộ qua SpringWave</p>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-300 bg-white cursor-pointer hover:border-primary transition-all" style="display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer; background: #fff;">
+                        <input type="radio" name="isNonPartnerMode" value="true" class="accent-primary" style="accent-color: var(--primary, #4f46e5); width: 16px; height: 16px;">
+                        <div>
+                            <p class="text-sm font-bold text-amber-700" style="font-size: 14px; font-weight: 700; color: #b45309; margin: 0;"><i class="fa-solid fa-globe text-amber-600"></i> Non-Partner (Cầu nối)</p>
+                            <p class="text-xs text-slate-500" style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Đơn vị ngoài, tham gia qua link đăng ký gốc</p>
+                        </div>
+                    </label>
+                </div>
             </div>
 
-            <!-- ORGANIZATION -->
+            <!-- REGISTRATION LINK (SHOWN FOR NON-PARTNER) -->
+            <div style="margin-bottom: 25px; display: none;" id="registration-link-container">
+                <label class="label">Link đăng ký gốc (Registration Link) <span style="color: #ef4444;">*</span></label>
+                <input id="registrationLink" name="registrationLink" type="url" class="input" placeholder="https://forms.google.com/... hoặc https://luma.com/...">
+                <p class="sub-text">Sinh viên / Người dùng sẽ bấm tham gia qua đường dẫn này.</p>
+            </div>
+
+            <!-- NON-PARTNER HOST NAME FIELD -->
+            <div style="margin-bottom: 25px; display: none;" id="non-partner-host-container">
+                <label class="label">Tên đơn vị ngoài tổ chức (Host Name) <span style="color: #ef4444;">*</span></label>
+                <input id="nonPartnerHostName" name="nonPartnerHostName" type="text" class="input" placeholder="Ví dụ: GDG Miền Trung, DSC Da Nang...">
+                <p class="sub-text">Tên đơn vị tổ chức ngoài sẽ hiển thị ở mục Hosted by.</p>
+            </div>
+
+            <!-- ORGANIZATION (FOR PARTNERS) -->
             <div style="margin-bottom: 25px;" id="org-field-container">
                 <label class="label">Organization</label>
                 <div id="org-selector-content">

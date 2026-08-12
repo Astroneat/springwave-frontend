@@ -202,10 +202,39 @@ function buildPopupHTML(a, backText) {
     const tagsHTML = (a.tags || []).map(tag => `<span class="event-tag">${tag}</span>`).join("");
     const participantCount = a.participants?.length || 0;
 
+    const isNonPartner = a.isNonPartner === true;
     const hostOrgName = typeof a.organization === 'object' ? a.organization?.name : null;
-    const hostUnitName = hostOrgName || a.hostName || a.createdByName || t("common.unknown");
-    const hostAvatar = typeof a.organization === 'object' && a.organization?.avatar ? a.organization.avatar : null;
+    const hostUnitName = isNonPartner ? (a.hostName || a.createdByName || t("common.unknown")) : (hostOrgName || a.hostName || a.createdByName || t("common.unknown"));
+    const hostAvatar = isNonPartner ? null : (typeof a.organization === 'object' && a.organization?.avatar ? a.organization.avatar : null);
     const orgId = typeof a.organization === 'object' ? a.organization?._id : (a.organization || a.createdBy);
+
+    const extUrl = isNonPartner ? (a.registrationLink || a.source?.url || '') : (a.source?.url || '');
+    const participateBtnText = isNonPartner ? (t("explore.register_external", "Đăng ký tại trang gốc") || "Đăng ký tại trang gốc") : (extUrl ? t("explore.explore_more", "Explore more") : t("explore.participate", "Participate"));
+    const participateBtnIcon = extUrl ? 'arrow-up-right-from-square' : 'circle-check';
+
+    const hostRowHTML = isNonPartner ? `
+        <div class="popup-host-row-new">
+            <div class="popup-host-avatar-new overflow-hidden bg-slate-100 text-slate-600 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-globe text-primary"></i>
+            </div>
+            <div class="popup-host-info-new flex-1">
+                <div class="flex items-center gap-2">
+                    <span class="host-label-new">${t("description.hosted_by", "Hosted by")}</span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-700 rounded border border-amber-200">Non-Partner</span>
+                </div>
+                <h4 class="host-name-new">${hostUnitName}</h4>
+            </div>
+        </div>
+    ` : `
+        <a href="/org-profile.html?orgId=${orgId}" class="popup-host-row-new" style="text-decoration: none; color: inherit;">
+            <div class="popup-host-avatar-new overflow-hidden">${hostAvatar ? `<img src="${hostAvatar}" class="w-full h-full object-cover rounded-full" />` : (hostUnitName[0] || "U").toUpperCase()}</div>
+            <div class="popup-host-info-new">
+                <span class="host-label-new">${t("description.hosted_by", "Hosted by")}</span>
+                <h4 class="host-name-new">${hostUnitName}</h4>
+            </div>
+            <div class="popup-host-arrow-icon"><i class="fa-solid fa-chevron-right"></i></div>
+        </a>
+    `;
 
     return `
     <div class="activity-popup-layout">
@@ -227,14 +256,7 @@ function buildPopupHTML(a, backText) {
                 
                 ${tagsHTML ? `<div class="event-tags-container">${tagsHTML}</div>` : ""}
 
-                <a href="/org-profile.html?orgId=${orgId}" class="popup-host-row-new" style="text-decoration: none; color: inherit;">
-                    <div class="popup-host-avatar-new overflow-hidden">${hostAvatar ? `<img src="${hostAvatar}" class="w-full h-full object-cover rounded-full" />` : (hostUnitName[0] || "U").toUpperCase()}</div>
-                    <div class="popup-host-info-new">
-                        <span class="host-label-new">${t("description.hosted_by", "Hosted by")}</span>
-                        <h4 class="host-name-new">${hostUnitName}</h4>
-                    </div>
-                    <div class="popup-host-arrow-icon"><i class="fa-solid fa-chevron-right"></i></div>
-                </a>
+                ${hostRowHTML}
 
                 <div class="popup-section-divider"></div>
                 
@@ -325,19 +347,20 @@ function buildPopupHTML(a, backText) {
                                 <p><a href="${googleMapsLink}" target="_blank" class="sidebar-location-link">${a.location} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></p>
                             </div>
                         </div>
+                        ${!isNonPartner ? `
                         <div class="sidebar-detail-item">
                             <i class="fa-solid fa-users"></i>
                             <div>
                                 <span>${t("description.participants", "Participants")}</span>
                                 <p>${t("explore.registered_count", { n: participantCount }, `${participantCount} registered`)}</p>
                             </div>
-                        </div>
+                        </div>` : ''}
                     </div>
 
                     <div class="sidebar-actions-group">
-                        <button class="action-btn-primary participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
-                            <i class="fa-solid fa-${a.source?.url ? 'arrow-up-right-from-square' : 'circle-check'}"></i>
-                            <span>${a.source?.url ? t("explore.explore_more", "Explore more") : t("explore.participate", "Participate")}</span>
+                        <button class="action-btn-primary participate" type="button" ${extUrl ? `data-external-url="${extUrl}"` : ''}>
+                            <i class="fa-solid fa-${participateBtnIcon}"></i>
+                            <span>${participateBtnText}</span>
                         </button>
                         
                         <div class="action-btn-row">
@@ -366,8 +389,8 @@ function buildPopupHTML(a, backText) {
                 <span class="mobile-bottom-date">${heldDate.split(',')[0]}</span>
                 <span class="mobile-bottom-title truncate">${a.title}</span>
             </div>
-            <button class="mobile-action-btn participate" type="button" ${a.source?.url ? `data-external-url="${a.source.url}"` : ''}>
-                <span>${a.source?.url ? "Explore" : t("explore.participate")}</span>
+            <button class="mobile-action-btn participate" type="button" ${extUrl ? `data-external-url="${extUrl}"` : ''}>
+                <span>${participateBtnText}</span>
             </button>
         </div>
     </div>`;

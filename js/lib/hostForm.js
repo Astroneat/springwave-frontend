@@ -753,10 +753,58 @@ function findCategoryByType(type) {
     return categoriesCache.find(c => c.slug === slug || c.name.toLowerCase() === slug) || null;
 }
 
+export function initEventModeSelector() {
+    const user = getUser();
+    const modeContainer = document.getElementById("event-mode-container");
+    const regLinkContainer = document.getElementById("registration-link-container");
+    const nonPartnerHostContainer = document.getElementById("non-partner-host-container");
+    const orgFieldContainer = document.getElementById("org-field-container");
+    const regLinkInput = document.getElementById("registrationLink");
+    const nonPartnerHostInput = document.getElementById("nonPartnerHostName");
+
+    if (!modeContainer) return;
+
+    if (user?.role === 'admin') {
+        modeContainer.style.display = "block";
+
+        const updateFields = () => {
+            const isNonPartner = document.querySelector('input[name="isNonPartnerMode"]:checked')?.value === 'true';
+            if (isNonPartner) {
+                if (regLinkContainer) regLinkContainer.style.display = "block";
+                if (nonPartnerHostContainer) nonPartnerHostContainer.style.display = "block";
+                if (orgFieldContainer) orgFieldContainer.style.display = "none";
+                if (regLinkInput) regLinkInput.required = true;
+                if (nonPartnerHostInput) nonPartnerHostInput.required = true;
+            } else {
+                if (regLinkContainer) regLinkContainer.style.display = "none";
+                if (nonPartnerHostContainer) nonPartnerHostContainer.style.display = "none";
+                if (orgFieldContainer) orgFieldContainer.style.display = "block";
+                if (regLinkInput) regLinkInput.required = false;
+                if (nonPartnerHostInput) nonPartnerHostInput.required = false;
+            }
+        };
+
+        document.querySelectorAll('input[name="isNonPartnerMode"]').forEach(radio => {
+            radio.addEventListener("change", updateFields);
+        });
+
+        updateFields();
+    } else {
+        modeContainer.style.display = "none";
+        if (regLinkContainer) regLinkContainer.style.display = "none";
+        if (nonPartnerHostContainer) nonPartnerHostContainer.style.display = "none";
+        if (orgFieldContainer) orgFieldContainer.style.display = "block";
+        if (regLinkInput) regLinkInput.required = false;
+        if (nonPartnerHostInput) nonPartnerHostInput.required = false;
+    }
+}
+
 export function initFormSubmit(orgId, onSuccess) {
     const form = document.getElementById("activity-form");
     const statusMsg = document.getElementById("status-msg");
     if (!form) return;
+
+    initEventModeSelector();
 
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("edit");
@@ -775,11 +823,13 @@ export function initFormSubmit(orgId, onSuccess) {
             return;
         }
 
+        const user = getUser();
         const title = sanitizeHtml(document.getElementById("title")?.value.trim());
         const description = sanitizeHtml(document.getElementById("description")?.value.trim());
         const location = sanitizeHtml(document.getElementById("location")?.value.trim());
         const type = form.querySelector('input[name="type"]:checked')?.value;
         const hostName = sanitizeHtml(document.getElementById("hostName")?.value.trim());
+        const nonPartnerHostName = sanitizeHtml(document.getElementById("nonPartnerHostName")?.value.trim());
         const heldDate = document.getElementById("heldDate")?.value;
         const heldHour = document.getElementById("heldHour")?.value || '00';
         const heldMinute = document.getElementById("heldMinute")?.value || '00';
@@ -792,8 +842,9 @@ export function initFormSubmit(orgId, onSuccess) {
             return;
         }
 
-        const orgId = document.getElementById("org-id-value")?.value || urlOrgId;
-        const hostNameValue = document.getElementById("org-name-display")?.value || hostName;
+        const isNonPartnerMode = form.querySelector('input[name="isNonPartnerMode"]:checked')?.value === 'true';
+
+        const orgIdVal = document.getElementById("org-id-value")?.value || urlOrgId;
 
         const formData = new FormData();
         formData.append("title", title);
@@ -801,8 +852,25 @@ export function initFormSubmit(orgId, onSuccess) {
         formData.append("location", location);
         formData.append("type", type);
 
+        if (isNonPartnerMode && user?.role === 'admin') {
+            if (!registrationLink) {
+                setStatus("Link đăng ký gốc (Registration Link) là bắt buộc đối với bài đăng Non-Partner.", true, statusMsg);
+                return;
+            }
+            if (!nonPartnerHostName) {
+                setStatus("Tên đơn vị ngoài (Host Name) là bắt buộc đối với bài đăng Non-Partner.", true, statusMsg);
+                return;
+            }
+            formData.append("isNonPartner", "true");
+            formData.append("registrationLink", registrationLink);
+            formData.append("hostName", nonPartnerHostName);
+        } else {
+            formData.append("isNonPartner", "false");
+            if (hostName) formData.append("hostName", hostName);
+            if (orgIdVal) formData.append("organization", orgIdVal);
+        }
+
         // Combine date + hour + minute into timezone-aware ISO string.
-        // Fixes: time was being silently dropped (09:35 → 07:00 display bug).
         const heldDateISO = heldDate
             ? `${heldDate}T${heldHour}:${heldMinute}:00+07:00`
             : heldDate;
@@ -827,9 +895,6 @@ export function initFormSubmit(orgId, onSuccess) {
         const categories = await ensureCategories();
         const matched = findCategoryByType(type);
         if (matched) formData.append("category", matched._id);
-        if (hostName) formData.append("hostName", hostName);
-        if (orgId) formData.append("organization", orgId);
-        if (registrationLink) formData.append("registrationLink", registrationLink);
         const hasCertificate = document.getElementById("hasCertificate")?.checked;
         formData.append("hasCertificate", hasCertificate ? "true" : "false");
         const hasAttendance = document.getElementById("hasAttendance")?.checked;
