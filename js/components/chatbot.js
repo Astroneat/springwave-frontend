@@ -29,31 +29,31 @@ function formatMessageContent(text) {
 
       const isOngoing = cleanStatus.toUpperCase().includes("ĐANG") || cleanStatus.toUpperCase().includes("ONGOING");
 
-      return `<div class="chatbot-event-card border border-slate-200 bg-white dark:bg-slate-800 dark:border-slate-700 rounded-xl p-3.5 my-2.5 shadow-sm hover:shadow-md hover:border-primary/40 transition-all cursor-pointer group text-left" data-event-id="${cleanId}">
-        <div class="flex items-center justify-between gap-2 mb-2">
-          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
-            <i class="fa-solid fa-tag text-[10px]"></i> ${cleanType}
+      return `<div class="chatbot-event-card border border-slate-200 bg-white rounded-xl p-3 my-2 shadow-sm hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group text-left" data-event-id="${cleanId}">
+        <div class="flex items-center justify-between gap-2 mb-1.5">
+          <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+            <i class="fa-solid fa-tag text-[9px]"></i> ${cleanType}
           </span>
-          <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full ${isOngoing ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/50' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50'}">
+          <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isOngoing ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-amber-50 text-amber-600 border border-amber-200'}">
             <span class="w-1.5 h-1.5 rounded-full ${isOngoing ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}"></span> ${cleanStatus}
           </span>
         </div>
 
-        <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors mb-2 line-clamp-1">
+        <h4 class="font-bold text-xs text-slate-800 group-hover:text-primary transition-colors mb-1.5 line-clamp-1">
           ${cleanTitle}
         </h4>
 
-        <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 mb-3 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
-          ${cleanTime ? `<div class="flex items-center gap-2"><i class="fa-regular fa-clock text-blue-500 shrink-0"></i><span class="font-medium text-slate-700 dark:text-slate-200">${cleanTime}</span></div>` : ''}
-          ${cleanLocation ? `<div class="flex items-start gap-2"><i class="fa-solid fa-location-dot text-rose-500 shrink-0 mt-0.5"></i><span class="line-clamp-2 text-slate-600 dark:text-slate-300">${cleanLocation}</span></div>` : ''}
-          ${cleanDesc ? `<div class="flex items-start gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800 mt-1"><i class="fa-regular fa-file-lines text-slate-400 shrink-0 mt-0.5"></i><span class="line-clamp-2 text-slate-500 dark:text-slate-400 italic">${cleanDesc}</span></div>` : ''}
+        <div class="space-y-1 text-[11px] text-slate-600 mb-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+          ${cleanTime ? `<div class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-blue-500 shrink-0 text-[11px]"></i><span class="font-medium text-slate-700 truncate">${cleanTime}</span></div>` : ''}
+          ${cleanLocation ? `<div class="flex items-start gap-1.5"><i class="fa-solid fa-location-dot text-rose-500 shrink-0 text-[11px] mt-0.5"></i><span class="line-clamp-1 text-slate-600">${cleanLocation}</span></div>` : ''}
+          ${cleanDesc ? `<div class="flex items-start gap-1.5 pt-1 border-t border-slate-200/60 mt-1"><i class="fa-regular fa-file-lines text-slate-400 shrink-0 text-[11px] mt-0.5"></i><span class="line-clamp-1 text-slate-500 italic">${cleanDesc}</span></div>` : ''}
         </div>
 
-        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs font-bold text-primary group-hover:text-primary-dark">
-          <span class="flex items-center gap-1.5">
-            <i class="fa-solid fa-circle-info"></i> ${clickToViewText}
+        <div class="flex items-center justify-between pt-1.5 border-t border-slate-100 text-[11px] font-bold text-primary group-hover:text-primary-dark">
+          <span class="flex items-center gap-1">
+            <i class="fa-solid fa-circle-info text-[10px]"></i> ${viewText}
           </span>
-          <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+          <i class="fa-solid fa-arrow-right text-[9px] group-hover:translate-x-0.5 transition-transform"></i>
         </div>
       </div>`;
     }
@@ -65,22 +65,19 @@ function formatMessageContent(text) {
     if (eventIdMatch) {
       const eventId = eventIdMatch[1];
       if (label.includes("Xem chi tiết") || label.includes("sự kiện") || label.includes("View") || label.includes("event")) {
-        return `<div class="chatbot-event-card border border-slate-200 bg-white dark:bg-slate-800 dark:border-slate-700 rounded-xl p-3 my-2 shadow-sm hover:shadow-md transition-all cursor-pointer group flex items-center justify-between gap-2 text-left" data-event-id="${eventId}">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <i class="fa-solid fa-calendar-star text-sm"></i>
+        return `<div class="chatbot-event-card border border-slate-200 bg-white rounded-xl p-2.5 my-2 shadow-sm hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group flex items-center justify-between gap-2 text-left" data-event-id="${eventId}">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-calendar-check text-xs"></i>
             </div>
-            <div>
-              <div class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors line-clamp-1">${label}</div>
-              <div class="text-[10px] text-slate-500 dark:text-slate-400">${clickToViewText}</div>
-            </div>
+            <div class="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors line-clamp-1">${label}</div>
           </div>
-          <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-primary group-hover:translate-x-0.5 transition-transform shrink-0">
-            ${viewText} <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          <span class="inline-flex items-center gap-1 text-[11px] font-bold text-primary shrink-0">
+            ${viewText} <i class="fa-solid fa-chevron-right text-[9px]"></i>
           </span>
         </div>`;
       }
-      return `<button type="button" data-event-id="${eventId}" class="chat-event-btn inline-flex items-center gap-1.5 px-3 py-1.5 my-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/20 shadow-sm cursor-pointer"><i class="fa-solid fa-calendar-check text-xs"></i> ${label}</button>`;
+      return `<button type="button" data-event-id="${eventId}" class="chat-event-btn inline-flex items-center gap-1.5 px-2.5 py-1 my-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/20 shadow-sm cursor-pointer"><i class="fa-solid fa-calendar-check text-xs"></i> ${label}</button>`;
     }
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary font-medium underline hover:text-primary-dark">${label}</a>`;
   });
