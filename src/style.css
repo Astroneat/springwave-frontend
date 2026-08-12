@@ -581,24 +581,85 @@ html, body, button, input, select, textarea {
     @apply bg-white text-text-primary border border-[#e8ecf4] rounded-bl-sm;
 }
 
-.chatbot-event-card {
+.chatbot-event-card,
+.chatbot-mini-card {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 12px !important;
-    padding: 10px 12px !important;
-    margin: 8px 0 !important;
+    border-radius: 10px !important;
+    padding: 8px 10px !important;
+    margin: 6px 0 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     transition: all 0.2s ease !important;
     cursor: pointer !important;
     text-align: left !important;
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
     width: 100% !important;
+    box-sizing: border-box !important;
     color: #1e293b !important;
+    min-height: 46px !important;
+    max-height: 58px !important;
+    overflow: hidden !important;
 }
 
-.chatbot-event-card:hover {
+.chatbot-event-card:hover,
+.chatbot-mini-card:hover {
     border-color: #3b82f6 !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12) !important;
+    background-color: #f8fafc !important;
+    box-shadow: 0 3px 8px rgba(59, 130, 246, 0.12) !important;
+}
+
+.chatbot-pill-type {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    padding: 2px 7px !important;
+    border-radius: 9999px !important;
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+    border: 1px solid #bfdbfe !important;
+    white-space: nowrap !important;
+    height: 18px !important;
+    line-height: 1 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: fit-content !important;
+    aspect-ratio: auto !important;
+    flex-shrink: 0 !important;
+}
+
+.chatbot-pill-status {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    padding: 2px 7px !important;
+    border-radius: 9999px !important;
+    white-space: nowrap !important;
+    height: 18px !important;
+    line-height: 1 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: fit-content !important;
+    aspect-ratio: auto !important;
+    flex-shrink: 0 !important;
+}
+
+.chatbot-pill-ongoing {
+    background-color: #ecfdf5 !important;
+    color: #059669 !important;
+    border: 1px solid #a7f3d0 !important;
+}
+
+.chatbot-pill-upcoming {
+    background-color: #fffbeb !important;
+    color: #d97706 !important;
+    border: 1px solid #fde68a !important;
 }
 
 .chatbot-input-area {
