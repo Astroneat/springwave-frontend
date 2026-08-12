@@ -9,44 +9,72 @@ const MAX_HISTORY = 50;
 let isOpen = false;
 let conversationHistory = [];
 
+function renderEventCardFromJSON(data) {
+  const cleanId = escapeHtml(String(data.id || data.eventId || "").trim());
+  if (!cleanId) return "";
+
+  const cleanTitle = escapeHtml(String(data.title || data.name || "Sự kiện").trim());
+  const cleanType = escapeHtml(String(data.type || data.category || "Sự kiện").trim());
+  const cleanStatus = escapeHtml(String(data.status || "ĐÃ KẾT THÚC").trim());
+  const cleanTime = escapeHtml(String(data.time || data.heldDate || "").trim());
+  const cleanLocation = escapeHtml(String(data.location || "").trim());
+
+  const statusUpper = cleanStatus.toUpperCase();
+  let statusBadgeClass = "status-ended";
+  if (statusUpper.includes("ĐANG") || statusUpper.includes("ONGOING")) {
+    statusBadgeClass = "status-ongoing";
+  } else if (statusUpper.includes("SẮP") || statusUpper.includes("UPCOMING")) {
+    statusBadgeClass = "status-upcoming";
+  }
+
+  return `<div class="chatbot-event-card" data-event-id="${cleanId}">
+    <div class="chatbot-event-card-badges">
+      <span class="chatbot-pill-type"><i class="fa-solid fa-tag" style="font-size:8px;"></i> ${cleanType}</span>
+      <span class="chatbot-pill-status ${statusBadgeClass}">${cleanStatus}</span>
+    </div>
+    <h4 class="chatbot-event-card-title">${cleanTitle}</h4>
+    ${(cleanTime || cleanLocation) ? `<div class="chatbot-info-box">
+      ${cleanTime ? `<div class="info-row"><i class="fa-regular fa-clock info-icon" style="color:#3b82f6;"></i><span>${cleanTime}</span></div>` : ''}
+      ${cleanLocation ? `<div class="info-row"><i class="fa-solid fa-location-dot info-icon" style="color:#ef4444;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">${cleanLocation}</span></div>` : ''}
+    </div>` : ''}
+    <button type="button" data-event-id="${cleanId}" class="chat-event-btn-blue">
+      <span>Xem chi tiết</span>
+      <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+    </button>
+  </div>`;
+}
+
 function formatMessageContent(text) {
   if (!text) return "";
-  let safe = escapeHtml(text);
 
-  const clickToViewText = t("chatbot.click_to_view", {}, "Nhấn để xem chi tiết & đăng ký");
-  const viewText = t("cards.view_details", {}, "Xem chi tiết");
+  const cardsMap = {};
+  let cardIndex = 0;
 
-  // 0. Parse structured JSON event blocks: ```json:event ... ``` or ```json ... ``` containing event data
-  safe = safe.replace(/```json(?::event)?\s*([\s\S]*?)\s*```/gi, (match, jsonString) => {
+  // 0. Extract ```json:event ... ``` or ```json ... ``` blocks BEFORE HTML escaping
+  let rawProcessed = text.replace(/```json(?::event)?\s*([\s\S]*?)\s*```/gi, (match, jsonString) => {
     try {
-      const data = JSON.parse(jsonString);
+      const decodedJson = jsonString.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+      const data = JSON.parse(decodedJson.trim());
       if (data && (data.id || data.eventId)) {
-        const cleanId = (data.id || data.eventId).trim();
-        const cleanTitle = (data.title || data.name || "Sự kiện").trim();
-        const cleanType = (data.type || data.category || "Event").trim();
-        const cleanStatus = (data.status || "ĐANG DIỄN RA").trim();
-
-        const isOngoing = cleanStatus.toUpperCase().includes("ĐANG") || cleanStatus.toUpperCase().includes("ONGOING");
-
-        return `<div class="chatbot-mini-card group" data-event-id="${cleanId}">
-          <div class="flex items-center gap-1.5 min-w-0 flex-1">
-            <div class="w-6 h-6 rounded-md bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0 text-[10px]">
-              <i class="fa-solid fa-calendar-star"></i>
-            </div>
-            <span class="font-bold text-xs text-slate-800 truncate group-hover:text-blue-600">${cleanTitle}</span>
-            <span class="chatbot-pill-type">${cleanType}</span>
-          </div>
-          <div class="flex items-center gap-1 shrink-0">
-            <span class="chatbot-pill-status ${isOngoing ? 'chatbot-pill-ongoing' : 'chatbot-pill-upcoming'}">${cleanStatus}</span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
-          </div>
-        </div>`;
+        const placeholder = `___EVENT_CARD_TOKEN_${cardIndex++}___`;
+        cardsMap[placeholder] = renderEventCardFromJSON(data);
+        return placeholder;
       }
     } catch (err) {
       console.warn("Error parsing JSON event block in chatbot:", err);
     }
     return match;
   });
+
+  let safe = escapeHtml(rawProcessed);
+
+  // Re-inject rendered event card HTML
+  Object.keys(cardsMap).forEach(token => {
+    safe = safe.replace(token, cardsMap[token]);
+  });
+
+  const clickToViewText = t("chatbot.click_to_view", {}, "Nhấn để xem chi tiết & đăng ký");
+  const viewText = t("cards.view_details", {}, "Xem chi tiết");
 
   // 1. Match custom All-In-One Light Event Card syntax: [EVENT_CARD:id|title|type|status|time|location|desc]
   safe = safe.replace(/\[EVENT_CARD:([^|]+)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^\]]*)\]/g,
@@ -55,22 +83,11 @@ function formatMessageContent(text) {
       const cleanTitle = title.trim() || "Sự kiện";
       const cleanType = type.trim() || "Event";
       const cleanStatus = status.trim() || "ĐANG DIỄN RA";
+      const cleanTime = time.trim() || "";
+      const cleanLocation = location.trim() || "";
+      const cleanDesc = desc.trim() || "";
 
-      const isOngoing = cleanStatus.toUpperCase().includes("ĐANG") || cleanStatus.toUpperCase().includes("ONGOING");
-
-      return `<div class="chatbot-mini-card group" data-event-id="${cleanId}">
-        <div class="flex items-center gap-1.5 min-w-0 flex-1">
-          <div class="w-6 h-6 rounded-md bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0 text-[10px]">
-            <i class="fa-solid fa-calendar-star"></i>
-          </div>
-          <span class="font-bold text-xs text-slate-800 truncate group-hover:text-blue-600">${cleanTitle}</span>
-          <span class="chatbot-pill-type">${cleanType}</span>
-        </div>
-        <div class="flex items-center gap-1 shrink-0">
-          <span class="chatbot-pill-status ${isOngoing ? 'chatbot-pill-ongoing' : 'chatbot-pill-upcoming'}">${cleanStatus}</span>
-          <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
-        </div>
-      </div>`;
+      return renderEventCardFromJSON({ id: cleanId, title: cleanTitle, type: cleanType, status: cleanStatus, time: cleanTime, location: cleanLocation });
     }
   );
 
@@ -79,20 +96,9 @@ function formatMessageContent(text) {
     const eventIdMatch = url.match(/[?&]id=([a-f0-9]{24})/i);
     if (eventIdMatch) {
       const eventId = eventIdMatch[1];
-      if (label.includes("Xem chi tiết") || label.includes("sự kiện") || label.includes("View") || label.includes("event")) {
-        return `<div class="chatbot-mini-card group" data-event-id="${eventId}">
-          <div class="flex items-center gap-1.5 min-w-0 flex-1">
-            <div class="w-6 h-6 rounded-md bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0 text-[10px]">
-              <i class="fa-solid fa-calendar-star"></i>
-            </div>
-            <span class="font-bold text-xs text-slate-800 truncate group-hover:text-blue-600">${label}</span>
-          </div>
-          <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 shrink-0">
-            ${viewText} <i class="fa-solid fa-chevron-right text-[9px]"></i>
-          </span>
-        </div>`;
-      }
-      return `<button type="button" data-event-id="${eventId}" class="chat-event-btn inline-flex items-center gap-1.5 px-2.5 py-1 my-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/20 shadow-sm cursor-pointer"><i class="fa-solid fa-calendar-check text-xs"></i> ${label}</button>`;
+      // Render a compact inline link button — never a full card from markdown links
+      // (Full cards come from json:event blocks only, to avoid layout inconsistency)
+      return `<button type="button" data-event-id="${eventId}" class="chat-event-btn inline-flex items-center gap-1.5 px-3 py-1.5 my-1 text-xs font-bold rounded-lg transition-all cursor-pointer" style="color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe;"><i class="fa-solid fa-calendar-check text-xs"></i> ${label}</button>`;
     }
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary font-medium underline hover:text-primary-dark">${label}</a>`;
   });
