@@ -1,12 +1,52 @@
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { sendChatMessage } from "../api/chatbot.js";
 import { t } from "../lib/i18n.js";
+import { openEventPopup } from "./eventPopup.js";
 
 const HISTORY_KEY = "springwave_chat_history";
 const MAX_HISTORY = 50;
 
 let isOpen = false;
 let conversationHistory = [];
+
+function formatMessageContent(text) {
+  if (!text) return "";
+  let safe = escapeHtml(text);
+
+  // Match Markdown links: [label](/explore.html?id=xxx) or [label](url)
+  safe = safe.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, url) => {
+    const eventIdMatch = url.match(/[?&]id=([a-f0-9]{24})/i);
+    if (eventIdMatch) {
+      const eventId = eventIdMatch[1];
+      return `<button type="button" data-event-id="${eventId}" class="chat-event-btn inline-flex items-center gap-1.5 px-3 py-1.5 my-1 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/20 shadow-sm cursor-pointer"><i class="fa-solid fa-calendar-check text-xs"></i> ${label}</button>`;
+    }
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary font-medium underline hover:text-primary-dark">${label}</a>`;
+  });
+
+  // Bold text **text**
+  safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+  // Bullet points * item or - item
+  safe = safe.replace(/^[\*\-]\s+(.+)$/gm, "• $1");
+
+  // Newlines -> <br>
+  safe = safe.replace(/\n/g, "<br>");
+
+  return safe;
+}
+
+function bindMessageClicks() {
+  const container = document.getElementById("chatbot-messages");
+  if (container && !container.dataset.boundClicks) {
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chat-event-btn");
+      if (btn && btn.dataset.eventId) {
+        openEventPopup(btn.dataset.eventId);
+      }
+    });
+    container.dataset.boundClicks = "true";
+  }
+}
 
 function loadHistory() {
   try {
@@ -52,6 +92,7 @@ export async function initChatbot() {
   });
 
   restoreMessages();
+  bindMessageClicks();
 
   window.addEventListener("beforeunload", () => saveHistory());
   document.addEventListener("visibilitychange", () => {
@@ -74,9 +115,10 @@ function restoreMessages() {
   conversationHistory.forEach(msg => {
     const div = document.createElement("div");
     div.className = `message ${msg.role === "assistant" ? "bot" : msg.role}`;
-    div.innerHTML = `<div class="message-content">${escapeHtml(msg.content)}</div>`;
+    div.innerHTML = `<div class="message-content">${msg.role === "assistant" ? formatMessageContent(msg.content) : escapeHtml(msg.content)}</div>`;
     container.appendChild(div);
   });
+  bindMessageClicks();
   container.scrollTop = container.scrollHeight;
 }
 
@@ -125,7 +167,7 @@ async function sendMessage() {
   try {
     const data = await sendChatMessage(text, conversationHistory);
     msgEl.classList.remove("typing");
-    msgEl.querySelector(".message-content").textContent = data.reply;
+    msgEl.querySelector(".message-content").innerHTML = formatMessageContent(data.reply);
     conversationHistory.push({ role: "assistant", content: data.reply });
     saveHistory();
   } catch {
@@ -141,8 +183,10 @@ function addMessage(role, content) {
   const container = document.getElementById("chatbot-messages");
   const div = document.createElement("div");
   div.className = `message ${role === "assistant" ? "bot" : role}`;
-  div.innerHTML = `<div class="message-content">${escapeHtml(typeof content === 'string' ? content : '')}</div>`;
+  const formatted = role === "assistant" ? formatMessageContent(content) : escapeHtml(typeof content === 'string' ? content : '');
+  div.innerHTML = `<div class="message-content">${formatted}</div>`;
   container.appendChild(div);
+  bindMessageClicks();
   container.scrollTop = container.scrollHeight;
 
   if (content) {
