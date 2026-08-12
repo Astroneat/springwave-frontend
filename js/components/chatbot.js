@@ -2,6 +2,8 @@ import { isAuthenticated, getUser } from "../lib/session.js";
 import { sendChatMessage } from "../api/chatbot.js";
 import { t, applyTranslation } from "../lib/i18n.js";
 import { openEventPopup } from "./eventPopup.js";
+import { formatDate } from "../lib/utils.js";
+import { CDN_DOMAIN } from "../config.js";
 
 const HISTORY_KEY = "springwave_chat_history";
 const MAX_HISTORY = 50;
@@ -9,15 +11,33 @@ const MAX_HISTORY = 50;
 let isOpen = false;
 let conversationHistory = [];
 
+function formatCardDate(dateStr) {
+  if (!dateStr) return "";
+  if (dateStr.includes("T") || /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    try {
+      return formatDate(dateStr);
+    } catch {
+      return dateStr;
+    }
+  }
+  return dateStr;
+}
+
 function renderEventCardFromJSON(data) {
   const cleanId = escapeHtml(String(data.id || data.eventId || "").trim());
   if (!cleanId) return "";
 
   const cleanTitle = escapeHtml(String(data.title || data.name || "Sự kiện").trim());
   const cleanType = escapeHtml(String(data.type || data.category || "Sự kiện").trim());
-  const cleanStatus = escapeHtml(String(data.status || "ĐÃ KẾT THÚC").trim());
-  const cleanTime = escapeHtml(String(data.time || data.heldDate || "").trim());
-  const cleanLocation = escapeHtml(String(data.location || "").trim());
+  const cleanStatus = escapeHtml(String(data.status || "ĐANG DIỄN RA").trim());
+  
+  const rawTime = data.time || data.heldDate || data.startDate || "";
+  const cleanTime = escapeHtml(formatCardDate(rawTime));
+  
+  const rawDeadline = data.deadline || data.applicationDeadline || data.regDeadline || "";
+  const cleanDeadline = escapeHtml(formatCardDate(rawDeadline));
+  
+  const cleanLocation = escapeHtml(String(data.location || data.address || "").trim());
 
   const statusUpper = cleanStatus.toUpperCase();
   let statusBadgeClass = "status-ended";
@@ -27,21 +47,38 @@ function renderEventCardFromJSON(data) {
     statusBadgeClass = "status-upcoming";
   }
 
-  return `<div class="chatbot-event-card" data-event-id="${cleanId}">
-    <div class="chatbot-event-card-badges">
-      <span class="chatbot-pill-type"><i class="fa-solid fa-tag" style="font-size:8px;"></i> ${cleanType}</span>
-      <span class="chatbot-pill-status ${statusBadgeClass}">${cleanStatus}</span>
+  const html = `
+  <div class="chatbot-event-card" data-event-id="${cleanId}">
+    <div class="chatbot-event-card-content">
+      <div class="chatbot-event-card-badges-row">
+        <span class="chatbot-pill-type"><i class="fa-solid fa-tag"></i> ${cleanType}</span>
+        <span class="chatbot-pill-status ${statusBadgeClass}">${cleanStatus}</span>
+      </div>
+      <h4 class="chatbot-event-card-title">${cleanTitle}</h4>
+      <div class="chatbot-info-box">
+        ${cleanTime ? `
+          <div class="info-row">
+            <i class="fa-regular fa-calendar info-icon text-blue-500"></i>
+            <span class="info-value"><strong>Bắt đầu:</strong> ${cleanTime}</span>
+          </div>` : ''}
+        ${cleanDeadline ? `
+          <div class="info-row">
+            <i class="fa-regular fa-clock info-icon text-amber-500"></i>
+            <span class="info-value"><strong class="text-amber-600">Hạn ĐK:</strong> ${cleanDeadline}</span>
+          </div>` : ''}
+        ${cleanLocation ? `
+          <div class="info-row">
+            <i class="fa-solid fa-location-dot info-icon text-red-500"></i>
+            <span class="info-value"><strong>Địa điểm:</strong> ${cleanLocation}</span>
+          </div>` : ''}
+      </div>
+      <button type="button" data-event-id="${cleanId}" class="chat-event-btn-blue">
+        <span>${t("cards.view_details", {}, "Xem chi tiết")}</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
     </div>
-    <h4 class="chatbot-event-card-title">${cleanTitle}</h4>
-    ${(cleanTime || cleanLocation) ? `<div class="chatbot-info-box">
-      ${cleanTime ? `<div class="info-row"><i class="fa-regular fa-clock info-icon" style="color:#3b82f6;"></i><span>${cleanTime}</span></div>` : ''}
-      ${cleanLocation ? `<div class="info-row"><i class="fa-solid fa-location-dot info-icon" style="color:#ef4444;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">${cleanLocation}</span></div>` : ''}
-    </div>` : ''}
-    <button type="button" data-event-id="${cleanId}" class="chat-event-btn-blue">
-      <span>Xem chi tiết</span>
-      <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
-    </button>
   </div>`;
+  return html.replace(/\n/g, " ");
 }
 
 function formatMessageContent(text) {
