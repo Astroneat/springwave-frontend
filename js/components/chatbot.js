@@ -1,6 +1,6 @@
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { sendChatMessage } from "../api/chatbot.js";
-import { t } from "../lib/i18n.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 import { openEventPopup } from "./eventPopup.js";
 
 const HISTORY_KEY = "springwave_chat_history";
@@ -13,12 +13,31 @@ function formatMessageContent(text) {
   if (!text) return "";
   let safe = escapeHtml(text);
 
-  // Match Markdown links: [label](/explore.html?id=xxx) or [label](url)
+  const clickToViewText = t("chatbot.click_to_view", {}, "Nhấn để xem chi tiết & đăng ký");
+  const viewText = t("cards.view_details", {}, "Xem");
+
+  // Replace Markdown links: [label](/explore.html?id=xxx) or [label](url)
   safe = safe.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, url) => {
     const eventIdMatch = url.match(/[?&]id=([a-f0-9]{24})/i);
     if (eventIdMatch) {
       const eventId = eventIdMatch[1];
-      return `<button type="button" data-event-id="${eventId}" class="chat-event-btn inline-flex items-center gap-1.5 px-3 py-1.5 my-1 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/20 shadow-sm cursor-pointer"><i class="fa-solid fa-calendar-check text-xs"></i> ${label}</button>`;
+      if (label.includes("Xem chi tiết") || label.includes("sự kiện") || label.includes("View") || label.includes("event")) {
+        return `<div class="chatbot-event-card border border-primary/20 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-3 my-2 shadow-sm hover:shadow-md transition-all cursor-pointer group flex items-center justify-between gap-2 text-left" data-event-id="${eventId}">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-calendar-star text-sm"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors line-clamp-1">${label}</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">${clickToViewText}</div>
+            </div>
+          </div>
+          <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-primary group-hover:translate-x-0.5 transition-transform shrink-0">
+            ${viewText} <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </span>
+        </div>`;
+      }
+      return `<button type="button" data-event-id="${eventId}" class="chat-event-btn inline-flex items-center gap-1.5 px-3 py-1.5 my-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/20 shadow-sm cursor-pointer"><i class="fa-solid fa-calendar-check text-xs"></i> ${label}</button>`;
     }
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary font-medium underline hover:text-primary-dark">${label}</a>`;
   });
@@ -39,9 +58,9 @@ function bindMessageClicks() {
   const container = document.getElementById("chatbot-messages");
   if (container && !container.dataset.boundClicks) {
     container.addEventListener("click", (e) => {
-      const btn = e.target.closest(".chat-event-btn");
-      if (btn && btn.dataset.eventId) {
-        openEventPopup(btn.dataset.eventId);
+      const card = e.target.closest("[data-event-id]");
+      if (card && card.dataset.eventId) {
+        openEventPopup(card.dataset.eventId);
       }
     });
     container.dataset.boundClicks = "true";
@@ -74,6 +93,7 @@ export async function initChatbot() {
   const resp = await fetch("./components/chatbot.html");
   const html = await resp.text();
   container.innerHTML = html;
+  applyTranslation(container);
 
   conversationHistory = loadHistory();
 
@@ -93,6 +113,12 @@ export async function initChatbot() {
 
   restoreMessages();
   bindMessageClicks();
+
+  window.addEventListener("language-changed", () => {
+    const c = document.getElementById("chatbot-container");
+    if (c) applyTranslation(c);
+    restoreMessages();
+  });
 
   window.addEventListener("beforeunload", () => saveHistory());
   document.addEventListener("visibilitychange", () => {

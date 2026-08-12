@@ -637,7 +637,12 @@
     "greeting": "Hello! I'm SpringWave Assistant. How can I help you?",
     "login_required": "Please log in to use the chatbot.",
     "error": "Sorry, an error occurred. Please try again later.",
-    "input_placeholder": "Type a message..."
+    "input_placeholder": "Type a message...",
+    "view_event_details": "View Event Details",
+    "click_to_view": "Click to view details & register",
+    "ongoing": "ONGOING",
+    "upcoming": "UPCOMING",
+    "ended": "ENDED"
   },
   "cards": {
     "view_details": "View Details",

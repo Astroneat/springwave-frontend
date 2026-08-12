@@ -637,7 +637,12 @@
     "greeting": "Xin chào! Tôi là trợ lý SpringWave. Tôi có thể giúp gì cho bạn?",
     "login_required": "Vui lòng đăng nhập để sử dụng chatbot.",
     "error": "Xin lỗi, đã xảy ra lỗi. Vui lòng thử lại sau.",
-    "input_placeholder": "Nhập tin nhắn..."
+    "input_placeholder": "Nhập tin nhắn...",
+    "view_event_details": "Xem chi tiết sự kiện",
+    "click_to_view": "Nhấn để xem chi tiết & đăng ký",
+    "ongoing": "ĐANG DIỄN RA",
+    "upcoming": "SẮP DIỄN RA",
+    "ended": "ĐÃ KẾT THÚC"
   },
   "cards": {
     "view_details": "Xem chi tiết",
