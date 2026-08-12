@@ -14,15 +14,58 @@ function formatMessageContent(text) {
   let safe = escapeHtml(text);
 
   const clickToViewText = t("chatbot.click_to_view", {}, "Nhấn để xem chi tiết & đăng ký");
-  const viewText = t("cards.view_details", {}, "Xem");
+  const viewText = t("cards.view_details", {}, "Xem chi tiết");
 
-  // Replace Markdown links: [label](/explore.html?id=xxx) or [label](url)
+  // 1. Match custom All-In-One Light Event Card syntax: [EVENT_CARD:id|title|type|status|time|location|desc]
+  safe = safe.replace(/\[EVENT_CARD:([^|]+)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^\]]*)\]/g,
+    (match, id, title, type, status, time, location, desc) => {
+      const cleanId = id.trim();
+      const cleanTitle = title.trim() || "Sự kiện";
+      const cleanType = type.trim() || "Event";
+      const cleanStatus = status.trim() || "ĐANG DIỄN RA";
+      const cleanTime = time.trim() || "";
+      const cleanLocation = location.trim() || "";
+      const cleanDesc = desc.trim() || "";
+
+      const isOngoing = cleanStatus.toUpperCase().includes("ĐANG") || cleanStatus.toUpperCase().includes("ONGOING");
+
+      return `<div class="chatbot-event-card border border-slate-200 bg-white dark:bg-slate-800 dark:border-slate-700 rounded-xl p-3.5 my-2.5 shadow-sm hover:shadow-md hover:border-primary/40 transition-all cursor-pointer group text-left" data-event-id="${cleanId}">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+            <i class="fa-solid fa-tag text-[10px]"></i> ${cleanType}
+          </span>
+          <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full ${isOngoing ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/50' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50'}">
+            <span class="w-1.5 h-1.5 rounded-full ${isOngoing ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}"></span> ${cleanStatus}
+          </span>
+        </div>
+
+        <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors mb-2 line-clamp-1">
+          ${cleanTitle}
+        </h4>
+
+        <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 mb-3 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
+          ${cleanTime ? `<div class="flex items-center gap-2"><i class="fa-regular fa-clock text-blue-500 shrink-0"></i><span class="font-medium text-slate-700 dark:text-slate-200">${cleanTime}</span></div>` : ''}
+          ${cleanLocation ? `<div class="flex items-start gap-2"><i class="fa-solid fa-location-dot text-rose-500 shrink-0 mt-0.5"></i><span class="line-clamp-2 text-slate-600 dark:text-slate-300">${cleanLocation}</span></div>` : ''}
+          ${cleanDesc ? `<div class="flex items-start gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800 mt-1"><i class="fa-regular fa-file-lines text-slate-400 shrink-0 mt-0.5"></i><span class="line-clamp-2 text-slate-500 dark:text-slate-400 italic">${cleanDesc}</span></div>` : ''}
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs font-bold text-primary group-hover:text-primary-dark">
+          <span class="flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-info"></i> ${clickToViewText}
+          </span>
+          <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+        </div>
+      </div>`;
+    }
+  );
+
+  // 2. Replace Markdown links: [label](/explore.html?id=xxx) or [label](url)
   safe = safe.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, url) => {
     const eventIdMatch = url.match(/[?&]id=([a-f0-9]{24})/i);
     if (eventIdMatch) {
       const eventId = eventIdMatch[1];
       if (label.includes("Xem chi tiết") || label.includes("sự kiện") || label.includes("View") || label.includes("event")) {
-        return `<div class="chatbot-event-card border border-primary/20 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-3 my-2 shadow-sm hover:shadow-md transition-all cursor-pointer group flex items-center justify-between gap-2 text-left" data-event-id="${eventId}">
+        return `<div class="chatbot-event-card border border-slate-200 bg-white dark:bg-slate-800 dark:border-slate-700 rounded-xl p-3 my-2 shadow-sm hover:shadow-md transition-all cursor-pointer group flex items-center justify-between gap-2 text-left" data-event-id="${eventId}">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <i class="fa-solid fa-calendar-star text-sm"></i>
