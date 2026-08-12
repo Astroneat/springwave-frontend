@@ -16,6 +16,38 @@ function formatMessageContent(text) {
   const clickToViewText = t("chatbot.click_to_view", {}, "Nhấn để xem chi tiết & đăng ký");
   const viewText = t("cards.view_details", {}, "Xem chi tiết");
 
+  // 0. Parse structured JSON event blocks: ```json:event ... ``` or ```json ... ``` containing event data
+  safe = safe.replace(/```json(?::event)?\s*([\s\S]*?)\s*```/gi, (match, jsonString) => {
+    try {
+      const data = JSON.parse(jsonString);
+      if (data && (data.id || data.eventId)) {
+        const cleanId = (data.id || data.eventId).trim();
+        const cleanTitle = (data.title || data.name || "Sự kiện").trim();
+        const cleanType = (data.type || data.category || "Event").trim();
+        const cleanStatus = (data.status || "ĐANG DIỄN RA").trim();
+
+        const isOngoing = cleanStatus.toUpperCase().includes("ĐANG") || cleanStatus.toUpperCase().includes("ONGOING");
+
+        return `<div class="chatbot-mini-card group" data-event-id="${cleanId}">
+          <div class="flex items-center gap-1.5 min-w-0 flex-1">
+            <div class="w-6 h-6 rounded-md bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0 text-[10px]">
+              <i class="fa-solid fa-calendar-star"></i>
+            </div>
+            <span class="font-bold text-xs text-slate-800 truncate group-hover:text-blue-600">${cleanTitle}</span>
+            <span class="chatbot-pill-type">${cleanType}</span>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <span class="chatbot-pill-status ${isOngoing ? 'chatbot-pill-ongoing' : 'chatbot-pill-upcoming'}">${cleanStatus}</span>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
+          </div>
+        </div>`;
+      }
+    } catch (err) {
+      console.warn("Error parsing JSON event block in chatbot:", err);
+    }
+    return match;
+  });
+
   // 1. Match custom All-In-One Light Event Card syntax: [EVENT_CARD:id|title|type|status|time|location|desc]
   safe = safe.replace(/\[EVENT_CARD:([^|]+)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^\]]*)\]/g,
     (match, id, title, type, status, time, location, desc) => {
