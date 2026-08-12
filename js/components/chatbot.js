@@ -23,29 +23,20 @@ function formatMessageContent(text) {
       const cleanTitle = title.trim() || "Sự kiện";
       const cleanType = type.trim() || "Event";
       const cleanStatus = status.trim() || "ĐANG DIỄN RA";
-      const cleanTime = time.trim() || "";
 
       const isOngoing = cleanStatus.toUpperCase().includes("ĐANG") || cleanStatus.toUpperCase().includes("ONGOING");
 
       return `<div class="chatbot-mini-card group" data-event-id="${cleanId}">
-        <div class="flex items-center gap-2 min-w-0 flex-1">
-          <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-            <i class="fa-solid fa-calendar-check text-xs"></i>
+        <div class="flex items-center gap-1.5 min-w-0 flex-1">
+          <div class="w-6 h-6 rounded-md bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0 text-[10px]">
+            <i class="fa-solid fa-calendar-star"></i>
           </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1.5 mb-0.5">
-              <h4 class="font-bold text-xs text-slate-800 truncate group-hover:text-blue-600">${cleanTitle}</h4>
-              <span class="chatbot-pill-type"><i class="fa-solid fa-tag text-[8px]"></i> ${cleanType}</span>
-            </div>
-            ${cleanTime ? `<div class="text-[10px] text-slate-500 truncate flex items-center gap-1"><i class="fa-regular fa-clock text-[9px] text-slate-400"></i> ${cleanTime}</div>` : ''}
-          </div>
+          <span class="font-bold text-xs text-slate-800 truncate group-hover:text-blue-600">${cleanTitle}</span>
+          <span class="chatbot-pill-type">${cleanType}</span>
         </div>
-
-        <div class="flex items-center gap-1.5 shrink-0">
-          <span class="chatbot-pill-status ${isOngoing ? 'chatbot-pill-ongoing' : 'chatbot-pill-upcoming'}">
-            ${cleanStatus}
-          </span>
-          <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all"></i>
+        <div class="flex items-center gap-1 shrink-0">
+          <span class="chatbot-pill-status ${isOngoing ? 'chatbot-pill-ongoing' : 'chatbot-pill-upcoming'}">${cleanStatus}</span>
+          <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
         </div>
       </div>`;
     }
@@ -58,13 +49,13 @@ function formatMessageContent(text) {
       const eventId = eventIdMatch[1];
       if (label.includes("Xem chi tiết") || label.includes("sự kiện") || label.includes("View") || label.includes("event")) {
         return `<div class="chatbot-mini-card group" data-event-id="${eventId}">
-          <div class="flex items-center gap-2 min-w-0 flex-1">
-            <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-              <i class="fa-solid fa-calendar-star text-xs"></i>
+          <div class="flex items-center gap-1.5 min-w-0 flex-1">
+            <div class="w-6 h-6 rounded-md bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0 text-[10px]">
+              <i class="fa-solid fa-calendar-star"></i>
             </div>
-            <div class="text-xs font-bold text-slate-800 truncate group-hover:text-blue-600">${label}</div>
+            <span class="font-bold text-xs text-slate-800 truncate group-hover:text-blue-600">${label}</span>
           </div>
-          <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 shrink-0">
+          <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 shrink-0">
             ${viewText} <i class="fa-solid fa-chevron-right text-[9px]"></i>
           </span>
         </div>`;
