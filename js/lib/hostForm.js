@@ -810,6 +810,8 @@ export function initFormSubmit(orgId, onSuccess) {
     const editId = params.get("edit");
     if (editId) {
       setTimeout(() => initEditMode(editId), 500);
+    } else {
+      sessionStorage.removeItem(EDIT_EVENT_ID_KEY);
     }
 
     form.addEventListener("submit", async (e) => {

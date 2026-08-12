@@ -757,6 +757,7 @@ function initManualAdd() {
     let mapInstance = null;
 
     async function open() {
+        sessionStorage.removeItem("__editEventId");
         overlay.removeAttribute("hidden");
         overlay.classList.add("active");
         document.body.style.overflow = "hidden";
@@ -781,6 +782,7 @@ function initManualAdd() {
     }
 
     function close() {
+        sessionStorage.removeItem("__editEventId");
         overlay.classList.remove("active");
         document.body.style.overflow = "";
         body.style.padding = "";
