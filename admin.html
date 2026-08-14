@@ -292,17 +292,22 @@
         </div>
     </div>
 
-    <!-- ADD EVENT POPUP -->
+    <!-- EVENT CREATE / EDIT MODAL -->
     <div class="popup-overlay" hidden id="add-event-overlay">
         <div class="popup-backdrop" id="add-event-backdrop"></div>
-        <div class="popup-container !p-0" id="add-event-container">
-            <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
-                <h2 class="text-xl font-bold text-[#191b22]" data-i18n="admin.create_event_title">Create New Event</h2>
-                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] transition-all spring-ease" id="add-event-close">
+        <div class="popup-container !p-0 !max-w-[960px] !max-h-[92vh] overflow-hidden flex flex-col" id="add-event-container">
+            <div class="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-[#ecedfa] bg-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary" id="event-modal-icon">
+                        <i class="fa-solid fa-calendar-plus text-base"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-[#191b22]" id="event-modal-title" data-i18n="admin.create_event_title">Create New Event</h2>
+                </div>
+                <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] hover:text-[#191b22] transition-all spring-ease cursor-pointer" id="add-event-close" aria-label="Close modal">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="p-5" id="add-event-body">
+            <div class="p-6 overflow-y-auto flex-1 bg-white" id="add-event-body">
                 <div class="flex items-center justify-center py-16 text-[#94a3b8]">
                     <div class="spinner"></div>
                 </div>

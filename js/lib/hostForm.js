@@ -620,7 +620,7 @@ function createDatePicker(config) {
 
 const EDIT_EVENT_ID_KEY = '__editEventId';
 
-async function initEditMode(eventId) {
+export async function initEditMode(eventId) {
   try {
     const result = await getActivityById(eventId);
     const event = result.activity || result.event;
@@ -631,6 +631,8 @@ async function initEditMode(eventId) {
     const titleEl = document.getElementById("title");
     const descEl = document.getElementById("description");
     const locationEl = document.getElementById("location");
+    const locationLatEl = document.getElementById("locationLat");
+    const locationLngEl = document.getElementById("locationLng");
     const hostNameEl = document.getElementById("hostName");
     const heldDateInput = document.getElementById("heldDate");
     const registrationLinkEl = document.getElementById("registrationLink");
@@ -639,12 +641,23 @@ async function initEditMode(eventId) {
     const enableCheckinRulesEl = document.getElementById("enableCheckinRules");
     const lateMinEl = document.getElementById("lateCheckinMinutes");
     const expiredMinEl = document.getElementById("expiredCheckinMinutes");
+    const thumbPreview = document.getElementById("thumbnail-preview");
+    const thumbPlaceholder = document.getElementById("thumbnail-placeholder");
 
     if (titleEl) titleEl.value = event.title || '';
     if (descEl) descEl.value = event.description || '';
     if (locationEl) locationEl.value = event.location || '';
+    if (locationLatEl && event.locationLat) locationLatEl.value = event.locationLat;
+    if (locationLngEl && event.locationLng) locationLngEl.value = event.locationLng;
     if (hostNameEl) hostNameEl.value = event.hostName || event.createdByName || '';
     if (registrationLinkEl) registrationLinkEl.value = event.registrationLink || '';
+
+    // Thumbnail preview
+    if (event.thumbnail && thumbPreview) {
+      thumbPreview.src = event.thumbnail;
+      thumbPreview.style.display = "block";
+      if (thumbPlaceholder) thumbPlaceholder.style.display = "none";
+    }
 
     if (event.heldDate) {
       const d = new Date(event.heldDate);
@@ -714,6 +727,16 @@ async function initEditMode(eventId) {
         const typeRadio = editForm.querySelector(`input[name="type"][value="${event.type}"]`);
         if (typeRadio) typeRadio.checked = true;
       }
+    }
+
+    if (event.isNonPartner) {
+      const nonPartnerRadio = document.getElementById("mode-non-partner");
+      if (nonPartnerRadio) {
+        nonPartnerRadio.checked = true;
+        nonPartnerRadio.dispatchEvent(new Event("change"));
+      }
+      const npHost = document.getElementById("nonPartnerHostName");
+      if (npHost) npHost.value = event.hostName || '';
     }
 
     const statusMsg = document.getElementById("status-msg");

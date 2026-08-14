@@ -594,7 +594,8 @@
     "published_events": "Published Events",
     "events_count": "{{n}} events",
     "events_count_one": "{{n}} event",
-    "create_event_title": "Create New Event"
+    "create_event_title": "Create New Event",
+    "edit_event_title": "Edit Event"
   },
   "complete_profile": {
     "title": "SpringWave - Complete Profile",

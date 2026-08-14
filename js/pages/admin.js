@@ -5,7 +5,19 @@ import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/utils.js";
 import { t } from "../lib/i18n.js";
-import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit, initAttachmentLinks, initOrgSelector, initCheckinRulesToggle } from "../lib/hostForm.js";
+import { 
+    initThumbnailPreview, 
+    initFileUpload, 
+    initMapPicker, 
+    initDateValidation, 
+    initFormSubmit, 
+    initAttachmentLinks, 
+    initOrgSelector, 
+    initCheckinRulesToggle,
+    initTimePicker,
+    initEventModeSelector,
+    initEditMode
+} from "../lib/hostForm.js";
 
 let currentTab = "pending";
 let pendingEvents = [];
@@ -315,83 +327,6 @@ function buildViewHTML(e) {
     </div>`;
 }
 
-function buildEditHTML(e) {
-    let heldDate = "";
-    if (e.heldDate) {
-        const d = new Date(e.heldDate);
-        if (!isNaN(d)) heldDate = toLocalISODate(d);
-    }
-    let heldDateEnd = "";
-    if (e.heldDateEnd) {
-        const d = new Date(e.heldDateEnd);
-        if (!isNaN(d)) heldDateEnd = toLocalISODate(d);
-    }
-    let applicationDeadline = "";
-    if (e.applicationDeadline) {
-        const d = new Date(e.applicationDeadline);
-        if (!isNaN(d)) applicationDeadline = toLocalISODate(d);
-    }
-    const classificationHTML = e.classificationReason
-        ? `<div class="mt-4">
-            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Classification Reason</label>
-            <textarea id="edit-classification" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22] resize-none" rows="2">${e.classificationReason}</textarea>
-           </div>`
-        : "";
-    const sourceHTML = e.source?.url
-        ? `<div class="mt-4 p-4 rounded-xl bg-[#f8f9fc] text-sm text-[#64748b]">Original: <a href="${e.source.url}" target="_blank" class="text-primary underline">${e.source.url}</a></div>`
-        : "";
-    return `
-    <div class="space-y-5">
-        <div>
-            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Title</label>
-            <input id="edit-title" value="${e.title.replace(/"/g, '&quot;')}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
-        </div>
-        <div class="flex gap-4">
-            <div class="flex-1">
-                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Location</label>
-                <input id="edit-location" value="${(e.location || "").replace(/"/g, '&quot;')}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
-            </div>
-            <div>
-                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Type</label>
-                <select id="edit-type" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]">
-                    ${['Sport', 'Music', 'Education', 'Technology', 'Volunteering', 'Social', 'Art', 'Workshop', 'Seminar'].map(t =>
-                        `<option value="${t}" ${(e.type || '') === t ? 'selected' : ''}>${t}</option>`
-                    ).join('')}
-                </select>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Hạn đăng ký</label>
-                <input id="edit-applicationDeadline" type="date" value="${applicationDeadline}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
-            </div>
-            <div>
-                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Ngày bắt đầu</label>
-                <input id="edit-heldDate" type="date" value="${heldDate}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
-            </div>
-            <div>
-                <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Ngày kết thúc</label>
-                <input id="edit-heldDateEnd" type="date" value="${heldDateEnd}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
-            </div>
-        </div>
-        <div>
-            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Host</label>
-            <input id="edit-hostName" value="${(e.hostName || "").replace(/"/g, '&quot;')}" list="editSchoolList" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
-            <datalist id="editSchoolList"></datalist>
-        </div>
-        <div>
-            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Description</label>
-            <textarea id="edit-description" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22] resize-y" rows="8">${(e.description || "").replace(/"/g, '&quot;')}</textarea>
-        </div>
-        <div>
-            <label class="block text-[13px] font-semibold text-[#64748b] mb-1.5">Thumbnail URL</label>
-            <input id="edit-thumbnail" value="${(e.thumbnail || "").replace(/"/g, '&quot;')}" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm text-[#191b22]" />
-        </div>
-        ${classificationHTML}
-        ${sourceHTML}
-    </div>`;
-}
-
 document.getElementById("popup-actions")?.addEventListener("click", async e => {
     const id = document.getElementById("popup-body")?.dataset?.eventId;
     if (!id) return;
@@ -399,46 +334,20 @@ document.getElementById("popup-actions")?.addEventListener("click", async e => {
     if (e.target.id === "edit-btn" || e.target.closest("#edit-btn")) {
         const ev = [...pendingEvents, ...publishedEvents].find(ev => ev._id === id);
         if (!ev) return;
-        document.getElementById("edit-btn")?.setAttribute("hidden", "");
-        document.getElementById("save-btn")?.removeAttribute("hidden");
-        document.getElementById("cancel-btn")?.removeAttribute("hidden");
-        document.getElementById("popup-body").innerHTML = buildEditHTML(ev);
-        loadEditSchoolList();
-    }
-    else if (e.target.id === "cancel-btn" || e.target.closest("#cancel-btn")) {
-        const ev = [...pendingEvents, ...publishedEvents].find(ev => ev._id === id);
-        document.getElementById("save-btn")?.setAttribute("hidden", "");
-        document.getElementById("cancel-btn")?.setAttribute("hidden", "");
-        document.getElementById("edit-btn")?.removeAttribute("hidden");
-        if (ev) document.getElementById("popup-body").innerHTML = buildViewHTML(ev);
-    }
-    else if (e.target.id === "save-btn" || e.target.closest("#save-btn")) {
-        const orig = [...pendingEvents, ...publishedEvents].find(ev => ev._id === id);
-        const data = {
-            title: document.getElementById("edit-title")?.value.trim(),
-            location: document.getElementById("edit-location")?.value.trim(),
-            type: document.getElementById("edit-type")?.value.trim(),
-            heldDate: document.getElementById("edit-heldDate")?.value || null,
-            heldDateEnd: document.getElementById("edit-heldDateEnd")?.value || null,
-            applicationDeadline: document.getElementById("edit-applicationDeadline")?.value || null,
-            description: document.getElementById("edit-description")?.value.trim(),
-            thumbnail: document.getElementById("edit-thumbnail")?.value.trim(),
-            hostName: document.getElementById("edit-hostName")?.value.trim() || undefined,
-        };
-        const classification = document.getElementById("edit-classification");
-        if (classification) data.classificationReason = classification.value.trim();
-        if (!data.title || !data.description) return;
-        try {
-            await updateEvent(id, data);
-            document.getElementById("save-btn")?.setAttribute("hidden", "");
-            document.getElementById("cancel-btn")?.setAttribute("hidden", "");
-            document.getElementById("edit-btn")?.removeAttribute("hidden");
-            const updated = { ...(orig || {}), ...data, _id: id };
-            document.getElementById("popup-body").innerHTML = buildViewHTML(updated);
-            await loadData();
-        } catch (err) {
-            alert(err.message || "Failed to update event");
+        if (ev?.heldDate) {
+            const diffMs = new Date(ev.heldDate).getTime() - Date.now();
+            if (diffMs > 0 && diffMs < 30 * 60 * 1000) {
+                alert('Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút');
+                return;
+            }
         }
+        // Close view popup
+        const overlay = document.getElementById("popup-overlay");
+        overlay.classList.remove("active");
+        overlay.setAttribute("hidden", "");
+        document.body.style.overflow = "";
+        // Open modern modal in Edit Mode
+        openEventModal(id);
     }
 });
 
@@ -470,7 +379,7 @@ function initRowActions() {
                     return;
                 }
             }
-            window.location.href = `/hostActivity.html?edit=${id}`;
+            openEventModal(id);
         });
     });
 
@@ -745,78 +654,90 @@ function openDeletePopup(id, title) {
 }
 
 /* =========================
-   MANUAL ADD EVENT
+   EVENT CREATE / EDIT MODAL
 ========================= */
+
+let mapInstance = null;
+
+export async function openEventModal(eventId = null) {
+    const overlay = document.getElementById("add-event-overlay");
+    const body = document.getElementById("add-event-body");
+    const modalTitle = document.getElementById("event-modal-title");
+    const modalIcon = document.getElementById("event-modal-icon");
+
+    if (eventId) {
+        sessionStorage.setItem("__editEventId", eventId);
+        if (modalTitle) modalTitle.textContent = t("admin.edit_event_title") || "Edit Event";
+        if (modalIcon) modalIcon.innerHTML = `<i class="fa-solid fa-pen-to-square text-base"></i>`;
+    } else {
+        sessionStorage.removeItem("__editEventId");
+        if (modalTitle) modalTitle.textContent = t("admin.create_event_title") || "Create New Event";
+        if (modalIcon) modalIcon.innerHTML = `<i class="fa-solid fa-calendar-plus text-base"></i>`;
+    }
+
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    const html = await fetchContent("./components/hostActivityDetails.html");
+    body.innerHTML = html;
+
+    const internalTitle = body.querySelector(".page-title");
+    if (internalTitle) internalTitle.style.display = "none";
+
+    initThumbnailPreview();
+    initFileUpload();
+    initAttachmentLinks();
+    initTimePicker();
+    initDateValidation();
+    initEventModeSelector();
+    initCheckinRulesToggle();
+    await initOrgSelector();
+
+    setTimeout(() => {
+        mapInstance = initMapPicker();
+        if (mapInstance?.map) {
+            setTimeout(() => mapInstance.map.resize(), 150);
+        }
+    }, 250);
+
+    initFormSubmit(null, async () => {
+        closeEventModal();
+        await loadData();
+    });
+
+    if (eventId) {
+        await initEditMode(eventId);
+    }
+}
+
+export function closeEventModal() {
+    const overlay = document.getElementById("add-event-overlay");
+    const body = document.getElementById("add-event-body");
+    sessionStorage.removeItem("__editEventId");
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+    if (mapInstance?.map) {
+        try { mapInstance.map.remove(); } catch {}
+    }
+    setTimeout(() => {
+        overlay.setAttribute("hidden", "");
+        body.innerHTML = `<div class="flex items-center justify-center py-16 text-[#94a3b8]"><div class="spinner"></div></div>`;
+        mapInstance = null;
+    }, 300);
+}
 
 function initManualAdd() {
     const overlay = document.getElementById("add-event-overlay");
     const backdrop = document.getElementById("add-event-backdrop");
     const closeBtn = document.getElementById("add-event-close");
-    const body = document.getElementById("add-event-body");
 
-    let mapInstance = null;
-
-    async function open() {
-        sessionStorage.removeItem("__editEventId");
-        overlay.removeAttribute("hidden");
-        overlay.classList.add("active");
-        document.body.style.overflow = "hidden";
-        body.style.padding = "8px";
-
-        const html = await fetchContent("./components/hostActivityDetails.html");
-        body.innerHTML = html;
-
-        initThumbnailPreview();
-        initFileUpload();
-        initAttachmentLinks();
-        setTimeout(() => {
-            mapInstance = initMapPicker();
-            if (mapInstance?.map) setTimeout(() => mapInstance.map.resize(), 100);
-        }, 400);
-        initDateValidation();
-        initCheckinRulesToggle();
-        initFormSubmit(null, () => {
-            close();
-            loadData();
-        });
-    }
-
-    function close() {
-        sessionStorage.removeItem("__editEventId");
-        overlay.classList.remove("active");
-        document.body.style.overflow = "";
-        body.style.padding = "";
-        if (mapInstance?.map) {
-            mapInstance.map.remove();
-        }
-        setTimeout(() => {
-            overlay.setAttribute("hidden", "");
-            body.innerHTML = `<div class="flex items-center justify-center py-16 text-[#94a3b8]"><div class="spinner"></div></div>`;
-            mapInstance = null;
-        }, 300);
-    }
-
-    document.getElementById("add-event-btn").addEventListener("click", open);
-    backdrop?.addEventListener("click", close);
-    closeBtn?.addEventListener("click", close);
+    document.getElementById("add-event-btn")?.addEventListener("click", () => openEventModal(null));
+    backdrop?.addEventListener("click", closeEventModal);
+    closeBtn?.addEventListener("click", closeEventModal);
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !overlay.hasAttribute("hidden")) close();
+        if (e.key === "Escape" && !overlay?.hasAttribute("hidden")) closeEventModal();
     });
-}
-
-import { getUniversities } from "../api/universities.js";
-
-async function loadEditSchoolList() {
-    const datalist = document.getElementById("editSchoolList");
-    if (!datalist) return;
-    try {
-        const universities = await getUniversities();
-        datalist.innerHTML = universities.map(u =>
-            `<option value="${u.name}">${u.shortName || u.name}</option>`
-        ).join("");
-    } catch (e) {
-        console.error("Failed to load edit school list:", e);
-    }
 }
 
 // ─── Expired Events Toggle ───

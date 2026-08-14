@@ -4,7 +4,20 @@ import { getFavourites } from "../api/user.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
-import { initThumbnailPreview, initFileUpload, initMapPicker, initDateValidation, initFormSubmit, initAttachmentLinks, initOrgSelector, initTurnstile, initCheckinRulesToggle } from "../lib/hostForm.js";
+import { 
+    initThumbnailPreview, 
+    initFileUpload, 
+    initMapPicker, 
+    initDateValidation, 
+    initFormSubmit, 
+    initAttachmentLinks, 
+    initOrgSelector, 
+    initTurnstile, 
+    initCheckinRulesToggle,
+    initTimePicker,
+    initEventModeSelector,
+    initEditMode
+} from "../lib/hostForm.js";
 
 /* =========================
    PAGE LOAD
@@ -96,8 +109,9 @@ async function loadFooter() {
 function initializeHostActivityPage() {
     const params = new URLSearchParams(window.location.search);
     const orgId = params.get("org");
+    const editId = params.get("edit");
     const user = getUser();
-    if (!orgId && user?.role === 'host') {
+    if (!orgId && !editId && user?.role === 'host') {
         window.location.href = "/org-dashboard.html";
         return;
     }
@@ -105,14 +119,25 @@ function initializeHostActivityPage() {
     initThumbnailPreview();
     initFileUpload();
     initAttachmentLinks();
+    initTimePicker();
+    initDateValidation();
+    initEventModeSelector();
+    initCheckinRulesToggle();
     initOrgSelector(orgId);
     initMapPicker();
-    initDateValidation();
-    initCheckinRulesToggle();
     initFormSubmit(orgId, () => {
-        window.location.href = orgId ? `./org-dashboard.html` : `./index.html`;
+        if (editId) {
+            window.location.href = user?.role === 'admin' ? './admin.html' : (orgId ? './org-dashboard.html' : './index.html');
+        } else {
+            window.location.href = orgId ? `./org-dashboard.html` : `./index.html`;
+        }
     });
-    initTurnstile();
+
+    if (editId) {
+        initEditMode(editId);
+    } else {
+        initTurnstile();
+    }
 }
 
 /* =========================

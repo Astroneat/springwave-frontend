@@ -594,7 +594,8 @@
     "published_events": "Sự kiện đã xuất bản",
     "events_count": "{{n}} sự kiện",
     "events_count_one": "{{n}} sự kiện",
-    "create_event_title": "Tạo sự kiện mới"
+    "create_event_title": "Tạo sự kiện mới",
+    "edit_event_title": "Chỉnh sửa sự kiện"
   },
   "complete_profile": {
     "title": "SpringWave - Hoàn thiện hồ sơ",
