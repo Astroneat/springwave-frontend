@@ -35,3 +35,7 @@ export function updateExternalParticipant(eventId, attendanceId, data) {
 export function deleteExternalParticipant(eventId, attendanceId) {
   return del(`/attendance/events/${eventId}/external-participants/${attendanceId}`);
 }
+
+export function removeParticipant(eventId, targetId) {
+  return del(`/attendance/events/${eventId}/participants/${targetId}`);
+}
