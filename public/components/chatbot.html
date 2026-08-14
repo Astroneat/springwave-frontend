@@ -1,34 +1,72 @@
 <div class="chatbot-widget" id="chatbot-widget">
   <div class="chatbot-panel" id="chatbot-panel">
+    <!-- Header -->
     <div class="chatbot-header">
       <div class="chatbot-header-info">
-        <div class="chatbot-avatar">
-          <i class="fa-solid fa-robot"></i>
-        </div>
-        <div>
-          <div class="chatbot-title" data-i18n="chatbot.title">SpringWave Assistant</div>
-          <div class="chatbot-status" data-i18n="chatbot.online">Online</div>
+        <div class="chatbot-header-text">
+          <div class="chatbot-title">
+            <span data-i18n="chatbot.title">SpringWave Assistant</span>
+            <span class="chatbot-badge">AI</span>
+          </div>
+          <div class="chatbot-status">
+            <span class="status-dot"></span>
+            <span data-i18n="chatbot.online">Trực tuyến</span>
+          </div>
         </div>
       </div>
-      <button class="chatbot-close" id="chatbot-close">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <div class="chatbot-header-actions">
+        <button class="chatbot-action-btn" id="chatbot-clear" title="Xóa lịch sử chat">
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+        <button class="chatbot-action-btn" id="chatbot-close" title="Đóng">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
     </div>
+
+    <!-- Messages Container -->
     <div class="chatbot-messages" id="chatbot-messages">
+      <!-- Loading Skeleton (Shown when fetching history) -->
+      <div class="chatbot-skeleton hidden" id="chatbot-skeleton">
+        <div class="skeleton-bubble bot"></div>
+        <div class="skeleton-bubble user"></div>
+        <div class="skeleton-bubble bot short"></div>
+      </div>
+
       <div class="message bot">
         <div class="message-content" data-i18n="chatbot.greeting">
-          Hello! I'm SpringWave Assistant. How can I help you?
+          Xin chào! Tôi là Trợ lý AI SpringWave. Bạn cần tìm kiếm sự kiện hay tư vấn thông tin gì hôm nay?
         </div>
       </div>
     </div>
-    <div class="chatbot-input-area">
-      <input type="text" class="chatbot-input" id="chatbot-input" data-i18n-placeholder="chatbot.input_placeholder" placeholder="Type a message..." autocomplete="off" />
-      <button class="chatbot-send" id="chatbot-send">
-        <i class="fa-solid fa-paper-plane"></i>
+
+    <!-- Suggestion Chips -->
+    <div class="chatbot-suggestions" id="chatbot-suggestions">
+      <button class="chip-btn" data-suggest="Sắp tới có sự kiện nào hot không?">
+        <i class="fa-solid fa-fire text-amber-500"></i> Sự kiện sắp tới
+      </button>
+      <button class="chip-btn" data-suggest="Hướng dẫn đăng ký tham gia sự kiện">
+        <i class="fa-solid fa-pen-to-square text-blue-500"></i> Đăng ký sự kiện
+      </button>
+      <button class="chip-btn" data-suggest="Cộng đồng thảo luận có gì mới?">
+        <i class="fa-solid fa-comments text-indigo-500"></i> Thảo luận
       </button>
     </div>
+
+    <!-- Input Bar -->
+    <div class="chatbot-input-area">
+      <div class="chatbot-input-wrapper">
+        <input type="text" class="chatbot-input" id="chatbot-input" data-i18n-placeholder="chatbot.input_placeholder" placeholder="Nhập tin nhắn..." autocomplete="off" />
+        <button class="chatbot-send" id="chatbot-send" title="Gửi tin nhắn">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
   </div>
-  <div class="chatbot-bubble" id="chatbot-bubble">
-    <i class="fa-regular fa-comment-dots"></i>
+
+  <!-- Floating Trigger Bubble -->
+  <div class="chatbot-bubble" id="chatbot-bubble" title="Mở Trợ lý SpringWave AI">
+    <i class="fa-solid fa-robot chatbot-bubble-icon"></i>
+    <span class="chatbot-bubble-online-badge"></span>
   </div>
 </div>

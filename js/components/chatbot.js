@@ -1,5 +1,5 @@
 import { isAuthenticated, getUser } from "../lib/session.js";
-import { sendChatMessage } from "../api/chatbot.js";
+import { sendChatMessage, fetchChatHistory, clearChatHistory } from "../api/chatbot.js";
 import { t, applyTranslation } from "../lib/i18n.js";
 import { openEventPopup } from "./eventPopup.js";
 import { formatDate } from "../lib/utils.js";
@@ -73,7 +73,7 @@ function renderEventCardFromJSON(data) {
           </div>` : ''}
       </div>
       <button type="button" data-event-id="${cleanId}" class="chat-event-btn-blue">
-        <span>${t("cards.view_details", {}, "Xem chi tiết")}</span>
+        <span><i class="fa-solid fa-eye"></i> ${t("cards.view_details", {}, "Xem chi tiết")}</span>
         <i class="fa-solid fa-arrow-right"></i>
       </button>
     </div>
@@ -105,14 +105,6 @@ function formatMessageContent(text) {
 
   let safe = escapeHtml(rawProcessed);
 
-  // Re-inject rendered event card HTML
-  Object.keys(cardsMap).forEach(token => {
-    safe = safe.replace(token, cardsMap[token]);
-  });
-
-  const clickToViewText = t("chatbot.click_to_view", {}, "Nhấn để xem chi tiết & đăng ký");
-  const viewText = t("cards.view_details", {}, "Xem chi tiết");
-
   // 1. Match custom All-In-One Light Event Card syntax: [EVENT_CARD:id|title|type|status|time|location|desc]
   safe = safe.replace(/\[EVENT_CARD:([^|]+)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^\]]*)\]/g,
     (match, id, title, type, status, time, location, desc) => {
@@ -122,23 +114,39 @@ function formatMessageContent(text) {
       const cleanStatus = status.trim() || "ĐANG DIỄN RA";
       const cleanTime = time.trim() || "";
       const cleanLocation = location.trim() || "";
-      const cleanDesc = desc.trim() || "";
 
-      return renderEventCardFromJSON({ id: cleanId, title: cleanTitle, type: cleanType, status: cleanStatus, time: cleanTime, location: cleanLocation });
+      const placeholder = `___EVENT_CARD_TOKEN_${cardIndex++}___`;
+      cardsMap[placeholder] = renderEventCardFromJSON({ id: cleanId, title: cleanTitle, type: cleanType, status: cleanStatus, time: cleanTime, location: cleanLocation });
+      return placeholder;
     }
   );
 
-  // 2. Replace Markdown links: [label](/explore.html?id=xxx) or [label](url)
-  safe = safe.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, url) => {
+  // 2. Replace Markdown links with event ID: [label](/explore.html?id=xxx)
+  safe = safe.replace(/(?:👉\s*)?\[([^\]]+)\]\(([^)]+)\)\s*(?:[-─➔➜➔→>]*)/gi, (match, label, url) => {
     const eventIdMatch = url.match(/[?&]id=([a-f0-9]{24})/i);
     if (eventIdMatch) {
       const eventId = eventIdMatch[1];
-      // Render a compact inline link button — never a full card from markdown links
-      // (Full cards come from json:event blocks only, to avoid layout inconsistency)
-      return `<button type="button" data-event-id="${eventId}" class="chat-event-btn inline-flex items-center gap-1.5 px-3 py-1.5 my-1 text-xs font-bold rounded-lg transition-all cursor-pointer" style="color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe;"><i class="fa-solid fa-calendar-check text-xs"></i> ${label}</button>`;
+      let cleanLabel = label.replace(/^👉\s*/, '').replace(/\s*[-─➔➜➔→>]+$/, '').trim();
+      if (!cleanLabel || cleanLabel.toLowerCase().includes('details') || cleanLabel.toLowerCase().includes('chi tiết')) {
+        cleanLabel = "Xem chi tiết sự kiện";
+      }
+      const placeholder = `___EVENT_BTN_TOKEN_${cardIndex++}___`;
+      cardsMap[placeholder] = `<button type="button" data-event-id="${eventId}" class="chat-event-btn-action"><span><i class="fa-solid fa-eye"></i> ${escapeHtml(cleanLabel)}</span><i class="fa-solid fa-arrow-right"></i></button>`;
+      return placeholder;
     }
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary font-medium underline hover:text-primary-dark">${label}</a>`;
   });
+
+  // 3. Handle plain text "View Details ->" or "Xem chi tiết ->" when NOT inside a markdown link
+  safe = safe.replace(/(?:👉\s*)?(View Details|Xem chi tiết sự kiện|Xem chi tiết)\s*(?:[-─➔➜➔→>]+)?/gi, (match, textLabel) => {
+    const cleanLabel = textLabel.trim() || "Xem chi tiết sự kiện";
+    const placeholder = `___EVENT_BTN_TOKEN_${cardIndex++}___`;
+    cardsMap[placeholder] = `<button type="button" class="chat-event-btn-action" onclick="const card=this.closest('.message-content').querySelector('[data-event-id]'); if(card) openEventPopup(card.dataset.eventId);"><span><i class="fa-solid fa-eye"></i> ${escapeHtml(cleanLabel)}</span><i class="fa-solid fa-arrow-right"></i></button>`;
+    return placeholder;
+  });
+
+  // Clean up orphan trailing arrow lines like "->" or "→" or "➔"
+  safe = safe.replace(/^(?:[-─➔➜➔→>]|\s)+$/gm, "");
 
   // Bold text **text**
   safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
@@ -148,6 +156,14 @@ function formatMessageContent(text) {
 
   // Newlines -> <br>
   safe = safe.replace(/\n/g, "<br>");
+
+  // Re-inject rendered event cards & button tokens cleanly
+  Object.keys(cardsMap).forEach(token => {
+    safe = safe.replace(token, cardsMap[token]);
+  });
+
+  // Clean multiple consecutive <br>
+  safe = safe.replace(/(<br>\s*){3,}/gi, "<br><br>");
 
   return safe;
 }
@@ -165,7 +181,7 @@ function bindMessageClicks() {
   }
 }
 
-function loadHistory() {
+function loadHistoryFromStorage() {
   try {
     const saved = localStorage.getItem(HISTORY_KEY);
     if (saved) {
@@ -178,7 +194,7 @@ function loadHistory() {
   return [];
 }
 
-function saveHistory() {
+function saveHistoryToStorage() {
   try {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(conversationHistory.slice(-MAX_HISTORY)));
   } catch {}
@@ -193,11 +209,30 @@ export async function initChatbot() {
   container.innerHTML = html;
   applyTranslation(container);
 
-  conversationHistory = loadHistory();
+  conversationHistory = loadHistoryFromStorage();
 
   document.getElementById("chatbot-bubble").addEventListener("click", toggleChat);
   document.getElementById("chatbot-close").addEventListener("click", closeChat);
   document.getElementById("chatbot-send").addEventListener("click", sendMessage);
+
+  const clearBtn = document.getElementById("chatbot-clear");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", handleClearHistory);
+  }
+
+  const suggestionsContainer = document.getElementById("chatbot-suggestions");
+  if (suggestionsContainer) {
+    suggestionsContainer.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-suggest]");
+      if (btn && btn.dataset.suggest) {
+        const input = document.getElementById("chatbot-input");
+        if (input) {
+          input.value = btn.dataset.suggest;
+          sendMessage();
+        }
+      }
+    });
+  }
 
   const input = document.getElementById("chatbot-input");
   input.addEventListener("keydown", (e) => {
@@ -212,27 +247,64 @@ export async function initChatbot() {
   restoreMessages();
   bindMessageClicks();
 
+  // If authenticated, sync history from MongoDB backend with Skeleton Loading
+  if (isAuthenticated()) {
+    const skeleton = document.getElementById("chatbot-skeleton");
+    if (skeleton) skeleton.classList.remove("hidden");
+    try {
+      const data = await fetchChatHistory();
+      if (data && Array.isArray(data.history)) {
+        conversationHistory = data.history;
+        saveHistoryToStorage();
+      }
+    } catch (err) {
+      console.warn("Failed to fetch chat history from DB:", err);
+    } finally {
+      if (skeleton) skeleton.classList.add("hidden");
+      restoreMessages();
+    }
+  }
+
   window.addEventListener("language-changed", () => {
     const c = document.getElementById("chatbot-container");
     if (c) applyTranslation(c);
     restoreMessages();
   });
 
-  window.addEventListener("beforeunload", () => saveHistory());
+  window.addEventListener("beforeunload", () => saveHistoryToStorage());
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) saveHistory();
+    if (document.hidden) saveHistoryToStorage();
   });
+}
+
+async function handleClearHistory() {
+  conversationHistory = [];
+  try {
+    localStorage.removeItem(HISTORY_KEY);
+    if (isAuthenticated()) {
+      await clearChatHistory();
+    }
+  } catch (err) {
+    console.error("Error clearing chat history:", err);
+  }
+  restoreMessages();
 }
 
 function restoreMessages() {
   const container = document.getElementById("chatbot-messages");
   if (!container) return;
 
-  const greeting = container.querySelector(".message.bot");
+  const skeleton = document.getElementById("chatbot-skeleton");
   container.innerHTML = "";
+  if (skeleton) container.appendChild(skeleton);
+
+  const defaultGreeting = document.createElement("div");
+  defaultGreeting.className = "message bot";
+  defaultGreeting.innerHTML = `<div class="message-content" data-i18n="chatbot.greeting">${t("chatbot.greeting", {}, "Xin chào! Tôi là Trợ lý AI SpringWave. Bạn cần tìm kiếm sự kiện hay tư vấn thông tin gì hôm nay?")}</div>`;
 
   if (conversationHistory.length === 0) {
-    container.appendChild(greeting);
+    container.appendChild(defaultGreeting);
+    toggleSuggestions(true);
     return;
   }
 
@@ -243,7 +315,15 @@ function restoreMessages() {
     container.appendChild(div);
   });
   bindMessageClicks();
+  toggleSuggestions(false);
   container.scrollTop = container.scrollHeight;
+}
+
+function toggleSuggestions(show) {
+  const sug = document.getElementById("chatbot-suggestions");
+  if (sug) {
+    sug.style.display = show ? "flex" : "none";
+  }
 }
 
 function escapeHtml(text) {
@@ -272,14 +352,15 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
 
+  toggleSuggestions(false);
   addMessage("user", text);
   input.value = "";
   input.style.height = "auto";
-  saveHistory();
+  saveHistoryToStorage();
 
   if (!isAuthenticated()) {
     addMessage("assistant", t("chatbot.login_required"));
-    saveHistory();
+    saveHistoryToStorage();
     return;
   }
 
@@ -289,12 +370,17 @@ async function sendMessage() {
     "<span></span><span></span><span></span>";
 
   try {
-    const data = await sendChatMessage(text, conversationHistory);
+    const data = await sendChatMessage(text);
     msgEl.classList.remove("typing");
     msgEl.querySelector(".message-content").innerHTML = formatMessageContent(data.reply);
-    conversationHistory.push({ role: "assistant", content: data.reply });
-    saveHistory();
-  } catch {
+    
+    if (data.history && Array.isArray(data.history)) {
+      conversationHistory = data.history;
+    } else {
+      conversationHistory.push({ role: "assistant", content: data.reply });
+    }
+    saveHistoryToStorage();
+  } catch (err) {
     msgEl.classList.remove("typing");
     msgEl.querySelector(".message-content").textContent = t("chatbot.error");
   }
