@@ -138,6 +138,45 @@ function renderActionCardFromJSON(data) {
     </div>`.replace(/\n/g, " ");
   }
 
+  // CASE A2: Non-Partner Card (Direct external registration)
+  if (cardType === "non_partner_card" || data.isNonPartner) {
+    const event = data.event || {};
+    const cleanId = escapeHtml(event.id || "");
+    const cleanTitle = escapeHtml(event.title || "Sự kiện");
+    const cleanHost = escapeHtml(event.hostName || "Đơn vị ngoài");
+    const cleanTime = escapeHtml(formatCardDate(event.heldDate || ""));
+    const cleanLocation = escapeHtml(event.location || "Chưa cập nhật");
+    const regLink = escapeHtml(event.registrationLink || "");
+
+    return `
+    <div class="chatbot-action-card card-non-partner" data-event-id="${cleanId}">
+      <div class="action-card-header header-non-partner">
+        <span class="action-card-badge-non-partner"><i class="fa-solid fa-arrow-up-right-from-square"></i> ĐỐI TÁC NGOÀI</span>
+        <span class="action-host-name">${cleanHost}</span>
+      </div>
+      <div class="action-card-body">
+        <h4 class="action-card-title">${cleanTitle}</h4>
+        <div class="action-card-meta">
+          ${cleanTime ? `<div class="meta-item"><i class="fa-regular fa-calendar text-indigo-500"></i> <span>${cleanTime}</span></div>` : ''}
+          ${cleanLocation ? `<div class="meta-item"><i class="fa-solid fa-location-dot text-red-500"></i> <span>${cleanLocation}</span></div>` : ''}
+        </div>
+        <p class="non-partner-notice"><i class="fa-solid fa-circle-info text-indigo-500"></i> Sự kiện đăng ký trực tiếp qua cổng của Ban tổ chức (không dùng mã QR điểm danh của SpringWave).</p>
+      </div>
+      <div class="action-card-actions">
+        ${regLink ? `
+          <a href="${regLink}" target="_blank" rel="noopener noreferrer" class="action-btn-external">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Mở link đăng ký gốc của BTC</span>
+          </a>
+        ` : ''}
+        ${cleanId ? `
+          <button type="button" class="action-btn-secondary" data-event-id="${cleanId}">
+            <i class="fa-solid fa-eye"></i> <span>Xem chi tiết bài viết</span>
+          </button>
+        ` : ''}
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
   // CASE B: Schedule Conflict Card
   if (cardType === "conflict_card") {
     const target = data.targetEvent || {};

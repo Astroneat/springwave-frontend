@@ -132,9 +132,16 @@ async function request(endpoint, options = {}) {
     }
 
     startProgress();
+    const timeoutMs = options.timeout || 40000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
         let response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...options, headers, credentials: "include",
+            ...options,
+            signal: options.signal || controller.signal,
+            headers,
+            credentials: "include",
         });
 
         if (response.status === 401 && getToken()) {
@@ -196,6 +203,7 @@ async function request(endpoint, options = {}) {
 
         return data;
     } finally {
+        clearTimeout(timeoutId);
         requestQueue--;
         completeProgress();
     }
