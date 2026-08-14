@@ -7,7 +7,7 @@ import { loadNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
 import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership, uploadOrgAvatar } from "../api/organizations.js";
-import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance } from "../api/attendance.js";
+import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance, addParticipantsBatch, updateExternalParticipant, deleteExternalParticipant } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
 import { getHostReviews } from "../api/activities.js";
 import { getOrgAnalytics, getEventAnalytics, downloadOrgExcelReport, downloadEventExcelReport } from "../api/analytics.js";
@@ -59,6 +59,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initParticipantEventSelect();
   initAttendanceEventSelect();
   initCertEventSelect();
+  initAddParticipantsModal();
+  initEditExternalModal();
 });
 
 // ─── Org Loading ───
@@ -1054,46 +1056,156 @@ function renderParticipantsTable(list) {
   if (empty) empty.classList.add("hidden");
 
   tbody.innerHTML = list.map(p => {
-    const studentIdDisplay = p.studentId || p.username || "";
+    const studentIdDisplay = p.studentId || "—";
+    const emailDisplay = p.email || "—";
+
+    const typeBadge = p.isExternal
+      ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+           <i class="fa-solid fa-user-tag text-[9px]"></i> Guest
+         </span>`
+      : `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+           <i class="fa-solid fa-user-check text-[9px]"></i> Member
+         </span>`;
+
+    let statusBadge = '';
+    if (p.status === 'present') {
+      statusBadge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Present</span>';
+    } else if (p.status === 'late') {
+      statusBadge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Late</span>';
+    } else {
+      statusBadge = '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fee2e2;color:#dc2626">Absent</span>';
+    }
+
+    const actionButtons = p.isExternal
+      ? `<div class="flex items-center justify-end gap-1.5">
+           <button class="edit-ext-btn w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-primary hover:bg-primary/10 transition-colors border border-transparent hover:border-primary/20 cursor-pointer"
+             data-id="${p.attendanceId || p._id}"
+             data-fullname="${encodeURIComponent(p.fullname || '')}"
+             data-studentid="${encodeURIComponent(p.studentId || '')}"
+             data-email="${encodeURIComponent(p.email || '')}"
+             title="Edit participant information">
+             <i class="fa-solid fa-pen text-xs"></i>
+           </button>
+           <button class="delete-ext-btn w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-200 cursor-pointer"
+             data-id="${p.attendanceId || p._id}"
+             title="Remove participant">
+             <i class="fa-solid fa-trash-can text-xs"></i>
+           </button>
+         </div>`
+      : `<span class="text-slate-300 text-xs">—</span>`;
+
     return `
-      <tr class="border-b border-[#ecedfa] hover:bg-slate-50/50 transition-colors">
+      <tr class="border-b border-[#ecedfa] hover:bg-slate-50/60 transition-colors">
         <td class="py-3.5 px-4">
           <div class="flex items-center gap-3">
             ${p.avatar
-              ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover" />`
-              : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(p.fullname?.[0] || "?").toUpperCase()}</div>`}
+              ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0" />`
+              : `<div class="w-8 h-8 rounded-full ${p.isExternal ? 'bg-amber-100 text-amber-700' : 'bg-[#dae1ff] text-primary'} flex items-center justify-center text-xs font-bold shrink-0">${(p.fullname?.[0] || "?").toUpperCase()}</div>`}
             <div>
               <span class="font-semibold text-[#191b22] block">${p.fullname || "Unknown"}</span>
-              ${studentIdDisplay ? `<span class="text-xs text-slate-400 block">${studentIdDisplay}</span>` : ""}
             </div>
           </div>
         </td>
-        <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${p.email || "—"}</td>
-        <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${p.joinedAt ? formatDate(p.joinedAt) : "—"}</td>
-        <td class="py-3.5 px-4"><span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Joined</span></td>
+        <td class="py-3.5 px-4 font-mono text-xs text-slate-700 font-semibold">${studentIdDisplay}</td>
+        <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${emailDisplay}</td>
+        <td class="py-3.5 px-4">${typeBadge}</td>
+        <td class="py-3.5 px-4 hidden sm:table-cell">${statusBadge}</td>
+        <td class="py-3.5 px-4 text-right">${actionButtons}</td>
       </tr>
     `;
   }).join("");
+
+  tbody.querySelectorAll(".edit-ext-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      const fullname = decodeURIComponent(btn.dataset.fullname || "");
+      const studentId = decodeURIComponent(btn.dataset.studentid || "");
+      const email = decodeURIComponent(btn.dataset.email || "");
+      openEditExternalModal(id, fullname, studentId, email);
+    });
+  });
+
+  tbody.querySelectorAll(".delete-ext-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      const eventId = document.getElementById("participant-event-select")?.value;
+      if (!eventId || !id) return;
+      if (!confirm("Remove this external participant from the event?")) return;
+      try {
+        await deleteExternalParticipant(eventId, id);
+        await loadParticipants(eventId);
+      } catch (err) {
+        alert(err.message || "Failed to remove participant");
+      }
+    });
+  });
 }
 
 async function loadParticipants(eventId) {
   try {
-    const { event } = await get(`/events/${eventId}?includeParticipants=true`);
-    const participants = event?.participants || [];
-    document.getElementById("participant-count").textContent = participants.length;
+    const [attRes, eventRes] = await Promise.all([
+      getAttendance(eventId).catch(() => ({ attendance: [] })),
+      get(`/events/${eventId}?includeParticipants=true`).catch(() => ({ event: {} }))
+    ]);
 
-    if (!participants.length) {
-      currentParticipantsList = [];
-      renderParticipantsTable([]);
-      return;
+    const records = attRes?.attendance || [];
+    const event = eventRes?.event || {};
+    const eventParticipants = event?.participants || [];
+
+    const combinedMap = new Map();
+
+    records.forEach(r => {
+      if (r.isExternal) {
+        const extId = r._id;
+        combinedMap.set(`ext_${extId}`, {
+          _id: extId,
+          attendanceId: r._id,
+          fullname: r.externalParticipant?.fullname || r.user?.fullname || "Unknown",
+          studentId: r.externalParticipant?.studentId || r.user?.studentId || "",
+          email: r.externalParticipant?.email || r.user?.email || "",
+          isExternal: true,
+          status: r.status || "absent",
+          joinedAt: r.createdAt
+        });
+      } else if (r.user) {
+        const uid = r.user._id ? String(r.user._id) : `u_${r._id}`;
+        combinedMap.set(`user_${uid}`, {
+          _id: r.user._id || r._id,
+          attendanceId: r._id,
+          fullname: r.user.fullname || "Unknown",
+          studentId: r.user.studentId || r.user.username || "",
+          email: r.user.email || "",
+          avatar: r.user.avatar || "",
+          isExternal: false,
+          status: r.status || "absent",
+          joinedAt: r.createdAt
+        });
+      }
+    });
+
+    if (Array.isArray(eventParticipants)) {
+      for (const p of eventParticipants) {
+        const uid = typeof p === 'object' && p._id ? String(p._id) : String(p);
+        if (!combinedMap.has(`user_${uid}`)) {
+          if (typeof p === 'object' && p._id) {
+            combinedMap.set(`user_${uid}`, {
+              _id: p._id,
+              fullname: p.fullname || "Unknown",
+              studentId: p.studentId || p.username || "",
+              email: p.email || "",
+              avatar: p.avatar || "",
+              isExternal: false,
+              status: "absent",
+              joinedAt: p.joinedAt || event.createdAt
+            });
+          }
+        }
+      }
     }
 
-    if (participants.length && typeof participants[0] === "object") {
-      currentParticipantsList = participants.map(p => ({ ...p, joinedAt: p.joinedAt || event.createdAt }));
-    } else {
-      const { users } = await post("/user/batch", { ids: participants });
-      currentParticipantsList = users || [];
-    }
+    currentParticipantsList = Array.from(combinedMap.values());
+    const countEl = document.getElementById("participant-count");
+    if (countEl) countEl.textContent = currentParticipantsList.length;
 
     const searchInput = document.getElementById("participants-search-input");
     const q = searchInput?.value?.toLowerCase().trim() || "";
@@ -1101,9 +1213,8 @@ async function loadParticipants(eventId) {
       const filtered = currentParticipantsList.filter(p => {
         const fn = (p.fullname || "").toLowerCase();
         const em = (p.email || "").toLowerCase();
-        const sid = (p.studentId || p.username || "").toLowerCase();
-        const un = (p.username || "").toLowerCase();
-        return fn.includes(q) || em.includes(q) || sid.includes(q) || un.includes(q);
+        const sid = (p.studentId || "").toLowerCase();
+        return fn.includes(q) || em.includes(q) || sid.includes(q);
       });
       renderParticipantsTable(filtered);
     } else {
@@ -1112,6 +1223,412 @@ async function loadParticipants(eventId) {
   } catch (err) {
     console.error("Load participants error:", err);
   }
+}
+
+// ─── Edit External Participant Modal ───
+
+function openEditExternalModal(attendanceId, fullname, studentId, email) {
+  const overlay = document.getElementById("edit-ext-overlay");
+  if (!overlay) return;
+
+  document.getElementById("edit-ext-attendance-id").value = attendanceId;
+  document.getElementById("edit-ext-fullname").value = fullname;
+  document.getElementById("edit-ext-studentid").value = studentId;
+  document.getElementById("edit-ext-email").value = email;
+
+  overlay.removeAttribute("hidden");
+  overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeEditExternalModal() {
+  const overlay = document.getElementById("edit-ext-overlay");
+  if (!overlay) return;
+  overlay.classList.remove("active");
+  document.body.style.overflow = "";
+  setTimeout(() => overlay.setAttribute("hidden", ""), 200);
+}
+
+function initEditExternalModal() {
+  const closeBtn = document.getElementById("edit-ext-close-btn");
+  const cancelBtn = document.getElementById("edit-ext-cancel-btn");
+  const backdrop = document.getElementById("edit-ext-backdrop");
+  const saveBtn = document.getElementById("edit-ext-save-btn");
+  const deleteBtn = document.getElementById("edit-ext-delete-btn");
+
+  [closeBtn, cancelBtn, backdrop].forEach(el => {
+    el?.addEventListener("click", closeEditExternalModal);
+  });
+
+  saveBtn?.addEventListener("click", async () => {
+    const eventId = document.getElementById("participant-event-select")?.value;
+    const attendanceId = document.getElementById("edit-ext-attendance-id")?.value;
+    const fullname = document.getElementById("edit-ext-fullname")?.value.trim();
+    const studentId = document.getElementById("edit-ext-studentid")?.value.trim();
+    const email = document.getElementById("edit-ext-email")?.value.trim();
+
+    if (!eventId || !attendanceId) return;
+    if (!fullname) return alert("Full Name is required");
+    if (!studentId) return alert("Student ID (MSSV) is required");
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+
+    try {
+      await updateExternalParticipant(eventId, attendanceId, { fullname, studentId, email });
+      closeEditExternalModal();
+      await loadParticipants(eventId);
+    } catch (err) {
+      alert(err.message || "Failed to update participant");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = `Save Changes`;
+    }
+  });
+
+  deleteBtn?.addEventListener("click", async () => {
+    const eventId = document.getElementById("participant-event-select")?.value;
+    const attendanceId = document.getElementById("edit-ext-attendance-id")?.value;
+    if (!eventId || !attendanceId) return;
+
+    if (!confirm("Are you sure you want to remove this participant?")) return;
+
+    deleteBtn.disabled = true;
+    try {
+      await deleteExternalParticipant(eventId, attendanceId);
+      closeEditExternalModal();
+      await loadParticipants(eventId);
+    } catch (err) {
+      alert(err.message || "Failed to remove participant");
+    } finally {
+      deleteBtn.disabled = false;
+    }
+  });
+}
+
+// ─── Add / Import Participants Modal ───
+
+let participantGridRows = [];
+
+function openAddParticipantsModal() {
+  const eventId = document.getElementById("participant-event-select")?.value;
+  if (!eventId) {
+    alert("Please select an event first before adding participants.");
+    return;
+  }
+
+  const overlay = document.getElementById("add-participants-overlay");
+  if (!overlay) return;
+
+  switchAddParticipantsMode("manual");
+  const banner = document.getElementById("parse-status-banner");
+  if (banner) banner.classList.add("hidden");
+  const modalInput = document.getElementById("modal-excel-input");
+  if (modalInput) modalInput.value = "";
+  const feedback = document.getElementById("add-participants-feedback");
+  if (feedback) feedback.textContent = "";
+
+  if (!participantGridRows.length) {
+    participantGridRows = [
+      { fullname: "", studentId: "", email: "" },
+      { fullname: "", studentId: "", email: "" },
+      { fullname: "", studentId: "", email: "" }
+    ];
+  }
+  renderParticipantGridRows();
+
+  overlay.removeAttribute("hidden");
+  overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeAddParticipantsModal() {
+  const overlay = document.getElementById("add-participants-overlay");
+  if (!overlay) return;
+  overlay.classList.remove("active");
+  document.body.style.overflow = "";
+  setTimeout(() => overlay.setAttribute("hidden", ""), 200);
+}
+
+function switchAddParticipantsMode(mode) {
+  const manualBtn = document.getElementById("mode-manual-btn");
+  const excelBtn = document.getElementById("mode-excel-btn");
+  const excelSection = document.getElementById("excel-import-section");
+
+  if (mode === "manual") {
+    manualBtn?.classList.add("bg-primary", "text-white", "shadow-xs");
+    manualBtn?.classList.remove("border", "border-[#e2e2eb]", "bg-white", "text-[#64748b]");
+    excelBtn?.classList.remove("bg-primary", "text-white", "shadow-xs");
+    excelBtn?.classList.add("border", "border-[#e2e2eb]", "bg-white", "text-[#64748b]");
+    excelSection?.classList.add("hidden");
+  } else {
+    excelBtn?.classList.add("bg-primary", "text-white", "shadow-xs");
+    excelBtn?.classList.remove("border", "border-[#e2e2eb]", "bg-white", "text-[#64748b]");
+    manualBtn?.classList.remove("bg-primary", "text-white", "shadow-xs");
+    manualBtn?.classList.add("border", "border-[#e2e2eb]", "bg-white", "text-[#64748b]");
+    excelSection?.classList.remove("hidden");
+  }
+}
+
+function syncGridRowsFromDOM() {
+  const tbody = document.getElementById("add-participants-grid-body");
+  if (!tbody) return;
+  const rows = [];
+  tbody.querySelectorAll("tr").forEach(tr => {
+    const fn = tr.querySelector(".grid-fullname")?.value || "";
+    const sid = tr.querySelector(".grid-studentid")?.value || "";
+    const em = tr.querySelector(".grid-email")?.value || "";
+    if (fn || sid || em) {
+      rows.push({ fullname: fn, studentId: sid, email: em });
+    }
+  });
+  if (rows.length > 0) {
+    participantGridRows = rows;
+  }
+}
+
+function renderParticipantGridRows() {
+  const tbody = document.getElementById("add-participants-grid-body");
+  const countBadge = document.getElementById("grid-row-count");
+  if (!tbody) return;
+
+  if (countBadge) countBadge.textContent = `${participantGridRows.length} rows`;
+
+  if (!participantGridRows.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="py-6 text-center text-slate-400 italic">No rows. Click "+ Add Row" or upload an Excel file above.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = participantGridRows.map((r, idx) => `
+    <tr class="border-b border-[#ecedfa] hover:bg-slate-50/50">
+      <td class="py-2 px-3 text-center text-slate-400 font-mono">${idx + 1}</td>
+      <td class="py-2 px-3">
+        <input class="grid-fullname w-full px-2.5 py-1.5 rounded-lg border border-[#e2e2eb] bg-white text-xs outline-none focus:border-primary transition-all font-medium text-slate-800" placeholder="e.g. Nguyen Van A" value="${(r.fullname || '').replace(/"/g, '&quot;')}" />
+      </td>
+      <td class="py-2 px-3">
+        <input class="grid-studentid w-full px-2.5 py-1.5 rounded-lg border border-[#e2e2eb] bg-white text-xs outline-none focus:border-primary transition-all font-mono font-semibold text-slate-800" placeholder="e.g. 102200001" value="${(r.studentId || '').replace(/"/g, '&quot;')}" />
+      </td>
+      <td class="py-2 px-3">
+        <input class="grid-email w-full px-2.5 py-1.5 rounded-lg border border-[#e2e2eb] bg-white text-xs outline-none focus:border-primary transition-all text-slate-700" placeholder="e.g. user@gmail.com" value="${(r.email || '').replace(/"/g, '&quot;')}" />
+      </td>
+      <td class="py-2 px-3 text-center">
+        <button type="button" class="grid-remove-row-btn w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors border-none bg-transparent cursor-pointer" data-idx="${idx}">
+          <i class="fa-solid fa-trash-can text-xs"></i>
+        </button>
+      </td>
+    </tr>
+  `).join("");
+
+  tbody.querySelectorAll(".grid-remove-row-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      syncGridRowsFromDOM();
+      const idx = parseInt(btn.dataset.idx);
+      if (!isNaN(idx)) {
+        participantGridRows.splice(idx, 1);
+        renderParticipantGridRows();
+      }
+    });
+  });
+
+  tbody.querySelectorAll("input").forEach(input => {
+    input.addEventListener("input", () => {
+      const feedback = document.getElementById("add-participants-feedback");
+      if (feedback) feedback.textContent = "";
+    });
+  });
+}
+
+function handleExcelFileSelect(file) {
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      if (!window.XLSX) {
+        alert("Excel parser library is loading. Please try again in a moment.");
+        return;
+      }
+      const data = new Uint8Array(e.target.result);
+      const workbook = window.XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      if (!sheetName) throw new Error("Excel file contains no sheets");
+
+      const sheet = workbook.Sheets[sheetName];
+      const rawRows = window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+      if (!rawRows || rawRows.length < 2) {
+        throw new Error("Excel sheet must contain a header row and at least one participant row");
+      }
+
+      let headerIndex = 0;
+      let headers = [];
+      for (let i = 0; i < rawRows.length; i++) {
+        const rowStr = rawRows[i].map(c => String(c).trim().toLowerCase()).join(" ");
+        if (rowStr.length > 0) {
+          headerIndex = i;
+          headers = rawRows[i].map(c => String(c).trim().toLowerCase());
+          break;
+        }
+      }
+
+      const fullnameKeywords = ["họ và tên", "ho va ten", "họ tên", "ho ten", "fullname", "full_name", "name", "tên", "ten"];
+      const studentIdKeywords = ["mã sinh viên", "ma sinh vien", "studentid", "student_id", "mssv", "mã sv", "ma sv", "stuid", "id"];
+      const emailKeywords = ["email", "mail", "e-mail", "địa chỉ email", "dia chi email"];
+
+      let fnCol = -1, sidCol = -1, emCol = -1;
+      headers.forEach((h, idx) => {
+        if (fnCol === -1 && fullnameKeywords.some(k => h.includes(k))) fnCol = idx;
+        if (sidCol === -1 && studentIdKeywords.some(k => h.includes(k))) sidCol = idx;
+        if (emCol === -1 && emailKeywords.some(k => h.includes(k))) emCol = idx;
+      });
+
+      if (fnCol === -1 && sidCol === -1 && emCol === -1) {
+        fnCol = 0; sidCol = 1; emCol = 2;
+      } else {
+        if (fnCol === -1) fnCol = 0;
+        if (sidCol === -1) sidCol = fnCol === 0 ? 1 : 0;
+        if (emCol === -1) {
+          for (let i = 0; i < headers.length; i++) {
+            if (i !== fnCol && i !== sidCol) { emCol = i; break; }
+          }
+        }
+      }
+
+      const parsedRows = [];
+      for (let i = headerIndex + 1; i < rawRows.length; i++) {
+        const row = rawRows[i];
+        if (!row || row.every(cell => String(cell).trim() === "")) continue;
+
+        const fn = fnCol >= 0 ? String(row[fnCol] || "").trim() : "";
+        const sid = sidCol >= 0 ? String(row[sidCol] || "").trim() : "";
+        const em = emCol >= 0 ? String(row[emCol] || "").trim() : "";
+
+        if (fn || sid || em) {
+          parsedRows.push({ fullname: fn, studentId: sid, email: em });
+        }
+      }
+
+      if (!parsedRows.length) {
+        throw new Error("No participant rows found in the selected file");
+      }
+
+      participantGridRows = parsedRows;
+      renderParticipantGridRows();
+
+      const banner = document.getElementById("parse-status-banner");
+      const title = document.getElementById("parse-status-title");
+      const desc = document.getElementById("parse-status-desc");
+      if (banner && title && desc) {
+        banner.classList.remove("hidden");
+        title.textContent = `Successfully parsed ${parsedRows.length} participants!`;
+        desc.textContent = `From file: ${file.name}. Review and modify the rows in the table below before clicking Save.`;
+      }
+    } catch (err) {
+      alert(err.message || "Failed to parse Excel file");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function downloadSampleExcelTemplate() {
+  if (!window.XLSX) {
+    alert("Export library is loading, please try again in a moment.");
+    return;
+  }
+  const headers = ["Họ và tên", "Mã sinh viên", "Email"];
+  const sampleData = [
+    headers,
+    ["Nguyễn Văn An", "102200001", "an.nguyen@example.com"],
+    ["Trần Thị Bình", "102200002", "binh.tran@example.com"],
+    ["Lê Hoàng Cường", "102200003", "cuong.le@example.com"]
+  ];
+
+  const ws = window.XLSX.utils.aoa_to_sheet(sampleData);
+  const wb = window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(wb, ws, "Participants");
+  window.XLSX.writeFile(wb, "SpringWave_Participants_Template.xlsx");
+}
+
+function initAddParticipantsModal() {
+  document.getElementById("open-add-participants-btn")?.addEventListener("click", openAddParticipantsModal);
+  document.getElementById("add-participants-close-btn")?.addEventListener("click", closeAddParticipantsModal);
+  document.getElementById("add-participants-cancel-btn")?.addEventListener("click", closeAddParticipantsModal);
+  document.getElementById("add-participants-backdrop")?.addEventListener("click", closeAddParticipantsModal);
+
+  document.getElementById("mode-manual-btn")?.addEventListener("click", () => switchAddParticipantsMode("manual"));
+  document.getElementById("mode-excel-btn")?.addEventListener("click", () => switchAddParticipantsMode("excel"));
+
+  const fileInput = document.getElementById("modal-excel-input");
+  fileInput?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (file) handleExcelFileSelect(file);
+  });
+
+  document.getElementById("download-template-btn")?.addEventListener("click", downloadSampleExcelTemplate);
+
+  document.getElementById("grid-add-row-btn")?.addEventListener("click", () => {
+    syncGridRowsFromDOM();
+    participantGridRows.push({ fullname: "", studentId: "", email: "" });
+    renderParticipantGridRows();
+    const container = document.querySelector("#add-participants-grid-body")?.closest(".overflow-y-auto");
+    if (container) setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
+  });
+
+  document.getElementById("grid-clear-btn")?.addEventListener("click", () => {
+    if (participantGridRows.length > 0 && !confirm("Clear all participant rows?")) return;
+    participantGridRows = [{ fullname: "", studentId: "", email: "" }];
+    renderParticipantGridRows();
+    const banner = document.getElementById("parse-status-banner");
+    if (banner) banner.classList.add("hidden");
+  });
+
+  document.getElementById("save-participants-batch-btn")?.addEventListener("click", async () => {
+    syncGridRowsFromDOM();
+    const eventId = document.getElementById("participant-event-select")?.value;
+    if (!eventId) return alert("Select an event first");
+
+    const nonEmpties = participantGridRows.filter(r => (r.fullname && r.fullname.trim()) || (r.studentId && r.studentId.trim()) || (r.email && r.email.trim()));
+    if (!nonEmpties.length) {
+      return alert("Please enter at least one participant (Full Name and MSSV are required).");
+    }
+
+    const invalid = nonEmpties.find(r => !r.fullname?.trim() || !r.studentId?.trim());
+    if (invalid) {
+      return alert("Each non-empty row must include both Full Name and Student ID (MSSV).");
+    }
+
+    const saveBtn = document.getElementById("save-participants-batch-btn");
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+
+    try {
+      const res = await addParticipantsBatch(eventId, nonEmpties);
+      const summary = res.summary || {};
+      let msg = res.message || "Participants added successfully!";
+      if (summary.totalRows) {
+        msg += `\n- Total: ${summary.totalRows}\n- System members matched: ${summary.matchedSystemUsers || 0}\n- External guests added: ${summary.createdExternalParticipants || 0}`;
+        if (summary.updatedExternalParticipants) {
+          msg += `\n- Existing guests updated: ${summary.updatedExternalParticipants}`;
+        }
+      }
+      if (summary.errors && summary.errors.length) {
+        msg += `\n\nWarnings:\n${summary.errors.slice(0, 5).join("\n")}`;
+      }
+
+      alert(msg);
+      participantGridRows = [];
+      closeAddParticipantsModal();
+      await loadParticipants(eventId);
+    } catch (err) {
+      alert(err.message || "Failed to save participants");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Save Participants`;
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -2293,49 +2810,6 @@ function initAttendanceButtons() {
         alert("Attendance initialized");
       } catch (err) {
         alert(err.message || "Failed to init attendance");
-      }
-    });
-  }
-
-  const excelInput = document.getElementById("excel-file-input");
-  if (excelInput) {
-    excelInput.addEventListener("change", async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      const eventId = document.getElementById("attendance-event-select")?.value;
-      if (!eventId) {
-        alert("Select an event first before importing Excel");
-        excelInput.value = "";
-        return;
-      }
-
-      if (!confirm(`Import Excel list for this event?\nFile: ${file.name}`)) {
-        excelInput.value = "";
-        return;
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const res = await importExcelAttendance(eventId, formData);
-        excelInput.value = "";
-
-        const summary = res.summary || {};
-        let msg = res.message || "Import completed!";
-        if (summary.totalRows) {
-          msg += `\n- Total rows: ${summary.totalRows}\n- System users matched: ${summary.matchedSystemUsers || 0}\n- External participants added: ${summary.createdExternalParticipants || 0}`;
-        }
-        if (summary.errors && summary.errors.length) {
-          msg += `\n\nWarnings/Errors:\n${summary.errors.slice(0, 5).join("\n")}`;
-        }
-
-        alert(msg);
-        await loadAttendance(eventId);
-      } catch (err) {
-        excelInput.value = "";
-        alert(err.message || "Failed to import Excel attendance list");
       }
     });
   }

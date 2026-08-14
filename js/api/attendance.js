@@ -1,4 +1,4 @@
-import { get, put, post, uploadFormData } from "./client.js";
+import { get, put, post, del, uploadFormData } from "./client.js";
 
 export function getAttendance(eventId) {
   return get(`/attendance/events/${eventId}/attendance`);
@@ -22,4 +22,16 @@ export function initAttendance(eventId) {
 
 export function importExcelAttendance(eventId, formData) {
   return uploadFormData(`/attendance/events/${eventId}/attendance/import-excel`, formData);
+}
+
+export function addParticipantsBatch(eventId, participants) {
+  return post(`/attendance/events/${eventId}/participants/batch`, { participants });
+}
+
+export function updateExternalParticipant(eventId, attendanceId, data) {
+  return put(`/attendance/events/${eventId}/external-participants/${attendanceId}`, data);
+}
+
+export function deleteExternalParticipant(eventId, attendanceId) {
+  return del(`/attendance/events/${eventId}/external-participants/${attendanceId}`);
 }
