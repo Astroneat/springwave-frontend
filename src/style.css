@@ -13523,3 +13523,17 @@ a.popup-host-row:hover .popup-host-avatar {
     }
 }
 
+.host-dashboard-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.host-dashboard-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.host-dashboard-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(28, 39, 76, 0.1);
+    border-radius: 4px;
+}
+.host-dashboard-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(28, 39, 76, 0.2);
+}
+
