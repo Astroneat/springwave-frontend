@@ -1,6 +1,6 @@
 import { getFavourites } from "../api/user.js";
 import { t } from "../lib/i18n.js";
-import { formatDate, capitalize } from "../lib/utils.js";
+import { formatDate, capitalize, getEventStatus } from "../lib/utils.js";
 import { isAuthenticated } from "../lib/session.js";
 
 let favouritesOverlay = null;
