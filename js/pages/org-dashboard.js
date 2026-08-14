@@ -1155,7 +1155,8 @@ async function loadParticipants(eventId) {
     const combinedMap = new Map();
 
     records.forEach(r => {
-      if (r.isExternal) {
+      const isExt = r.isExternal === true || Boolean(r.externalParticipant) || r.user?.isExternal === true || r.checkinMethod === 'excel_import' || r.checkinMethod === 'manual';
+      if (isExt) {
         const extId = r._id;
         combinedMap.set(`ext_${extId}`, {
           _id: extId,
@@ -1268,8 +1269,12 @@ function initEditExternalModal() {
     const email = document.getElementById("edit-ext-email")?.value.trim();
 
     if (!eventId || !attendanceId) return;
-    if (!fullname) return alert("Full Name is required");
-    if (!studentId) return alert("Student ID (MSSV) is required");
+    if (!fullname) return alert("Full Name is required.");
+    if (!studentId) return alert("Student ID (MSSV) is required.");
+    if (!email) return alert("Email is required.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return alert("Please enter a valid email address.");
+    }
 
     saveBtn.disabled = true;
     saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
@@ -1592,12 +1597,28 @@ function initAddParticipantsModal() {
 
     const nonEmpties = participantGridRows.filter(r => (r.fullname && r.fullname.trim()) || (r.studentId && r.studentId.trim()) || (r.email && r.email.trim()));
     if (!nonEmpties.length) {
-      return alert("Please enter at least one participant (Full Name and MSSV are required).");
+      return alert("Please enter at least one participant (Full Name, MSSV, and Email are required).");
     }
 
-    const invalid = nonEmpties.find(r => !r.fullname?.trim() || !r.studentId?.trim());
-    if (invalid) {
-      return alert("Each non-empty row must include both Full Name and Student ID (MSSV).");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (let i = 0; i < nonEmpties.length; i++) {
+      const row = nonEmpties[i];
+      const fn = (row.fullname || '').trim();
+      const sid = (row.studentId || '').trim();
+      const em = (row.email || '').trim().toLowerCase();
+
+      if (!fn) {
+        return alert(`Row ${i + 1}: Full Name is required.`);
+      }
+      if (!sid) {
+        return alert(`Row ${i + 1} (${fn}): Student ID (MSSV) is required.`);
+      }
+      if (!em) {
+        return alert(`Row ${i + 1} (${fn}): Email is required.`);
+      }
+      if (!emailRegex.test(em)) {
+        return alert(`Row ${i + 1} (${fn}): Invalid email format "${em}".`);
+      }
     }
 
     const saveBtn = document.getElementById("save-participants-batch-btn");
@@ -1607,13 +1628,27 @@ function initAddParticipantsModal() {
     try {
       const res = await addParticipantsBatch(eventId, nonEmpties);
       const summary = res.summary || {};
-      let msg = res.message || "Participants added successfully!";
-      if (summary.totalRows) {
-        msg += `\n- Total: ${summary.totalRows}\n- System members matched: ${summary.matchedSystemUsers || 0}\n- External guests added: ${summary.createdExternalParticipants || 0}`;
-        if (summary.updatedExternalParticipants) {
-          msg += `\n- Existing guests updated: ${summary.updatedExternalParticipants}`;
-        }
+      let msg = res.message || "Participants processed successfully!";
+      
+      const parts = [];
+      if (summary.totalRows !== undefined) parts.push(`• Total processed: ${summary.totalRows}`);
+      if (summary.matchedCount !== undefined) parts.push(`• SpringWave accounts matched (Member): ${summary.matchedCount}`);
+      if (summary.externalCount !== undefined) parts.push(`• External guests created (Guest): ${summary.externalCount}`);
+      
+      if (parts.length) {
+        msg += `\n\n` + parts.join("\n");
       }
+
+      if (summary.matchedList && summary.matchedList.length) {
+        msg += `\n\nSpringWave Members:\n- ` + summary.matchedList.slice(0, 5).join("\n- ");
+        if (summary.matchedList.length > 5) msg += `\n... và ${summary.matchedList.length - 5} người khác`;
+      }
+
+      if (summary.externalList && summary.externalList.length) {
+        msg += `\n\nExternal Guests (Editable ✏️):\n- ` + summary.externalList.slice(0, 5).join("\n- ");
+        if (summary.externalList.length > 5) msg += `\n... và ${summary.externalList.length - 5} người khác`;
+      }
+
       if (summary.errors && summary.errors.length) {
         msg += `\n\nWarnings:\n${summary.errors.slice(0, 5).join("\n")}`;
       }
