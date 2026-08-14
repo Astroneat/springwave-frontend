@@ -7,7 +7,7 @@ import { loadNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
 import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership, uploadOrgAvatar } from "../api/organizations.js";
-import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance, addParticipantsBatch, updateExternalParticipant, deleteExternalParticipant } from "../api/attendance.js";
+import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance, addParticipantsBatch, updateExternalParticipant, deleteExternalParticipant, removeParticipant } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates } from "../api/certificates.js";
 import { getHostReviews } from "../api/activities.js";
 import { getOrgAnalytics, getEventAnalytics, downloadOrgExcelReport, downloadEventExcelReport } from "../api/analytics.js";
@@ -1086,13 +1086,23 @@ function renderParticipantsTable(list) {
              title="Edit participant information">
              <i class="fa-solid fa-pen text-xs"></i>
            </button>
-           <button class="delete-ext-btn w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-200 cursor-pointer"
+           <button class="delete-participant-btn w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-200 cursor-pointer"
              data-id="${p.attendanceId || p._id}"
+             data-name="${encodeURIComponent(p.fullname || '')}"
+             data-is-external="true"
              title="Remove participant">
              <i class="fa-solid fa-trash-can text-xs"></i>
            </button>
          </div>`
-      : `<span class="text-slate-300 text-xs">—</span>`;
+      : `<div class="flex items-center justify-end gap-1.5">
+           <button class="delete-participant-btn w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-200 cursor-pointer"
+             data-id="${p._id || p.attendanceId}"
+             data-name="${encodeURIComponent(p.fullname || '')}"
+             data-is-external="false"
+             title="Remove participant & revoke QR ticket">
+             <i class="fa-solid fa-trash-can text-xs"></i>
+           </button>
+         </div>`;
 
     return `
       <tr class="border-b border-[#ecedfa] hover:bg-slate-50/60 transition-colors">
@@ -1125,14 +1135,22 @@ function renderParticipantsTable(list) {
     });
   });
 
-  tbody.querySelectorAll(".delete-ext-btn").forEach(btn => {
+  tbody.querySelectorAll(".delete-participant-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const id = btn.dataset.id;
+      const isExt = btn.dataset.isExternal === "true";
+      const name = decodeURIComponent(btn.dataset.name || "this participant");
       const eventId = document.getElementById("participant-event-select")?.value;
       if (!eventId || !id) return;
-      if (!confirm("Remove this external participant from the event?")) return;
+      
+      const confirmMsg = isExt
+        ? `Remove guest "${name}" from this event?`
+        : `Remove "${name}" from this event? This will revoke their QR ticket and cancel participation.`;
+      
+      if (!confirm(confirmMsg)) return;
+
       try {
-        await deleteExternalParticipant(eventId, id);
+        await removeParticipant(eventId, id);
         await loadParticipants(eventId);
       } catch (err) {
         alert(err.message || "Failed to remove participant");
@@ -1300,7 +1318,7 @@ function initEditExternalModal() {
 
     deleteBtn.disabled = true;
     try {
-      await deleteExternalParticipant(eventId, attendanceId);
+      await removeParticipant(eventId, attendanceId);
       closeEditExternalModal();
       await loadParticipants(eventId);
     } catch (err) {
