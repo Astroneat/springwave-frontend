@@ -869,7 +869,7 @@ export function initFormSubmit(orgId, onSuccess) {
 
         const isNonPartnerMode = form.querySelector('input[name="isNonPartnerMode"]:checked')?.value === 'true';
 
-        const orgIdVal = document.getElementById("org-id-value")?.value || urlOrgId;
+        const orgIdVal = document.getElementById("org-id-value")?.value || orgId;
 
         const formData = new FormData();
         formData.append("title", title);

@@ -6,7 +6,7 @@
         <div class="chatbot-header-text">
           <div class="chatbot-title">
             <span data-i18n="chatbot.title">SpringWave Assistant</span>
-            <span class="chatbot-badge">AI</span>
+            <span class="chatbot-badge">AI AGENT</span>
           </div>
           <div class="chatbot-status">
             <span class="status-dot"></span>
@@ -35,7 +35,7 @@
 
       <div class="message bot">
         <div class="message-content" data-i18n="chatbot.greeting">
-          Xin chào! Tôi là Trợ lý AI SpringWave. Bạn cần tìm kiếm sự kiện hay tư vấn thông tin gì hôm nay?
+          Xin chào! Tôi là Trợ lý AI Tự Hành SpringWave. Bạn cần tìm kiếm sự kiện, đăng ký vé, hay quản lý hoạt động gì hôm nay?
         </div>
       </div>
     </div>
@@ -45,8 +45,11 @@
       <button class="chip-btn" data-suggest="Sắp tới có sự kiện nào hot không?">
         <i class="fa-solid fa-fire text-amber-500"></i> Sự kiện sắp tới
       </button>
-      <button class="chip-btn" data-suggest="Hướng dẫn đăng ký tham gia sự kiện">
-        <i class="fa-solid fa-pen-to-square text-blue-500"></i> Đăng ký sự kiện
+      <button class="chip-btn" data-suggest="Cho mình xem vé đã đăng ký">
+        <i class="fa-solid fa-ticket text-blue-500"></i> Vé của tôi
+      </button>
+      <button class="chip-btn" data-suggest="Xem thống kê hoạt động của mình">
+        <i class="fa-solid fa-chart-pie text-emerald-500"></i> Thống kê
       </button>
       <button class="chip-btn" data-suggest="Cộng đồng thảo luận có gì mới?">
         <i class="fa-solid fa-comments text-indigo-500"></i> Thảo luận
@@ -56,9 +59,36 @@
     <!-- Input Bar -->
     <div class="chatbot-input-area">
       <div class="chatbot-input-wrapper">
-        <input type="text" class="chatbot-input" id="chatbot-input" data-i18n-placeholder="chatbot.input_placeholder" placeholder="Nhập tin nhắn..." autocomplete="off" />
+        <input type="text" class="chatbot-input" id="chatbot-input" data-i18n-placeholder="chatbot.input_placeholder" placeholder="Nhập tin nhắn (VD: Đăng ký sự kiện, xem vé...)" autocomplete="off" />
         <button class="chatbot-send" id="chatbot-send" title="Gửi tin nhắn">
           <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal (Embedded in Chatbot) -->
+  <div class="chatbot-qr-modal hidden" id="chatbot-qr-modal">
+    <div class="chatbot-qr-backdrop" id="chatbot-qr-backdrop"></div>
+    <div class="chatbot-qr-content">
+      <div class="chatbot-qr-header">
+        <div class="chatbot-qr-title">
+          <i class="fa-solid fa-qrcode text-blue-600"></i>
+          <span>Mã QR Check-in</span>
+        </div>
+        <button class="chatbot-qr-close" id="chatbot-qr-close" type="button" title="Đóng">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="chatbot-qr-body">
+        <h4 class="chatbot-qr-event-name" id="chatbot-qr-event-name">Tên sự kiện</h4>
+        <div class="chatbot-qr-img-wrapper">
+          <img src="" alt="QR Code Check-in" id="chatbot-qr-image" class="chatbot-qr-img" />
+        </div>
+        <div class="chatbot-qr-code-text" id="chatbot-qr-code-text">Mã vé: #------</div>
+        <p class="chatbot-qr-hint">Xuất trình mã này tại bàn tiếp đón của sự kiện để điểm danh nhanh chóng.</p>
+        <button type="button" class="chatbot-qr-download-btn" id="chatbot-qr-download-btn">
+          <i class="fa-solid fa-download"></i> Tải ảnh QR Code
         </button>
       </div>
     </div>

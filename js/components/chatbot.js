@@ -23,6 +23,16 @@ function formatCardDate(dateStr) {
   return dateStr;
 }
 
+function escapeHtml(text) {
+  if (!text) return "";
+  const d = document.createElement("div");
+  d.textContent = String(text);
+  return d.innerHTML;
+}
+
+/**
+ * 1. Standard Event Card Renderer
+ */
 function renderEventCardFromJSON(data) {
   const cleanId = escapeHtml(String(data.id || data.eventId || "").trim());
   if (!cleanId) return "";
@@ -81,14 +91,235 @@ function renderEventCardFromJSON(data) {
   return html.replace(/\n/g, " ");
 }
 
+/**
+ * 2. Agentic Action Cards Renderer
+ */
+function renderActionCardFromJSON(data) {
+  if (!data || typeof data !== "object") return "";
+
+  const cardType = data.type || "action_success";
+
+  // CASE A: Ticket Card (Register Success / My Ticket)
+  if (cardType === "ticket_card") {
+    const event = data.event || {};
+    const ticket = data.ticket || {};
+    const cleanId = escapeHtml(event.id || "");
+    const cleanTitle = escapeHtml(event.title || "Sự kiện");
+    const cleanTime = escapeHtml(formatCardDate(event.heldDate || ""));
+    const cleanLocation = escapeHtml(event.location || "Chưa cập nhật");
+    const ticketCode = escapeHtml(ticket.ticketCode || "TICKET");
+    const qrImageUrl = escapeHtml(ticket.qrImageUrl || "");
+
+    return `
+    <div class="chatbot-action-card card-ticket" data-event-id="${cleanId}">
+      <div class="action-card-header">
+        <span class="action-card-badge-ticket"><i class="fa-solid fa-ticket"></i> VÉ THAM GIA HỢP LỆ</span>
+        <span class="action-ticket-code">#${ticketCode}</span>
+      </div>
+      <div class="action-card-body">
+        <h4 class="action-card-title">${cleanTitle}</h4>
+        <div class="action-card-meta">
+          ${cleanTime ? `<div class="meta-item"><i class="fa-regular fa-calendar text-blue-500"></i> <span>${cleanTime}</span></div>` : ''}
+          ${cleanLocation ? `<div class="meta-item"><i class="fa-solid fa-location-dot text-red-500"></i> <span>${cleanLocation}</span></div>` : ''}
+        </div>
+      </div>
+      <div class="action-card-actions">
+        ${qrImageUrl ? `
+          <button type="button" class="action-btn-primary" data-action-qr="${qrImageUrl}" data-ticket-code="${ticketCode}" data-event-title="${cleanTitle}">
+            <i class="fa-solid fa-qrcode"></i> <span>Mở mã QR Check-in</span>
+          </button>
+        ` : ''}
+        ${cleanId ? `
+          <button type="button" class="action-btn-secondary" data-event-id="${cleanId}">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Chi tiết sự kiện</span>
+          </button>
+        ` : ''}
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // CASE B: Schedule Conflict Card
+  if (cardType === "conflict_card") {
+    const target = data.targetEvent || {};
+    const conflict = data.conflictingEvent || {};
+    const targetId = escapeHtml(target.id || "");
+    const targetTitle = escapeHtml(target.title || "Sự kiện mới");
+    const targetTime = escapeHtml(formatCardDate(target.heldDate || ""));
+    const conflictTitle = escapeHtml(conflict.title || "Sự kiện đã đăng ký");
+    const conflictTime = escapeHtml(formatCardDate(conflict.heldDate || ""));
+
+    return `
+    <div class="chatbot-action-card card-conflict">
+      <div class="action-card-header header-warning">
+        <span class="action-card-badge-warning"><i class="fa-solid fa-triangle-exclamation"></i> CẢNH BÁO TRÙNG LỊCH</span>
+      </div>
+      <div class="action-card-body">
+        <p class="conflict-desc">Mốc thời gian của sự kiện mới bị trùng với sự kiện bạn đã đăng ký trước đó:</p>
+        <div class="conflict-item target">
+          <div class="conflict-tag">Sự kiện mới:</div>
+          <div class="conflict-title font-semibold">${targetTitle}</div>
+          <div class="conflict-time text-xs text-slate-500">${targetTime}</div>
+        </div>
+        <div class="conflict-item existing">
+          <div class="conflict-tag">Đã đăng ký trước:</div>
+          <div class="conflict-title font-semibold">${conflictTitle}</div>
+          <div class="conflict-time text-xs text-slate-500">${conflictTime}</div>
+        </div>
+      </div>
+      <div class="action-card-actions">
+        <button type="button" class="action-btn-confirm" data-action-conflict-confirm="true" data-event-id="${targetId}">
+          <i class="fa-solid fa-bolt"></i> <span>Vẫn muốn đăng ký</span>
+        </button>
+        <button type="button" class="action-btn-cancel" data-action-conflict-cancel="true">
+          <i class="fa-solid fa-xmark"></i> <span>Bỏ qua</span>
+        </button>
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // CASE C: My Tickets List
+  if (cardType === "my_tickets_list") {
+    const tickets = Array.isArray(data.tickets) ? data.tickets : [];
+    if (tickets.length === 0) {
+      return `
+      <div class="chatbot-action-card card-empty">
+        <i class="fa-solid fa-ticket-simple text-3xl text-slate-300 mb-2"></i>
+        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || "Bạn chưa có vé tham gia sự kiện nào còn hiệu lực.")}</p>
+      </div>`.replace(/\n/g, " ");
+    }
+
+    const itemsHtml = tickets.map(t => {
+      const ev = t.event || {};
+      const evTitle = escapeHtml(ev.title || "Sự kiện");
+      const evTime = escapeHtml(formatCardDate(ev.heldDate || ""));
+      const tCode = escapeHtml(t.ticketCode || "");
+      const qrUrl = escapeHtml(t.qrImageUrl || "");
+      const evId = escapeHtml(ev.id || "");
+
+      return `
+      <div class="ticket-row-item">
+        <div class="ticket-row-info">
+          <div class="ticket-row-title">${evTitle}</div>
+          <div class="ticket-row-time text-xs text-slate-500">${evTime}</div>
+          <span class="ticket-row-code">#${tCode}</span>
+        </div>
+        <div class="ticket-row-btn-group">
+          ${qrUrl ? `<button type="button" class="ticket-row-qr-btn" data-action-qr="${qrUrl}" data-ticket-code="${tCode}" data-event-title="${evTitle}"><i class="fa-solid fa-qrcode"></i></button>` : ''}
+          ${evId ? `<button type="button" class="ticket-row-view-btn" data-event-id="${evId}"><i class="fa-solid fa-eye"></i></button>` : ''}
+        </div>
+      </div>`;
+    }).join("");
+
+    return `
+    <div class="chatbot-action-card card-tickets-list">
+      <div class="action-card-header">
+        <span class="action-card-badge-ticket"><i class="fa-solid fa-list-check"></i> VÉ ĐÃ ĐĂNG KÝ (${tickets.length})</span>
+      </div>
+      <div class="tickets-list-scroll">
+        ${itemsHtml}
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // CASE D: Favorite Confirmation
+  if (cardType === "favorite_confirm") {
+    const isFav = Boolean(data.isFavorite);
+    const ev = data.event || {};
+    const evTitle = escapeHtml(ev.title || "Sự kiện");
+
+    return `
+    <div class="chatbot-action-card card-favorite">
+      <div class="favorite-icon-box ${isFav ? 'fav-added' : 'fav-removed'}">
+        <i class="fa-solid fa-heart"></i>
+      </div>
+      <div class="favorite-content">
+        <h4 class="action-card-title">${evTitle}</h4>
+        <p class="text-xs text-slate-600">${escapeHtml(data.message || "")}</p>
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // CASE E: Extracurricular Stats
+  if (cardType === "user_stats") {
+    const stats = data.stats || {};
+    return `
+    <div class="chatbot-action-card card-stats">
+      <div class="action-card-header">
+        <span class="action-card-badge-ticket"><i class="fa-solid fa-chart-pie"></i> THỐNG KÊ HOẠT ĐỘNG</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-val text-blue-600">${stats.activeTickets || 0}</div>
+          <div class="stat-label">Vé hiệu lực</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val text-emerald-600">${stats.attendedEvents || 0}</div>
+          <div class="stat-label">Đã tham gia</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val text-purple-600">${stats.certificates || 0}</div>
+          <div class="stat-label">Chứng nhận</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val text-rose-500">${stats.favoritesCount || 0}</div>
+          <div class="stat-label">Yêu thích</div>
+        </div>
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // CASE F: General Success or Error
+  if (cardType === "action_error") {
+    return `
+    <div class="chatbot-action-card card-error">
+      <div class="action-card-header header-error">
+        <span class="action-card-badge-error"><i class="fa-solid fa-circle-exclamation"></i> THÔNG BÁO</span>
+      </div>
+      <div class="action-card-body">
+        <p class="text-xs leading-relaxed text-rose-800">${escapeHtml(data.message || "Không thể thực hiện hành động này.")}</p>
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // Fallback: Success Card
+  return `
+  <div class="chatbot-action-card card-success">
+    <div class="action-card-header header-success">
+      <span class="action-card-badge-success"><i class="fa-solid fa-circle-check"></i> THỰC HIỆN THÀNH CÔNG</span>
+    </div>
+    <div class="action-card-body">
+      <p class="text-xs leading-relaxed text-emerald-800">${escapeHtml(data.message || "Hành động đã hoàn tất.")}</p>
+    </div>
+  </div>`.replace(/\n/g, " ");
+}
+
+/**
+ * Format message content: parses Markdown, JSON blocks, Action cards, Event cards
+ */
 function formatMessageContent(text) {
   if (!text) return "";
 
   const cardsMap = {};
   let cardIndex = 0;
 
-  // 0. Extract ```json:event ... ``` or ```json ... ``` blocks BEFORE HTML escaping
-  let rawProcessed = text.replace(/```json(?::event)?\s*([\s\S]*?)\s*```/gi, (match, jsonString) => {
+  // 0. Extract ```json:action ... ``` blocks BEFORE HTML escaping
+  let rawProcessed = text.replace(/```json:action\s*([\s\S]*?)\s*```/gi, (match, jsonString) => {
+    try {
+      const decodedJson = jsonString.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+      const data = JSON.parse(decodedJson.trim());
+      if (data) {
+        const placeholder = `___ACTION_CARD_TOKEN_${cardIndex++}___`;
+        cardsMap[placeholder] = renderActionCardFromJSON(data);
+        return placeholder;
+      }
+    } catch (err) {
+      console.warn("Error parsing JSON action block in chatbot:", err);
+    }
+    return "";
+  });
+
+  // 1. Extract ```json:event ... ``` or ```json ... ``` blocks BEFORE HTML escaping
+  rawProcessed = rawProcessed.replace(/```json(?::event)?\s*([\s\S]*?)\s*```/gi, (match, jsonString) => {
     try {
       const decodedJson = jsonString.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
       const data = JSON.parse(decodedJson.trim());
@@ -105,9 +336,9 @@ function formatMessageContent(text) {
 
   let safe = escapeHtml(rawProcessed);
 
-  // 1. Match custom All-In-One Light Event Card syntax: [EVENT_CARD:id|title|type|status|time|location|desc]
+  // 2. Match custom All-In-One Light Event Card syntax: [EVENT_CARD:id|title|type|status|time|location|desc]
   safe = safe.replace(/\[EVENT_CARD:([^|]+)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^\]]*)\]/g,
-    (match, id, title, type, status, time, location, desc) => {
+    (match, id, title, type, status, time, location) => {
       const cleanId = id.trim();
       const cleanTitle = title.trim() || "Sự kiện";
       const cleanType = type.trim() || "Event";
@@ -121,7 +352,7 @@ function formatMessageContent(text) {
     }
   );
 
-  // 2. Replace Markdown links with event ID: [label](/explore.html?id=xxx)
+  // 3. Replace Markdown links with event ID: [label](/explore.html?id=xxx)
   safe = safe.replace(/(?:👉\s*)?\[([^\]]+)\]\(([^)]+)\)\s*(?:[-─➔➜➔→>]*)/gi, (match, label, url) => {
     const eventIdMatch = url.match(/[?&]id=([a-f0-9]{24})/i);
     if (eventIdMatch) {
@@ -137,7 +368,7 @@ function formatMessageContent(text) {
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary font-medium underline hover:text-primary-dark">${label}</a>`;
   });
 
-  // 3. Handle plain text "View Details ->" or "Xem chi tiết ->" when NOT inside a markdown link
+  // 4. Handle plain text "View Details ->" or "Xem chi tiết ->" when NOT inside a markdown link
   safe = safe.replace(/(?:👉\s*)?(View Details|Xem chi tiết sự kiện|Xem chi tiết)\s*(?:[-─➔➜➔→>]+)?/gi, (match, textLabel) => {
     const cleanLabel = textLabel.trim() || "Xem chi tiết sự kiện";
     const placeholder = `___EVENT_BTN_TOKEN_${cardIndex++}___`;
@@ -157,7 +388,7 @@ function formatMessageContent(text) {
   // Newlines -> <br>
   safe = safe.replace(/\n/g, "<br>");
 
-  // Re-inject rendered event cards & button tokens cleanly
+  // Re-inject rendered event cards, action cards & button tokens cleanly
   Object.keys(cardsMap).forEach(token => {
     safe = safe.replace(token, cardsMap[token]);
   });
@@ -168,17 +399,97 @@ function formatMessageContent(text) {
   return safe;
 }
 
+/**
+ * QR Code Modal Handlers
+ */
+function openQrModal(qrImageUrl, ticketCode, eventTitle) {
+  const modal = document.getElementById("chatbot-qr-modal");
+  const img = document.getElementById("chatbot-qr-image");
+  const codeText = document.getElementById("chatbot-qr-code-text");
+  const titleText = document.getElementById("chatbot-qr-event-name");
+  const downloadBtn = document.getElementById("chatbot-qr-download-btn");
+
+  if (!modal || !img) return;
+
+  img.src = qrImageUrl || "";
+  if (codeText) codeText.textContent = `Mã vé: #${ticketCode || "------"}`;
+  if (titleText) titleText.textContent = eventTitle || "Sự kiện SpringWave";
+
+  if (downloadBtn) {
+    downloadBtn.onclick = () => {
+      const a = document.createElement("a");
+      a.href = qrImageUrl;
+      a.download = `SpringWave_QR_${ticketCode || "Ticket"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+  }
+
+  modal.classList.remove("hidden");
+}
+
+function closeQrModal() {
+  const modal = document.getElementById("chatbot-qr-modal");
+  if (modal) modal.classList.add("hidden");
+}
+
+/**
+ * Global Event Delegations inside Chatbot
+ */
 function bindMessageClicks() {
   const container = document.getElementById("chatbot-messages");
   if (container && !container.dataset.boundClicks) {
     container.addEventListener("click", (e) => {
+      // 1. QR Code Button Click
+      const qrBtn = e.target.closest("[data-action-qr]");
+      if (qrBtn) {
+        e.stopPropagation();
+        const qrUrl = qrBtn.dataset.actionQr;
+        const code = qrBtn.dataset.ticketCode || "";
+        const title = qrBtn.dataset.eventTitle || "";
+        openQrModal(qrUrl, code, title);
+        return;
+      }
+
+      // 2. Conflict Confirm Button Click -> Send force registration message
+      const conflictConfirmBtn = e.target.closest("[data-action-conflict-confirm]");
+      if (conflictConfirmBtn) {
+        e.stopPropagation();
+        const input = document.getElementById("chatbot-input");
+        if (input) {
+          input.value = "Xác nhận đăng ký dù trùng lịch";
+          sendMessage();
+        }
+        return;
+      }
+
+      // 3. Conflict Cancel Button Click
+      const conflictCancelBtn = e.target.closest("[data-action-conflict-cancel]");
+      if (conflictCancelBtn) {
+        e.stopPropagation();
+        const input = document.getElementById("chatbot-input");
+        if (input) {
+          input.value = "Không đăng ký sự kiện này nữa";
+          sendMessage();
+        }
+        return;
+      }
+
+      // 4. Standard Event Card / Details Button Click
       const card = e.target.closest("[data-event-id]");
-      if (card && card.dataset.eventId) {
+      if (card && card.dataset.eventId && !e.target.closest("button:not(.chat-event-btn-blue):not(.chat-event-btn-action):not(.action-btn-secondary):not(.ticket-row-view-btn)")) {
         openEventPopup(card.dataset.eventId);
       }
     });
     container.dataset.boundClicks = "true";
   }
+
+  // QR Modal Close Buttons
+  const qrClose = document.getElementById("chatbot-qr-close");
+  const qrBackdrop = document.getElementById("chatbot-qr-backdrop");
+  if (qrClose) qrClose.onclick = closeQrModal;
+  if (qrBackdrop) qrBackdrop.onclick = closeQrModal;
 }
 
 function loadHistoryFromStorage() {
@@ -300,7 +611,7 @@ function restoreMessages() {
 
   const defaultGreeting = document.createElement("div");
   defaultGreeting.className = "message bot";
-  defaultGreeting.innerHTML = `<div class="message-content" data-i18n="chatbot.greeting">${t("chatbot.greeting", {}, "Xin chào! Tôi là Trợ lý AI SpringWave. Bạn cần tìm kiếm sự kiện hay tư vấn thông tin gì hôm nay?")}</div>`;
+  defaultGreeting.innerHTML = `<div class="message-content" data-i18n="chatbot.greeting">${t("chatbot.greeting", {}, "Xin chào! Tôi là Trợ lý AI Tự Hành SpringWave. Bạn cần tìm kiếm sự kiện, đăng ký vé, hay quản lý hoạt động gì hôm nay?")}</div>`;
 
   if (conversationHistory.length === 0) {
     container.appendChild(defaultGreeting);
@@ -324,12 +635,6 @@ function toggleSuggestions(show) {
   if (sug) {
     sug.style.display = show ? "flex" : "none";
   }
-}
-
-function escapeHtml(text) {
-  const d = document.createElement("div");
-  d.textContent = text;
-  return d.innerHTML;
 }
 
 function toggleChat() {
@@ -359,7 +664,7 @@ async function sendMessage() {
   saveHistoryToStorage();
 
   if (!isAuthenticated()) {
-    addMessage("assistant", t("chatbot.login_required"));
+    addMessage("assistant", t("chatbot.login_required", {}, "Bạn cần đăng nhập tài khoản SpringWave để sử dụng đầy đủ các tính năng tự hành và tương tác này nhé!"));
     saveHistoryToStorage();
     return;
   }
@@ -382,7 +687,7 @@ async function sendMessage() {
     saveHistoryToStorage();
   } catch (err) {
     msgEl.classList.remove("typing");
-    msgEl.querySelector(".message-content").textContent = t("chatbot.error");
+    msgEl.querySelector(".message-content").textContent = t("chatbot.error", {}, "Đã xảy ra lỗi khi kết nối tới Trợ lý AI. Vui lòng thử lại sau.");
   }
 
   document.getElementById("chatbot-messages").scrollTop =

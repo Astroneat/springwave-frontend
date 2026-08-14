@@ -16,7 +16,8 @@ import {
     initCheckinRulesToggle,
     initTimePicker,
     initEventModeSelector,
-    initEditMode
+    initEditMode,
+    initTurnstile
 } from "../lib/hostForm.js";
 
 let currentTab = "pending";
@@ -693,6 +694,7 @@ export async function openEventModal(eventId = null) {
     initEventModeSelector();
     initCheckinRulesToggle();
     await initOrgSelector();
+    initTurnstile();
 
     setTimeout(() => {
         mapInstance = initMapPicker();
