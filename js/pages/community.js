@@ -257,28 +257,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else {
     discussions = await getDiscussionsByCategory(category);
   }
-  window._currentDiscussions = discussions;
-  await loadSavedDiscussionIds();
-  await enrichDiscussionsEventData(discussions);
 
-  const storedDiscRaw = localStorage.getItem("springwave_event_discussions");
-  if (storedDiscRaw) {
-    try {
-      const storedDiscs = JSON.parse(storedDiscRaw).filter(sd => {
-        const age = Date.now() - (sd._storedAt || 0);
-        return age < 7 * 24 * 60 * 60 * 1000; // remove entries older than 7 days
-      });
-      for (const sd of storedDiscs) {
-        const existing = discussions.findIndex(d => (d.id || d._id) === (sd.id || sd._id));
-        if (existing !== -1) {
-          discussions[existing]._event = sd._event;
-          discussions[existing].relatedEvent = sd.relatedEvent || discussions[existing].relatedEvent;
-        } else {
-          delete sd._storedAt;
-          discussions.unshift(sd);
+  if (category === "event") {
+    const storedDiscRaw = localStorage.getItem("springwave_event_discussions");
+    if (storedDiscRaw) {
+      try {
+        const storedDiscs = JSON.parse(storedDiscRaw).filter(sd => {
+          const age = Date.now() - (sd._storedAt || 0);
+          return age < 7 * 24 * 60 * 60 * 1000; // remove entries older than 7 days
+        });
+        for (const sd of storedDiscs) {
+          const existing = discussions.findIndex(d => (d.id || d._id) === (sd.id || sd._id));
+          if (existing !== -1) {
+            discussions[existing]._event = sd._event;
+            discussions[existing].relatedEvent = sd.relatedEvent || discussions[existing].relatedEvent;
+          } else {
+            delete sd._storedAt;
+            discussions.unshift(sd);
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
   }
 
   const pendingRaw = sessionStorage.getItem("springwave_pending_discussion");
@@ -294,6 +293,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     } catch {}
   }
+
+  // Strict category filtering
+  if (category === "all") {
+    discussions = discussions.filter(d => d.category !== "event");
+  } else if (category === "skills" || category === "uni" || category === "event") {
+    discussions = discussions.filter(d => d.category === category);
+  }
+
+  window._currentDiscussions = discussions;
+  await loadSavedDiscussionIds();
+  await enrichDiscussionsEventData(discussions);
 
   renderDiscussions(discussions, category);
   initFeedTabs();

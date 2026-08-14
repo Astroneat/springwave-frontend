@@ -142,15 +142,11 @@ html, body, button, input, select, textarea {
 ========================= */
 
 .text-gradient {
-    background: linear-gradient(135deg, #1755ba 0%, #3b6fd4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #1755ba;
 }
 
 .text-gradient-fire {
-    background: linear-gradient(135deg, #1755ba 0%, #bef264 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #1755ba;
 }
 
 /* =========================
@@ -285,7 +281,7 @@ html, body, button, input, select, textarea {
 
 /* ===== AUTH LOGIN BUTTON ===== */
 .login-btn {
-    background: linear-gradient(135deg, #23499b, #3b6fd4);
+    background: #23499b;
     @apply text-white font-body-md text-sm font-semibold py-2.5 px-6 rounded-full no-underline tracking-wider inline-flex items-center gap-2;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 4px 15px rgba(35, 73, 155, 0.25);
@@ -474,7 +470,7 @@ html, body, button, input, select, textarea {
 
 .chatbot-bubble {
     @apply relative w-14 h-14 rounded-full text-white flex items-center justify-center cursor-pointer text-2xl shrink-0;
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #4f46e5 100%);
+    background: #266ebe;
     box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(37, 99, 235, 0.2);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -525,7 +521,7 @@ html, body, button, input, select, textarea {
 
 .chatbot-header {
     @apply py-4 px-5 text-white flex justify-between items-center shrink-0 relative overflow-hidden;
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #4f46e5 100%);
+    background: #1c5290;
     box-shadow: 0 4px 15px rgba(30, 58, 138, 0.15);
 }
 
@@ -621,7 +617,7 @@ html, body, button, input, select, textarea {
 }
 
 .message.user .message-content {
-    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+    background: #3489e1;
     color: #ffffff;
     border-bottom-right-radius: 4px;
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
@@ -679,7 +675,7 @@ html, body, button, input, select, textarea {
 
 .chatbot-send {
     @apply w-9 h-9 rounded-xl border-none text-white text-sm cursor-pointer flex items-center justify-center shrink-0 transition-all;
-    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    background: #266ebe;
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
@@ -750,7 +746,7 @@ html, body, button, input, select, textarea {
     font-size: 12px !important;
     font-weight: 700 !important;
     color: #ffffff !important;
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b6fd4 100%) !important;
+    background: #1c5290 !important;
     border: none !important;
     border-radius: 10px !important;
     cursor: pointer !important;
@@ -763,7 +759,7 @@ html, body, button, input, select, textarea {
 .chat-event-btn:hover,
 .chat-event-btn-blue:hover,
 .chat-event-btn-action:hover {
-    background: linear-gradient(135deg, #172554 0%, #1d4ed8 50%, #2563eb 100%) !important;
+    background: #266ebe !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 6px 16px rgba(30, 58, 138, 0.35) !important;
     color: #ffffff !important;
@@ -783,9 +779,9 @@ html, body, button, input, select, textarea {
     transition: transform 0.2s ease !important;
 }
 
-.chat-event-btn:hover i:last-child,
-.chat-event-btn-blue:hover i:last-child,
-.chat-event-btn-action:hover i:last-child {
+.chat-event-btn:hover > i:last-child,
+.chat-event-btn-blue:hover > i:last-child,
+.chat-event-btn-action:hover > i:last-child {
     transform: translateX(4px) !important;
 }
 
@@ -988,7 +984,7 @@ html, body, button, input, select, textarea {
     font-size: 12px;
     font-weight: 700;
     color: #ffffff !important;
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    background: #4f46e5;
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -998,7 +994,7 @@ html, body, button, input, select, textarea {
 }
 
 .action-btn-external:hover {
-    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+    background: #4338ca;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
     color: #ffffff !important;
@@ -1095,7 +1091,7 @@ html, body, button, input, select, textarea {
     font-size: 12px;
     font-weight: 700;
     color: #ffffff;
-    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    background: #1e40af;
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -1104,7 +1100,7 @@ html, body, button, input, select, textarea {
 }
 
 .action-btn-primary:hover {
-    background: linear-gradient(135deg, #172554 0%, #1d4ed8 100%);
+    background: #172554;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
@@ -1177,7 +1173,7 @@ html, body, button, input, select, textarea {
     font-size: 12px;
     font-weight: 700;
     color: #ffffff;
-    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    background: #d97706;
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -1508,7 +1504,7 @@ html, body, button, input, select, textarea {
     font-size: 12px;
     font-weight: 700;
     color: #ffffff;
-    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+    background: #2563eb;
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -1761,7 +1757,7 @@ html, body, button, input, select, textarea {
 
 .footer {
     @apply mt-[120px] relative overflow-hidden;
-    background: linear-gradient(180deg, #0f172a, #09101f);
+    background: #0f172a;
     color: rgba(255, 255, 255, 0.9);
     padding: 40px 80px 30px;
 }
@@ -1907,7 +1903,7 @@ html, body, button, input, select, textarea {
 
 .profile-header-cover {
     height: 120px;
-    background: linear-gradient(135deg, #3b6fd4 0%, #7c3aed 100%);
+    background: #3b6fd4;
     opacity: 0.85;
     position: relative;
     overflow: hidden;
@@ -1947,7 +1943,7 @@ html, body, button, input, select, textarea {
     position: absolute;
     inset: -4px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3b6fd4, #7c3aed);
+    background: #3b6fd4;
     animation: rotate-glow 8s infinite linear;
     z-index: -1;
     opacity: 0.75;
@@ -2409,7 +2405,7 @@ html, body, button, input, select, textarea {
 
 .icon-btn {
     @apply border-0 h-[36px] px-[14px] rounded-[10px] cursor-pointer flex items-center justify-center gap-1.5 text-[11px] font-semibold text-white;
-    background: linear-gradient(135deg, #10B981, #34D399);
+    background: #10B981;
     transition: opacity 0.2s, transform 0.15s;
     box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
 }
@@ -2425,7 +2421,7 @@ html, body, button, input, select, textarea {
 
 .discuss-btn {
     @apply border-none h-[36px] px-[14px] rounded-[10px] cursor-pointer flex items-center justify-center gap-1.5 text-[11px] font-semibold text-white shrink-0;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     transition: opacity 0.2s, transform 0.15s;
     box-shadow: 0 2px 8px rgba(35, 73, 155, 0.25);
 }
@@ -2440,7 +2436,7 @@ html, body, button, input, select, textarea {
 
 .delete-btn {
     @apply border-0 h-[36px] px-[14px] rounded-[10px] cursor-pointer flex items-center justify-center gap-1.5 text-[11px] font-semibold text-white;
-    background: linear-gradient(135deg, #dc2626, #ef4444);
+    background: #dc2626;
     transition: opacity 0.2s, transform 0.15s;
     box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
 }
@@ -2716,13 +2712,13 @@ html, body, button, input, select, textarea {
 }
 
 .action-btn.discuss {
-    background: linear-gradient(135deg, #3493fa 0%, #1c274c 100%) !important;
+    background: #3493fa !important;
     color: #ffffff !important;
     box-shadow: 0 4px 14px rgba(52, 147, 250, 0.3) !important;
 }
 
 .action-btn.participate {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    background: #10b981 !important;
     color: #ffffff !important;
     border: none !important;
     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
@@ -3194,7 +3190,7 @@ html, body, button, input, select, textarea {
 .search-btn {
     height: calc(67px - 20px);
     @apply px-7 mx-2.5 border-none rounded-full text-white text-base font-bold flex justify-center items-center gap-2.5 cursor-pointer shrink-0 relative overflow-hidden;
-    background: linear-gradient(135deg, #3B6FD4, #2A55B0);
+    background: #3B6FD4;
     box-shadow: 0 8px 24px rgb(59 111 212 / 14%);
     transition: transform 0.25s cubic-bezier(.22, 1, .36, 1), box-shadow 0.25s ease;
 }
@@ -4524,17 +4520,17 @@ html, body, button, input, select, textarea {
 .match-bar-fill {
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, var(--brand), var(--brand-light));
+    background: var(--brand);
     transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
     width: 0;
 }
 
 .match-bar-fill.high {
-    background: linear-gradient(90deg, #059669, #10b981);
+    background: #059669;
 }
 
 .match-bar-fill.medium {
-    background: linear-gradient(90deg, #d97706, #f59e0b);
+    background: #d97706;
 }
 
 /* =========================
@@ -4562,7 +4558,7 @@ html, body, button, input, select, textarea {
 
 .step-number {
     @apply w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6;
-    background: linear-gradient(135deg, var(--brand), var(--brand-light));
+    background: var(--brand);
     box-shadow: 0 4px 16px rgba(35, 73, 155, 0.2);
 }
 
@@ -4576,7 +4572,7 @@ html, body, button, input, select, textarea {
    ========================= */
 
 .stats-bg {
-    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    background: var(--brand);
 }
 
 .stat-card {
@@ -4708,7 +4704,7 @@ html, body, button, input, select, textarea {
 .skill-fill {
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, var(--brand), var(--brand-light));
+    background: var(--brand);
     width: 0;
     transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -4823,7 +4819,7 @@ html, body, button, input, select, textarea {
 
 .testimonial-avatar {
     @apply w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0;
-    background: linear-gradient(135deg, var(--brand), var(--brand-light));
+    background: var(--brand);
 }
 
 .testimonial-name {
@@ -4863,7 +4859,7 @@ html, body, button, input, select, textarea {
 
 .footer-brand-icon {
     @apply w-9 h-9 rounded-xl flex items-center justify-center;
-    background: linear-gradient(135deg, var(--brand), var(--brand-light));
+    background: var(--brand);
     box-shadow: 0 4px 12px rgba(35, 73, 155, 0.2);
 }
 
@@ -5204,19 +5200,19 @@ html, body, button, input, select, textarea {
 }
 
 .exp-fill.communication {
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    background: #3b82f6;
 }
 
 .exp-fill.technical {
-    background: linear-gradient(90deg, #ef4444, #f87171);
+    background: #ef4444;
 }
 
 .exp-fill.creativity {
-    background: linear-gradient(90deg, #f97316, #fb923c);
+    background: #f97316;
 }
 
 .exp-fill.social {
-    background: linear-gradient(90deg, #22c55e, #4ade80);
+    background: #22c55e;
 }
 
 .exp-info {
@@ -5418,7 +5414,7 @@ html, body, button, input, select, textarea {
 
 .forum-hero {
     @apply relative pt-[120px] pb-16 px-6 md:px-12 overflow-hidden;
-    background: linear-gradient(180deg, #f0f4ff 0%, #f8fafc 100%);
+    background: #f0f4ff;
 }
 
 .forum-hero-bg {
@@ -5453,7 +5449,7 @@ html, body, button, input, select, textarea {
 
 .forum-hero-btn-primary {
     @apply inline-flex items-center gap-2 py-3 px-7 rounded-full text-white font-bold text-base border-none cursor-pointer;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     box-shadow: 0 4px 20px rgba(35, 73, 155, 0.25);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -5670,7 +5666,7 @@ html, body, button, input, select, textarea {
 }
 .forum-status-avatar {
     @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     overflow: hidden;
 }
 .forum-status-placeholder {
@@ -5678,7 +5674,7 @@ html, body, button, input, select, textarea {
 }
 .forum-status-post-btn {
     @apply flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     transition: opacity 0.2s, transform 0.15s;
 }
 .forum-status-post-btn:hover {
@@ -6762,7 +6758,7 @@ html, body, button, input, select, textarea {
 
 .forum-post-btn-publish {
     @apply inline-flex items-center gap-2 py-2.5 px-5 rounded-[10px] border-none text-sm font-semibold cursor-pointer;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     color: white;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -6977,7 +6973,7 @@ html, body, button, input, select, textarea {
 
 .quiz-start-icon {
     @apply w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     box-shadow: 0 6px 18px rgba(35, 73, 155, 0.25);
 }
 
@@ -7012,7 +7008,7 @@ html, body, button, input, select, textarea {
 
 .quiz-btn-primary {
     @apply w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-white font-bold text-sm cursor-pointer border-none transition-all duration-200;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     box-shadow: 0 3px 12px rgba(35, 73, 155, 0.25);
 }
 
@@ -7046,7 +7042,7 @@ html, body, button, input, select, textarea {
 #quizProgressBar {
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #23499b, #3B6FD4);
+    background: #23499b;
     transition: width 0.4s ease;
 }
 
@@ -7153,7 +7149,7 @@ html, body, button, input, select, textarea {
 
 .quiz-btn-next {
     @apply text-white;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     box-shadow: 0 3px 10px rgba(35, 73, 155, 0.2);
 }
 
@@ -9823,7 +9819,7 @@ html, body, button, input, select, textarea {
 }
 
 .forum-status-avatar {
-    background: linear-gradient(135deg, #3493fa 0%, #1c274c 100%) !important;
+    background: #3493fa !important;
     color: #ffffff !important;
     font-weight: 700;
 }
@@ -10502,7 +10498,7 @@ html, body, button, input, select, textarea {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3493fa 0%, #1c274c 100%);
+    background: #3493fa;
     color: #ffffff;
     font-family: var(--font-headline-md), 'Plus Jakarta Sans', sans-serif;
     font-weight: 800;
@@ -10935,7 +10931,7 @@ html, body, button, input, select, textarea {
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #23499b, #3b6fd4);
+    background: #23499b;
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -11004,7 +11000,7 @@ html, body, button, input, select, textarea {
 .mockup-progress-fill {
     height: 100%;
     border-radius: 99px;
-    background: linear-gradient(90deg, #23499b, #3b6fd4);
+    background: #23499b;
 }
 
 .mockup-subheading {
@@ -11733,7 +11729,7 @@ html, body, button, input, select, textarea {
 }
 
 .theme-blue .p-rec-icon-wrap {
-    background: linear-gradient(135deg, #23499b, #3b6fd4);
+    background: #23499b;
 }
 
 .theme-green .p-rec-icon-wrap {
@@ -11976,7 +11972,7 @@ html, body, button, input, select, textarea {
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #23499b, #3b6fd4);
+    background: #23499b;
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -12045,7 +12041,7 @@ html, body, button, input, select, textarea {
 .mockup-progress-fill {
     height: 100%;
     border-radius: 99px;
-    background: linear-gradient(90deg, #23499b, #3b6fd4);
+    background: #23499b;
 }
 
 .mockup-subheading {
@@ -12749,7 +12745,7 @@ html, body, button, input, select, textarea {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #23499b, #3B6FD4);
+    background: #23499b;
     color: white;
     display: flex;
     align-items: center;
@@ -12914,7 +12910,7 @@ a.popup-host-row:hover .popup-host-avatar {
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3493fa 0%, #1c274c 100%);
+    background: #3493fa;
     color: #ffffff;
     font-family: var(--font-headline-md), 'Plus Jakarta Sans', sans-serif;
     font-weight: 800;
@@ -12964,7 +12960,7 @@ a.popup-host-row:hover .popup-host-avatar {
     width: 100%;
     padding: 14px 20px;
     border-radius: 18px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #10b981;
     color: #ffffff;
     font-family: var(--font-headline-md), 'Plus Jakarta Sans', sans-serif;
     font-weight: 700;
@@ -13123,7 +13119,7 @@ a.popup-host-row:hover .popup-host-avatar {
 
 .mobile-action-btn {
     padding: 10px 18px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #10b981;
     color: #ffffff;
     font-family: var(--font-headline-md), 'Plus Jakarta Sans', sans-serif;
     font-weight: 700;
@@ -13379,7 +13375,7 @@ a.popup-host-row:hover .popup-host-avatar {
 
 .auth-submit-btn {
     @apply w-full py-3.5 rounded-xl text-[17px] font-bold cursor-pointer border-none flex items-center justify-center gap-2;
-    background: linear-gradient(135deg, var(--color-electric-yellow), #ffc72c);
+    background: var(--color-electric-yellow);
     color: #1c274c;
     box-shadow: 0 8px 20px rgba(255, 199, 44, 0.35);
     transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
