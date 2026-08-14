@@ -9247,22 +9247,41 @@ html, body, button, input, select, textarea {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 38px; /* matching spacing */
+    gap: 16px; /* matching spacing */
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.explore-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.explore-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.explore-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(28, 39, 76, 0.15);
+    border-radius: 4px;
+}
+.explore-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(28, 39, 76, 0.3);
 }
 
 .sidebar-section-figma {
     background: #c7dbee;
-    border-radius: 20px;
-    padding: 24px 20px;
+    border-radius: 16px;
+    padding: 16px 14px;
     box-shadow: 0 8px 24px rgba(199, 219, 238, 0.25);
 }
 
 .sidebar-title-figma {
     font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
     font-weight: 800;
-    font-size: 1.35rem; /* 24px */
+    font-size: 1rem; /* 16px */
     color: #1c274c;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -9270,18 +9289,18 @@ html, body, button, input, select, textarea {
 .category-list-figma {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 4px;
 }
 
 .category-chip-figma {
     background: transparent;
     border: none;
     border-radius: 8px;
-    height: 38px;
-    padding: 0 18px;
+    height: 32px;
+    padding: 0 12px;
     font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
-    font-size: 1.1rem; /* 20px */
+    font-size: 0.9rem; /* 14.4px */
     color: #1c274c;
     text-align: left;
     cursor: pointer;
@@ -9305,20 +9324,20 @@ html, body, button, input, select, textarea {
 .sort-list-figma {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
 }
 
 .sort-option-figma {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     color: #1c274c;
     cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 8px;
+    padding: 4px 8px;
+    border-radius: 6px;
     transition: all 0.25s ease;
 }
 
@@ -9327,8 +9346,8 @@ html, body, button, input, select, textarea {
 }
 
 .sort-radio-figma {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     border: 2px solid #1c274c;
     border-radius: 50%;
     display: inline-flex;
@@ -9346,20 +9365,20 @@ html, body, button, input, select, textarea {
 .clear-filters-btn-figma {
     background: #eef3f8;
     border: 1px solid rgba(28, 39, 76, 0.15);
-    border-radius: 12px;
-    height: 44px;
+    border-radius: 10px;
+    height: 36px;
     font-family: 'Aleo', 'Plus Jakarta Sans', sans-serif;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.875rem;
     color: #1c274c;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
     width: 100%;
-    margin-top: 12px;
+    margin-top: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
 }
 
