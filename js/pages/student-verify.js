@@ -9,6 +9,7 @@ import { getMyVerificationStatus, autoVerifyStudent } from "../api/studentVerifi
 import { checkSchoolEmail } from "../api/universities.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import { isSchoolEmail } from "../lib/utils.js";
+import { t } from "../lib/i18n.js";
 
 let turnstileWidgetId = null;
 
@@ -46,8 +47,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <span class="material-symbols-outlined text-emerald-600 text-xl">verified</span>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-emerald-800 text-sm">Email trường được nhận diện — Xác thực tự động</h3>
-                        <p class="text-sm text-emerald-700 mt-1">Email <strong>${user.email}</strong> là email sinh viên. Sau khi điền MSSV và tải ảnh thẻ lên, tài khoản của bạn sẽ được xác thực <strong>ngay lập tức</strong> mà không cần chờ admin duyệt.</p>
+                        <h3 class="font-semibold text-emerald-800 text-sm">${t("student_verify.auto_verify_title")}</h3>
+                        <p class="text-sm text-emerald-700 mt-1">${t("student_verify.auto_verify_desc", { email: user.email })}</p>
                     </div>
                 </div>
             `;
@@ -66,12 +67,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Update submit button
         const submitText = document.getElementById('verify-submit-text');
         const submitIcon = document.getElementById('verify-submit-icon');
-        if (submitText) submitText.textContent = 'Xác thực ngay';
+        if (submitText) submitText.textContent = t("student_verify.submit_auto");
         if (submitIcon) submitIcon.textContent = 'verified';
 
         // Update page subtitle
         const subtitle = document.getElementById('verify-page-subtitle');
-        if (subtitle) subtitle.textContent = 'Điền MSSV và tải ảnh thẻ sinh viên (2 mặt). Email trường của bạn được nhận diện — tài khoản sẽ được xác thực ngay lập tức mà không cần chờ admin.';
+        if (subtitle) subtitle.textContent = t("student_verify.subtitle_auto");
     }
 
     const form = document.querySelector('form');
@@ -92,7 +93,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 // Validate file type
                 const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
                 if (!validTypes.includes(file.type)) {
-                    alert("Invalid file type. Please upload JPEG, PNG, GIF, or WebP images only.");
+                    alert(t("student_verify.alert_large_file")); // Or format error
                     input.value = '';
                     return;
                 }
@@ -100,7 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 // Validate file size (max 10MB)
                 const maxSize = 10 * 1024 * 1024; // 10MB
                 if (file.size > maxSize) {
-                    alert("File is too large. Please upload an image smaller than 10MB.");
+                    alert(t("student_verify.alert_large_file"));
                     input.value = '';
                     return;
                 }
@@ -126,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else {
                 labelEl.textContent = defaultLabel;
                 iconEl.textContent = "cloud_upload";
-                hintEl.textContent = "JPEG, PNG or GIF up to 50MB";
+                hintEl.textContent = t("student_verify.upload_hint");
                 previewEl.classList.add("hidden");
             }
         });
@@ -134,26 +135,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const frontInput = document.getElementById("studentCardFront");
     const backInput = document.getElementById("studentCardBack");
-    bindCardInput("studentCardFront", { icon: "frontIcon", label: "frontLabel", hint: "frontHint", preview: "frontPreview", defaultLabel: "Click to upload front" });
-    bindCardInput("studentCardBack", { icon: "backIcon", label: "backLabel", hint: "backHint", preview: "backPreview", defaultLabel: "Click to upload back" });
+    bindCardInput("studentCardFront", { icon: "frontIcon", label: "frontLabel", hint: "frontHint", preview: "frontPreview", defaultLabel: t("student_verify.upload_front") });
+    bindCardInput("studentCardBack", { icon: "backIcon", label: "backLabel", hint: "backHint", preview: "backPreview", defaultLabel: t("student_verify.upload_back") });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const studentId = document.getElementById("studentId").value.trim();
         if (!studentId) {
-            alert("Vui lòng nhập mã số sinh viên");
+            alert(t("student_verify.alert_req_id"));
             return;
         }
 
         // Validate student ID format
         if (!/^[a-zA-Z0-9]{6,15}$/.test(studentId)) {
-            alert("Mã số sinh viên không hợp lệ. Vui lòng nhập 6-15 ký tự chữ và số.");
+            alert(t("student_verify.alert_invalid_id"));
             return;
         }
 
         if (!frontInput?.files?.length || !backInput?.files?.length) {
-            alert("Vui lòng chọn ảnh cả hai mặt (trước và sau) của thẻ sinh viên");
+            alert(t("student_verify.alert_req_cards"));
             return;
         }
 
@@ -163,7 +164,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const maxSize = 10 * 1024 * 1024; // 10MB
 
         if (frontFile.size > maxSize || backFile.size > maxSize) {
-            alert("Một hoặc cả hai ảnh quá lớn. Vui lòng upload ảnh nhỏ hơn 10MB.");
+            alert(t("student_verify.alert_large_file"));
             return;
         }
 
@@ -188,25 +189,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                     } catch {}
                 }
 
-                btn.innerHTML = '<span class="material-symbols-outlined">verified</span> <span>Đã xác thực!</span>';
+                btn.innerHTML = `<span class="material-symbols-outlined">verified</span> <span>${t("student_verify.status_approved")}!</span>`;
                 btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
                 btn.classList.add('bg-emerald-600');
 
                 setTimeout(() => {
-                    alert("Xác thực sinh viên thành công! Tài khoản của bạn đã được xác thực ngay lập tức.");
+                    alert(t("student_verify.alert_success_auto"));
                     window.location.href = "/profile.html";
                 }, 1200);
             } catch (error) {
                 const msg = error?.message || "An unexpected error occurred. Please try again.";
                 let userMsg = msg;
                 if (msg.includes("already verified")) {
-                    userMsg = "Bạn đã được xác thực sinh viên rồi.";
+                    userMsg = t("student_verify.err_already_verified");
                 } else if (msg.includes("student ID has already been")) {
-                    userMsg = "Mã số sinh viên này đã được xác thực bởi người khác.";
+                    userMsg = t("student_verify.err_taken");
                 } else if (msg.includes("school email")) {
-                    userMsg = "Email của bạn không được nhận diện là email trường. Vui lòng sử dụng quy trình xác thực thông thường.";
+                    userMsg = t("student_verify.err_not_school_email");
+                } else {
+                    userMsg = msg;
                 }
-                alert("Lỗi: " + userMsg);
+                alert(`${t("common.error")}: ${userMsg}`);
                 btn.innerHTML = originalText;
                 btn.classList.remove('opacity-80', 'pointer-events-none');
             }
@@ -221,12 +224,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             await uploadFormData("/student-verification/register", formData);
 
-            btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> <span>Submission Received!</span>';
+            btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span>${t("common.success")}!</span>`;
             btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
             btn.classList.add('bg-green-600');
 
             setTimeout(() => {
-                alert("Yêu cầu xác thực đã được gửi! Admin sẽ xem xét và phản hồi sớm.");
+                alert(t("student_verify.alert_success_std"));
                 window.location.href = "/";
             }, 1500);
         } catch (error) {
@@ -236,15 +239,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             const msg = error?.message || "An unexpected error occurred. Please try again.";
             let userMsg = msg;
             if (msg.includes("already verified")) {
-                userMsg = "Bạn đã được xác thực sinh viên rồi.";
+                userMsg = t("student_verify.err_already_verified");
             } else if (msg.includes("pending")) {
-                userMsg = "Bạn đã có yêu cầu xác thực đang chờ xử lý.";
-            } else if (msg.includes("taken")) {
-                userMsg = "Mã số sinh viên này đã được xác thực bởi người khác.";
+                userMsg = t("student_verify.err_pending");
+            } else if (msg.includes("taken") || msg.includes("student ID has already been")) {
+                userMsg = t("student_verify.err_taken");
             } else if (msg.includes("upload")) {
-                userMsg = "Tải file thất bại. Vui lòng thử lại với file nhỏ hơn.";
+                userMsg = t("student_verify.err_upload");
+            } else {
+                userMsg = msg;
             }
-            alert("Lỗi: " + userMsg);
+            alert(`${t("common.error")}: ${userMsg}`);
             btn.innerHTML = originalText;
             btn.classList.remove('opacity-80', 'pointer-events-none');
         }
@@ -283,8 +288,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                             <span class="material-symbols-outlined text-green-600 text-2xl">verified</span>
                         </div>
                         <div>
-                            <h3 class="font-headline-md text-headline-md text-green-800">Đã xác thực</h3>
-                            <p class="text-sm text-green-700">Tài khoản của bạn đã được xác thực sinh viên (MSSV: ${data.verifiedStudentId || ''}).</p>
+                            <h3 class="font-headline-md text-headline-md text-green-800">${t("student_verify.status_approved")}</h3>
+                            <p class="text-sm text-green-700">${t("student_verify.status_approved_desc", { id: data.verifiedStudentId || '' })}</p>
                         </div>
                     </div>
                 `;
@@ -297,8 +302,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                             <span class="material-symbols-outlined text-yellow-600 text-2xl">hourglass_top</span>
                         </div>
                         <div>
-                            <h3 class="font-headline-md text-headline-md text-yellow-800">Đang chờ duyệt</h3>
-                            <p class="text-sm text-yellow-700">Yêu cầu xác thực của bạn đang được admin xem xét. Vui lòng chờ phản hồi.</p>
+                            <h3 class="font-headline-md text-headline-md text-yellow-800">${t("student_verify.status_pending")}</h3>
+                            <p class="text-sm text-yellow-700">${t("student_verify.status_pending_desc")}</p>
                         </div>
                     </div>
                 `;
@@ -311,8 +316,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                             <span class="material-symbols-outlined text-red-600 text-2xl">gpp_bad</span>
                         </div>
                         <div>
-                            <h3 class="font-headline-md text-headline-md text-red-800">Không được duyệt</h3>
-                            <p class="text-sm text-red-700">${data.reviewNote ? 'Lý do: ' + data.reviewNote : 'Yêu cầu của bạn không được duyệt. Vui lòng gửi lại với thông tin chính xác.'}</p>
+                            <h3 class="font-headline-md text-headline-md text-red-800">${t("student_verify.status_rejected")}</h3>
+                            <p class="text-sm text-red-700">${data.reviewNote ? t("student_verify.status_rejected_desc", { note: data.reviewNote }) : t("student_verify.status_rejected_fallback")}</p>
                         </div>
                     </div>
                 `;

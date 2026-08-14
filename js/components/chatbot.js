@@ -37,9 +37,9 @@ function renderEventCardFromJSON(data) {
   const cleanId = escapeHtml(String(data.id || data.eventId || "").trim());
   if (!cleanId) return "";
 
-  const cleanTitle = escapeHtml(String(data.title || data.name || "Sự kiện").trim());
-  const cleanType = escapeHtml(String(data.type || data.category || "Sự kiện").trim());
-  const cleanStatus = escapeHtml(String(data.status || "ĐANG DIỄN RA").trim());
+  const cleanTitle = escapeHtml(String(data.title || data.name || t("chatbot.event")).trim());
+  const cleanType = escapeHtml(String(data.type || data.category || t("chatbot.event")).trim());
+  const cleanStatus = escapeHtml(String(data.status || t("chatbot.ongoing")).trim());
   
   const rawTime = data.time || data.heldDate || data.startDate || "";
   const cleanTime = escapeHtml(formatCardDate(rawTime));
@@ -69,17 +69,17 @@ function renderEventCardFromJSON(data) {
         ${cleanTime ? `
           <div class="info-row">
             <i class="fa-regular fa-calendar info-icon text-blue-500"></i>
-            <span class="info-value"><strong>Bắt đầu:</strong> ${cleanTime}</span>
+            <span class="info-value"><strong>${t("chatbot.start")}</strong> ${cleanTime}</span>
           </div>` : ''}
         ${cleanDeadline ? `
           <div class="info-row">
             <i class="fa-regular fa-clock info-icon text-amber-500"></i>
-            <span class="info-value"><strong class="text-amber-600">Hạn ĐK:</strong> ${cleanDeadline}</span>
+            <span class="info-value"><strong class="text-amber-600">${t("chatbot.deadline")}</strong> ${cleanDeadline}</span>
           </div>` : ''}
         ${cleanLocation ? `
           <div class="info-row">
             <i class="fa-solid fa-location-dot info-icon text-red-500"></i>
-            <span class="info-value"><strong>Địa điểm:</strong> ${cleanLocation}</span>
+            <span class="info-value"><strong>${t("chatbot.location")}</strong> ${cleanLocation}</span>
           </div>` : ''}
       </div>
       <button type="button" data-event-id="${cleanId}" class="chat-event-btn-blue">
@@ -379,9 +379,9 @@ function formatMessageContent(text) {
   safe = safe.replace(/\[EVENT_CARD:([^|]+)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^\]]*)\]/g,
     (match, id, title, type, status, time, location) => {
       const cleanId = id.trim();
-      const cleanTitle = title.trim() || "Sự kiện";
-      const cleanType = type.trim() || "Event";
-      const cleanStatus = status.trim() || "ĐANG DIỄN RA";
+      const cleanTitle = title.trim() || t("chatbot.event");
+      const cleanType = type.trim() || t("chatbot.event");
+      const cleanStatus = status.trim() || t("chatbot.ongoing");
       const cleanTime = time.trim() || "";
       const cleanLocation = location.trim() || "";
 

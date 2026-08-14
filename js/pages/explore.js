@@ -511,17 +511,20 @@ async function renderCardsDirect(activities) {
         
         const status = getEventStatus(activity);
 
+        const btn = card.querySelector(".details-btn");
+        if (btn && status !== 'ended') {
+            btn.textContent = t("explore.view_details") || "View Details";
+        }
+
         if (status === 'ended') {
             card.classList.add("opacity-75", "grayscale-[0.5]");
             
-            const btn = card.querySelector(".details-btn");
             if (btn) {
                 btn.textContent = t("explore.ended") || "Ended";
                 btn.classList.add("!bg-gray-300", "!text-gray-600", "cursor-not-allowed", "!shadow-none");
                 btn.classList.remove("bg-primary", "text-white");
                 btn.style.pointerEvents = "none";
             }
-            
             const tagContainer = card.querySelector(".absolute");
             if (tagContainer) {
                 const endedBadge = document.createElement("div");

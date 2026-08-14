@@ -2,7 +2,7 @@
 <html class="scroll-smooth" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Student Verification | SpringWave</title>
+<title data-i18n="student_verify.title">Student Verification | SpringWave</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&amp;family=satoshi:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -30,10 +30,10 @@
   <section class="text-center mb-12">
     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed mb-4">
       <span class="material-symbols-outlined text-[16px]">badge</span>
-      <span class="font-label-md text-label-md">Student Identity Verification</span>
+      <span class="font-label-md text-label-md" data-i18n="student_verify.badge">Student Identity Verification</span>
     </div>
-    <h1 class="font-headline-lg text-headline-lg text-primary mb-4">Xác nhận sinh viên</h1>
-    <p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto" id="verify-page-subtitle">
+    <h1 class="font-headline-lg text-headline-lg text-primary mb-4" data-i18n="student_verify.heading">Xác nhận sinh viên</h1>
+    <p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto" id="verify-page-subtitle" data-i18n="student_verify.subtitle">
       Vui lòng cung cấp mã số sinh viên và ảnh chụp thẻ sinh viên để xác thực danh tính. Admin sẽ xem xét và duyệt yêu cầu của bạn.
     </p>
   </section>
@@ -44,26 +44,26 @@
         <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
           <span class="material-symbols-outlined">school</span>
         </div>
-        <h2 class="font-headline-md text-headline-md text-on-surface">Student Information</h2>
+        <h2 class="font-headline-md text-headline-md text-on-surface" data-i18n="student_verify.info_heading">Student Information</h2>
       </div>
       <div class="space-y-6">
         <div>
-          <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="studentId">Mã số sinh viên</label>
-          <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="studentId" name="studentId" placeholder="e.g., 2021ABCDE" required="" type="text"/>
+          <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="studentId" data-i18n="student_verify.id_label">Mã số sinh viên</label>
+          <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="studentId" name="studentId" placeholder="e.g., 2021ABCDE" data-i18n-placeholder="student_verify.id_placeholder" required="" type="text"/>
         </div>
         <div>
-          <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Ảnh chụp thẻ sinh viên (2 mặt)</label>
-          <p class="font-caption text-outline mb-3">Vui lòng chụp rõ cả mặt trước và mặt sau của thẻ.</p>
+          <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" data-i18n="student_verify.card_label">Ảnh chụp thẻ sinh viên (2 mặt)</label>
+          <p class="font-caption text-outline mb-3" data-i18n="student_verify.card_desc">Vui lòng chụp rõ cả mặt trước và mặt sau của thẻ.</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Front -->
             <div>
               <p class="font-label-md text-label-md text-on-surface mb-2 flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[18px] text-primary">badge</span> Mặt trước
+                <span class="material-symbols-outlined text-[18px] text-primary">badge</span> <span data-i18n="student_verify.front">Mặt trước</span>
               </p>
               <div class="card-dropzone border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden min-h-[160px]">
                 <span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="frontIcon">cloud_upload</span>
-                <p class="font-body-md text-on-surface-variant mb-1 text-center text-sm" id="frontLabel">Click to upload front</p>
-                <p class="font-caption text-outline text-center" id="frontHint">JPEG, PNG or GIF up to 50MB</p>
+                <p class="font-body-md text-on-surface-variant mb-1 text-center text-sm" id="frontLabel" data-i18n="student_verify.upload_front">Click to upload front</p>
+                <p class="font-caption text-outline text-center" id="frontHint" data-i18n="student_verify.upload_hint">JPEG, PNG or GIF up to 50MB</p>
                 <input class="absolute inset-0 opacity-0 cursor-pointer" id="studentCardFront" name="studentCardFront" accept="image/jpeg,image/png,image/gif,image/webp" type="file"/>
               </div>
               <div id="frontPreview" class="mt-2 hidden"></div>
@@ -71,12 +71,12 @@
             <!-- Back -->
             <div>
               <p class="font-label-md text-label-md text-on-surface mb-2 flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[18px] text-primary">badge</span> Mặt sau
+                <span class="material-symbols-outlined text-[18px] text-primary">badge</span> <span data-i18n="student_verify.back">Mặt sau</span>
               </p>
               <div class="card-dropzone border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden min-h-[160px]">
                 <span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="backIcon">cloud_upload</span>
-                <p class="font-body-md text-on-surface-variant mb-1 text-center text-sm" id="backLabel">Click to upload back</p>
-                <p class="font-caption text-outline text-center" id="backHint">JPEG, PNG or GIF up to 50MB</p>
+                <p class="font-body-md text-on-surface-variant mb-1 text-center text-sm" id="backLabel" data-i18n="student_verify.upload_back">Click to upload back</p>
+                <p class="font-caption text-outline text-center" id="backHint" data-i18n="student_verify.upload_hint">JPEG, PNG or GIF up to 50MB</p>
                 <input class="absolute inset-0 opacity-0 cursor-pointer" id="studentCardBack" name="studentCardBack" accept="image/jpeg,image/png,image/gif,image/webp" type="file"/>
               </div>
               <div id="backPreview" class="mt-2 hidden"></div>
@@ -84,18 +84,18 @@
           </div>
           <div class="mt-3 flex items-center gap-1.5 px-3 py-1 w-fit rounded-full bg-green-50 text-green-700 border border-green-200">
             <span class="material-symbols-outlined text-[16px]">lock</span>
-            <span class="text-[10px] font-bold tracking-wider uppercase">Private & Secure</span>
+            <span class="text-[10px] font-bold tracking-wider uppercase" data-i18n="student_verify.secure">Private & Secure</span>
           </div>
         </div>
       </div>
     </div>
     <div class="mt-8 flex flex-col items-center gap-6">
       <div id="turnstile-container" class="mb-4 flex justify-center"></div>
-      <p class="font-caption text-outline text-center max-w-[500px]">
+      <p class="font-caption text-outline text-center max-w-[500px]" data-i18n="student_verify.note">
         By submitting, you confirm that the information provided is accurate. Your student card image is stored securely and only visible to admins.
       </p>
       <button class="w-full h-14 rounded-full bg-gradient-to-r from-primary-container to-secondary text-white font-headline-md text-label-lg flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group" type="submit" id="verify-submit-btn">
-        <span id="verify-submit-text">Submit for Verification</span>
+        <span id="verify-submit-text" data-i18n="student_verify.submit">Submit for Verification</span>
         <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" id="verify-submit-icon">send</span>
       </button>
     </div>

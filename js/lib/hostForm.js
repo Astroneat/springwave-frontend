@@ -6,6 +6,7 @@ import { getMyOrganizations, getOrganizationById } from "../api/organizations.js
 import { getUser } from "../lib/session.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import { toLocalISODate } from "../lib/utils.js";
+import { t } from "../lib/i18n.js";
 
 const MAX_FILES = 10;
 let turnstileWidgetId = null;
@@ -879,11 +880,11 @@ export function initFormSubmit(orgId, onSuccess) {
 
         if (isNonPartnerMode && user?.role === 'admin') {
             if (!registrationLink) {
-                setStatus("Link đăng ký gốc (Registration Link) là bắt buộc đối với bài đăng Non-Partner.", true, statusMsg);
+                setStatus(t("host.err_req_reg_link"), true, statusMsg);
                 return;
             }
             if (!nonPartnerHostName) {
-                setStatus("Tên đơn vị ngoài (Host Name) là bắt buộc đối với bài đăng Non-Partner.", true, statusMsg);
+                setStatus(t("host.err_req_host_name"), true, statusMsg);
                 return;
             }
             formData.append("isNonPartner", "true");

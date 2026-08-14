@@ -22,7 +22,7 @@ async function requireVerifiedOrRedirect() {
             if (isStudentVerified(res.user)) return true;
         }
     } catch {}
-    alert("Bạn cần xác thực sinh viên trước khi tham gia hoặc tương tác. Vui lòng hoàn tất xác thực.");
+    alert(t("student_verify.alert_require_verify"));
     window.location.href = "/student-verify.html";
     return false;
 }
@@ -492,7 +492,7 @@ function initParticipateButton(activityID) {
 
             const user = getUser();
             if (!isProfileComplete(user)) {
-                alert('Vui lòng cập nhật đầy đủ thông tin cá nhân (Ngày sinh, Trường, Lớp, Ngành, SĐT) trong trang Cá nhân trước khi tham gia sự kiện.');
+                alert(t("profile.alert_complete_profile_event"));
                 window.location.href = '/profile.html';
                 return;
             }
@@ -633,13 +633,13 @@ function initAIMatchButton(container, activityID) {
 
             let pct = null;
             let color = "#64748b";
-            let matchLabel = "Chưa xác định";
+            let matchLabel = t("index.match_unknown");
             if (score !== null) {
                 pct = Math.min(100, Math.max(0, Math.round(score * 100)));
-                if (pct >= 80) { color = "#059669"; matchLabel = "Excellent Match"; }
-                else if (pct >= 60) { color = "#16a34a"; matchLabel = "Strong Match"; }
-                else if (pct >= 40) { color = "#d97706"; matchLabel = "Moderate Match"; }
-                else { color = "#dc2626"; matchLabel = "Low Match"; }
+                if (pct >= 80) { color = "#059669"; matchLabel = t("index.match_excellent"); }
+                else if (pct >= 60) { color = "#16a34a"; matchLabel = t("index.match_strong"); }
+                else if (pct >= 40) { color = "#d97706"; matchLabel = t("index.match_moderate"); }
+                else { color = "#dc2626"; matchLabel = t("index.match_low"); }
             }
 
             const tagsHTML = tags.length
@@ -657,7 +657,7 @@ function initAIMatchButton(container, activityID) {
                 <div class="ai-match-score-circle" style="width:56px;height:56px;border-radius:50%;background:#ecedfa;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
                     <span style="background:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#64748b;">–</span>
                 </div>
-                <span style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;background:#64748b15;color:#64748b;">Chưa xác định</span>
+                <span style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;background:#64748b15;color:#64748b;">${t("index.match_unknown")}</span>
                 `;
 
             resultEl.innerHTML = `
@@ -796,7 +796,7 @@ async function initEventComments(eventId, container) {
         
         const user = getUser();
         if (!isProfileComplete(user)) {
-            alert('Vui lòng cập nhật đầy đủ thông tin cá nhân (Ngày sinh, Trường, Lớp, Ngành, SĐT) trong trang Cá nhân trước khi bình luận.');
+            alert(t("profile.alert_complete_profile_comment"));
             window.location.href = '/profile.html';
             return;
         }
