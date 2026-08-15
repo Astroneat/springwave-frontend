@@ -2,11 +2,45 @@ import { API_BASE_URL } from "../config.js";
 import { getToken, getSigningKey, setToken, setSigningKey, clearSession } from "../lib/session.js";
 import { startProgress, completeProgress } from "../components/pageLoader.js";
 
-let requestQueue = 0;
-const MAX_CONCURRENT = 5;
 const requestTimestamps = [];
 const MIN_REQUEST_INTERVAL = 300;
 let refreshTimer = null;
+
+export class RateLimitError extends Error {
+    constructor(status, message) {
+        super(message);
+        this.status = status;
+    }
+}
+
+export class ApiError extends Error {
+    constructor(status, message) {
+        super(message);
+        this.status = status;
+    }
+}
+
+let requestQueue = 0;
+const MAX_CONCURRENT = 5;
+const queueWaiters = [];
+function enqueueRequest() {
+    return new Promise(resolve => {
+        if (requestQueue < MAX_CONCURRENT) {
+            requestQueue++;
+            resolve();
+            return;
+        }
+        queueWaiters.push(resolve);
+    });
+}
+function releaseRequest() {
+    requestQueue--;
+    const next = queueWaiters.shift();
+    if (next) {
+        requestQueue++;
+        next();
+    }
+}
 
 function checkRateLimit() {
     const now = Date.now();
@@ -14,7 +48,7 @@ function checkRateLimit() {
         requestTimestamps.shift();
     }
     if (requestTimestamps.length >= 20) {
-        throw { status: 429, message: "Too many requests. Please slow down." };
+        throw new RateLimitError(429, "Too many requests. Please slow down.");
     }
     requestTimestamps.push(now);
 }
@@ -101,10 +135,7 @@ async function request(endpoint, options = {}) {
     await ensureSession();
     checkRateLimit();
 
-    while (requestQueue >= MAX_CONCURRENT) {
-        await new Promise(r => setTimeout(r, 200));
-    }
-    requestQueue++;
+    await enqueueRequest();
 
     const token = getToken();
     const signingKey = getSigningKey();
@@ -137,12 +168,18 @@ async function request(endpoint, options = {}) {
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-        let response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...options,
-            signal: options.signal || controller.signal,
-            headers,
-            credentials: "include",
-        });
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                signal: options.signal || controller.signal,
+                headers,
+                credentials: "include",
+            });
+        } catch (err) {
+            // Network or fetch-level error – wrap in ApiError for callers to handle uniformly
+            throw new ApiError(err && err.name ? err.name : "NetworkError", err && err.message ? err.message : "Network request failed");
+        }
 
         if (response.status === 401 && getToken()) {
             try {
@@ -188,23 +225,24 @@ async function request(endpoint, options = {}) {
                 if (!window.location.pathname.endsWith("/student-verify.html")) {
                     window.location.href = "/student-verify.html";
                 }
-                throw { status: 403, code: "STUDENT_NOT_VERIFIED", message: data?.error || "Please verify your student status first" };
+                const err = new ApiError(403, data?.error || "Please verify your student status first");
+                err.code = "STUDENT_NOT_VERIFIED";
+                throw err;
             }
             if (response.status === 429) {
                 const retryAfter = response.headers.get("Retry-After");
                 const msg = data?.error || data?.message || "Too many requests. Please wait before trying again.";
-                throw { status: 429, message: msg, retryAfter: retryAfter ? parseInt(retryAfter) : null };
+                const err = new ApiError(429, msg);
+                err.retryAfter = retryAfter ? parseInt(retryAfter) : null;
+                throw err;
             }
-            throw {
-                status: response.status,
-                message: data?.message || data?.error || "Request failed"
-            };
+            throw new ApiError(response.status, data?.message || data?.error || "Request failed");
         }
 
         return data;
     } finally {
         clearTimeout(timeoutId);
-        requestQueue--;
+        releaseRequest();
         completeProgress();
     }
 }

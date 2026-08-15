@@ -155,18 +155,18 @@
   </section>
 
   <!-- POST MODAL -->
-  <div class="forum-post-overlay" id="forumPostOverlay" style="display: none;">
+  <div class="forum-post-overlay" id="forumPostOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="forumPostTitle">
     <div class="forum-post-backdrop" id="forumPostBackdrop"></div>
     <div class="forum-post-modal" id="forumPostModal">
       <div class="forum-post-modal-header">
-        <h2 data-i18n="community.start_discussion">Start a Discussion</h2>
-        <button class="forum-post-modal-close" id="forumPostClose">
+        <h2 id="forumPostTitle" data-i18n="community.start_discussion">Start a Discussion</h2>
+        <button class="forum-post-modal-close" id="forumPostClose" type="button" aria-label="Close">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
       <div class="forum-post-modal-body">
         <div class="forum-post-field hidden" id="postIdentityField">
-          <label>Post as</label>
+          <label for="postIdentitySelect">Post as</label>
           <select id="postIdentitySelect" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary">
             <option value="personal">Personal (Me)</option>
           </select>
@@ -176,7 +176,7 @@
           <input type="text" id="postTitle" placeholder="What's on your mind?" data-i18n="community.what_mind" />
         </div>
         <div class="forum-post-field">
-          <label data-i18n="community.category_label">Category</label>
+          <label for="postCategory" data-i18n="community.category_label">Category</label>
           <!-- Keep hidden select for compatibility with existing change listeners -->
           <select id="postCategory" style="display:none;">
             <option value="general" data-i18n="community.general">General</option>
@@ -260,20 +260,20 @@
   </div>
 
   <!-- EVENT DETAIL POPUP -->
-  <div class="popup-overlay" hidden id="eventPopupOverlay">
+  <div class="popup-overlay" hidden id="eventPopupOverlay" role="dialog" aria-modal="true" aria-label="Event details">
     <div class="popup-backdrop" id="eventPopupBackdrop"></div>
     <div class="popup-container" id="eventPopupContainer"></div>
   </div>
 
   <!-- COMPLETE PROFILE MODAL -->
-  <div class="popup-overlay" hidden id="profileModalOverlay">
+  <div class="popup-overlay" hidden id="profileModalOverlay" role="dialog" aria-modal="true" aria-labelledby="profileModalOverlayTitle">
     <div class="popup-backdrop" id="profileModalBackdrop"></div>
     <div class="popup-container" id="profileModalContainer" style="max-width:420px;">
       <div class="container" style="text-align:center;padding:40px 32px;">
         <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#23499b,#3B6FD4);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
           <span class="material-symbols-outlined" style="font-size:32px;color:#fff">person</span>
         </div>
-        <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin-bottom:8px;" data-i18n="community.profile_modal_title">Complete Your Profile</h2>
+        <h2 id="profileModalOverlayTitle" style="font-size:20px;font-weight:700;color:#1e293b;margin-bottom:8px;" data-i18n="community.profile_modal_title">Complete Your Profile</h2>
         <p style="font-size:14px;color:#64748b;line-height:1.5;margin-bottom:28px;" data-i18n="community.profile_modal_desc">To start discussions and interact with the community, please complete your profile first.</p>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <a href="/complete-profile.html" class="forum-post-btn-publish" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#23499b,#3B6FD4);color:#fff;border:none;cursor:pointer;">
@@ -287,18 +287,18 @@
   </div>
 
   <!-- DISCUSSION DETAIL POPUP -->
-  <div class="popup-overlay" hidden id="discussionPopupOverlay">
+  <div class="popup-overlay" hidden id="discussionPopupOverlay" role="dialog" aria-modal="true" aria-label="Discussion details">
     <div class="popup-backdrop" id="discussionPopupBackdrop"></div>
     <div class="popup-container" id="discussionPopupContainer"></div>
   </div>
 
   <!-- UNIVERSITY DIALOG -->
-  <div class="forum-uni-dialog-overlay" id="uniDialog" style="display:none;">
+  <div class="forum-uni-dialog-overlay" id="uniDialog" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="uniDialogTitle">
     <div class="forum-uni-dialog-backdrop"></div>
     <div class="forum-uni-dialog">
       <div class="forum-uni-dialog-header">
         <h2 id="uniDialogTitle" data-i18n="community.add_uni_title">Add University</h2>
-        <button class="forum-uni-dialog-close" id="uniDialogClose">
+        <button class="forum-uni-dialog-close" id="uniDialogClose" type="button" aria-label="Close">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>

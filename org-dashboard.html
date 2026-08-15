@@ -15,10 +15,10 @@
     <style>
         .sidenav-link { display: flex; align-items: center; gap: 12px; padding: 11px 15px; border-radius: 12px; border: 1px solid transparent; transition: all 0.2s; font-family: var(--font-label-md), 'Inter', sans-serif; font-size: var(--text-label-md); cursor: pointer; }
         .sidenav-link:hover { background: var(--color-surface-container); }
-        .sidenav-link.active { background: var(--color-surface-container-low); color: var(--color-primary); font-weight: 700; border-color: var(--color-primary); box-shadow: 0 0 15px rgba(59,111,212,0.15); }
+        .sidenav-link.active { background: var(--color-surface-container-low); color: var(--color-primary); font-weight: 700; border-color: var(--color-primary); }
         .tab-btn { padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .tab-btn:active { transform: scale(0.95); }
-        .tab-btn.active { background: #1755ba; color: #fff; box-shadow: 0 4px 12px rgba(23,85,186,0.2); }
+        .tab-btn.active { background: #1755ba; color: #fff; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18); }
         .tab-btn:not(.active) { background: transparent; color: #64748b; }
         .tab-btn:not(.active):hover { background: #f1f5f9; }
         .hover-scale { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -876,13 +876,13 @@
     </div>
 
     <!-- Add Manager Modal -->
-    <div class="popup-overlay" hidden id="manager-overlay">
+    <div class="popup-overlay" hidden id="manager-overlay" role="dialog" aria-modal="true" aria-labelledby="manager-overlay-title">
         <div class="popup-backdrop" id="manager-backdrop"></div>
         <div class="popup-container !max-w-[420px] !p-8 text-center">
             <div class="w-16 h-16 rounded-full bg-[#dae1ff] flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-user-plus text-primary text-2xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Add Manager</h3>
+            <h3 id="manager-overlay-title" class="text-xl font-bold text-[#191b22] mb-2">Add Manager</h3>
             <p class="text-sm text-[#64748b] mb-6">Enter the email of the user to add as a manager</p>
             <input id="manager-email-input" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary mb-4" placeholder="user@example.com" />
             <div class="flex gap-3">
@@ -893,14 +893,14 @@
     </div>
 
     <!-- Create Org Modal -->
-    <div class="popup-overlay" hidden id="create-org-overlay">
+    <div class="popup-overlay" hidden id="create-org-overlay" role="dialog" aria-modal="true" aria-labelledby="create-org-title">
         <div class="popup-backdrop" id="create-org-backdrop"></div>
         <div class="popup-container !max-w-[420px] !p-8">
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Create Organization</h3>
+            <h3 id="create-org-title" class="text-xl font-bold text-[#191b22] mb-2">Create Organization</h3>
             <p class="text-sm text-[#64748b] mb-6">Register a new organization (this will submit a host registration request)</p>
             <div class="space-y-4 mb-6">
                 <div>
-                    <label class="block text-sm font-semibold text-[#64748b] mb-1">Organization Name</label>
+                    <label for="create-org-name" class="block text-sm font-semibold text-[#64748b] mb-1">Organization Name</label>
                     <input id="create-org-name" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary" placeholder="e.g. Student Club" />
                 </div>
             </div>
@@ -912,7 +912,7 @@
     </div>
 
     <!-- Event Detail Modal -->
-    <div class="popup-overlay p-3 sm:p-6" hidden id="event-detail-overlay">
+    <div class="popup-overlay p-3 sm:p-6" hidden id="event-detail-overlay" role="dialog" aria-modal="true" aria-label="Event details">
         <div class="popup-backdrop" id="event-detail-backdrop"></div>
         <div class="popup-container !max-w-[940px] !p-0 overflow-hidden shadow-2xl rounded-3xl bg-white border border-[#ecedfa]">
             <div class="max-h-[90vh] overflow-y-auto relative" id="event-detail-body"></div>
@@ -936,11 +936,11 @@
                         <i class="fa-solid fa-user-plus"></i>
                     </div>
                     <div>
-                        <h3 class="font-headline-md text-xl font-bold text-[#191b22]">Add Participants</h3>
+                        <h3 id="add-participants-title" class="font-headline-md text-xl font-bold text-[#191b22]">Add Participants</h3>
                         <p class="text-xs text-[#64748b] mt-0.5">Enter manually or import in bulk via Excel/CSV (<span class="font-semibold text-slate-700">Fullname, MSSV, Email</span>)</p>
                     </div>
                 </div>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" id="add-participants-close-btn">
+                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" type="button" aria-label="Close" id="add-participants-close-btn">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -1038,7 +1038,7 @@
     </div>
 
     <!-- Edit External Participant Modal -->
-    <div class="popup-overlay" hidden id="edit-ext-overlay">
+    <div class="popup-overlay" hidden id="edit-ext-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-ext-title">
         <div class="popup-backdrop" id="edit-ext-backdrop"></div>
         <div class="popup-container !max-w-[440px] !p-6 bg-white rounded-3xl border border-[#ecedfa] shadow-2xl">
             <div class="flex items-center justify-between mb-4">
@@ -1047,11 +1047,11 @@
                         <i class="fa-solid fa-user-pen"></i>
                     </div>
                     <div>
-                        <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Edit Participant</h3>
+                        <h3 id="edit-ext-title" class="font-headline-md text-lg font-bold text-[#191b22]">Edit Participant</h3>
                         <p class="text-xs text-[#64748b]">External Guest (Non-account attendee)</p>
                     </div>
                 </div>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" id="edit-ext-close-btn">
+                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" type="button" aria-label="Close" id="edit-ext-close-btn">
                     <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
@@ -1060,15 +1060,15 @@
 
             <div class="space-y-3.5 mb-6">
                 <div>
-                    <label class="block text-xs font-semibold text-[#64748b] mb-1">Full Name <span class="text-red-500">*</span></label>
+                    <label for="edit-ext-fullname" class="block text-xs font-semibold text-[#64748b] mb-1">Full Name <span class="text-red-500">*</span></label>
                     <input id="edit-ext-fullname" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary focus:bg-white transition-all" placeholder="e.g. Nguyen Van A" />
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-[#64748b] mb-1">Student ID (MSSV) <span class="text-red-500">*</span></label>
+                    <label for="edit-ext-studentid" class="block text-xs font-semibold text-[#64748b] mb-1">Student ID (MSSV) <span class="text-red-500">*</span></label>
                     <input id="edit-ext-studentid" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary focus:bg-white transition-all font-mono" placeholder="e.g. 102200001" />
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-[#64748b] mb-1">Email <span class="text-red-500">*</span></label>
+                    <label for="edit-ext-email" class="block text-xs font-semibold text-[#64748b] mb-1">Email <span class="text-red-500">*</span></label>
                     <input id="edit-ext-email" type="email" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary focus:bg-white transition-all" placeholder="e.g. student@dut.udn.vn" />
                 </div>
             </div>
@@ -1086,7 +1086,7 @@
     </div>
 
     <!-- Revoke Certificate Modal -->
-    <div class="popup-overlay" hidden id="revoke-cert-overlay">
+    <div class="popup-overlay" hidden id="revoke-cert-overlay" role="dialog" aria-modal="true" aria-labelledby="revoke-cert-title">
         <div class="popup-backdrop" id="revoke-cert-backdrop"></div>
         <div class="popup-container !max-w-[440px] !p-6 bg-white rounded-3xl border border-[#ecedfa] shadow-2xl">
             <div class="flex items-center justify-between mb-4">
@@ -1095,11 +1095,11 @@
                         <i class="fa-solid fa-ban"></i>
                     </div>
                     <div>
-                        <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Revoke Certificate</h3>
+                        <h3 id="revoke-cert-title" class="font-headline-md text-lg font-bold text-[#191b22]">Revoke Certificate</h3>
                         <p class="text-xs text-[#64748b]">Invalidate issued certificate</p>
                     </div>
                 </div>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" id="revoke-cert-close-btn">
+                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" type="button" aria-label="Close" id="revoke-cert-close-btn">
                     <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
@@ -1108,7 +1108,7 @@
 
             <div class="mb-5">
                 <p class="text-xs text-slate-600 mb-3" id="revoke-cert-recipient-desc">Are you sure you want to revoke this certificate?</p>
-                <label class="block text-xs font-semibold text-[#64748b] mb-1.5">Revocation Reason <span class="text-red-500">*</span></label>
+                <label for="revoke-cert-reason" class="block text-xs font-semibold text-[#64748b] mb-1.5">Revocation Reason <span class="text-red-500">*</span></label>
                 <textarea id="revoke-cert-reason" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-red-500 focus:bg-white transition-all resize-none" placeholder="e.g. Ineligible attendance / Violated terms of activity"></textarea>
             </div>
 

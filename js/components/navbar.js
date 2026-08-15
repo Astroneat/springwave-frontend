@@ -663,10 +663,15 @@ function initSlidingIndicator() {
         });
     });
 
+    let resizeRaf = null;
     window.addEventListener("resize", () => {
-        const currentActive = menu.querySelector(".figma-navbar-link.active");
-        if (currentActive) {
-            moveIndicator(currentActive);
-        }
+        if (resizeRaf) return;
+        resizeRaf = requestAnimationFrame(() => {
+            const currentActive = menu.querySelector(".figma-navbar-link.active");
+            if (currentActive) {
+                moveIndicator(currentActive);
+            }
+            resizeRaf = null;
+        });
     }, { passive: true });
 }

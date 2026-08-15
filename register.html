@@ -54,17 +54,19 @@
 
                 <form id="register-form">
                     <div class="auth-field">
-                        <label class="auth-label">
+                        <p class="auth-label">
                             <span data-i18n="register.full_name">Full Name</span> <span class="auth-required">*</span>
-                        </label>
+                        </p>
                         <div class="auth-inline-fields">
                             <div class="auth-input-group flex-1">
+                                <label for="first-name" class="sr-only" data-i18n="register.first_name">First Name</label>
                                 <input id="first-name" type="text" placeholder="First Name" data-i18n="register.first_name"
-                                    aria-label="First Name" autocomplete="given-name" required class="auth-input">
+                                    autocomplete="given-name" required class="auth-input">
                             </div>
                             <div class="auth-input-group flex-1">
+                                <label for="last-name" class="sr-only" data-i18n="register.last_name">Last Name</label>
                                 <input id="last-name" type="text" placeholder="Last Name" data-i18n="register.last_name"
-                                    aria-label="Last Name" autocomplete="family-name" required class="auth-input">
+                                    autocomplete="family-name" required class="auth-input">
                             </div>
                         </div>
                     </div>

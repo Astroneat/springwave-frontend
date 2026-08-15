@@ -11,7 +11,7 @@ import { t } from "../lib/i18n.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
-import { sanitizeHtml } from "../lib/sanitize.js";
+import { sanitizeHtml, escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
 
 let allActivities = [];
@@ -208,15 +208,19 @@ async function loadRecommendations() {
         section.style.display = "block";
         container.innerHTML = recommended.slice(0, 6).map(a => {
             const held = formatDate(a.heldDate);
+            const safeTitle = escapeHtml(a.title);
+            const safeLoc = escapeHtml(a.location);
+            const safeHeld = escapeHtml(held);
+            const safeThumb = escapeAttr(a.thumbnail);
             return `
-                <div class="recommendation-card" data-id="${a._id || a.activityID}" style="cursor:pointer;">
+                <div class="recommendation-card" data-id="${escapeAttr(a._id || a.activityID)}" style="cursor:pointer;">
                     <div class="recommendation-thumb">
-                        ${a.thumbnail ? `<img src="${a.thumbnail}" alt="${a.title}">` : '<div class="recommendation-thumb-placeholder"><span class="material-symbols-outlined">event</span></div>'}
+                        ${a.thumbnail ? `<img src="${safeThumb}" alt="${safeTitle}">` : '<div class="recommendation-thumb-placeholder"><span class="material-symbols-outlined">event</span></div>'}
                     </div>
                     <div class="recommendation-body">
-                        <h4 class="recommendation-title">${a.title}</h4>
-                        <span class="recommendation-meta"><span class="material-symbols-outlined" style="font-size:14px;">location_on</span> ${a.location}</span>
-                        <span class="recommendation-meta"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span> ${held}</span>
+                        <h4 class="recommendation-title">${safeTitle}</h4>
+                        <span class="recommendation-meta"><span class="material-symbols-outlined" style="font-size:14px;">location_on</span> ${safeLoc}</span>
+                        <span class="recommendation-meta"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span> ${safeHeld}</span>
                     </div>
                 </div>
             `;
@@ -725,6 +729,7 @@ function toggleCardStar(activityID, active) {
 let cardDelegationBound = false;
 let favReqInFlight = null;
 let cachedFavIds = null;
+const favLocks = new Set();
 
 function initCardClickHandlers() {
     if (cardDelegationBound) return;
@@ -739,13 +744,12 @@ function initCardClickHandlers() {
             e.stopPropagation();
             const card = star.closest(".card");
             const id = card?.dataset.id;
-            if (!id) return;
+            if (!id || favLocks.has(id)) return;
             if (!isAuthenticated()) {
                 alert(t("explore.please_login") || "Please login first to favourite activities!");
                 return;
             }
 
-            // Check verification status
             const user = getUser();
             if (!checkVerificationGuard(user, "favourite activities")) {
                 return;
@@ -756,6 +760,7 @@ function initCardClickHandlers() {
                 if (active) cachedFavIds.delete(id);
                 else cachedFavIds.add(id);
             }
+            favLocks.add(id);
             try {
                 if (active) await removeFavourite(id);
                 else await addFavourite(id);
@@ -766,6 +771,8 @@ function initCardClickHandlers() {
                     else cachedFavIds.delete(id);
                 }
                 console.error("Failed to toggle favourite:", err);
+            } finally {
+                favLocks.delete(id);
             }
             return;
         }
@@ -811,8 +818,8 @@ function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
     const cat = a.category;
     const typeLabel = cat && cat.name ? cat.name : capitalize(a.type);
-    const typeIcon = cat && cat.icon ? cat.icon : "fa-solid fa-tag";
-    const typeColor = cat && cat.color ? cat.color : "#64748b";
+    const typeIcon = cat && cat.icon ? cat.icon.replace(/[^a-z0-9_-]/gi, "") : "fa-solid fa-tag";
+    const typeColor = /^#[0-9a-fA-F]{3,8}$/.test(cat && cat.color) ? cat.color : "#64748b";
     const hasCoords = a.locationLat && a.locationLng;
     const googleMapsLink = hasCoords
         ? `https://www.google.com/maps?q=${a.locationLat},${a.locationLng}`
@@ -824,38 +831,47 @@ function buildPopupHTML(a, backText) {
         return `<div class="file-item">
             <div class="file-left">
                 <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-                <div><h4>${fileName}</h4></div>
+                <div><h4>${escapeHtml(fileName)}</h4></div>
             </div>
-            <a class="download-btn" href="${CDN_DOMAIN}/${link}" target="_blank"><i class="fa-solid fa-download"></i></a>
+            <a class="download-btn" href="${escapeAttr(CDN_DOMAIN)}/${escapeAttr(link)}" target="_blank"><i class="fa-solid fa-download"></i></a>
         </div>`;
     }).join("");
 
     const hostOrgName = typeof a.organization === 'object' ? a.organization?.name : null;
     const displayHost = hostOrgName || a.hostName || a.createdByName || t("common.unknown");
 
+    const safeTitle = escapeHtml(a.title || "");
+    const safeBack = escapeHtml(backText);
+    const safeHost = escapeHtml(displayHost || "U");
+    const safeTypeLabel = escapeHtml(typeLabel);
+    const safeDescription = (a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${escapeHtml(p)}</p>`).join('');
+    const safeHostAvatar = safeHost.charAt(0).toUpperCase();
+    const safeThumb = escapeAttr(a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop');
+    const safeLocation = escapeHtml(a.location || "");
+
     return `
     <div class="activity-popup-layout">
         <div class="popup-hero-cover">
-            <img src="${a.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" alt="${a.title}">
+            <img src="${safeThumb}" alt="${safeTitle}">
             <div class="popup-hero-overlay"></div>
-            <button class="back-btn-floating" id="back-btn" title="${backText}"><i class="fa-solid fa-arrow-left"></i></button>
-            <span class="popup-category-badge" style="background:${typeColor}20;color:${typeColor}"><i class="${typeIcon}"></i><span>${typeLabel}</span></span>
+            <button class="back-btn-floating" id="back-btn" title="${safeBack}"><i class="fa-solid fa-arrow-left"></i></button>
+            <span class="popup-category-badge" style="background:${typeColor}20;color:${typeColor}"><i class="${typeIcon}"></i><span>${safeTypeLabel}</span></span>
         </div>
 
         <div class="popup-body-grid">
             <div class="popup-body-main">
-                <h1 class="popup-main-title">${a.title}</h1>
+                <h1 class="popup-main-title">${safeTitle}</h1>
                 <div class="popup-host-row">
-                    <div class="popup-host-avatar">${(displayHost || "U")[0].toUpperCase()}</div>
+                    <div class="popup-host-avatar">${safeHostAvatar}</div>
                     <div class="popup-host-info">
                         <span class="host-label">Hosted by</span>
-                        <h4 class="host-name">${displayHost}</h4>
+                        <h4 class="host-name">${safeHost}</h4>
                     </div>
                 </div>
                 <div class="popup-section-divider"></div>
                 <h3 class="popup-section-title">About this Activity</h3>
                 <div class="popup-description-text">
-                    ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+                    ${safeDescription}
                 </div>
                 ${filesHTML ? `
                 <div class="popup-section-divider"></div>
@@ -880,7 +896,7 @@ function buildPopupHTML(a, backText) {
                             <i class="fa-solid fa-location-dot"></i>
                             <div>
                                 <span>Location</span>
-                                <p><a href="${googleMapsLink}" target="_blank" class="sidebar-location-link">${a.location} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></p>
+                                <p><a href="${escapeAttr(googleMapsLink)}" target="_blank" class="sidebar-location-link">${escapeHtml(a.location)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></p>
                             </div>
                         </div>
                         <div class="sidebar-detail-item">
@@ -900,7 +916,7 @@ function buildPopupHTML(a, backText) {
                                 <p class="participate-text">${t("explore.join_activity")}</p>
                             </div>
                         </button>
-                        <button class="action-btn discuss discuss-btn" data-event-id="${a.activityID}" data-event-title="${a.title}" type="button">
+                        <button class="action-btn discuss discuss-btn" data-event-id="${escapeAttr(a.activityID)}" data-event-title="${escapeAttr(a.title)}" type="button">
                             <i class="fa-solid fa-comments"></i>
                             <div>
                                 <h4>DISCUSS</h4>
@@ -979,17 +995,21 @@ function buildFavouritesHTML(activities) {
         const held = formatDate(a.heldDate);
         const cat = a.category;
         const type = cat && cat.name ? cat.name : capitalize(a.type);
-        return `<div class="activity-card" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;transition:background 0.2s">
+        const safeType = escapeHtml(type);
+        const safeTitle = escapeHtml(a.title);
+        const safeLocation = escapeHtml(a.location);
+        const safeThumb = escapeAttr(a.thumbnail);
+        return `<div class="activity-card" data-id="${escapeAttr(a.activityID)}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;transition:background 0.2s">
             <div style="width:120px;height:90px;border-radius:10px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">
-                ${a.thumbnail ? `<img src="${a.thumbnail}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="padding:30px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}
+                ${a.thumbnail ? `<img src="${safeThumb}" style="width:100%;height:100%;object-fit:cover;" alt="${safeTitle}">` : '<div style="padding:30px;text-align:center;color:#999"><i class="fa-regular fa-image"></i></div>'}
             </div>
             <div style="flex:1">
                 <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:12px;padding:2px 10px;border-radius:999px;background:#dce9ff;color:var(--accent);font-weight:600;">${type}</span>
-                    <span style="font-size:12px;color:var(--text-muted)">${held}</span>
+                    <span style="font-size:12px;padding:2px 10px;border-radius:999px;background:#dce9ff;color:var(--accent);font-weight:600;">${safeType}</span>
+                    <span style="font-size:12px;color:var(--text-muted)">${escapeHtml(held)}</span>
                 </div>
-                <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">${a.title}</h3>
-                <div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${a.location}</div>
+                <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">${safeTitle}</h3>
+                <div style="font-size:13px;color:var(--text-secondary)"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ${safeLocation}</div>
             </div>
         </div>`;
     }).join('');

@@ -1268,13 +1268,13 @@ html, body, button, input, select, textarea {
 
 .ticket-row-qr-btn,
 .ticket-row-view-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     border: none;
     transition: all 0.15s ease;
@@ -1494,9 +1494,9 @@ html, body, button, input, select, textarea {
 }
 
 .chatbot-qr-close {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     border: none;
     background: #e2e8f0;
     color: #475569;
@@ -2077,9 +2077,19 @@ html, body, button, input, select, textarea {
     @apply text-lg font-bold text-slate-900;
 }
 
-.crop-modal-close {
-    @apply w-8 h-8 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center text-slate-400;
-    transition: all 0.2s ease;
+.edit-modal-close,
+.crop-modal-close,
+.forum-post-modal-close,
+.map-modal-close {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .crop-modal-close:hover {
@@ -2524,7 +2534,7 @@ html, body, button, input, select, textarea {
 /* ================= FAVOURITE ================= */
 
 .favorite-btn {
-    @apply border border-[#d9dfea] bg-white h-[36px] px-[12px] rounded-[10px] flex items-center gap-2 cursor-pointer;
+    @apply border border-[#d9dfea] bg-white h-[44px] px-[14px] rounded-[10px] flex items-center gap-2 cursor-pointer;
     transition: 0.3s ease;
 }
 
@@ -2539,7 +2549,7 @@ html, body, button, input, select, textarea {
 /* STAR */
 
 .star {
-    @apply w-[26px] h-[26px] rounded-full bg-[#f3f3f3] border border-[#d6d6d6] flex items-center justify-center;
+    @apply w-[44px] h-[44px] rounded-full bg-[#f3f3f3] border border-[#d6d6d6] flex items-center justify-center;
     transition: 0.3s ease;
 }
 

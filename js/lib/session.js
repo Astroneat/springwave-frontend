@@ -30,7 +30,13 @@ export function setUser(user) {
 
 export function getUser() {
     const user = STORAGE.getItem("user");
-    return user ? JSON.parse(user) : null;
+    if (!user) return null;
+    try {
+      return JSON.parse(user);
+    } catch (e) {
+      console.warn("Corrupted user JSON in session storage", e);
+      return null;
+    }
 }
 
 export function removeUser() {
@@ -60,8 +66,13 @@ export function isAuthenticated() {
 
 export function logout() {
     clearSession();
-    if (window.google?.accounts?.id) {
-        google.accounts.id.disableAutoSelect();
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+        try {
+            window.google.accounts.id.disableAutoSelect();
+        } catch (e) {
+            // Google SSO script may not be fully initialized; logout should still succeed.
+            console.warn("Google auto-select disable failed", e);
+        }
     }
 }
 

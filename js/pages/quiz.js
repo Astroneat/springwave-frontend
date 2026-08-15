@@ -281,7 +281,11 @@ function renderQuestion() {
   title.style.backgroundClip = "text";
 
   const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
-  document.getElementById("quizProgressBar").style.width = `${progress}%`;
+  const bar = document.getElementById("quizProgressBar");
+  if (bar) {
+    bar.style.width = `${progress}%`;
+    bar.setAttribute("aria-valuenow", currentQuestion + 1);
+  }
   document.getElementById("quizProgressText").textContent = `${currentQuestion + 1} / ${QUESTIONS.length}`;
 
   const container = document.getElementById("quizAnswers");

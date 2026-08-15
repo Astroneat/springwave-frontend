@@ -238,8 +238,8 @@ async function showFavPopup() {
         const items = (activities || []).map(a => {
             const held = formatDate(a.heldDate);
             return `<div class="fav-item" data-id="${a.activityID}">
-                <div class="fav-thumb">${a.thumbnail ? `<img src="${a.thumbnail}" alt="${a.title}">` : '<div class="fav-thumb-placeholder"><i class="fa-regular fa-image"></i></div>'}</div>
-                <div class="fav-body"><div class="fav-title">${a.title}</div><div class="fav-location"><i class="fa-solid fa-location-dot"></i> ${a.location}</div><div class="fav-date">${held}</div></div>
+                <div class="fav-thumb">${a.thumbnail ? `<img src="${escapeAttr(a.thumbnail)}" alt="${escapeAttr(a.title)}">` : '<div class="fav-thumb-placeholder"><i class="fa-regular fa-image"></i></div>'}</div>
+                <div class="fav-body"><div class="fav-title">${escapeHtml(a.title)}</div><div class="fav-location"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(a.location)}</div><div class="fav-date">${escapeHtml(held)}</div></div>
             </div>`;
         }).join("");
 
@@ -531,21 +531,21 @@ async function renderAIProfile() {
 
     container.innerHTML = `
       <div class="ai-profile-section">
-        ${p.major ? `<div class="ai-profile-field"><span class="ai-profile-label">Major</span><span class="ai-profile-value">${p.major}</span></div>` : ''}
-        ${p.goal ? `<div class="ai-profile-field"><span class="ai-profile-label">Goal</span><span class="ai-profile-value">${p.goal}</span></div>` : ''}
+        ${p.major ? `<div class="ai-profile-field"><span class="ai-profile-label">Major</span><span class="ai-profile-value">${escapeHtml(p.major)}</span></div>` : ''}
+        ${p.goal ? `<div class="ai-profile-field"><span class="ai-profile-label">Goal</span><span class="ai-profile-value">${escapeHtml(p.goal)}</span></div>` : ''}
         ${p.skills?.length ? `
           <div class="ai-profile-field">
             <span class="ai-profile-label">Skills</span>
-            <div class="ai-profile-tags">${p.skills.map(s => `<span class="ai-profile-tag">${s}</span>`).join('')}</div>
+            <div class="ai-profile-tags">${p.skills.map(s => `<span class="ai-profile-tag">${escapeHtml(s)}</span>`).join('')}</div>
           </div>
         ` : ''}
         ${p.preferredActivities?.length ? `
           <div class="ai-profile-field">
             <span class="ai-profile-label">Preferred Activities</span>
-            <div class="ai-profile-tags">${p.preferredActivities.map(a => `<span class="ai-profile-tag">${a}</span>`).join('')}</div>
+            <div class="ai-profile-tags">${p.preferredActivities.map(a => `<span class="ai-profile-tag">${escapeHtml(a)}</span>`).join('')}</div>
           </div>
         ` : ''}
-        ${p.description ? `<div class="ai-profile-field"><span class="ai-profile-label">About</span><p class="ai-profile-desc">${p.description}</p></div>` : ''}
+        ${p.description ? `<div class="ai-profile-field"><span class="ai-profile-label">About</span><p class="ai-profile-desc">${escapeHtml(p.description)}</p></div>` : ''}
       </div>
     `;
   } catch (error) {
@@ -676,7 +676,7 @@ async function renderParticipatedEventsPanel() {
                     `;
                 }
                 return `
-              <div class="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors" onclick="window.openReviewModal('${e._id}', '${e.title.replace(/'/g, "\\'")}', '${e.thumbnail || ''}', '${org.name.replace(/'/g, "\\'")}')">
+              <div class="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors" data-id="${e._id}" data-title="${e.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}" data-thumb="${e.thumbnail || ''}" data-org="${org.name.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}">
                 ${e.thumbnail ? `<img src="${e.thumbnail}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">` : `<div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>`}
                 <div class="flex-1">
                   <div class="flex items-center justify-between">
@@ -698,11 +698,11 @@ async function renderParticipatedEventsPanel() {
     if (totalPages > 1) {
       html += `
         <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-          <button class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === 1 ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === 1 ? 'disabled' : ''} onclick="window.changeParticipatedPage(${page - 1})">
+          <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === 1 ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === 1 ? 'disabled' : ''} data-action="participated-page" data-page="${page - 1}">
             <i class="fa-solid fa-chevron-left mr-1"></i> Prev
           </button>
           <span class="text-sm font-medium text-gray-500">Page ${page} of ${totalPages}</span>
-          <button class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === totalPages ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === totalPages ? 'disabled' : ''} onclick="window.changeParticipatedPage(${page + 1})">
+          <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === totalPages ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === totalPages ? 'disabled' : ''} data-action="participated-page" data-page="${page + 1}">
             Next <i class="fa-solid fa-chevron-right ml-1"></i>
           </button>
         </div>
@@ -711,6 +711,21 @@ async function renderParticipatedEventsPanel() {
 
     container.innerHTML = html;
   }
+
+  // Click delegation for the participated events panel
+  container.addEventListener("click", (e) => {
+    const reviewRow = e.target.closest("[data-id][data-title]");
+    if (reviewRow) {
+      const { id, title, thumb, org } = reviewRow.dataset;
+      openReviewModal(id, title, thumb, org);
+      return;
+    }
+    const pageBtn = e.target.closest("[data-action='participated-page']");
+    if (pageBtn && !pageBtn.disabled) {
+      const page = parseInt(pageBtn.dataset.page, 10);
+      if (page >= 1) renderParticipatedPage(page);
+    }
+  });
 
   renderParticipatedPage(1);
 
@@ -809,7 +824,7 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
                 <span>${progress.current}/${progress.target}</span>
               </div>
               <div style="height: 4px; background: #e2e8f0; border-radius: 99px; overflow: hidden;">
-                <div style="height: 100%; background: ${barColor}; border-radius: 99px; width: ${pct}%; transition: width 0.3s ease;"></div>
+                <div style="height: 100%; background: ${barColor}; border-radius: 99px; width: 100%; transform: scaleX(${pct / 100}); transform-origin: left; transition: transform 0.3s ease;"></div>
               </div>
             </div>
           `;
