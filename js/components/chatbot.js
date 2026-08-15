@@ -307,7 +307,118 @@ function renderActionCardFromJSON(data) {
     </div>`.replace(/\n/g, " ");
   }
 
-  // CASE F: General Success or Error
+  // CASE G: Certificate Card
+  if (cardType === "certificate_card") {
+    const cert = data.certificate || {};
+    const ev = data.event || {};
+    const cleanTitle = escapeHtml(ev.title || cert.metadata?.eventTitle || "Sự kiện");
+    const certCode = escapeHtml(cert.certificateCode || "");
+    const verifyUrl = cert.verifyUrl || (certCode ? `/certificate.html?code=${encodeURIComponent(certCode)}` : "");
+    const isRevoked = cert.status === "revoked";
+    const issuedDate = cert.issuedAt ? escapeHtml(formatCardDate(cert.issuedAt)) : "";
+    const orgName = escapeHtml(ev.organization || "SpringWave");
+
+    if (!certCode && data.count === 0) {
+      return `
+      <div class="chatbot-action-card card-empty">
+        <i class="fa-solid fa-award text-3xl text-amber-400 mb-2"></i>
+        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || "Bạn chưa có chứng nhận nào được cấp trên SpringWave.")}</p>
+      </div>`.replace(/\n/g, " ");
+    }
+
+    return `
+    <div class="chatbot-action-card card-certificate ${isRevoked ? 'cert-revoked' : ''}">
+      <div class="action-card-header ${isRevoked ? 'header-revoked' : 'header-cert'}">
+        <span class="action-card-badge-cert"><i class="fa-solid fa-award"></i> ${isRevoked ? 'CHỨNG NHẬN ĐÃ THU HỒI' : 'CHỨNG NHẬN HOÀN THÀNH'}</span>
+        ${certCode ? `<span class="action-cert-code">#${certCode}</span>` : ''}
+      </div>
+      <div class="action-card-body">
+        <h4 class="action-card-title">${cleanTitle}</h4>
+        <div class="action-card-meta">
+          ${orgName ? `<div class="meta-item"><i class="fa-solid fa-building-columns text-amber-500"></i> <span>${orgName}</span></div>` : ''}
+          ${issuedDate ? `<div class="meta-item"><i class="fa-regular fa-calendar-check text-emerald-500"></i> <span>Cấp ngày: ${issuedDate}</span></div>` : ''}
+        </div>
+        ${isRevoked ? `<p class="cert-revocation-msg text-xs text-rose-600 mt-1 font-medium"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(cert.revocationReason || 'Chứng chỉ đã bị thu hồi bởi BTC.')}</p>` : ''}
+      </div>
+      <div class="action-card-actions">
+        ${verifyUrl ? `
+          <a href="${verifyUrl}" class="action-btn-cert" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-certificate"></i> <span>Mở xem chứng chỉ số</span>
+          </a>
+        ` : ''}
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // CASE H: My Certificates List
+  if (cardType === "my_certificates_list") {
+    const certs = Array.isArray(data.certificates) ? data.certificates : [];
+    if (certs.length === 0) {
+      return `
+      <div class="chatbot-action-card card-empty">
+        <i class="fa-solid fa-award text-3xl text-amber-400 mb-2"></i>
+        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || "Bạn chưa có chứng chỉ nào được cấp.")}</p>
+      </div>`.replace(/\n/g, " ");
+    }
+
+    const itemsHtml = certs.map(c => {
+      const ev = c.event || {};
+      const evTitle = escapeHtml(ev.title || "Sự kiện");
+      const cCode = escapeHtml(c.certificateCode || "");
+      const vUrl = c.verifyUrl || `/certificate.html?code=${encodeURIComponent(cCode)}`;
+      const isRev = c.status === "revoked";
+
+      return `
+      <div class="ticket-row-item cert-row-item ${isRev ? 'cert-item-revoked' : ''}">
+        <div class="ticket-row-info">
+          <div class="ticket-row-title">${evTitle}</div>
+          <span class="cert-row-code text-xs font-mono text-amber-600 font-semibold">#${cCode}</span>
+          ${isRev ? '<span class="text-rose-500 text-[10px] font-semibold ml-1">(Đã thu hồi)</span>' : ''}
+        </div>
+        <div class="ticket-row-btn-group">
+          <a href="${vUrl}" target="_blank" rel="noopener noreferrer" class="ticket-row-view-btn cert-view-btn" title="Xem chứng nhận">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>
+        </div>
+      </div>`;
+    }).join("");
+
+    return `
+    <div class="chatbot-action-card card-certs-list">
+      <div class="action-card-header header-cert">
+        <span class="action-card-badge-cert"><i class="fa-solid fa-award"></i> CHỨNG NHẬN ĐÃ ĐẠT (${certs.length})</span>
+      </div>
+      <div class="tickets-list-scroll">
+        ${itemsHtml}
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // CASE I: Attendance Status Card
+  if (cardType === "attendance_status") {
+    const ev = data.event || {};
+    const att = data.attendance || {};
+    const cleanTitle = escapeHtml(ev.title || "Sự kiện");
+    const isPresent = att.status === "present";
+    const checkInTime = att.checkedInAt ? escapeHtml(formatCardDate(att.checkedInAt)) : "";
+
+    return `
+    <div class="chatbot-action-card card-attendance ${isPresent ? 'att-present' : 'att-absent'}">
+      <div class="action-card-header ${isPresent ? 'header-success' : 'header-warning'}">
+        <span class="${isPresent ? 'action-card-badge-success' : 'action-card-badge-warning'}">
+          <i class="fa-solid ${isPresent ? 'fa-circle-check' : 'fa-circle-question'}"></i> ${isPresent ? 'ĐÃ ĐIỂM DANH' : 'CHƯA ĐIỂM DANH'}
+        </span>
+      </div>
+      <div class="action-card-body">
+        <h4 class="action-card-title">${cleanTitle}</h4>
+        <p class="text-xs text-slate-600 leading-relaxed mt-1">
+          ${isPresent ? `Điểm danh thành công lúc <strong>${checkInTime}</strong>.` : 'Chưa ghi nhận mã check-in của bạn tại sự kiện này.'}
+        </p>
+      </div>
+    </div>`.replace(/\n/g, " ");
+  }
+
+  // CASE J: General Success or Error
   if (cardType === "action_error") {
     return `
     <div class="chatbot-action-card card-error">

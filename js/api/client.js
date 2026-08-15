@@ -227,6 +227,13 @@ export function put(endpoint, body) {
     });
 }
 
+export function patch(endpoint, body) {
+    return request(endpoint, {
+        method: "PATCH",
+        body: JSON.stringify(body)
+    });
+}
+
 export function del(endpoint) {
     return request(endpoint, {
         method: "DELETE"

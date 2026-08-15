@@ -1,4 +1,4 @@
-import { get, post } from "./client.js";
+import { get, post, patch } from "./client.js";
 
 export function getEventCertificates(eventId) {
   return get(`/certificates/events/${eventId}/certificates`);
@@ -6,6 +6,14 @@ export function getEventCertificates(eventId) {
 
 export function issueCertificates(eventId) {
   return post(`/certificates/events/${eventId}/certificates/issue`);
+}
+
+export function revokeCertificate(certId, reason) {
+  return patch(`/certificates/${certId}/revoke`, { reason });
+}
+
+export function restoreCertificate(certId) {
+  return patch(`/certificates/${certId}/restore`, {});
 }
 
 export function getMyCertificates() {

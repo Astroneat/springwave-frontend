@@ -42,6 +42,19 @@ export function capitalize(str) {
     return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 }
 
+export function toTitleCase(str) {
+    if (!str || typeof str !== "string") return "";
+    return str
+        .trim()
+        .split(/\s+/)
+        .map(word => {
+            if (!word) return "";
+            const lower = word.toLowerCase();
+            return lower.charAt(0).toUpperCase() + lower.slice(1);
+        })
+        .join(" ");
+}
+
 export function toLocalISODate(date) {
     if (!date || isNaN(date.getTime())) return "";
     const y = date.getFullYear();
