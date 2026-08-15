@@ -13,18 +13,24 @@ export function toggleDisableOrganizationAdmin(id, disable = true) {
 }
 
 export function getOrganizationById(id) {
+  if (!id || id === 'null' || id === 'undefined') return Promise.reject(new Error("Invalid organization ID"));
   return get(`/organizations/${id}`);
 }
 
 export function updateOrganization(id, data) {
+  if (!id || id === 'null' || id === 'undefined') return Promise.reject(new Error("Invalid organization ID"));
   return put(`/organizations/${id}`, data);
 }
 
 export function deleteOrganization(id) {
+  if (!id || id === 'null' || id === 'undefined') return Promise.reject(new Error("Invalid organization ID"));
   return del(`/organizations/${id}`);
 }
 
 export function getOrgActivities(orgId, params = {}) {
+  if (!orgId || orgId === 'null' || orgId === 'undefined') {
+    return Promise.resolve({ events: [] });
+  }
   const q = new URLSearchParams();
   if (params.status) q.set("status", params.status);
   if (params.page) q.set("page", params.page);
@@ -34,28 +40,34 @@ export function getOrgActivities(orgId, params = {}) {
 }
 
 export function getManagers(orgId) {
+  if (!orgId || orgId === 'null' || orgId === 'undefined') return Promise.resolve({ managers: [] });
   return get(`/organizations/${orgId}/managers`);
 }
 
 export function addManager(orgId, email) {
+  if (!orgId || orgId === 'null' || orgId === 'undefined') return Promise.reject(new Error("Invalid organization ID"));
   return post(`/organizations/${orgId}/managers`, { email });
 }
 
 export function removeManager(orgId, userId) {
+  if (!orgId || orgId === 'null' || orgId === 'undefined') return Promise.reject(new Error("Invalid organization ID"));
   return del(`/organizations/${orgId}/managers/${userId}`);
 }
 
 export function transferOwnership(orgId, email) {
+  if (!orgId || orgId === 'null' || orgId === 'undefined') return Promise.reject(new Error("Invalid organization ID"));
   return put(`/organizations/${orgId}/transfer-owner`, { email });
 }
 
 export function uploadOrgAvatar(id, file) {
+  if (!id || id === 'null' || id === 'undefined') return Promise.reject(new Error("Invalid organization ID"));
   const formData = new FormData();
   formData.append("avatar", file);
   return uploadFormData(`/organizations/${id}/avatar`, formData);
 }
 
 export function uploadOrgCover(id, file) {
+  if (!id || id === 'null' || id === 'undefined') return Promise.reject(new Error("Invalid organization ID"));
   const formData = new FormData();
   formData.append("cover", file);
   return uploadFormData(`/organizations/${id}/cover`, formData);

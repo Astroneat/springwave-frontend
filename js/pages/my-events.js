@@ -235,9 +235,12 @@ function openRateModal(eventId, eventTitle) {
   });
   const modal = document.getElementById("rate-modal");
   const content = modal.querySelector(".bg-white");
-  modal.classList.remove("opacity-0", "pointer-events-none");
-  content.classList.remove("scale-95");
-  content.classList.add("scale-100");
+  modal.hidden = false;
+  requestAnimationFrame(() => {
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    content.classList.remove("scale-95");
+    content.classList.add("scale-100");
+  });
 }
 
 function closeRateModal() {
@@ -246,6 +249,11 @@ function closeRateModal() {
   modal.classList.add("opacity-0", "pointer-events-none");
   content.classList.remove("scale-100");
   content.classList.add("scale-95");
+  setTimeout(() => {
+    if (modal.classList.contains("opacity-0")) {
+      modal.hidden = true;
+    }
+  }, 300);
   currentRateEventId = null;
 }
 
@@ -254,12 +262,15 @@ function closeRateModal() {
 function openCertModal(certCode, eventTitle) {
   document.getElementById("cert-modal-event-name").textContent = eventTitle;
   document.getElementById("cert-modal-code").textContent = certCode;
-  document.getElementById("cert-verify-link").href = `${API_BASE_URL}/certificates/verify/${certCode}`;
+  document.getElementById("cert-verify-link").href = `/certificate.html?code=${encodeURIComponent(certCode)}`;
   const modal = document.getElementById("cert-modal");
   const content = modal.querySelector(".bg-white");
-  modal.classList.remove("opacity-0", "pointer-events-none");
-  content.classList.remove("scale-95");
-  content.classList.add("scale-100");
+  modal.hidden = false;
+  requestAnimationFrame(() => {
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    content.classList.remove("scale-95");
+    content.classList.add("scale-100");
+  });
 }
 
 function closeCertModal() {
@@ -268,6 +279,11 @@ function closeCertModal() {
   modal.classList.add("opacity-0", "pointer-events-none");
   content.classList.remove("scale-100");
   content.classList.add("scale-95");
+  setTimeout(() => {
+    if (modal.classList.contains("opacity-0")) {
+      modal.hidden = true;
+    }
+  }, 300);
 }
 
 // ─── Init Modals ───

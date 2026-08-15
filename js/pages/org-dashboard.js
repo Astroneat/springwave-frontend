@@ -8,8 +8,8 @@ import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
 import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership, uploadOrgAvatar } from "../api/organizations.js";
 import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance, addParticipantsBatch, updateExternalParticipant, deleteExternalParticipant, removeParticipant } from "../api/attendance.js";
-import { getEventCertificates, issueCertificates } from "../api/certificates.js";
-import { getHostReviews } from "../api/activities.js";
+import { getEventCertificates, issueCertificates, revokeCertificate, restoreCertificate } from "../api/certificates.js";
+import { getHostReviews, updateActivity } from "../api/activities.js";
 import { getOrgAnalytics, getEventAnalytics, downloadOrgExcelReport, downloadEventExcelReport } from "../api/analytics.js";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initParticipantEventSelect();
   initAttendanceEventSelect();
   initCertEventSelect();
+  initCertBackgroundManager();
   initAddParticipantsModal();
   initEditExternalModal();
 });
@@ -2870,15 +2871,141 @@ function initAttendanceButtons() {
 
 // ─── Certificates ───
 
+let selectedCertEventId = null;
+
+function renderCertBgPanel(event) {
+  const panel = document.getElementById("cert-bg-manage-panel");
+  const preview = document.getElementById("cert-bg-manage-preview");
+  const placeholder = document.getElementById("cert-bg-manage-placeholder");
+  const badge = document.getElementById("cert-bg-status-badge");
+  const resetBtn = document.getElementById("reset-cert-bg-btn");
+  if (!panel) return;
+
+  if (!event || !(event.hasCertificate === true || event.hasCertificate === 'true')) {
+    panel.classList.add("hidden");
+    return;
+  }
+
+  panel.classList.remove("hidden");
+  const bgUrl = event.certificateBackground;
+
+  if (bgUrl && bgUrl.trim() !== '') {
+    if (preview) {
+      preview.src = bgUrl;
+      preview.classList.remove("hidden");
+    }
+    if (placeholder) placeholder.classList.add("hidden");
+    if (badge) {
+      badge.textContent = "Custom Background";
+      badge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200";
+    }
+    if (resetBtn) resetBtn.classList.remove("hidden");
+  } else {
+    if (preview) {
+      preview.src = "";
+      preview.classList.add("hidden");
+    }
+    if (placeholder) placeholder.classList.remove("hidden");
+    if (badge) {
+      badge.textContent = "Default Royal Theme";
+      badge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200";
+    }
+    if (resetBtn) resetBtn.classList.add("hidden");
+  }
+}
+
+function initCertBackgroundManager() {
+  const input = document.getElementById("cert-bg-manage-input");
+  const uploadBtn = document.getElementById("upload-cert-bg-btn");
+  const resetBtn = document.getElementById("reset-cert-bg-btn");
+
+  uploadBtn?.addEventListener("click", () => {
+    if (!selectedCertEventId) {
+      alert("Please select an event first.");
+      return;
+    }
+    input?.click();
+  });
+
+  input?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedCertEventId) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Image size must be less than 10MB");
+      input.value = "";
+      return;
+    }
+
+    const origText = uploadBtn.innerHTML;
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Uploading...</span>`;
+
+    try {
+      const formData = new FormData();
+      formData.append("certificateBackground", file);
+      const res = await updateActivity(selectedCertEventId, formData);
+      const updatedEv = res.event || res.activity || {};
+      
+      const newBgUrl = updatedEv.certificateBackground || URL.createObjectURL(file);
+      const idx = currentEvents.findIndex(ev => ev._id === selectedCertEventId);
+      if (idx !== -1) {
+        currentEvents[idx].certificateBackground = newBgUrl;
+        renderCertBgPanel(currentEvents[idx]);
+      }
+      
+      alert("Certificate background template updated successfully!");
+    } catch (err) {
+      console.error("Update certificate background error:", err);
+      alert("Failed to update certificate background: " + (err.message || "Unknown error"));
+    } finally {
+      uploadBtn.disabled = false;
+      uploadBtn.innerHTML = origText;
+      input.value = "";
+    }
+  });
+
+  resetBtn?.addEventListener("click", async () => {
+    if (!selectedCertEventId) return;
+    if (!confirm("Reset certificate background to the default SpringWave template?")) return;
+
+    const origText = resetBtn.innerHTML;
+    resetBtn.disabled = true;
+    resetBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Resetting...</span>`;
+
+    try {
+      const formData = new FormData();
+      formData.append("certificateBackground", "");
+      await updateActivity(selectedCertEventId, formData);
+
+      const idx = currentEvents.findIndex(ev => ev._id === selectedCertEventId);
+      if (idx !== -1) {
+        currentEvents[idx].certificateBackground = "";
+        renderCertBgPanel(currentEvents[idx]);
+      }
+
+      alert("Reset to default certificate template successfully.");
+    } catch (err) {
+      console.error("Reset certificate background error:", err);
+      alert("Failed to reset background: " + (err.message || "Unknown error"));
+    } finally {
+      resetBtn.disabled = false;
+      resetBtn.innerHTML = origText;
+    }
+  });
+}
+
 function initCertEventSelect() {
   const wrapper = document.getElementById("cert-event-select-wrapper");
   if (!wrapper) return;
   wrapper.addEventListener("change", (e) => {
     if (e.target.id === "cert-event-select") {
+      selectedCertEventId = e.target.value || null;
       if (e.target.value) {
         loadCertificates(e.target.value);
       } else {
         document.getElementById("certs-table-body").innerHTML = "";
+        renderCertBgPanel(null);
         const empty = document.getElementById("certs-empty");
         if (empty) {
           empty.classList.remove("hidden");
@@ -2895,6 +3022,7 @@ function initCertEventSelect() {
 function showCertsNotSupported() {
   const tbody = document.getElementById("certs-table-body");
   const empty = document.getElementById("certs-empty");
+  renderCertBgPanel(null);
   if (tbody) tbody.innerHTML = "";
   if (empty) {
     empty.classList.remove("hidden");
@@ -2908,11 +3036,15 @@ function showCertsNotSupported() {
 
 async function loadCertificates(eventId) {
   try {
+    selectedCertEventId = eventId;
     const event = currentEvents.find(ev => ev._id === eventId);
     if (!event || !(event.hasCertificate === true || event.hasCertificate === 'true')) {
       showCertsNotSupported();
       return;
     }
+
+    renderCertBgPanel(event);
+
     const { certificates = [] } = await getEventCertificates(eventId);
     const tbody = document.getElementById("certs-table-body");
     const empty = document.getElementById("certs-empty");
@@ -2931,22 +3063,96 @@ async function loadCertificates(eventId) {
 
     tbody.innerHTML = certificates.map(c => {
       const user = c.user || {};
+      const userName = user.fullname || c.metadata?.userName || "Unknown";
+      const isRevoked = c.status === 'revoked';
+      const statusBadge = isRevoked
+        ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200" title="Reason: ${c.revocationReason || 'Revoked'}"><i class="fa-solid fa-ban text-[10px]"></i> Revoked</span>`
+        : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-circle-check text-[10px]"></i> Active</span>`;
+
+      const actionButtons = isRevoked
+        ? `<button class="restore-cert-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}">
+             <i class="fa-solid fa-rotate-left"></i> Restore
+           </button>`
+        : `<div class="flex items-center justify-end gap-2">
+             <a href="/certificate.html?code=${c.certificateCode}" target="_blank" class="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-colors text-xs font-semibold" title="View Certificate">
+               <i class="fa-solid fa-arrow-up-right-from-square"></i>
+             </a>
+             <button class="revoke-cert-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}" data-cert-code="${c.certificateCode}">
+               <i class="fa-solid fa-ban text-[11px]"></i> Revoke
+             </button>
+           </div>`;
+
       return `
-        <tr class="border-b border-[#ecedfa]">
-          <td class="py-3.5 px-4"><span class="font-semibold">${user.fullname || c.metadata?.userName || "Unknown"}</span></td>
+        <tr class="border-b border-[#ecedfa] hover:bg-slate-50/50 transition-colors">
+          <td class="py-3.5 px-4">
+            <div class="font-semibold text-slate-900">${userName}</div>
+            <div class="text-[11px] text-slate-400 font-mono">${user.email || ''}</div>
+          </td>
           <td class="py-3.5 px-4 text-[#64748b] font-mono text-[13px] hidden md:table-cell">${c.certificateCode || "—"}</td>
-          <td class="py-3.5 px-4 text-[#64748b]">${formatDate(c.createdAt)}</td>
+          <td class="py-3.5 px-4 text-[#64748b] text-xs">${formatDate(c.createdAt)}</td>
+          <td class="py-3.5 px-4">${statusBadge}</td>
+          <td class="py-3.5 px-4 text-right">${actionButtons}</td>
         </tr>
       `;
     }).join("");
+
+    // Attach Revoke modal openers
+    tbody.querySelectorAll(".revoke-cert-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const certId = btn.dataset.certId;
+        const userName = btn.dataset.userName;
+        const certCode = btn.dataset.certCode;
+        openRevokeModal(certId, userName, certCode, eventId);
+      });
+    });
+
+    // Attach Restore actions
+    tbody.querySelectorAll(".restore-cert-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const certId = btn.dataset.certId;
+        const userName = btn.dataset.userName;
+        if (!confirm(`Are you sure you want to restore the certificate for ${userName}?`)) return;
+        try {
+          await restoreCertificate(certId);
+          await loadCertificates(eventId);
+        } catch (err) {
+          alert(err.message || "Failed to restore certificate");
+        }
+      });
+    });
+
   } catch (err) {
     console.error("Load certificates error:", err);
   }
 }
 
+function openRevokeModal(certId, userName, certCode, eventId) {
+  const overlay = document.getElementById("revoke-cert-overlay");
+  const idInput = document.getElementById("revoke-cert-id");
+  const desc = document.getElementById("revoke-cert-recipient-desc");
+  const reasonInput = document.getElementById("revoke-cert-reason");
+
+  if (!overlay || !idInput) return;
+  idInput.value = certId;
+  idInput.dataset.eventId = eventId;
+  if (desc) desc.textContent = `Revoke certificate for ${userName} (${certCode})? This action will invalidate the certificate.`;
+  if (reasonInput) reasonInput.value = "";
+
+  overlay.removeAttribute("hidden");
+  overlay.classList.add("active");
+}
+
+function closeRevokeModal() {
+  const overlay = document.getElementById("revoke-cert-overlay");
+  if (overlay) {
+    overlay.classList.remove("active");
+    setTimeout(() => overlay.setAttribute("hidden", ""), 300);
+  }
+}
+
 function initIssueCerts() {
-  document.getElementById("issue-certs-btn").addEventListener("click", async () => {
-    const eventId = document.getElementById("cert-event-select").value;
+  document.getElementById("issue-certs-btn")?.addEventListener("click", async () => {
+    const eventId = document.getElementById("cert-event-select")?.value;
     if (!eventId) return alert("Select an event first");
     const event = currentEvents.find(ev => ev._id === eventId);
     if (!event || !(event.hasCertificate === true || event.hasCertificate === 'true')) {
@@ -2959,6 +3165,34 @@ function initIssueCerts() {
       await loadCertificates(eventId);
     } catch (err) {
       alert(err.message || "Failed to issue certificates");
+    }
+  });
+
+  // Revoke modal controls
+  document.getElementById("revoke-cert-close-btn")?.addEventListener("click", closeRevokeModal);
+  document.getElementById("revoke-cert-cancel-btn")?.addEventListener("click", closeRevokeModal);
+  document.getElementById("revoke-cert-backdrop")?.addEventListener("click", closeRevokeModal);
+
+  document.getElementById("revoke-cert-confirm-btn")?.addEventListener("click", async () => {
+    const idInput = document.getElementById("revoke-cert-id");
+    const reasonInput = document.getElementById("revoke-cert-reason");
+    const certId = idInput?.value;
+    const eventId = idInput?.dataset?.eventId;
+    const reason = reasonInput?.value?.trim() || "Revoked by organizer";
+
+    if (!certId) return;
+    const btn = document.getElementById("revoke-cert-confirm-btn");
+    btn.disabled = true;
+    btn.textContent = "Revoking...";
+    try {
+      await revokeCertificate(certId, reason);
+      closeRevokeModal();
+      if (eventId) await loadCertificates(eventId);
+    } catch (err) {
+      alert(err.message || "Failed to revoke certificate");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-ban text-[11px]"></i> Confirm Revoke`;
     }
   });
 }

@@ -14,6 +14,7 @@ import {
     initOrgSelector, 
     initTurnstile, 
     initCheckinRulesToggle,
+    initCertificateOptionsToggle,
     initTimePicker,
     initEventModeSelector,
     initEditMode
@@ -123,6 +124,7 @@ function initializeHostActivityPage() {
     initDateValidation();
     initEventModeSelector();
     initCheckinRulesToggle();
+    initCertificateOptionsToggle();
     initOrgSelector(orgId);
     initMapPicker();
     initFormSubmit(orgId, () => {

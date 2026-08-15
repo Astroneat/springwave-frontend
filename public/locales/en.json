@@ -916,5 +916,31 @@
     "err_upload": "Upload failed. Please try again with a smaller file.",
     "err_not_school_email": "Your email is not recognized as a school email. Please use the standard verification process.",
     "alert_require_verify": "You need to verify your student status before participating or interacting. Please complete verification."
+  },
+  "certificate_view": {
+    "page_title": "Certificate Verification - SpringWave",
+    "verification_title": "Certificate Verification",
+    "copy_link": "Copy Link",
+    "copied": "Copied!",
+    "download_png": "Download PNG",
+    "download_pdf": "Download PDF",
+    "verifying": "Verifying certificate integrity...",
+    "not_found_title": "Certificate Not Found",
+    "not_found_desc": "The certificate code you requested does not exist or may have been removed.",
+    "go_home": "Go to Homepage",
+    "revoked_title": "Certificate Revoked (No longer valid)",
+    "revoked_desc": "This certificate was revoked by the organizer {{date}}. Reason: \"{{reason}}\". It is no longer valid.",
+    "revoked_badge": "Revoked",
+    "revoked_stamp": "REVOKED",
+    "verified_badge": "Verified by SpringWave",
+    "title_main": "Certificate of Completion",
+    "title_sub": "Certificate of Appreciation & Excellence",
+    "presented_to": "This is proudly presented to",
+    "completed_desc": "For active participation and successful completion of the activity:",
+    "issued_date": "Issued on: {{date}}",
+    "cert_code_label": "Certificate ID",
+    "issued_by_label": "Issued by",
+    "org_role": "Organizing Committee",
+    "footer_note": "© 2026 SpringWave Platform. All certificates are cryptographically tracked and verifiable."
   }
 }

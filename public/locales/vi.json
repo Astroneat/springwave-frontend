@@ -916,5 +916,31 @@
     "err_upload": "Tải file thất bại. Vui lòng thử lại với file nhỏ hơn.",
     "err_not_school_email": "Email của bạn không được nhận diện là email trường. Vui lòng sử dụng quy trình xác thực thông thường.",
     "alert_require_verify": "Bạn cần xác thực sinh viên trước khi tham gia hoặc tương tác. Vui lòng hoàn tất xác thực."
+  },
+  "certificate_view": {
+    "page_title": "Xác Thực Chứng Nhận - SpringWave",
+    "verification_title": "Xác Thực Chứng Nhận",
+    "copy_link": "Sao chép link",
+    "copied": "Đã chép!",
+    "download_png": "Tải ảnh PNG",
+    "download_pdf": "Tải file PDF",
+    "verifying": "Đang xác thực tính hợp lệ của chứng chỉ...",
+    "not_found_title": "Không Tìm Thấy Chứng Chỉ",
+    "not_found_desc": "Mã chứng chỉ bạn yêu cầu không tồn tại hoặc đã bị xóa khỏi hệ thống.",
+    "go_home": "Về trang chủ",
+    "revoked_title": "Chứng Chỉ Đã Bị Thu Hồi (Không còn hiệu lực)",
+    "revoked_desc": "Chứng chỉ này đã bị Ban tổ chức thu hồi {{date}}. Lý do: \"{{reason}}\". Chứng chỉ không còn giá trị công nhận.",
+    "revoked_badge": "Đã bị thu hồi",
+    "revoked_stamp": "ĐÃ THU HỒI",
+    "verified_badge": "Xác thực bởi SpringWave",
+    "title_main": "Giấy Chứng Nhận Hoàn Thành",
+    "title_sub": "Chứng Nhận Tham Gia & Hoàn Thành Xuất Sắc",
+    "presented_to": "Chứng nhận này được trân trọng trao tặng cho",
+    "completed_desc": "Đã tham gia tích cực và hoàn thành xuất sắc hoạt động:",
+    "issued_date": "Cấp ngày: {{date}}",
+    "cert_code_label": "Mã chứng nhận",
+    "issued_by_label": "Được cấp bởi / Issued by",
+    "org_role": "Ban Tổ Chức Hoạt Động",
+    "footer_note": "© 2026 SpringWave Platform. Mọi chứng nhận đều được lưu vết điện tử và có thể xác thực trực tuyến."
   }
 }

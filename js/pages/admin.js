@@ -14,6 +14,7 @@ import {
     initAttachmentLinks, 
     initOrgSelector, 
     initCheckinRulesToggle,
+    initCertificateOptionsToggle,
     initTimePicker,
     initEventModeSelector,
     initEditMode,
@@ -693,7 +694,8 @@ export async function openEventModal(eventId = null) {
     initDateValidation();
     initEventModeSelector();
     initCheckinRulesToggle();
-    await initOrgSelector();
+    initCertificateOptionsToggle();
+    initOrgSelector();
     initTurnstile();
 
     setTimeout(() => {

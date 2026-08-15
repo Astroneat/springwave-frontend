@@ -272,6 +272,37 @@ export function initCheckinRulesToggle() {
     });
 }
 
+export function initCertificateOptionsToggle() {
+    const checkbox = document.getElementById("hasCertificate");
+    const options = document.getElementById("cert-bg-options");
+    const fileInput = document.getElementById("certificateBackgroundFile");
+    const previewContainer = document.getElementById("cert-bg-preview-container");
+    const previewImg = document.getElementById("cert-bg-preview");
+
+    if (!checkbox || !options) return;
+
+    const updateVisibility = () => {
+        options.classList.toggle("hidden", !checkbox.checked);
+    };
+
+    checkbox.addEventListener("change", updateVisibility);
+    updateVisibility();
+
+    if (fileInput) {
+        fileInput.addEventListener("change", (e) => {
+            const file = e.target.files?.[0];
+            if (file && previewContainer && previewImg) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    previewImg.src = ev.target.result;
+                    previewContainer.classList.remove("hidden");
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}
+
 export function initTimePicker() {
     const hoursList = document.getElementById("hoursList");
     const minutesList = document.getElementById("minutesList");
@@ -703,7 +734,21 @@ export async function initEditMode(eventId) {
       }
     }
 
-    if (hasCertificateEl) hasCertificateEl.checked = event.hasCertificate === true || event.hasCertificate === 'true';
+    if (hasCertificateEl) {
+      hasCertificateEl.checked = event.hasCertificate === true || event.hasCertificate === 'true';
+      const certBgOptions = document.getElementById("cert-bg-options");
+      if (certBgOptions) {
+        certBgOptions.classList.toggle("hidden", !hasCertificateEl.checked);
+      }
+      if (event.certificateBackground) {
+        const previewContainer = document.getElementById("cert-bg-preview-container");
+        const previewImg = document.getElementById("cert-bg-preview");
+        if (previewContainer && previewImg) {
+          previewImg.src = event.certificateBackground;
+          previewContainer.classList.remove("hidden");
+        }
+      }
+    }
     if (hasAttendanceEl) hasAttendanceEl.checked = event.hasAttendance === true || event.hasAttendance === 'true';
     if (event.lateCheckinMinutes > 0 || event.expiredCheckinMinutes > 0) {
       if (enableCheckinRulesEl) enableCheckinRulesEl.checked = true;
@@ -923,6 +968,10 @@ export function initFormSubmit(orgId, onSuccess) {
         if (matched) formData.append("category", matched._id);
         const hasCertificate = document.getElementById("hasCertificate")?.checked;
         formData.append("hasCertificate", hasCertificate ? "true" : "false");
+        const certBgFile = document.getElementById("certificateBackgroundFile")?.files?.[0];
+        if (certBgFile) {
+            formData.append("certificateBackground", certBgFile);
+        }
         const hasAttendance = document.getElementById("hasAttendance")?.checked;
         formData.append("hasAttendance", hasAttendance ? "true" : "false");
         const enableCheckinRules = document.getElementById("enableCheckinRules")?.checked;
