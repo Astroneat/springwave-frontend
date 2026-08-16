@@ -706,6 +706,10 @@ function initSidebar() {
         document.getElementById("exploreSidebar")?.classList.toggle("open");
     });
 
+    document.getElementById("closeSidebarBtn")?.addEventListener("click", () => {
+        document.getElementById("exploreSidebar")?.classList.remove("open");
+    });
+
     const sidebar = document.getElementById("exploreSidebar");
     sidebar?.addEventListener("click", (e) => {
         if (e.target === sidebar) sidebar.classList.remove("open");

@@ -198,27 +198,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>`;
       } else {
         grid.innerHTML = events.map(e => `
-          <div data-id="${e._id}" class="event-card cursor-pointer block bg-white border border-[#ecedfa] rounded-[20px] overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-200 group">
-            <div class="h-36 bg-[#f1f5f9] overflow-hidden relative">
+          <div data-id="${e._id}" class="event-card cursor-pointer flex flex-col justify-between bg-white border border-[#ecedfa] rounded-[16px] sm:rounded-[20px] overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-200 group">
+            <div class="h-28 sm:h-36 bg-[#f1f5f9] overflow-hidden relative">
               ${e.thumbnail
                 ? `<img src="${e.thumbnail}" alt="${e.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">`
-                : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><span class="material-symbols-outlined text-4xl">event</span></div>`
+                : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><span class="material-symbols-outlined text-3xl">event</span></div>`
               }
-              <div class="absolute top-3 right-3 bg-[#e6f0fd] px-3 py-1 rounded-lg text-xs font-bold text-[#3493fa] flex items-center gap-1.5 border border-[#3493fa]/30 z-10 shadow-sm">
-                <i class="fa-solid fa-tag text-[#3493fa] text-[10px]"></i>
-                <span class="info-type">${capitalize(e.type || "Activity")}</span>
+              <div class="absolute top-2 right-2 sm:top-3 sm:right-3 bg-[#e6f0fd] px-2 py-0.5 sm:px-3 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold text-[#3493fa] flex items-center gap-1 sm:gap-1.5 border border-[#3493fa]/30 z-10 shadow-sm max-w-[75%]">
+                <i class="fa-solid fa-tag text-[#3493fa] text-[8px] sm:text-[10px] shrink-0"></i>
+                <span class="info-type truncate">${capitalize(e.type || "Activity")}</span>
               </div>
             </div>
-            <div class="p-4">
-              <h3 class="font-bold text-sm text-[#191b22] line-clamp-2 mb-2">${e.title}</h3>
-              <div class="flex items-center gap-1 text-xs text-[#64748b] mb-1">
-                <span class="material-symbols-outlined text-sm">calendar_today</span>
-                <span>${formatDate(e.heldDate)}</span>
+            <div class="p-2.5 sm:p-4 flex-1 flex flex-col justify-between">
+              <h3 class="font-bold text-xs sm:text-sm text-[#191b22] line-clamp-2 mb-1.5">${e.title}</h3>
+              <div class="space-y-1 mt-auto">
+                <div class="flex items-center gap-1 text-[11px] sm:text-xs text-[#64748b]">
+                  <span class="material-symbols-outlined text-xs sm:text-sm shrink-0">calendar_today</span>
+                  <span class="truncate">${formatDate(e.heldDate)}</span>
+                </div>
+                ${e.location ? `<div class="flex items-center gap-1 text-[11px] sm:text-xs text-[#64748b]">
+                  <span class="material-symbols-outlined text-xs sm:text-sm shrink-0">location_on</span>
+                  <span class="truncate">${e.location}</span>
+                </div>` : ''}
               </div>
-              ${e.location ? `<div class="flex items-center gap-1 text-xs text-[#64748b]">
-                <span class="material-symbols-outlined text-sm">location_on</span>
-                <span class="truncate">${e.location}</span>
-              </div>` : ''}
             </div>
           </div>
         `).join("");

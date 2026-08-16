@@ -87,12 +87,14 @@
         </div>
 
         <!-- Search Execution Buttons -->
-        <button class="search-cta-btn" id="searchExecuteBtn" title="Run Search">
-          <span class="material-symbols-outlined">search</span>
-        </button>
-        <button class="search-refresh-btn" id="searchRefreshBtn" title="Refresh Search">
-          <span class="material-symbols-outlined">refresh</span>
-        </button>
+        <div class="search-actions-zone">
+          <button class="search-cta-btn" id="searchExecuteBtn" title="Run Search">
+            <span class="material-symbols-outlined">search</span>
+          </button>
+          <button class="search-refresh-btn" id="searchRefreshBtn" title="Refresh Search">
+            <span class="material-symbols-outlined">refresh</span>
+          </button>
+        </div>
 
       </div>
     </div>
@@ -104,6 +106,12 @@
         <!-- LEFT SIDEBAR -->
         <aside class="explore-sidebar" id="exploreSidebar">
           <div class="explore-sidebar-inner">
+            <div class="sidebar-header-mobile">
+              <span class="sidebar-header-mobile-title" data-i18n="explore.filters">Filters</span>
+              <button class="sidebar-close-btn" id="closeSidebarBtn" type="button" aria-label="Close Filters">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
             <div class="sidebar-section-figma">
               <h3 class="sidebar-title-figma" data-i18n="explore.categories">Categories</h3>
               <div class="category-list-figma" id="categoryList">
