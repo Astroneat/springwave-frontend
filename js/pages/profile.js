@@ -257,7 +257,10 @@ async function showFavPopup() {
         document.getElementById("back-btn").addEventListener("click", closePopup);
 
         popupContainer.querySelectorAll(".fav-item").forEach(el => {
-            el.addEventListener("click", () => openEventPopup(el.dataset.id));
+            el.addEventListener("click", () => {
+                const actData = activities.find(a => String(a.activityID || a._id) === el.dataset.id);
+                openEventPopup(el.dataset.id, { activityData: actData });
+            });
         });
     } catch {}
 }

@@ -15,12 +15,16 @@ import { getUser } from "../lib/session.js";
 
 // --- main --------------------------------------------------------------------
 
+let allEvents = [];
+
 function initEventDelegation() {
   document.getElementById("org-events-grid")?.addEventListener("click", (e) => {
     const card = e.target.closest(".event-card");
     if (card) {
       e.preventDefault();
-      openEventPopup(card.dataset.id);
+      const id = card.dataset.id;
+      const actData = allEvents.find(ev => String(ev._id || ev.activityID) === id);
+      openEventPopup(id, { activityData: actData });
     }
   });
 }
@@ -181,6 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ─── Load & render events (rich cards with thumbnails) ───
   try {
     const { events = [] } = await getOrgActivities(orgId);
+    allEvents = events;
     const grid = document.getElementById("org-events-grid");
     const statsEl = document.getElementById("org-stats-events");
     if (statsEl) statsEl.textContent = events.length;

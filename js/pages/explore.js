@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!allActivities.some(a => a.activityID === eventId || a._id === eventId)) {
                 allActivities.push(activity);
             }
-            openEventPopup(eventId);
+            openEventPopup(eventId, { activityData: activity });
         }
     }
 });
@@ -229,7 +229,8 @@ async function loadRecommendations() {
         container.querySelectorAll('.recommendation-card').forEach(card => {
             card.addEventListener('click', () => {
                 const id = card.dataset.id;
-                openEventPopup(id);
+                const actData = recommended.find(a => String(a._id || a.activityID) === id);
+                openEventPopup(id, { activityData: actData });
             });
         });
     } catch {
@@ -782,14 +783,16 @@ function initCardClickHandlers() {
             e.stopPropagation();
             const card = detailsBtn.closest(".card");
             if (card?.dataset.id) {
-                await openEventPopup(card.dataset.id);
+                const actData = allActivities.find(a => String(a.activityID || a._id) === card.dataset.id);
+                await openEventPopup(card.dataset.id, { activityData: actData });
             }
             return;
         }
 
         const card = e.target.closest(".card");
         if (card?.dataset.id) {
-            await openEventPopup(card.dataset.id);
+            const actData = allActivities.find(a => String(a.activityID || a._id) === card.dataset.id);
+            await openEventPopup(card.dataset.id, { activityData: actData });
         }
     });
 }

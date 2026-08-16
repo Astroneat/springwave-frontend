@@ -1,6 +1,6 @@
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { getActivityById, checkParticipation, unparticipateActivity, participateActivity, getEventComments, addEventComment } from "../api/activities.js";
-import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
+import { addFavourite, removeFavourite, checkFavourite, getParticipatedActivities, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { t } from "../lib/i18n.js";
 import { isAuthenticated, getUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
@@ -9,6 +9,43 @@ import { openPostModal } from "./postModal.js";
 import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
 import { getSimilarEvents } from "../api/activities.js";
+
+let userParticipatedIds = null;
+let userFavouriteIds = null;
+let prefetchPromise = null;
+const activityCache = new Map();
+
+export function ensurePrefetchedData() {
+    if (!isAuthenticated()) {
+        userParticipatedIds = new Set();
+        userFavouriteIds = new Set();
+        return Promise.resolve();
+    }
+    if (prefetchPromise) return prefetchPromise;
+
+    prefetchPromise = (async () => {
+        try {
+            const [partResp, favResp] = await Promise.all([
+                getParticipatedActivities().catch(() => ({ events: [] })),
+                getFavourites().catch(() => ({ activities: [] }))
+            ]);
+            userParticipatedIds = new Set((partResp?.events || []).map(e => String(e._id || e.activityID)));
+            userFavouriteIds = new Set((favResp?.activities || []).map(e => String(e._id || e.activityID)));
+        } catch (err) {
+            console.error("Failed to prefetch participation/favorites data:", err);
+            userParticipatedIds = userParticipatedIds || new Set();
+            userFavouriteIds = userFavouriteIds || new Set();
+            prefetchPromise = null;
+        }
+    })();
+
+    return prefetchPromise;
+}
+
+// Prefetch immediately if user is authenticated
+if (isAuthenticated()) {
+    ensurePrefetchedData().catch(() => {});
+}
 
 // Unverified students are view-only: prompt + redirect to the verify page.
 async function requireVerifiedOrRedirect() {
@@ -74,14 +111,23 @@ export async function openEventPopup(activityID, options = {}) {
 
     // Allow passing activityData directly if already fetched to save network roundtrip
     let activity = options.activityData;
-    if (!activity) {
-        try {
-            const resp = await getActivityById(activityID);
-            activity = resp.activity;
-        } catch (err) {
-            console.error(err);
-        }
+    if (!activity && activityCache.has(activityID)) {
+        activity = activityCache.get(activityID);
     }
+
+    // Prefetch user participation/favorites in parallel with fetching activity data
+    const activityPromise = activity 
+        ? Promise.resolve(activity) 
+        : getActivityById(activityID).then(resp => {
+            const act = resp.activity;
+            if (act) activityCache.set(activityID, act);
+            return act;
+          }).catch(() => null);
+    
+    const prefetchPromise = isAuthenticated() ? ensurePrefetchedData() : Promise.resolve();
+
+    const [fetchedActivity] = await Promise.all([activityPromise, prefetchPromise]);
+    activity = fetchedActivity;
 
     if (!activity) {
         closeEventPopup();
@@ -116,10 +162,12 @@ export async function openEventPopup(activityID, options = {}) {
     loadSimilarEvents(activityID);
 
     if (isAuthenticated()) {
-        Promise.all([
-            checkParticipation(activityID).then(({ participated }) => { if (participated) setParticipated(activity); }),
-            checkFavourite(activityID).then(({ favourited }) => { if (favourited) setFavourited(); })
-        ]).catch(() => { });
+        if (userParticipatedIds && userParticipatedIds.has(String(activityID))) {
+            setParticipated(activity);
+        }
+        if (userFavouriteIds && userFavouriteIds.has(String(activityID))) {
+            setFavourited();
+        }
     }
 
     const favoriteBtn = container.querySelector(".favorite-btn");
@@ -211,6 +259,10 @@ function buildPopupHTML(a, backText) {
     const extUrl = isNonPartner ? (a.registrationLink || a.source?.url || '') : (a.source?.url || '');
     const participateBtnText = isNonPartner ? (t("explore.register_external", "Đăng ký tại trang gốc") || "Đăng ký tại trang gốc") : (extUrl ? t("explore.explore_more", "Explore more") : t("explore.participate", "Participate"));
     const participateBtnIcon = extUrl ? 'arrow-up-right-from-square' : 'circle-check';
+
+    const isParticipating = isAuthenticated() && userParticipatedIds && userParticipatedIds.has(String(a.activityID || a._id));
+    const isFavourited = isAuthenticated() && userFavouriteIds && userFavouriteIds.has(String(a.activityID || a._id));
+    const finalParticipateBtnText = isParticipating ? (t("explore.participated") || "Participated") : participateBtnText;
 
     const hostRowHTML = isNonPartner ? `
         <div class="popup-host-row-new">
@@ -358,9 +410,9 @@ function buildPopupHTML(a, backText) {
                     </div>
 
                     <div class="sidebar-actions-group">
-                        <button class="action-btn-primary participate" type="button" ${extUrl ? `data-external-url="${extUrl}"` : ''}>
+                        <button class="action-btn-primary participate ${isParticipating ? 'active' : ''}" type="button" ${extUrl ? `data-external-url="${extUrl}"` : ''}>
                             <i class="fa-solid fa-${participateBtnIcon}"></i>
-                            <span>${participateBtnText}</span>
+                            <span>${finalParticipateBtnText}</span>
                         </button>
                         
                         <div class="action-btn-row">
@@ -376,7 +428,7 @@ function buildPopupHTML(a, backText) {
                         
                         <div class="sidebar-minor-row">
                             <button class="icon-btn minor-btn" type="button"><span class="material-symbols-outlined text-base">share</span> ${t("explore.share") || "Share"}</button>
-                            <button type="button" class="favorite-btn minor-btn"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite") || "Favourite"}</span></button>
+                            <button type="button" class="favorite-btn minor-btn ${isFavourited ? 'active' : ''}"><div class="star"><i class="fa-solid fa-star"></i></div><span class="favorite-text">${t("explore.favourite") || "Favourite"}</span></button>
                         </div>
                     </div>
                 </div>
@@ -389,8 +441,8 @@ function buildPopupHTML(a, backText) {
                 <span class="mobile-bottom-date">${heldDate.split(',')[0]}</span>
                 <span class="mobile-bottom-title truncate">${a.title}</span>
             </div>
-            <button class="mobile-action-btn participate" type="button" ${extUrl ? `data-external-url="${extUrl}"` : ''}>
-                <span>${participateBtnText}</span>
+            <button class="mobile-action-btn participate ${isParticipating ? 'active' : ''}" type="button" ${extUrl ? `data-external-url="${extUrl}"` : ''}>
+                <span>${isParticipating ? (t("explore.participated") || "Participated") : participateBtnText}</span>
             </button>
         </div>
     </div>`;
@@ -522,8 +574,10 @@ function initParticipateButton(activityID) {
 
                 if (isActive) {
                     await unparticipateActivity(activityID);
+                    if (userParticipatedIds) userParticipatedIds.delete(String(activityID));
                 } else {
                     await participateActivity(activityID);
+                    if (userParticipatedIds) userParticipatedIds.add(String(activityID));
                 }
             } catch (err) {
                 console.error("Participate error:", err);
