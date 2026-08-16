@@ -259,7 +259,9 @@
     "no_account": "Chưa có tài khoản?",
     "register_now": "Đăng ký ngay",
     "or": "HOẶC",
-    "enter_password": "Nhập mật khẩu"
+    "enter_password": "Nhập mật khẩu",
+    "signin_google": "Đăng nhập bằng Google",
+    "signin_microsoft": "Đăng nhập bằng Microsoft"
   },
   "register": {
     "title": "SpringWave - Đăng ký",

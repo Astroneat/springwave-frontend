@@ -1,8 +1,8 @@
 import "../../src/style.css";
-import { login, googleLogin, forgotPassword, resetPassword } from "../api/auth.js";
+import { login, googleLogin, microsoftLogin, forgotPassword, resetPassword } from "../api/auth.js";
 import { createSession, setSigningKey, isAuthenticated } from "../lib/session.js";
 import { ensureSession } from "../api/client.js";
-import { GOOGLE_CLIENT_ID, API_BASE_URL, TURNSTILE_SITE_KEY } from "../config.js";
+import { GOOGLE_CLIENT_ID, MICROSOFT_CLIENT_ID, API_BASE_URL, TURNSTILE_SITE_KEY } from "../config.js";
 import { initI18n, t } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { isSchoolEmail } from "../lib/utils.js";
@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
     initLoginForm();
     initGoogleLogin();
+    initMicrosoftLogin();
     initTurnstile();
     initPasswordToggles();
     initPasswordResetModals();
@@ -199,16 +200,141 @@ function initLoginForm() {
 }
 
 function initGoogleLogin() {
-    window.handleGoogleCredential = async (response) => {
+    const googleBtn = document.getElementById("google-signin-btn");
+    if (!googleBtn) return;
+
+    let tokenClient = null;
+
+    const getGoogleTokenClient = () => {
+        if (!tokenClient && window.google?.accounts?.oauth2 && GOOGLE_CLIENT_ID) {
+            tokenClient = window.google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: "openid email profile",
+                callback: async (tokenResponse) => {
+                    const statusMsg = document.getElementById("status-msg");
+                    if (tokenResponse.error) {
+                        console.error("Google login error:", tokenResponse);
+                        if (tokenResponse.error !== "popup_closed_by_user" && tokenResponse.error !== "access_denied") {
+                            statusMsg.textContent = tokenResponse.error_description || "Google sign-in failed";
+                            statusMsg.classList.remove("success-msg");
+                            statusMsg.classList.add("error-msg");
+                        }
+                        return;
+                    }
+
+                    try {
+                        statusMsg.textContent = "Signing in with Google...";
+                        statusMsg.classList.remove("error-msg");
+                        statusMsg.classList.add("success-msg");
+
+                        const data = await googleLogin(undefined, tokenResponse.access_token);
+
+                        createSession(data.token, data.user);
+                        if (data.signingKey) {
+                            setSigningKey(data.signingKey);
+                        } else {
+                            await fetchSigningKey(data.token);
+                        }
+
+                        if (data.needsProfile) {
+                            window.location.href = "/complete-profile.html";
+                        } else if (data.user && !data.user.isStudentVerified) {
+                            try {
+                                const { checkSchoolEmail } = await import("../api/universities.js");
+                                const schoolResult = await checkSchoolEmail(data.user.email);
+                                if (schoolResult.isSchool) {
+                                    const noticeKey = `springwave_notice_seen_auto_school_verification_${data.user._id}`;
+                                    if (!localStorage.getItem(noticeKey)) {
+                                        sessionStorage.setItem("show_auto_verified_notice", "true");
+                                    }
+                                }
+                            } catch (e) {}
+                            window.location.href = "/index.html";
+                        } else {
+                            window.location.href = "/index.html";
+                        }
+                    } catch (err) {
+                        console.error("Google login failed:", err);
+                        statusMsg.textContent = err.message || "Google sign-in failed";
+                        statusMsg.classList.remove("success-msg");
+                        statusMsg.classList.add("error-msg");
+                    }
+                },
+            });
+        }
+        return tokenClient;
+    };
+
+    googleBtn.addEventListener("click", () => {
+        const client = getGoogleTokenClient();
+        if (!client) {
+            const statusMsg = document.getElementById("status-msg");
+            statusMsg.textContent = "Đang tải Google SDK, vui lòng thử lại sau...";
+            statusMsg.classList.remove("success-msg");
+            statusMsg.classList.add("error-msg");
+            return;
+        }
+        client.requestAccessToken({ prompt: "select_account" });
+    });
+}
+
+function initMicrosoftLogin() {
+    const msBtn = document.getElementById("microsoft-signin-btn");
+    if (!msBtn) return;
+
+    let msalInstance = null;
+
+    const getMsalInstance = () => {
+        if (!msalInstance && window.msal && MICROSOFT_CLIENT_ID) {
+            const msalConfig = {
+                auth: {
+                    clientId: MICROSOFT_CLIENT_ID,
+                    authority: "https://login.microsoftonline.com/common",
+                    redirectUri: window.location.origin,
+                },
+                cache: {
+                    cacheLocation: "sessionStorage",
+                    storeAuthStateInCookie: false,
+                }
+            };
+            msalInstance = new window.msal.PublicClientApplication(msalConfig);
+        }
+        return msalInstance;
+    };
+
+    msBtn.addEventListener("click", async () => {
         const statusMsg = document.getElementById("status-msg");
+        if (!MICROSOFT_CLIENT_ID) {
+            statusMsg.textContent = "Microsoft Login chưa được cấu hình Client ID.";
+            statusMsg.classList.remove("success-msg");
+            statusMsg.classList.add("error-msg");
+            return;
+        }
+
+        const instance = getMsalInstance();
+        if (!instance) {
+            statusMsg.textContent = "Đang tải Microsoft SDK, vui lòng thử lại sau giây lát...";
+            statusMsg.classList.remove("success-msg");
+            statusMsg.classList.add("error-msg");
+            return;
+        }
+
         try {
-            statusMsg.textContent = "Signing in with Google...";
+            statusMsg.textContent = "Signing in with Microsoft...";
             statusMsg.classList.remove("error-msg");
             statusMsg.classList.add("success-msg");
 
-            console.log("Google credential received, calling API...");
-            const data = await googleLogin(response.credential);
-            console.log("Google login API response:", data);
+            const loginResponse = await instance.loginPopup({
+                scopes: ["openid", "profile", "email", "User.Read"],
+                prompt: "select_account"
+            });
+
+            const accessToken = loginResponse.accessToken;
+            if (!accessToken) {
+                throw new Error("Không nhận được Access Token từ Microsoft.");
+            }
+
+            const data = await microsoftLogin(accessToken);
 
             createSession(data.token, data.user);
             if (data.signingKey) {
@@ -217,16 +343,13 @@ function initGoogleLogin() {
                 await fetchSigningKey(data.token);
             }
 
-            // Check verification status
             if (data.needsProfile) {
                 window.location.href = "/complete-profile.html";
             } else if (data.user && !data.user.isStudentVerified) {
-                // Check if this is a school email that should be auto-verified
                 try {
                     const { checkSchoolEmail } = await import("../api/universities.js");
                     const schoolResult = await checkSchoolEmail(data.user.email);
                     if (schoolResult.isSchool) {
-                        // Mark session storage flag for one-time home page notice if not seen before
                         const noticeKey = `springwave_notice_seen_auto_school_verification_${data.user._id}`;
                         if (!localStorage.getItem(noticeKey)) {
                             sessionStorage.setItem("show_auto_verified_notice", "true");
@@ -238,36 +361,17 @@ function initGoogleLogin() {
                 window.location.href = "/index.html";
             }
         } catch (err) {
-            console.error("Google login failed:", err);
-            statusMsg.textContent = err.message || "Google sign-in failed";
+            console.error("Microsoft login failed:", err);
+            if (err?.errorCode === "user_cancelled" || err?.message?.includes("user_cancelled")) {
+                statusMsg.textContent = "";
+                statusMsg.classList.remove("error-msg", "success-msg");
+                return;
+            }
+            statusMsg.textContent = err.message || "Microsoft sign-in failed";
             statusMsg.classList.remove("success-msg");
             statusMsg.classList.add("error-msg");
         }
-    };
-
-    const container = document.getElementById("google-signin-container");
-    if (!container) return;
-
-    const tryInit = () => {
-        if (window.google?.accounts?.id) {
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: window.handleGoogleCredential,
-                cancel_on_tap_outside: false,
-            });
-            google.accounts.id.renderButton(container, {
-                type: "standard",
-                shape: "pill",
-                theme: "outline",
-                text: "sign_in_with",
-                size: "large",
-                logo_alignment: "left",
-            });
-        } else {
-            setTimeout(tryInit, 200);
-        }
-    };
-    tryInit();
+    });
 }
 
 function initPasswordResetModals() {

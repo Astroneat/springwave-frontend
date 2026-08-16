@@ -16,8 +16,12 @@ export function getCurrentUser() {
     return get("/auth/me");
 }
 
-export function googleLogin(credential) {
-    return post("/auth/google", { credential });
+export function googleLogin(credential, accessToken) {
+    return post("/auth/google", { credential, accessToken });
+}
+
+export function microsoftLogin(accessToken) {
+    return post("/auth/microsoft", { accessToken });
 }
 
 export function completeProfile(data) {

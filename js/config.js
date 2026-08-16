@@ -5,6 +5,8 @@ export const CDN_DOMAIN =
 export const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
   "438615062762-pmds797uuu9ufi19jvjnmkiach521p1p.apps.googleusercontent.com";
+export const MICROSOFT_CLIENT_ID =
+  import.meta.env.VITE_MICROSOFT_CLIENT_ID || "";
 const envTurnstileKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 export const TURNSTILE_SITE_KEY =
   envTurnstileKey !== undefined ? envTurnstileKey : "0x4AAAAAADnOtMcYHV27A0IZ";

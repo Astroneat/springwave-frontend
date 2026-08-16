@@ -259,7 +259,9 @@
     "no_account": "Don't have an account?",
     "register_now": "Register now",
     "or": "OR",
-    "enter_password": "Enter password"
+    "enter_password": "Enter password",
+    "signin_google": "Sign in with Google",
+    "signin_microsoft": "Sign in with Microsoft"
   },
   "register": {
     "title": "SpringWave - Register",
