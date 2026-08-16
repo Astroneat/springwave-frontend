@@ -115,6 +115,8 @@ export async function openEventPopup(activityID, options = {}) {
         activity = activityCache.get(activityID);
     }
 
+    const isCachedOrPassed = !!activity;
+
     // Prefetch user participation/favorites in parallel with fetching activity data
     const activityPromise = activity 
         ? Promise.resolve(activity) 
@@ -138,6 +140,17 @@ export async function openEventPopup(activityID, options = {}) {
 
     initParticipateButton(activityID);
     disableParticipationButtons(activity);
+
+    // If we used cached or passed data, revalidate in the background
+    if (isCachedOrPassed) {
+        getActivityById(activityID).then(resp => {
+            const freshActivity = resp.activity;
+            if (freshActivity) {
+                activityCache.set(activityID, freshActivity);
+                updatePopupWithFreshData(freshActivity);
+            }
+        }).catch(err => console.warn("Failed to revalidate activity details:", err));
+    }
 
     container.querySelector("#back-btn")?.addEventListener("click", closeEventPopup);
 
@@ -212,6 +225,56 @@ export function closeEventPopup() {
     }, 300);
 }
 
+function buildAttachmentsHTML(attachments) {
+    return (attachments || []).map(f => {
+        const link = f.link || f.activityAttachLink || "";
+        const fileName = decodeURIComponent(link.split('/').pop());
+        const href = (link.startsWith("http://") || link.startsWith("https://")) ? link : `${CDN_DOMAIN}/${link}`;
+        return `<div class="file-item">
+            <div class="file-left">
+                <div class="file-icon"><i class="fa-solid fa-file"></i></div>
+                <div><h4>${fileName}</h4></div>
+            </div>
+            <a class="download-btn" href="${href}" target="_blank"><i class="fa-solid fa-download"></i></a>
+        </div>`;
+    }).join("");
+}
+
+function updatePopupWithFreshData(a) {
+    const container = document.getElementById("popup-container");
+    if (!container) return;
+
+    // Update participant count
+    const participantCount = a.participants?.length || 0;
+    const valEl = container.querySelector(".participants-count-val");
+    if (valEl) {
+        valEl.textContent = t("explore.registered_count", { n: participantCount }, `${participantCount} registered`);
+    }
+
+    // Update description
+    const descEl = container.querySelector(".popup-description-val");
+    if (descEl && a.description) {
+        descEl.innerHTML = a.description.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('');
+    }
+
+    // Update attachments
+    const filesHTML = buildAttachmentsHTML(a.attachments);
+    const filesEl = container.querySelector(".popup-files-val");
+    const dividerEl = container.querySelector(".attachments-divider");
+    const sectionEl = container.querySelector(".popup-attachments-section");
+    const countEl = container.querySelector(".attachments-count");
+    
+    if (filesEl && a.attachments && a.attachments.length > 0) {
+        filesEl.innerHTML = filesHTML;
+        if (countEl) countEl.textContent = `(${(a.attachments || []).length})`;
+        if (dividerEl) dividerEl.style.display = "";
+        if (sectionEl) sectionEl.style.display = "";
+    } else {
+        if (dividerEl) dividerEl.style.display = "none";
+        if (sectionEl) sectionEl.style.display = "none";
+    }
+}
+
 function buildPopupHTML(a, backText) {
     const status = getEventStatus(a);
     const heldDate = formatDate(a.heldDate);
@@ -234,18 +297,7 @@ function buildPopupHTML(a, backText) {
         statusBadgeHTML = `<span class="popup-category-badge !bg-blue-100 !text-blue-700 !border-blue-300"><i class="fa-solid fa-user-check"></i><span>${t("explore.registration_open") || "Đang nhận đăng ký"}</span></span>`;
     }
 
-    const filesHTML = (a.attachments || []).map(f => {
-        const link = f.link || f.activityAttachLink || "";
-        const fileName = decodeURIComponent(link.split('/').pop());
-        const href = (link.startsWith("http://") || link.startsWith("https://")) ? link : `${CDN_DOMAIN}/${link}`;
-        return `<div class="file-item">
-            <div class="file-left">
-                <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-                <div><h4>${fileName}</h4></div>
-            </div>
-            <a class="download-btn" href="${href}" target="_blank"><i class="fa-solid fa-download"></i></a>
-        </div>`;
-    }).join("");
+    const filesHTML = buildAttachmentsHTML(a.attachments);
 
     const tagsHTML = (a.tags || []).map(tag => `<span class="event-tag">${tag}</span>`).join("");
     const participantCount = a.participants?.length || 0;
@@ -339,16 +391,15 @@ function buildPopupHTML(a, backText) {
                 </div>
 
                 <h3 class="popup-section-title">${t("explore.about_activity", "About this Activity")}</h3>
-                <div class="popup-description-text">
+                <div class="popup-description-text popup-description-val">
                     ${(a.description || "").split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
                 </div>
 
-                ${filesHTML ? `
-                <div class="popup-section-divider"></div>
-                <div class="popup-attachments-section">
-                    <h3>${t("explore.attached_files", "Attachments")} (${(a.attachments || []).length})</h3>
-                    <div class="popup-files-list">${filesHTML}</div>
-                </div>` : ""}
+                <div class="popup-section-divider attachments-divider" style="${filesHTML ? '' : 'display: none;'}"></div>
+                <div class="popup-attachments-section" style="${filesHTML ? '' : 'display: none;'}">
+                    <h3>${t("explore.attached_files", "Attachments")} <span class="attachments-count">(${(a.attachments || []).length})</span></h3>
+                    <div class="popup-files-list popup-files-val">${filesHTML}</div>
+                </div>
 
                 <div class="popup-section-divider"></div>
                 <div class="popup-comments-section" id="popup-comments-container">
@@ -404,7 +455,7 @@ function buildPopupHTML(a, backText) {
                             <i class="fa-solid fa-users"></i>
                             <div>
                                 <span>${t("description.participants", "Participants")}</span>
-                                <p>${t("explore.registered_count", { n: participantCount }, `${participantCount} registered`)}</p>
+                                <p class="participants-count-val">${t("explore.registered_count", { n: participantCount }, `${participantCount} registered`)}</p>
                             </div>
                         </div>` : ''}
                     </div>
