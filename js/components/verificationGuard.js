@@ -120,22 +120,22 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
 
         const card = document.createElement('div');
         card.id = 'read-only-banner';
-        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-amber-500/30 dark:border-amber-500/20 backdrop-blur-md shadow-xl flex gap-3 transform translate-y-0 opacity-100 transition-all duration-300';
+        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xl flex gap-3 transform translate-y-0 opacity-100 transition-all duration-300';
         
         card.innerHTML = `
-            <div class="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[24px]">shield_person</span>
             </div>
             <div class="pr-6 text-left">
-                <h4 class="text-sm font-bold text-amber-950 dark:text-amber-200 leading-tight">${verifyTitle}</h4>
-                <p class="text-xs text-amber-800/80 dark:text-amber-300/80 font-medium leading-relaxed mt-1">${verifyDesc}</p>
+                <h4 class="text-sm font-bold text-slate-900 leading-tight">${verifyTitle}</h4>
+                <p class="text-xs text-slate-600 font-medium leading-relaxed mt-1">${verifyDesc}</p>
                 <div class="mt-3 flex gap-2">
-                    <a href="/student-verify.html" class="py-1.5 px-3 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
+                    <a href="/student-verify.html" class="py-1.5 px-3.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
                         ${verifyBtn}
                     </a>
                 </div>
             </div>
-            <button type="button" id="dismiss-readonly-banner" class="absolute top-2.5 right-2.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer" aria-label="Dismiss">
+            <button type="button" id="dismiss-readonly-banner" class="absolute top-2.5 right-2.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer" aria-label="Dismiss">
                 <span class="material-symbols-outlined text-[16px]">close</span>
             </button>
         `;
