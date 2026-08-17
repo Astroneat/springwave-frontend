@@ -26,13 +26,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     await initChatbot();
 
-    // Check if user has a school email → enable auto-verify (no admin review needed)
+    // Check if user has a school email AND university has autoVerify enabled
     const user = getUser();
     let isSchoolEmailUser = false;
     if (user && user.email) {
         try {
             const schoolCheck = await checkSchoolEmail(user.email);
-            isSchoolEmailUser = schoolCheck.isSchool;
+            isSchoolEmailUser = Boolean(schoolCheck.isSchool && schoolCheck.university && schoolCheck.university.autoVerify !== false);
         } catch (e) {}
     }
 
@@ -187,6 +187,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                         const meRes = await getCurrentUser();
                         if (meRes?.user) setUser(meRes.user);
                     } catch {}
+                }
+
+                if (res?.requiresManualReview) {
+                    btn.innerHTML = `<span class="material-symbols-outlined">schedule</span> <span>Pending Review</span>`;
+                    btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
+                    btn.classList.add('bg-amber-600');
+
+                    setTimeout(() => {
+                        alert(res.message || "Hồ sơ của bạn đã được gửi và đang chờ Admin duyệt.");
+                        window.location.href = "/profile.html";
+                    }, 1200);
+                    return;
                 }
 
                 btn.innerHTML = `<span class="material-symbols-outlined">verified</span> <span>${t("student_verify.status_approved")}!</span>`;

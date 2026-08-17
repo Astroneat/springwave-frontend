@@ -20,7 +20,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 function checkAutoVerificationNotice() {
   const showFlag = sessionStorage.getItem("show_auto_verified_notice");
   const user = getUser();
-  if (!user) return;
+  if (!user || !user.isStudentVerified) {
+    sessionStorage.removeItem("show_auto_verified_notice");
+    return;
+  }
 
   if (showFlag === "true") {
     sessionStorage.removeItem("show_auto_verified_notice");

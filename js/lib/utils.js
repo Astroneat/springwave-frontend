@@ -97,6 +97,11 @@ export async function isSchoolEmail(email) {
     return result.isSchool;
 }
 
+export async function isAutoVerifyEmail(email) {
+    const result = await checkSchoolEmail(email);
+    return Boolean(result.isSchool && result.university && result.university.autoVerify !== false);
+}
+
 /**
  * Extract domain from email
  * @param {string} email - The email address

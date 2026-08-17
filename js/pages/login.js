@@ -109,24 +109,9 @@ function initLoginForm() {
             // Check verification status
             if (data.user && !data.user.emailVerified) {
                 showVerificationWarning(data.user.email);
-            } else if (data.user && !data.user.isStudentVerified) {
-                // User is logged in but not student verified
-                setStatus("Logged in successfully!", false);
-                setTimeout(async () => {
-                    // Check if user has a school email that should be auto-verified
-                    if (data.user.email && await isSchoolEmail(data.user.email)) {
-                        const noticeKey = `springwave_notice_seen_auto_school_verification_${data.user._id}`;
-                        if (!localStorage.getItem(noticeKey)) {
-                            sessionStorage.setItem("show_auto_verified_notice", "true");
-                        }
-                    }
-
-                    // Redirect to home, user will see verification button in navbar
-                    window.location.href = "/index.html";
-                }, 800);
             } else {
                 setStatus("Logged in successfully! Redirecting...", false);
-                setTimeout(() => { window.location.href = "/index.html"; }, 800);
+                setTimeout(() => { window.location.href = "/index.html"; }, 600);
             }
         } catch(err) {
             if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
@@ -238,18 +223,6 @@ function initGoogleLogin() {
 
                         if (data.needsProfile) {
                             window.location.href = "/complete-profile.html";
-                        } else if (data.user && !data.user.isStudentVerified) {
-                            try {
-                                const { checkSchoolEmail } = await import("../api/universities.js");
-                                const schoolResult = await checkSchoolEmail(data.user.email);
-                                if (schoolResult.isSchool) {
-                                    const noticeKey = `springwave_notice_seen_auto_school_verification_${data.user._id}`;
-                                    if (!localStorage.getItem(noticeKey)) {
-                                        sessionStorage.setItem("show_auto_verified_notice", "true");
-                                    }
-                                }
-                            } catch (e) {}
-                            window.location.href = "/index.html";
                         } else {
                             window.location.href = "/index.html";
                         }
@@ -345,18 +318,6 @@ function initMicrosoftLogin() {
 
             if (data.needsProfile) {
                 window.location.href = "/complete-profile.html";
-            } else if (data.user && !data.user.isStudentVerified) {
-                try {
-                    const { checkSchoolEmail } = await import("../api/universities.js");
-                    const schoolResult = await checkSchoolEmail(data.user.email);
-                    if (schoolResult.isSchool) {
-                        const noticeKey = `springwave_notice_seen_auto_school_verification_${data.user._id}`;
-                        if (!localStorage.getItem(noticeKey)) {
-                            sessionStorage.setItem("show_auto_verified_notice", "true");
-                        }
-                    }
-                } catch (e) {}
-                window.location.href = "/index.html";
             } else {
                 window.location.href = "/index.html";
             }
