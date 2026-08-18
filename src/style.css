@@ -16563,7 +16563,7 @@ textarea {
 /* Horizontal line behind numbers on desktop */
 .journey-connecting-line {
   position: absolute;
-  top: 24px;
+  top: 44px;
   left: 12.5%;
   right: 12.5%;
   height: 1px;
@@ -16580,12 +16580,15 @@ textarea {
 
 .journey-item {
   flex: 1;
-  padding: 0 20px;
+  padding: 20px;
+  border-radius: 16px;
   text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease-out;
+  background: transparent;
+  border: 1px solid transparent;
 }
 
 .journey-number-wrap {
@@ -16599,6 +16602,7 @@ textarea {
   padding-right: 12px;
   display: inline-flex;
   align-items: center;
+  transition: background 0.3s ease-out;
 }
 
 .journey-number {
@@ -16649,8 +16653,17 @@ textarea {
 }
 
 /* Hover States */
+.journey-item:hover {
+  background: #F0F4F8;
+  border-color: rgba(35, 73, 155, 0.15);
+}
+
+.journey-item:hover .journey-number-bg {
+  background: #F0F4F8;
+}
+
 .journey-item:hover .journey-number {
-  color: rgba(35, 73, 155, 0.4);
+  color: var(--sw-primary);
 }
 
 .journey-item:hover .journey-item-title {
@@ -16771,7 +16784,7 @@ textarea {
   }
   
   .journey-item {
-    padding: 0;
+    padding: 16px;
     align-items: flex-start;
   }
   
