@@ -417,130 +417,168 @@
   },
   "quiz": {
     "title": "SpringWave - Bài trắc nghiệm AI",
-    "multi_select": "Chọn tất cả phù hợp",
-    "start_title": "Khám phá hoạt động phù hợp với bạn",
-    "start_desc": "Trả lời 10 câu hỏi nhanh để nhận gợi ý hoạt động từ AI dành riêng cho bạn.",
+    "multi_select": "Chọn các phương án phù hợp với bạn",
+    "start_title": "Khám phá Hình mẫu Sinh viên của bạn",
+    "start_desc": "Trả lời 10 câu hỏi ngắn để AI định danh chân dung, phân tích thế mạnh và gợi ý lộ trình hoạt động cá nhân hóa dành riêng cho bạn.",
     "questions": "10 câu hỏi",
-    "duration": "2-3 phút",
-    "ai_results": "Kết quả AI",
-    "start_btn": "Bắt đầu",
+    "duration": "2–3 phút",
+    "ai_results": "Định danh AI",
+    "start_btn": "Bắt đầu trắc nghiệm",
     "next": "Tiếp theo",
     "previous": "Quay lại",
-    "finish": "Hoàn thành",
-    "result_title": "Hồ sơ tính cách của bạn",
-    "result_desc": "Dựa trên câu trả lời của bạn, đây là điểm số theo bốn lĩnh vực chính.",
-    "suggested_activities": "Hoạt động gợi ý cho bạn",
-    "explore_activities": "Khám phá hoạt động được gợi ý",
-    "register_explore": "Đăng ký để khám phá",
-    "retake": "Làm lại",
+    "finish": "Xem chân dung của bạn",
+    "result_title": "Hình mẫu Sinh viên của bạn",
+    "result_desc": "Dựa trên phân tích toàn diện câu trả lời của bạn, đây là chân dung định danh cùng gợi ý lộ trình phát triển.",
+    "strengths_title": "Thế mạnh nổi bật",
+    "advice_title": "Lời khuyên cá nhân & Vượt qua rào cản",
+    "suggested_activities": "Lộ trình & Hoạt động đề xuất",
+    "explore_activities": "Khám phá sự kiện phù hợp",
+    "register_explore": "Đăng ký để nhận gợi ý",
+    "retake": "Làm lại trắc nghiệm",
     "retake_btn": "Làm lại bài trắc nghiệm",
-    "analyzing": "Đang phân tích câu trả lời của bạn...",
+    "analyzing": "AI đang phân tích chân dung và tổng hợp lộ trình cho bạn...",
     "question": "Câu hỏi",
-    "score_strong": "Mạnh",
-    "score_moderate": "Trung bình",
-    "score_developing": "Đang phát triển",
-    "balanced": "Bạn có xu hướng cân bằng giữa nhiều lĩnh vực kỹ năng",
-    "suggestion_reason": "Bạn có xu hướng mạnh về {{primary}} và {{secondary}}",
-    "score_comm": "Giao tiếp",
-    "score_comm_desc": "Nói, thuyết trình, tương tác",
-    "score_tech": "Kỹ thuật",
-    "score_tech_desc": "Lập trình, kỹ thuật, giải quyết vấn đề",
-    "score_creative": "Sáng tạo",
-    "score_creative_desc": "Thiết kế, đổi mới, tư duy nghệ thuật",
-    "score_social": "Tác động xã hội",
-    "score_social_desc": "Tình nguyện, cộng đồng, lãnh đạo",
+    "persona_badge": "Chân dung định danh",
+    "match_rate": "Độ tương thích",
+    "recommended_types": "Loại sự kiện phù hợp nhất",
+    "personas": {
+      "tech_builder": {
+        "title": "Nhà Kiến Tạo Công Nghệ",
+        "tagline": "Đam mê giải mã công nghệ và xây dựng các sản phẩm thực tế",
+        "strengths": ["Tư duy logic & phân tích", "Khả năng tự học công nghệ cao", "Tập trung giải quyết vấn đề"],
+        "advice": "Đừng ngại bước ra khỏi màn hình để chia sẻ sản phẩm và kết nối với đồng đội đa ngành trong các buổi giao lưu."
+      },
+      "community_leader": {
+        "title": "Thủ Lĩnh Cộng Đồng",
+        "tagline": "Người lan tỏa năng lượng tích cực và gắn kết tập thể",
+        "strengths": ["Giao tiếp & truyền cảm hứng", "Kỹ năng tổ chức & điều phối", "Nhạy bén với nhu cầu tập thể"],
+        "advice": "Hãy nhớ cân bằng năng lượng cá nhân và dành thời gian trau dồi chuyên môn sâu bên cạnh các hoạt động phong trào."
+      },
+      "creative_innovator": {
+        "title": "Nhà Đổi Mới Sáng Tạo",
+        "tagline": "Tư duy khác biệt, yêu cái đẹp và luôn tìm kiếm ý tưởng đột phá",
+        "strengths": ["Tư duy thẩm mỹ & sáng tạo", "Cởi mở với góc nhìn mới", "Biến ý tưởng thành sản phẩm thị giác"],
+        "advice": "Hãy thử kết hợp sáng tạo nghệ thuật với công nghệ và kinh doanh để biến ý tưởng thành dự án thực tế."
+      },
+      "career_strategist": {
+        "title": "Nhà Chiến Lược Sự Nghiệp",
+        "tagline": "Tập trung mục tiêu, tối ưu lộ trình và sẵn sàng bứt phá sự nghiệp",
+        "strengths": ["Hoạch định mục tiêu rõ ràng", "Kỹ năng chuyên nghiệp", "Nắm bắt cơ hội thị trường nhanh"],
+        "advice": "Bên cạnh việc săn tìm cơ hội nghề nghiệp, hãy mở rộng vòng tròn bạn bè để có những trải nghiệm sinh viên đáng nhớ."
+      },
+      "deep_learner": {
+        "title": "Nhà Khám Phá Tri Thức",
+        "tagline": "Đam mê chiều sâu học thuật và không ngừng tìm hiểu bản chất vấn đề",
+        "strengths": ["Nghiên cứu chuyên sâu", "Tư duy phản biện sắc bén", "Tính kiên trì & tỉ mỉ"],
+        "advice": "Hãy thử áp dụng kiến thức lý thuyết vào các thử thách thực tế hoặc tham gia các workshop nhóm nhỏ để tự tin chia sẻ."
+      },
+      "changemaker": {
+        "title": "Sứ Giả Xã Hội",
+        "tagline": "Hành động vì cộng đồng, yêu thương con người và lan tỏa giá trị nhân văn",
+        "strengths": ["Tinh thần cống hiến & thấu cảm", "Khả năng huy động cộng đồng", "Ý thức trách nhiệm xã hội cao"],
+        "advice": "Hãy kết hợp nhiệt huyết thiện nguyện với kỹ năng quản lý dự án để tạo ra những chiến dịch có tác động bền vững."
+      },
+      "dynamic_explorer": {
+        "title": "Nhà Khám Phá Năng Động",
+        "tagline": "Linh hoạt, tò mò và sẵn sàng dấn thân vào những trải nghiệm mới mẻ",
+        "strengths": ["Thích nghi môi trường nhanh", "Đa dạng kỹ năng & sở thích", "Tinh thần học hỏi không giới hạn"],
+        "advice": "Sau khi đã thử sức ở nhiều lĩnh vực, hãy chọn ra 1–2 thế mạnh trọng tâm để bồi dưỡng thành mũi nhọn cá nhân."
+      }
+    },
     "q1": {
-      "question": "Bạn muốn tham gia loại hoạt động nào nhất?",
+      "question": "Bạn hiện đang là sinh viên năm mấy?",
       "answers": [
-        "Hội thảo / buổi chia sẻ kỹ năng",
-        "Cuộc thi / hackathon",
-        "Sự kiện nghệ thuật / lễ hội",
-        "Hoạt động câu lạc bộ / nhóm",
-        "Tình nguyện / từ thiện"
+        "Năm nhất (Mới nhập học, tìm hiểu môi trường)",
+        "Năm hai (Bắt đầu học chuyên ngành & tích lũy kinh nghiệm)",
+        "Năm ba (Tập trung nâng cao năng lực & dự án thực tế)",
+        "Năm cuối / Đã tốt nghiệp (Chuẩn bị CV, thực tập & việc làm)"
       ]
     },
     "q2": {
-      "question": "Lĩnh vực nào bạn quan tâm?",
+      "question": "Lĩnh vực chuyên môn hoặc đam mê lớn nhất của bạn là gì?",
       "answers": [
-        "Công nghệ - Lập trình",
-        "Kinh doanh - Khởi nghiệp",
-        "Nghệ thuật - Sáng tạo",
-        "Thể thao - Sức khỏe",
-        "Kỹ năng mềm - Phát triển bản thân",
-        "Khoa học - Học thuật"
+        "Công nghệ thông tin, Lập trình & Trí tuệ nhân tạo",
+        "Kinh doanh, Khởi nghiệp & Marketing",
+        "Thiết kế, Nghệ thuật, Truyền thông & Sáng tạo nội dung",
+        "Khoa học xã hội, Ngôn ngữ, Nhân văn & Tâm lý",
+        "Y tế, Sức khỏe & Thể thao",
+        "Khoa học tự nhiên & Nghiên cứu học thuật"
       ]
     },
     "q3": {
-      "question": "Thời gian nào bạn thường rảnh?",
+      "question": "Loại hình hoạt động nào mang lại cho bạn nhiều cảm hứng nhất?",
       "answers": [
-        "Buổi sáng (8–12 giờ)",
-        "Buổi chiều (13–17 giờ)",
-        "Buổi tối (18–22 giờ)",
-        "Cuối tuần"
+        "Workshop chuyên sâu / Buổi chia sẻ kinh nghiệm thực chiến",
+        "Cuộc thi học thuật / Hackathon thử thách năng lực",
+        "Sự kiện văn nghệ, Lễ hội âm nhạc & Triển lãm nghệ thuật",
+        "Sinh hoạt câu lạc bộ, Buổi giao lưu kết nối (Networking)",
+        "Hoạt động thiện nguyện, Công tác xã hội & Bảo vệ môi trường"
       ]
     },
     "q4": {
-      "question": "Bạn sẵn sàng dành bao nhiêu thời gian?",
+      "question": "Khi tham gia vào một nhóm hoặc dự án, bạn tự tin nhất ở vai trò nào?",
       "answers": [
-        "1–2 giờ (ngắn, sự kiện một lần)",
-        "Nửa ngày (3–4 giờ)",
-        "Cả ngày (hội nghị, cuộc thi)",
-        "Nhiều buổi (hội thảo dài hạn)"
+        "Trưởng nhóm / Người lên kế hoạch & điều phối công việc",
+        "Chuyên gia kỹ thuật / Người giải quyết vấn đề cốt lõi",
+        "Người kiến tạo ý tưởng / Thiết kế & sáng tạo nội dung",
+        "Người kết nối / Chăm sóc tinh thần & hỗ trợ đồng đội"
       ]
     },
     "q5": {
-      "question": "Bạn thích hoạt động nhóm hay cá nhân?",
+      "question": "Cách bạn nạp năng lượng và tiếp thu kiến thức hiệu quả nhất là gì?",
       "answers": [
-        "Nhóm (làm việc với bạn bè)",
-        "Cá nhân (trải nghiệm một mình)",
-        "Không có sở thích đặc biệt"
+        "Thảo luận nhóm sôi nổi, tranh biện và trao đổi ý kiến",
+        "Tự nghiên cứu một mình trong không gian yên tĩnh",
+        "Bắt tay vào thực hành, làm dự án thực tế ngay",
+        "Lắng nghe chuyên gia chia sẻ và ghi chép có hệ thống"
       ]
     },
     "q6": {
-      "question": "Mục tiêu chính của bạn khi tham gia là gì?",
+      "question": "Giá trị lớn nhất bạn mong muốn nhận được khi tham gia hoạt động ngoại khóa?",
       "answers": [
-        "Học kỹ năng mới",
-        "Mở rộng mạng lưới quan hệ",
-        "Thư giãn và vui vẻ",
-        "Xây dựng hồ sơ / CV",
-        "Khám phá đam mê"
+        "Xây dựng CV nổi bật, mở rộng cơ hội thực tập & việc làm",
+        "Mở rộng mạng lưới quan hệ & tìm bạn cùng chí hướng",
+        "Nâng cao kỹ năng mềm, rèn luyện sự tự tin trước đám đông",
+        "Thư giãn, giải tỏa căng thẳng học tập và tìm kiếm niềm vui",
+        "Khám phá tiềm năng bản thân và thử sức điều mới lạ"
       ]
     },
     "q7": {
-      "question": "Bạn muốn hoạt động diễn ra ở đâu?",
+      "question": "Điều gì thường khiến bạn đắn đo nhất khi quyết định đăng ký sự kiện?",
       "answers": [
-        "Trong khuôn viên trường",
-        "Ngoài trường (trung tâm thành phố, công ty)",
-        "Trực tuyến (nền tảng ảo)",
-        "Không quan trọng"
+        "Ngại đi một mình / Cảm thấy e dè trong môi trường đông người lạ",
+        "Lịch học, đồ án và deadline bài tập quá dày đặc",
+        "Sợ bản thân chưa đủ trình độ hoặc thiếu kinh nghiệm",
+        "Vấn đề khoảng cách di chuyển hoặc chi phí tham gia",
+        "Chưa tìm được sự kiện có nội dung thực sự hữu ích"
       ]
     },
     "q8": {
-      "question": "Bạn muốn đảm nhận vai trò gì trong hoạt động?",
+      "question": "Môi trường tổ chức nào thuận tiện và tạo cho bạn cảm giác thoải mái nhất?",
       "answers": [
-        "Người tham gia",
-        "Người tổ chức / điều phối",
-        "Người thuyết trình / hướng dẫn",
-        "Người hỗ trợ / tình nguyện"
+        "Ngay trong khuôn viên trường đại học",
+        "Tại các địa điểm trung tâm thành phố, trụ sở doanh nghiệp",
+        "Hình thức trực tuyến (Online qua Zoom, Google Meet)",
+        "Linh hoạt, chỉ cần nội dung hay là được"
       ]
     },
     "q9": {
-      "question": "Bạn thích hoạt động cạnh tranh hay xã hội hơn?",
+      "question": "Thời điểm bạn có thể toàn tâm tham gia các hoạt động nhất?",
       "answers": [
-        "Cạnh tranh (giải thưởng, cuộc thi)",
-        "Xã hội (kết nối, chia sẻ)",
-        "Cả hai",
-        "Không có sở thích đặc biệt"
+        "Buổi sáng cuối tuần (Thứ 7 / Chủ Nhật)",
+        "Buổi chiều cuối tuần",
+        "Buổi tối các ngày trong tuần (18h - 21h)",
+        "Các khung giờ ngắn xen kẽ giữa các ca học"
       ]
     },
     "q10": {
-      "question": "Yếu tố nào thu hút bạn nhất?",
+      "question": "Yếu tố nào sẽ khiến bạn quyết định bấm nút tham gia ngay lập tức?",
       "answers": [
-        "Người hướng dẫn chuyên gia / nổi tiếng",
-        "Chứng chỉ / giải thưởng",
-        "Bạn bè cũng tham gia",
-        "Chủ đề thú vị, mới lạ",
-        "Miễn phí hoặc chi phí thấp"
+        "Có bạn bè hoặc đồng đội thân thiết cùng đi",
+        "Có diễn giả nổi tiếng, mentor uy tín đầu ngành dẫn dắt",
+        "Cơ hội nhận thư giới thiệu, tuyển dụng hoặc giải thưởng lớn",
+        "Chủ đề cực kỳ mới lạ, kích thích sự tò mò",
+        "Hoàn toàn miễn phí, có chứng nhận xịn và quà tặng hấp dẫn"
       ]
     }
   },

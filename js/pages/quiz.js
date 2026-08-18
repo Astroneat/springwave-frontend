@@ -11,170 +11,205 @@ import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 const HARDCODED_QUESTIONS = [
   {
     id: 1,
-    category: "Preferences",
-    question: "What type of activity do you want to join most?",
+    category: "Academic Stage",
+    categoryKey: "academic_stage",
+    icon: "school",
+    question: "What academic year are you currently in?",
     answers: [
-      { label: "Workshop / skill-sharing session", scores: { communication: 30, technical: 40, creativity: 20, socialImpact: 10 } },
-      { label: "Competition / hackathon", scores: { communication: 20, technical: 50, creativity: 20, socialImpact: 10 } },
-      { label: "Arts event / festival", scores: { communication: 30, technical: 10, creativity: 40, socialImpact: 20 } },
-      { label: "Club / group activities", scores: { communication: 40, technical: 10, creativity: 20, socialImpact: 30 } },
-      { label: "Volunteer / charity work", scores: { communication: 20, technical: 10, creativity: 20, socialImpact: 50 } },
+      { label: "1st Year (Freshman - Exploring university life & opportunities)", weights: { dynamic_explorer: 3, community_leader: 2 } },
+      { label: "2nd Year (Sophomore - Diving into major courses & student clubs)", weights: { dynamic_explorer: 2, tech_builder: 2, creative_innovator: 2 } },
+      { label: "3rd Year (Junior - Building skills & practical projects)", weights: { career_strategist: 3, tech_builder: 2, deep_learner: 2 } },
+      { label: "Final Year / Graduate (Senior - Resume, internship & career launch)", weights: { career_strategist: 4, tech_builder: 1 } },
     ],
   },
   {
     id: 2,
-    category: "Interests",
-    question: "Which field interests you?",
+    category: "Core Interests",
+    categoryKey: "core_interests",
+    icon: "interests",
+    question: "What is your primary field of interest or passion?",
     answers: [
-      { label: "Technology - Programming", scores: { communication: 10, technical: 70, creativity: 10, socialImpact: 10 } },
-      { label: "Business - Entrepreneurship", scores: { communication: 30, technical: 20, creativity: 30, socialImpact: 20 } },
-      { label: "Arts - Creativity", scores: { communication: 20, technical: 10, creativity: 60, socialImpact: 10 } },
-      { label: "Sports - Health", scores: { communication: 20, technical: 10, creativity: 20, socialImpact: 50 } },
-      { label: "Soft skills - Self development", scores: { communication: 50, technical: 10, creativity: 20, socialImpact: 20 } },
-      { label: "Science - Academics", scores: { communication: 20, technical: 40, creativity: 20, socialImpact: 20 } },
+      { label: "Information Technology, Software Engineering & AI", weights: { tech_builder: 6, deep_learner: 2 }, types: ["hackathon", "tech_talk", "coding_session"] },
+      { label: "Business, Entrepreneurship & Marketing", weights: { career_strategist: 6, community_leader: 2 }, types: ["seminar", "networking", "workshop"] },
+      { label: "Design, Fine Arts, Media & Content Creation", weights: { creative_innovator: 6, dynamic_explorer: 1 }, types: ["festival", "art_event", "music_show"] },
+      { label: "Social Sciences, Languages, Humanities & Psychology", weights: { changemaker: 5, community_leader: 3 }, types: ["community_event", "workshop"] },
+      { label: "Healthcare, Fitness & Sports", weights: { changemaker: 4, dynamic_explorer: 4 }, types: ["community_event", "festival"] },
+      { label: "Natural Sciences & Academic Research", weights: { deep_learner: 6, tech_builder: 1 }, types: ["seminar", "tech_talk"] },
     ],
   },
   {
     id: 3,
-    category: "Schedule",
-    question: "What time are you usually free?",
+    category: "Activity Preferences",
+    categoryKey: "activity_pref",
+    icon: "favorite",
+    question: "What type of activity inspires you the most?",
     answers: [
-      { label: "Morning (8AM–12PM)", scores: { communication: 20, technical: 40, creativity: 20, socialImpact: 20 } },
-      { label: "Afternoon (1PM–5PM)", scores: { communication: 30, technical: 20, creativity: 20, socialImpact: 30 } },
-      { label: "Evening (6PM–10PM)", scores: { communication: 25, technical: 15, creativity: 40, socialImpact: 20 } },
-      { label: "Weekends", scores: { communication: 25, technical: 15, creativity: 20, socialImpact: 40 } },
+      { label: "Intensive masterclasses / Practical hands-on workshops", weights: { deep_learner: 4, career_strategist: 3 }, types: ["workshop", "seminar"] },
+      { label: "Academic contests / Hackathons & Case challenges", weights: { tech_builder: 5, career_strategist: 3 }, types: ["hackathon", "coding_session"] },
+      { label: "Arts festivals, Music concerts & Creative exhibitions", weights: { creative_innovator: 6, dynamic_explorer: 2 }, types: ["festival", "art_event", "music_show"] },
+      { label: "Student club meetups & Social networking gatherings", weights: { community_leader: 6, dynamic_explorer: 2 }, types: ["networking", "community_event"] },
+      { label: "Volunteering, Community charity & Environmental campaigns", weights: { changemaker: 6 }, types: ["volunteer", "charity", "community_event"] },
     ],
   },
   {
     id: 4,
-    category: "Commitment",
-    question: "How much time are you willing to commit?",
+    category: "Team Role",
+    categoryKey: "team_role",
+    icon: "badge",
+    question: "In a team or project, which role do you feel most confident in?",
     answers: [
-      { label: "1–2 hours (short, one-time event)", scores: { communication: 30, technical: 20, creativity: 30, socialImpact: 20 } },
-      { label: "Half day (3–4 hours)", scores: { communication: 25, technical: 25, creativity: 25, socialImpact: 25 } },
-      { label: "Full day (conference, competition)", scores: { communication: 20, technical: 30, creativity: 30, socialImpact: 20 } },
-      { label: "Multiple sessions (long-term workshop)", scores: { communication: 20, technical: 35, creativity: 25, socialImpact: 20 } },
+      { label: "Team Leader / Project planner & Coordinator", weights: { community_leader: 6, career_strategist: 3 } },
+      { label: "Technical Specialist / Core problem solver & Builder", weights: { tech_builder: 6, deep_learner: 3 } },
+      { label: "Idea Generator / Creative designer & Content creator", weights: { creative_innovator: 6, dynamic_explorer: 2 } },
+      { label: "Team Connector / Member care & Supportive facilitator", weights: { changemaker: 5, community_leader: 4 } },
     ],
   },
   {
     id: 5,
-    category: "Social Style",
-    question: "Do you prefer group or individual activities?",
+    category: "Learning Style",
+    categoryKey: "learning_style",
+    icon: "auto_stories",
+    question: "How do you recharge and learn most effectively?",
     answers: [
-      { label: "Group (working with friends)", scores: { communication: 45, technical: 10, creativity: 20, socialImpact: 25 } },
-      { label: "Individual (solo experience)", scores: { communication: 10, technical: 40, creativity: 40, socialImpact: 10 } },
-      { label: "No preference", scores: { communication: 25, technical: 25, creativity: 25, socialImpact: 25 } },
+      { label: "Engaging in lively group debates and discussions", weights: { community_leader: 5, dynamic_explorer: 2 } },
+      { label: "Deep solo study in a quiet, focused environment", weights: { deep_learner: 6, tech_builder: 2 } },
+      { label: "Learning by doing through hands-on project work", weights: { tech_builder: 4, creative_innovator: 3, career_strategist: 3 } },
+      { label: "Listening to expert insights and systematic note-taking", weights: { deep_learner: 4, career_strategist: 3 } },
     ],
   },
   {
     id: 6,
-    category: "Goals",
-    question: "What is your main goal when participating?",
+    category: "Key Goals",
+    categoryKey: "key_goals",
+    icon: "flag",
+    question: "What is your primary goal from extracurricular activities right now?",
     answers: [
-      { label: "Learn new skills", scores: { communication: 20, technical: 40, creativity: 30, socialImpact: 10 } },
-      { label: "Expand my network", scores: { communication: 50, technical: 10, creativity: 10, socialImpact: 30 } },
-      { label: "Relax and have fun", scores: { communication: 20, technical: 10, creativity: 50, socialImpact: 20 } },
-      { label: "Build my resume / CV", scores: { communication: 20, technical: 30, creativity: 20, socialImpact: 30 } },
-      { label: "Discover my passions", scores: { communication: 20, technical: 20, creativity: 40, socialImpact: 20 } },
+      { label: "Enhancing my CV for internships and job opportunities", weights: { career_strategist: 6 }, types: ["workshop", "seminar", "hackathon"] },
+      { label: "Expanding my network and finding like-minded friends", weights: { community_leader: 6, dynamic_explorer: 2 }, types: ["networking", "community_event"] },
+      { label: "Sharpening soft skills and boosting public confidence", weights: { community_leader: 4, changemaker: 3 }, types: ["workshop", "networking"] },
+      { label: "Unwinding, relieving academic stress and having fun", weights: { dynamic_explorer: 5, creative_innovator: 3 }, types: ["festival", "music_show"] },
+      { label: "Exploring my hidden potential and trying new things", weights: { dynamic_explorer: 6, creative_innovator: 3 }, types: ["festival", "workshop"] },
     ],
   },
   {
     id: 7,
-    category: "Location",
-    question: "Where would you like the activity to take place?",
+    category: "Main Obstacle",
+    categoryKey: "main_obstacle",
+    icon: "help_center",
+    question: "What is your biggest hesitation when considering joining an event?",
     answers: [
-      { label: "On campus", scores: { communication: 30, technical: 25, creativity: 20, socialImpact: 25 } },
-      { label: "Off campus (city center, company)", scores: { communication: 25, technical: 25, creativity: 25, socialImpact: 25 } },
-      { label: "Online (virtual platform)", scores: { communication: 25, technical: 40, creativity: 25, socialImpact: 10 } },
-      { label: "Doesn't matter", scores: { communication: 25, technical: 25, creativity: 25, socialImpact: 25 } },
+      { label: "Hesitant to go solo / Feeling shy in large unfamiliar crowds", weights: { deep_learner: 2, tech_builder: 1 }, obstacle: "solo_shy" },
+      { label: "Packed course schedules, assignments and tight deadlines", weights: { career_strategist: 2, deep_learner: 1 }, obstacle: "busy_deadline" },
+      { label: "Imposter syndrome / Feeling underqualified or inexperienced", weights: { deep_learner: 2, tech_builder: 1 }, obstacle: "imposter_syndrome" },
+      { label: "Commute distance or registration expenses", weights: { changemaker: 2, dynamic_explorer: 1 }, obstacle: "commute_cost" },
+      { label: "Haven't found events with truly practical value", weights: { creative_innovator: 2, career_strategist: 2 }, obstacle: "quality_content" },
     ],
   },
   {
     id: 8,
-    category: "Role",
-    question: "What role do you want to take in the activity?",
+    category: "Environment",
+    categoryKey: "environment",
+    icon: "location_on",
+    question: "Which event format is most convenient and comfortable for you?",
     answers: [
-      { label: "Participant", scores: { communication: 25, technical: 25, creativity: 25, socialImpact: 25 } },
-      { label: "Organizer / coordinator", scores: { communication: 40, technical: 15, creativity: 25, socialImpact: 20 } },
-      { label: "Presenter / instructor", scores: { communication: 50, technical: 20, creativity: 20, socialImpact: 10 } },
-      { label: "Supporter / volunteer", scores: { communication: 20, technical: 10, creativity: 20, socialImpact: 50 } },
+      { label: "Right on campus", weights: { community_leader: 2, changemaker: 1 }, pref: "on_campus" },
+      { label: "Off-campus at city venues or corporate headquarters", weights: { career_strategist: 3 }, pref: "off_campus" },
+      { label: "Virtual / Online (Zoom, Google Meet)", weights: { tech_builder: 3, deep_learner: 2 }, pref: "online" },
+      { label: "Flexible, as long as the topic is engaging", weights: { dynamic_explorer: 3, creative_innovator: 2 }, pref: "flexible" },
     ],
   },
   {
     id: 9,
-    category: "Competition",
-    question: "Do you prefer competitive or social activities?",
+    category: "Schedule",
+    categoryKey: "schedule",
+    icon: "schedule",
+    question: "When are you most available to fully participate in activities?",
     answers: [
-      { label: "Competitive (prizes, contests)", scores: { communication: 20, technical: 40, creativity: 30, socialImpact: 10 } },
-      { label: "Social (networking, sharing)", scores: { communication: 40, technical: 10, creativity: 20, socialImpact: 30 } },
-      { label: "Both", scores: { communication: 30, technical: 25, creativity: 25, socialImpact: 20 } },
-      { label: "No preference", scores: { communication: 25, technical: 25, creativity: 25, socialImpact: 25 } },
+      { label: "Weekend mornings (Saturday / Sunday)", weights: { dynamic_explorer: 1, changemaker: 1 }, time: "weekend_morning" },
+      { label: "Weekend afternoons", weights: { dynamic_explorer: 1, creative_innovator: 1 }, time: "weekend_afternoon" },
+      { label: "Weekday evenings (6PM - 9PM)", weights: { tech_builder: 1, deep_learner: 1 }, time: "weekday_evening" },
+      { label: "Short intervals between lecture sessions", weights: { career_strategist: 1 }, time: "short_intervals" },
     ],
   },
   {
     id: 10,
-    category: "Motivation",
-    question: "Which factor attracts you the most?",
+    category: "Key Motivator",
+    categoryKey: "key_motivator",
+    icon: "bolt",
+    question: "What factor motivates you to register immediately?",
     answers: [
-      { label: "Expert / celebrity instructor", scores: { communication: 30, technical: 20, creativity: 30, socialImpact: 20 } },
-      { label: "Certificate / award", scores: { communication: 20, technical: 40, creativity: 20, socialImpact: 20 } },
-      { label: "Friends are joining too", scores: { communication: 40, technical: 10, creativity: 10, socialImpact: 40 } },
-      { label: "Interesting, novel topic", scores: { communication: 20, technical: 20, creativity: 50, socialImpact: 10 } },
-      { label: "Free or low cost", scores: { communication: 25, technical: 25, creativity: 25, socialImpact: 25 } },
+      { label: "Close friends or peers are going along", weights: { community_leader: 4, dynamic_explorer: 2 }, motivator: "friends" },
+      { label: "Renowned guest speakers and industry-leading mentors", weights: { deep_learner: 4, career_strategist: 4 }, motivator: "speakers" },
+      { label: "Job/internship opportunities, recommendation letters, or prizes", weights: { career_strategist: 5, tech_builder: 2 }, motivator: "career_boost" },
+      { label: "Exciting, cutting-edge and curiosity-sparking topics", weights: { creative_innovator: 5, dynamic_explorer: 3 }, motivator: "novel_topic" },
+      { label: "Free entry with valuable certificates and cool swags", weights: { changemaker: 3, dynamic_explorer: 3 }, motivator: "free_perks" },
     ],
   },
 ];
 
 let QUESTIONS = [...HARDCODED_QUESTIONS];
 
-const SCORE_LABELS = {
-  communication: { nameKey: "quiz.score_comm", icon: "forum", color: "#3B82F6", descKey: "quiz.score_comm_desc" },
-  technical: { nameKey: "quiz.score_tech", icon: "code", color: "#8B5CF6", descKey: "quiz.score_tech_desc" },
-  creativity: { nameKey: "quiz.score_creative", icon: "palette", color: "#F59E0B", descKey: "quiz.score_creative_desc" },
-  socialImpact: { nameKey: "quiz.score_social", icon: "volunteer_activism", color: "#10B981", descKey: "quiz.score_social_desc" },
-};
-
-function getSuggestion(primary, secondary, primaryScore, secondaryScore) {
-  const primaryLabel = t(SCORE_LABELS[primary]?.nameKey) || primary;
-  const secondaryLabel = t(SCORE_LABELS[secondary]?.nameKey) || secondary;
-  const reasonText = t("quiz.suggestion_reason", { primary: primaryLabel, secondary: secondaryLabel });
-
-  const suggestions = {
-    communication: {
-      technical: { reason: reasonText, types: ["workshop", "seminar", "networking", "hackathon", "tech_talk", "coding_session"], level: "strong" },
-      creativity: { reason: reasonText, types: ["festival", "art_event", "music_show", "workshop", "seminar", "networking"], level: "strong" },
-      socialImpact: { reason: reasonText, types: ["volunteer", "community_event", "charity", "workshop", "seminar", "networking"], level: "strong" },
-    },
-    technical: {
-      communication: { reason: reasonText, types: ["hackathon", "tech_talk", "coding_session", "workshop", "seminar", "networking"], level: "strong" },
-      creativity: { reason: reasonText, types: ["hackathon", "tech_talk", "coding_session", "art_event", "festival", "workshop"], level: "strong" },
-      socialImpact: { reason: reasonText, types: ["volunteer", "community_event", "hackathon", "tech_talk", "coding_session"], level: "strong" },
-    },
-    creativity: {
-      communication: { reason: reasonText, types: ["festival", "art_event", "music_show", "workshop", "seminar", "networking"], level: "strong" },
-      technical: { reason: reasonText, types: ["festival", "art_event", "music_show", "hackathon", "tech_talk", "workshop"], level: "strong" },
-      socialImpact: { reason: reasonText, types: ["festival", "art_event", "music_show", "volunteer", "community_event", "charity"], level: "strong" },
-    },
-    socialImpact: {
-      communication: { reason: reasonText, types: ["volunteer", "community_event", "charity", "workshop", "seminar", "networking"], level: "strong" },
-      technical: { reason: reasonText, types: ["volunteer", "community_event", "charity", "hackathon", "tech_talk", "coding_session"], level: "strong" },
-      creativity: { reason: reasonText, types: ["volunteer", "community_event", "charity", "festival", "art_event", "music_show"], level: "strong" },
-    },
-  };
-
-  return suggestions[primary]?.[secondary] || null;
-}
-
-const CATEGORY_LABELS = {
-  communication: { label: "Communication", types: ["workshop", "seminar", "networking"] },
-  technical: { label: "Technical", types: ["hackathon", "tech_talk", "coding_session"] },
-  creativity: { label: "Creativity", types: ["festival", "art_event", "music_show"] },
-  socialImpact: { label: "Social Impact", types: ["volunteer", "community_event", "charity"] },
+const PERSONA_CONFIGS = {
+  tech_builder: {
+    key: "tech_builder",
+    icon: "terminal",
+    solidColor: "#2563eb",
+    textColor: "#2563eb",
+    bgSoft: "#eff6ff",
+    types: ["Hackathon", "Tech Talk", "Coding Workshop", "Seminar"],
+  },
+  community_leader: {
+    key: "community_leader",
+    icon: "groups",
+    solidColor: "#7c3aed",
+    textColor: "#7c3aed",
+    bgSoft: "#f5f3ff",
+    types: ["Networking", "Community Event", "Leadership Workshop", "Seminar"],
+  },
+  creative_innovator: {
+    key: "creative_innovator",
+    icon: "palette",
+    solidColor: "#ea580c",
+    textColor: "#ea580c",
+    bgSoft: "#fff7ed",
+    types: ["Art Festival", "Design Workshop", "Music Show", "Exhibition"],
+  },
+  career_strategist: {
+    key: "career_strategist",
+    icon: "work_outline",
+    solidColor: "#0284c7",
+    textColor: "#0284c7",
+    bgSoft: "#f0f9ff",
+    types: ["Career Talk", "Case Challenge", "Company Tour", "Industry Workshop"],
+  },
+  deep_learner: {
+    key: "deep_learner",
+    icon: "psychology",
+    solidColor: "#4f46e5",
+    textColor: "#4f46e5",
+    bgSoft: "#eef2ff",
+    types: ["Research Seminar", "Masterclass", "Academic Conference", "Study Group"],
+  },
+  changemaker: {
+    key: "changemaker",
+    icon: "volunteer_activism",
+    solidColor: "#059669",
+    textColor: "#059669",
+    bgSoft: "#ecfdf5",
+    types: ["Volunteer Campaign", "Charity Event", "Environmental Project", "Community Forum"],
+  },
+  dynamic_explorer: {
+    key: "dynamic_explorer",
+    icon: "explore",
+    solidColor: "#e11d48",
+    textColor: "#e11d48",
+    bgSoft: "#fff1f2",
+    types: ["Cultural Festival", "Hands-on Workshop", "Club Fair", "Social Gathering"],
+  },
 };
 
 let currentQuestion = 0;
 let answers = [];
-let animFrame = null;
 
 if (!isAuthenticated()) {
   window.location.replace("/login.html");
@@ -198,11 +233,11 @@ async function checkExistingResult() {
 
   try {
     const data = await getSurveyResult();
-    if (data?.scores) {
+    if (data?.scores || data?.personaKey) {
       startBtn.innerHTML = `<span class="material-symbols-outlined">refresh</span> ${t("quiz.retake_btn")}`;
     }
   } catch {
-    // No existing result, show start as normal
+    // No existing result
   }
 }
 
@@ -210,18 +245,20 @@ async function loadQuestions() {
   try {
     const data = await getSurveyQuestions();
     if (data?.questions?.length === HARDCODED_QUESTIONS.length) {
-      QUESTIONS = data.questions.map((q, idx) => ({
-        ...q,
-        id: idx + 1,
-        category: HARDCODED_QUESTIONS[idx]?.category || 'General',
-        answers: q.answers.map((a, aidx) => ({
-          ...a,
-          scores: HARDCODED_QUESTIONS[idx]?.answers[aidx]?.scores || { communication: 25, technical: 25, creativity: 25, socialImpact: 25 },
-        })),
-      }));
+      QUESTIONS = HARDCODED_QUESTIONS.map((hq, idx) => {
+        const remoteQ = data.questions[idx];
+        return {
+          ...hq,
+          question: remoteQ?.question || hq.question,
+          answers: hq.answers.map((ha, aIdx) => ({
+            ...ha,
+            label: remoteQ?.answers?.[aIdx]?.label || ha.label,
+          })),
+        };
+      });
     }
   } catch {
-    console.log('Using hardcoded questions');
+    console.log("Using hardcoded questions");
   }
 }
 
@@ -232,22 +269,14 @@ async function loadFooter() {
 }
 
 function initQuiz() {
-  document.getElementById("quizStartBtn").addEventListener("click", startQuiz);
-  document.getElementById("quizNextBtn").addEventListener("click", nextQuestion);
-  document.getElementById("quizPrevBtn").addEventListener("click", prevQuestion);
-  document.getElementById("quizExploreBtn").addEventListener("click", () => {
-    window.location.href = isAuthenticated() ? "/explore.html" : "/register.html";
-  });
-  document.getElementById("quizRetakeBtn").addEventListener("click", () => {
-    currentQuestion = 0;
-    answers = [];
-    showScreen("quizStart");
-  });
+  document.getElementById("quizStartBtn")?.addEventListener("click", startQuiz);
+  document.getElementById("quizNextBtn")?.addEventListener("click", nextQuestion);
+  document.getElementById("quizPrevBtn")?.addEventListener("click", prevQuestion);
 }
 
 function showScreen(id) {
-  document.querySelectorAll(".quiz-card").forEach(c => c.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+  document.querySelectorAll(".quiz-card").forEach((c) => c.classList.add("hidden"));
+  document.getElementById(id)?.classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -258,24 +287,39 @@ function startQuiz() {
   renderQuestion();
 }
 
-function getCategoryIcon(category) {
-  const icons = { Preferences: "favorite", Interests: "explore", Schedule: "schedule", Commitment: "hourglass_top", "Social Style": "groups", Goals: "flag", Location: "location_on", Role: "badge", Competition: "emoji_events", Motivation: "psychology" };
-  return icons[category] || "help";
+function getCategoryColor(categoryKey) {
+  const colors = {
+    academic_stage: "#23499b",
+    core_interests: "#8B5CF6",
+    activity_pref: "#F59E0B",
+    team_role: "#06B6D4",
+    learning_style: "#6366F1",
+    key_goals: "#3B82F6",
+    main_obstacle: "#EF4444",
+    environment: "#10B981",
+    schedule: "#059669",
+    key_motivator: "#EC4899",
+  };
+  return colors[categoryKey] || "#23499b";
 }
 
 function renderQuestion() {
   const q = QUESTIONS[currentQuestion];
   const qKey = `q${q.id}`;
   const translatedQuestion = t(`quiz.${qKey}.question`);
-  document.getElementById("questionNumber").textContent = `${t("quiz.question")} ${currentQuestion + 1}`;
-  document.getElementById("questionCategory").textContent = q.category;
-  document.getElementById("questionCategory").style.background = getCategoryColor(q.category) + "20";
-  document.getElementById("questionCategory").style.color = getCategoryColor(q.category);
-  document.getElementById("questionCategory").innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${getCategoryIcon(q.category)}</span> ${q.category}`;
+  const color = getCategoryColor(q.categoryKey);
+
+  document.getElementById("questionNumber").textContent = `${t("quiz.question")} ${currentQuestion + 1} / ${QUESTIONS.length}`;
+  
+  const categoryEl = document.getElementById("questionCategory");
+  categoryEl.textContent = q.category;
+  categoryEl.style.background = color + "15";
+  categoryEl.style.color = color;
+  categoryEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${q.icon || "help"}</span> ${q.category}`;
 
   const title = document.getElementById("questionTitle");
   title.textContent = translatedQuestion !== `quiz.${qKey}.question` ? translatedQuestion : q.question;
-  title.style.background = `linear-gradient(135deg, #23499b, #3B6FD4)`;
+  title.style.background = `linear-gradient(135deg, #1e293b, #334155)`;
   title.style.webkitBackgroundClip = "text";
   title.style.webkitTextFillColor = "transparent";
   title.style.backgroundClip = "text";
@@ -291,16 +335,26 @@ function renderQuestion() {
   const container = document.getElementById("quizAnswers");
   container.innerHTML = "";
   const selected = answers[currentQuestion] || [];
-  container.innerHTML = `<div class="quiz-multi-hint" style="font-size:12px;color:#64748b;margin-bottom:12px;font-weight:500;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">checklist</span> ${t("quiz.multi_select") || "Select all that apply"}</div>`;
+  
+  const hintDiv = document.createElement("div");
+  hintDiv.style.cssText = "font-size:12px;color:#64748b;margin-bottom:12px;font-weight:500;display:flex;align-items:center;gap:4px;";
+  hintDiv.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">checklist</span> ${t("quiz.multi_select") || "Select all that apply"}`;
+  container.appendChild(hintDiv);
+
   const translatedAnswers = t(`quiz.${qKey}.answers`);
   q.answers.forEach((answer, idx) => {
     const isSelected = selected.includes(idx);
     const translatedLabel = Array.isArray(translatedAnswers) ? translatedAnswers[idx] : undefined;
     const displayLabel = translatedLabel || answer.label;
+    
     const div = document.createElement("div");
     div.className = `quiz-answer-btn ${isSelected ? "selected" : ""}`;
     div.innerHTML = `
-      <span class="quiz-answer-checkbox">${isSelected ? '<span class="material-symbols-outlined" style="font-size:20px;color:#23499b;">check_box</span>' : '<span class="material-symbols-outlined" style="font-size:20px;color:#94a3b8;">check_box_outline_blank</span>'}</span>
+      <span class="quiz-answer-checkbox">${
+        isSelected
+          ? '<span class="material-symbols-outlined" style="font-size:20px;color:#23499b;">check_box</span>'
+          : '<span class="material-symbols-outlined" style="font-size:20px;color:#94a3b8;">check_box_outline_blank</span>'
+      }</span>
       <span class="quiz-answer-text">${displayLabel}</span>
     `;
     div.addEventListener("click", () => selectAnswer(idx));
@@ -309,15 +363,6 @@ function renderQuestion() {
   });
 
   updateNavButtons();
-}
-
-function getCategoryColor(category) {
-  const colors = {
-    Preferences: "#23499b", Interests: "#8B5CF6", Schedule: "#10B981",
-    Commitment: "#F59E0B", "Social Style": "#EF4444", Goals: "#3B82F6",
-    Location: "#06B6D4", Role: "#EC4899", Competition: "#F97316", Motivation: "#23499b",
-  };
-  return colors[category] || "#23499b";
 }
 
 function selectAnswer(index) {
@@ -357,7 +402,7 @@ function updateNavButtons() {
   prevBtn.classList.toggle("hidden", currentQuestion === 0);
 
   if (currentQuestion === QUESTIONS.length - 1) {
-    nextBtn.innerHTML = `<span class="material-symbols-outlined">check</span> ${t("quiz.finish")}`;
+    nextBtn.innerHTML = `<span class="material-symbols-outlined">auto_awesome</span> ${t("quiz.finish")}`;
   } else {
     nextBtn.innerHTML = `${t("quiz.next")} <span class="material-symbols-outlined">arrow_forward</span>`;
   }
@@ -365,30 +410,69 @@ function updateNavButtons() {
   nextBtn.disabled = !answers[currentQuestion] || answers[currentQuestion].length === 0;
 }
 
+function evaluatePersonaClientSide(userAnswers) {
+  const weights = {
+    tech_builder: 0,
+    community_leader: 0,
+    creative_innovator: 0,
+    career_strategist: 0,
+    deep_learner: 0,
+    changemaker: 0,
+    dynamic_explorer: 0,
+  };
+
+  const collectedTypes = [];
+
+  userAnswers.forEach((selectedIndices, qIdx) => {
+    const q = QUESTIONS[qIdx];
+    if (!q) return;
+    selectedIndices.forEach((ansIdx) => {
+      const ans = q.answers[ansIdx];
+      if (!ans) return;
+      if (ans.weights) {
+        Object.entries(ans.weights).forEach(([key, val]) => {
+          weights[key] = (weights[key] || 0) + val;
+        });
+      }
+      if (ans.types) {
+        collectedTypes.push(...ans.types);
+      }
+    });
+  });
+
+  const sorted = Object.entries(weights).sort((a, b) => b[1] - a[1]);
+  const primaryKey = sorted[0]?.[0] || "dynamic_explorer";
+  return {
+    personaKey: primaryKey,
+    weights,
+    collectedTypes: [...new Set(collectedTypes)],
+  };
+}
+
 async function finishQuiz() {
   showScreen("quizResult");
-  document.getElementById("quizResult").innerHTML = `
+  const resultContainer = document.getElementById("quizResult");
+  resultContainer.innerHTML = `
     <div class="quiz-loading-result">
       <div class="quiz-spinner"></div>
-      <p>${t("quiz.analyzing")}</p>
+      <p style="font-size:14px;color:#475569;font-weight:600;">${t("quiz.analyzing")}</p>
     </div>
   `;
 
-  let scores = calculateScores();
+  const clientEval = evaluatePersonaClientSide(answers);
+  const personaKey = clientEval.personaKey;
+
   const answerData = answers.map((selectedIndices, qIndex) => ({
     questionIndex: qIndex,
     answerIndex: selectedIndices,
   }));
 
   if (isAuthenticated()) {
-    const check = canPerformAction('submitSurvey');
+    const check = canPerformAction("submitSurvey");
     if (check.allowed) {
-      markActionPerformed('submitSurvey');
+      markActionPerformed("submitSurvey");
       try {
-        const result = await submitSurvey(answerData);
-        if (result?.scores) {
-          scores = result.scores;
-        }
+        await submitSurvey(answerData);
         try {
           await generateProfile({ answers: answerData });
         } catch (profileErr) {
@@ -401,128 +485,117 @@ async function finishQuiz() {
   }
 
   localStorage.setItem("springwave_quiz_completed", "true");
-  setTimeout(() => renderResults(scores), 600);
+  localStorage.setItem("springwave_persona_key", personaKey);
+
+  setTimeout(() => renderResults(personaKey, clientEval), 600);
 }
 
-function calculateScores() {
-  const total = { communication: 0, technical: 0, creativity: 0, socialImpact: 0 };
-  let divisor = 0;
-  QUESTIONS.forEach((q, i) => {
-    const selectedIndices = answers[i] || [];
-    selectedIndices.forEach(idx => {
-      const scores = q.answers[idx]?.scores;
-      if (scores) {
-        total.communication += scores.communication;
-        total.technical += scores.technical;
-        total.creativity += scores.creativity;
-        total.socialImpact += scores.socialImpact;
-      }
-    });
-    if (selectedIndices.length > 0) divisor++;
-  });
+function renderResults(personaKey, clientEval) {
+  const config = PERSONA_CONFIGS[personaKey] || PERSONA_CONFIGS.dynamic_explorer;
+  const personaI18n = t(`quiz.personas.${personaKey}`) || {};
+  const personaTitle = personaI18n.title || personaKey;
+  const personaTagline = personaI18n.tagline || "";
+  const strengths = Array.isArray(personaI18n.strengths) ? personaI18n.strengths : [];
+  const advice = personaI18n.advice || "";
 
-  const count = divisor || QUESTIONS.length;
-  return {
-    communication: Math.round(total.communication / count),
-    technical: Math.round(total.technical / count),
-    creativity: Math.round(total.creativity / count),
-    socialImpact: Math.round(total.socialImpact / count),
-  };
-}
+  const types = config.types || ["Workshop", "Seminar", "Networking"];
 
-function renderResults(scores) {
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  const primary = sorted[0];
-  const secondary = sorted[1];
-
-  let suggestions = getSuggestion(primary[0], secondary[0], primary[1], secondary[1]);
-  if (!suggestions) {
-    suggestions = {
-      reason: t("quiz.balanced"),
-      types: ["workshop", "seminar", "networking", "hackathon", "festival", "volunteer"],
-      level: "balanced",
-    };
-  }
-
-  let suggestionList = [...new Set(suggestions.types)].slice(0, 4);
-
-  document.getElementById("quizResult").innerHTML = `
-    <div class="quiz-result-icon">
-      <span class="material-symbols-outlined">auto_awesome</span>
+  const resultContainer = document.getElementById("quizResult");
+  resultContainer.innerHTML = `
+    <!-- Persona Hero Card -->
+    <div class="quiz-persona-card">
+      <div class="quiz-persona-badge">
+        <span class="material-symbols-outlined" style="font-size:14px;color:#475569;">auto_awesome</span>
+        <span>${t("quiz.persona_badge")}</span>
+      </div>
+      <div class="quiz-persona-icon-box" style="background:${config.solidColor};">
+        <span class="material-symbols-outlined">${config.icon}</span>
+      </div>
+      <h1 class="quiz-persona-name">${personaTitle}</h1>
+      <p class="quiz-persona-motto">${personaTagline}</p>
     </div>
-    <h1 class="quiz-result-title">${t("quiz.result_title")}</h1>
-    <p class="quiz-result-desc">${t("quiz.result_desc")}</p>
 
-    <div class="quiz-scores" id="quizScores"></div>
+    <!-- Strengths Section -->
+    ${
+      strengths.length > 0
+        ? `
+      <div class="quiz-block">
+        <div class="quiz-block-header">
+          <span class="material-symbols-outlined" style="color:#10b981;">verified</span>
+          <span>${t("quiz.strengths_title")}</span>
+        </div>
+        <div class="quiz-strength-grid">
+          ${strengths
+            .map(
+              (s) => `
+            <div class="quiz-strength-chip">
+              <span class="material-symbols-outlined">check_circle</span>
+              <span>${s}</span>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      </div>
+    `
+        : ""
+    }
 
-    <div class="quiz-suggestions" id="quizSuggestions"></div>
+    <!-- Personal Advice Card -->
+    ${
+      advice
+        ? `
+      <div class="quiz-advice-box">
+        <div class="quiz-block-header">
+          <span class="material-symbols-outlined">tips_and_updates</span>
+          <span>${t("quiz.advice_title")}</span>
+        </div>
+        <p class="quiz-advice-text">${advice}</p>
+      </div>
+    `
+        : ""
+    }
 
-    <div class="quiz-result-actions">
-      <button class="quiz-btn-primary" id="quizExploreBtn">
-        <span class="material-symbols-outlined">explore</span>
-        ${isAuthenticated() ? t("quiz.explore_activities") : t("quiz.register_explore")}
+    <!-- Pathway Section -->
+    <div class="quiz-block">
+      <div class="quiz-block-header">
+        <span class="material-symbols-outlined" style="color:#2563eb;">route</span>
+        <span>${t("quiz.suggested_activities")}</span>
+      </div>
+      <div class="quiz-pathway-list">
+        ${types
+          .map(
+            (item) => `
+          <span class="quiz-pathway-chip">
+            <span class="material-symbols-outlined">stars</span>
+            <span>${item}</span>
+          </span>
+        `
+          )
+          .join("")}
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="margin-top: 24px;">
+      <button class="quiz-action-primary" id="quizExploreBtn">
+        <span class="material-symbols-outlined" style="font-size:20px;">explore</span>
+        <span>${isAuthenticated() ? t("quiz.explore_activities") : t("quiz.register_explore")}</span>
       </button>
-      <button class="quiz-btn-secondary" id="quizRetakeBtn">
-        <span class="material-symbols-outlined">replay</span>
-        ${t("quiz.retake")}
+      <button class="quiz-action-secondary" id="quizRetakeBtn">
+        <span class="material-symbols-outlined" style="font-size:18px;">replay</span>
+        <span>${t("quiz.retake")}</span>
       </button>
     </div>
   `;
 
-  document.getElementById("quizExploreBtn").addEventListener("click", () => {
+  document.getElementById("quizExploreBtn")?.addEventListener("click", () => {
     window.location.href = isAuthenticated() ? "/explore.html" : "/register.html";
   });
-  document.getElementById("quizRetakeBtn").addEventListener("click", () => {
+
+  document.getElementById("quizRetakeBtn")?.addEventListener("click", () => {
     currentQuestion = 0;
     answers = [];
     showScreen("quizStart");
-  });
-
-  const scoresContainer = document.getElementById("quizScores");
-  Object.entries(scores).forEach(([key, value]) => {
-    const info = SCORE_LABELS[key];
-    const level = value >= 70 ? "high" : value >= 45 ? "medium" : "low";
-    const levelLabel = value >= 70 ? t("quiz.score_strong") : value >= 45 ? t("quiz.score_moderate") : t("quiz.score_developing");
-    scoresContainer.innerHTML += `
-      <div class="quiz-score-item">
-        <div class="quiz-score-header">
-          <div class="quiz-score-info">
-            <span class="material-symbols-outlined quiz-score-icon" style="color:${info.color}">${info.icon}</span>
-            <div>
-              <span class="quiz-score-name">${t(info.nameKey)}</span>
-              <span class="quiz-score-desc">${t(info.descKey)}</span>
-            </div>
-          </div>
-          <span class="quiz-score-value" style="color:${info.color}">${value}</span>
-        </div>
-        <div class="quiz-score-bar-track">
-          <div class="quiz-score-bar-fill" data-value="${value}" style="width:0%;background:${info.color}"></div>
-        </div>
-        <span class="quiz-score-level ${level}">${levelLabel}</span>
-      </div>
-    `;
-  });
-
-  const suggestionsContainer = document.getElementById("quizSuggestions");
-  suggestionsContainer.innerHTML = `
-    <div class="quiz-suggestion-card">
-      <div class="quiz-suggestion-header">
-        <span class="material-symbols-outlined" style="color:#23499b">tips_and_updates</span>
-        <h3>${t("quiz.suggested_activities")}</h3>
-      </div>
-      <p class="quiz-suggestion-reason">${suggestions.reason}</p>
-      <div class="quiz-suggestion-tags">
-        ${suggestionList.map(t => `<span class="quiz-suggestion-tag">${t}</span>`).join("")}
-      </div>
-    </div>
-  `;
-
-  animFrame = requestAnimationFrame(() => animateBars());
-}
-
-function animateBars() {
-  document.querySelectorAll(".quiz-score-bar-fill").forEach(bar => {
-    const value = parseInt(bar.dataset.value);
-    setTimeout(() => { bar.style.width = value + "%"; }, 100);
   });
 }

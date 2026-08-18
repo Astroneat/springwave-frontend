@@ -417,130 +417,168 @@
   },
   "quiz": {
     "title": "SpringWave - AI Quiz",
-    "multi_select": "Select all that apply",
-    "start_title": "Discover Your Perfect Activities",
-    "start_desc": "Answer 10 quick questions to get AI-powered activity recommendations tailored to you.",
+    "multi_select": "Select all that apply to you",
+    "start_title": "Discover Your Student Persona",
+    "start_desc": "Answer 10 short questions to let AI identify your student archetype, analyze your core strengths, and recommend a personalized activity pathway.",
     "questions": "10 questions",
-    "duration": "2-3 min",
-    "ai_results": "AI results",
+    "duration": "2–3 min",
+    "ai_results": "AI Identification",
     "start_btn": "Start Quiz",
     "next": "Next",
     "previous": "Previous",
-    "finish": "Finish",
-    "result_title": "Your Personality Profile",
-    "result_desc": "Based on your responses, here's how you score across four key areas.",
-    "suggested_activities": "Suggested Activities For You",
-    "explore_activities": "Explore Recommended Activities",
-    "register_explore": "Register to Explore Activities",
+    "finish": "Reveal Your Persona",
+    "result_title": "Your Student Archetype",
+    "result_desc": "Based on a comprehensive analysis of your responses, here is your unique persona and tailored roadmap.",
+    "strengths_title": "Key Strengths",
+    "advice_title": "Personal Advice & Overcoming Obstacles",
+    "suggested_activities": "Recommended Activity Pathway",
+    "explore_activities": "Explore Matching Events",
+    "register_explore": "Register to Explore",
     "retake": "Retake Quiz",
     "retake_btn": "Retake Quiz",
-    "analyzing": "Analyzing your responses...",
+    "analyzing": "AI is analyzing your profile and curating your personalized pathway...",
     "question": "Question",
-    "score_strong": "Strong",
-    "score_moderate": "Moderate",
-    "score_developing": "Developing",
-    "balanced": "You have a balanced tendency across multiple skill areas",
-    "suggestion_reason": "You have a strong tendency in {{primary}} and {{secondary}}",
-    "score_comm": "Communication",
-    "score_comm_desc": "Speaking, presenting, interacting",
-    "score_tech": "Technical",
-    "score_tech_desc": "Coding, engineering, problem-solving",
-    "score_creative": "Creativity",
-    "score_creative_desc": "Design, innovation, artistic thinking",
-    "score_social": "Social Impact",
-    "score_social_desc": "Volunteering, community, leadership",
+    "persona_badge": "Identified Persona",
+    "match_rate": "Match Confidence",
+    "recommended_types": "Best Matching Event Formats",
+    "personas": {
+      "tech_builder": {
+        "title": "The Tech Builder",
+        "tagline": "Passionate about decoding technology and building impactful digital solutions",
+        "strengths": ["Logical & analytical problem solving", "High tech self-learning agility", "Builder mindset"],
+        "advice": "Don't hesitate to step beyond the screen to showcase your creations and connect with multidisciplinary peers in social meetups."
+      },
+      "community_leader": {
+        "title": "The Community Leader",
+        "tagline": "Spreading positive energy, empowering peers, and bringing people together",
+        "strengths": ["Inspiring communication", "Team coordination & leadership", "Empathy & community intuition"],
+        "advice": "Remember to pace your energy and cultivate deep domain expertise alongside coordinating social initiatives."
+      },
+      "creative_innovator": {
+        "title": "The Creative Innovator",
+        "tagline": "Thinking outside the box, appreciating aesthetics, and pursuing breakthrough ideas",
+        "strengths": ["Aesthetic & lateral thinking", "Openness to novel perspectives", "Visualizing abstract ideas into reality"],
+        "advice": "Combine your creative flair with tech and business fundamentals to turn imaginative concepts into viable projects."
+      },
+      "career_strategist": {
+        "title": "The Career Strategist",
+        "tagline": "Goal-driven, optimizing pathways, and ready to accelerate professional milestones",
+        "strengths": ["Clear strategic goal setting", "Professional etiquette & competencies", "Fast at seizing market opportunities"],
+        "advice": "Beyond chasing career milestones, cultivate authentic friendships for a well-rounded and memorable university experience."
+      },
+      "deep_learner": {
+        "title": "The Deep Learner",
+        "tagline": "Driven by academic depth, intellectual rigor, and mastering core fundamentals",
+        "strengths": ["Deep research capability", "Sharp critical thinking", "Patience & attention to detail"],
+        "advice": "Apply your theoretical insights to real-world challenges and join small-group workshops to confidently share your perspectives."
+      },
+      "changemaker": {
+        "title": "The Changemaker",
+        "tagline": "Driven by compassion, community action, and creating lasting positive social impact",
+        "strengths": ["Empathy & volunteer dedication", "Community mobilization", "High sense of social responsibility"],
+        "advice": "Blend your volunteer passion with structured project management tools for sustainable and measurable social impact."
+      },
+      "dynamic_explorer": {
+        "title": "The Dynamic Explorer",
+        "tagline": "Versatile, curious, and eager to dive into diverse new experiences",
+        "strengths": ["High adaptability", "Multidisciplinary skillset", "Limitless curiosity & energy"],
+        "advice": "After exploring diverse domains, hone in on 1–2 key strengths to cultivate your distinctive personal signature."
+      }
+    },
     "q1": {
-      "question": "What type of activity do you want to join most?",
+      "question": "What academic year are you currently in?",
       "answers": [
-        "Workshop / skill-sharing session",
-        "Competition / hackathon",
-        "Arts event / festival",
-        "Club / group activities",
-        "Volunteer / charity work"
+        "1st Year (Freshman - Exploring university life & opportunities)",
+        "2nd Year (Sophomore - Diving into major courses & student clubs)",
+        "3rd Year (Junior - Building skills & practical projects)",
+        "Final Year / Graduate (Senior - Resume, internship & career launch)"
       ]
     },
     "q2": {
-      "question": "Which field interests you?",
+      "question": "What is your primary field of interest or passion?",
       "answers": [
-        "Technology - Programming",
-        "Business - Entrepreneurship",
-        "Arts - Creativity",
-        "Sports - Health",
-        "Soft skills - Self development",
-        "Science - Academics"
+        "Information Technology, Software Engineering & AI",
+        "Business, Entrepreneurship & Marketing",
+        "Design, Fine Arts, Media & Content Creation",
+        "Social Sciences, Languages, Humanities & Psychology",
+        "Healthcare, Fitness & Sports",
+        "Natural Sciences & Academic Research"
       ]
     },
     "q3": {
-      "question": "What time are you usually free?",
+      "question": "What type of activity inspires you the most?",
       "answers": [
-        "Morning (8AM–12PM)",
-        "Afternoon (1PM–5PM)",
-        "Evening (6PM–10PM)",
-        "Weekends"
+        "Intensive masterclasses / Practical hands-on workshops",
+        "Academic contests / Hackathons & Case challenges",
+        "Arts festivals, Music concerts & Creative exhibitions",
+        "Student club meetups & Social networking gatherings",
+        "Volunteering, Community charity & Environmental campaigns"
       ]
     },
     "q4": {
-      "question": "How much time are you willing to commit?",
+      "question": "In a team or project, which role do you feel most confident in?",
       "answers": [
-        "1–2 hours (short, one-time event)",
-        "Half day (3–4 hours)",
-        "Full day (conference, competition)",
-        "Multiple sessions (long-term workshop)"
+        "Team Leader / Project planner & Coordinator",
+        "Technical Specialist / Core problem solver & Builder",
+        "Idea Generator / Creative designer & Content creator",
+        "Team Connector / Member care & Supportive facilitator"
       ]
     },
     "q5": {
-      "question": "Do you prefer group or individual activities?",
+      "question": "How do you recharge and learn most effectively?",
       "answers": [
-        "Group (working with friends)",
-        "Individual (solo experience)",
-        "No preference"
+        "Engaging in lively group debates and discussions",
+        "Deep solo study in a quiet, focused environment",
+        "Learning by doing through hands-on project work",
+        "Listening to expert insights and systematic note-taking"
       ]
     },
     "q6": {
-      "question": "What is your main goal when participating?",
+      "question": "What is your primary goal from extracurricular activities right now?",
       "answers": [
-        "Learn new skills",
-        "Expand my network",
-        "Relax and have fun",
-        "Build my resume / CV",
-        "Discover my passions"
+        "Enhancing my CV for internships and job opportunities",
+        "Expanding my network and finding like-minded friends",
+        "Sharpening soft skills and boosting public confidence",
+        "Unwinding, relieving academic stress and having fun",
+        "Exploring my hidden potential and trying new things"
       ]
     },
     "q7": {
-      "question": "Where would you like the activity to take place?",
+      "question": "What is your biggest hesitation when considering joining an event?",
       "answers": [
-        "On campus",
-        "Off campus (city center, company)",
-        "Online (virtual platform)",
-        "Doesn't matter"
+        "Hesitant to go solo / Feeling shy in large unfamiliar crowds",
+        "Packed course schedules, assignments and tight deadlines",
+        "Imposter syndrome / Feeling underqualified or inexperienced",
+        "Commute distance or registration expenses",
+        "Haven't found events with truly practical value"
       ]
     },
     "q8": {
-      "question": "What role do you want to take in the activity?",
+      "question": "Which event format is most convenient and comfortable for you?",
       "answers": [
-        "Participant",
-        "Organizer / coordinator",
-        "Presenter / instructor",
-        "Supporter / volunteer"
+        "Right on campus",
+        "Off-campus at city venues or corporate headquarters",
+        "Virtual / Online (Zoom, Google Meet)",
+        "Flexible, as long as the topic is engaging"
       ]
     },
     "q9": {
-      "question": "Do you prefer competitive or social activities?",
+      "question": "When are you most available to fully participate in activities?",
       "answers": [
-        "Competitive (prizes, contests)",
-        "Social (networking, sharing)",
-        "Both",
-        "No preference"
+        "Weekend mornings (Saturday / Sunday)",
+        "Weekend afternoons",
+        "Weekday evenings (6PM - 9PM)",
+        "Short intervals between lecture sessions"
       ]
     },
     "q10": {
-      "question": "Which factor attracts you the most?",
+      "question": "What factor motivates you to register immediately?",
       "answers": [
-        "Expert / celebrity instructor",
-        "Certificate / award",
-        "Friends are joining too",
-        "Interesting, novel topic",
-        "Free or low cost"
+        "Close friends or peers are going along",
+        "Renowned guest speakers and industry-leading mentors",
+        "Job/internship opportunities, recommendation letters, or prizes",
+        "Exciting, cutting-edge and curiosity-sparking topics",
+        "Free entry with valuable certificates and cool swags"
       ]
     }
   },
