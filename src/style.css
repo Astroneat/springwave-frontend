@@ -16475,3 +16475,33 @@ textarea {
   user-select: none;
   border: 1px solid rgba(255, 255, 255, 0.8);
 }
+
+/* --- RESPONSIVE GROWTH DASHBOARD IMPROVEMENTS --- */
+@media (max-width: 1024px) {
+  .dashboard-showcase-card {
+    padding: 32px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .mockup-overlay-badge {
+    display: none !important; /* Hide overlay badges on mobile to prevent overflow and clutter */
+  }
+  .hero-mockup-card {
+    padding: 16px !important;
+    max-width: 290px !important; /* Scale down card to fit narrow viewports */
+  }
+  .mockup-header {
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  .mockup-logo {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 11px !important;
+  }
+  .mockup-badge {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+}

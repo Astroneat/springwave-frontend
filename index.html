@@ -225,18 +225,18 @@
   <!-- DASHBOARD SHOWCASE -->
   <section class="landing-section relative overflow-hidden" id="dashboard-showcase">
     <div class="landing-container">
-      <div class="dashboard-showcase-card dashboard-grid">
+      <div class="dashboard-showcase-card grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center overflow-visible">
         
-        <div class="reveal active showcase-text-content">
+        <div class="reveal active showcase-text-content flex flex-col items-center lg:items-start text-center lg:text-left w-full">
           <div class="section-label">
             <span class="material-symbols-outlined text-base">dashboard</span>
             <span data-i18n="index.showcase_badge">Gamified Companion</span>
           </div>
-          <h2 class="section-title text-left mb-6" data-i18n="index.showcase_heading">Your Gamified Growth Dashboard</h2>
-          <p class="section-subtitle text-left mb-6" data-i18n="index.showcase_desc">
+          <h2 class="section-title !text-center lg:!text-left mb-6" data-i18n="index.showcase_heading">Your Gamified Growth Dashboard</h2>
+          <p class="section-subtitle !text-center lg:!text-left mb-6 mx-auto lg:mx-0" data-i18n="index.showcase_desc">
             Track your extracurricular progress, levels, and badge milestones in real-time. Our AI Companion keeps you motivated and recommends opportunities based on your skills.
           </p>
-          <div class="flex flex-col gap-4 mt-6">
+          <div class="flex flex-col gap-4 mt-6 w-full max-w-lg lg:max-w-none text-left">
             <div class="flex items-start gap-3">
               <span class="material-symbols-outlined text-accent text-xl bg-accent/10 p-1.5 rounded-lg">military_tech</span>
               <div>
@@ -254,9 +254,9 @@
           </div>
         </div>
 
-        <div class="flex justify-center reveal active showcase-card-content">
+        <div class="flex justify-center reveal active showcase-card-content w-full overflow-visible">
           <div class="hero-mockup-wrapper">
-            <div class="hero-mockup-card" id="hero-mockup">
+            <div class="hero-mockup-card" id="hero-mockup" style="transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1);">
               <!-- Card Header -->
               <div class="mockup-header">
                 <div class="mockup-header-left">
@@ -298,9 +298,10 @@
                       <div>
                         <h5 data-i18n="index.mockup_event2_title">Leadership Forum</h5>
                         <p data-i18n="index.mockup_event2_type">Communication</p>
+                      </div>
                     </div>
+                    <span class="mockup-tag match-95" data-i18n="index.mockup_event2_match">95% Match</span>
                   </div>
-                  <span class="mockup-tag match-95" data-i18n="index.mockup_event2_match">95% Match</span>
                 </div>
               </div>
             </div>
@@ -314,9 +315,7 @@
           </div>
         </div>
       </div>
-
     </div>
-  </div>
 </section>
 
 
