@@ -135,6 +135,7 @@ export async function loadNavbar({ activeSection } = {}) {
 
     const navbarContainer = document.getElementById("navbar-container");
     const cachedNav = sessionStorage.getItem("cached_navbar_html");
+    const cachedUserChip = sessionStorage.getItem("cached_userchip_html");
     if (navbarContainer && cachedNav && !navbarContainer.innerHTML.trim()) {
         navbarContainer.innerHTML = cachedNav;
         const authSection = document.getElementById("auth-section");
@@ -193,7 +194,11 @@ export async function loadNavbar({ activeSection } = {}) {
         if (isAuthenticated()) {
             const user = getUser();
             const userChipHTML = await fetchContent("/components/userchip.html");
-            authSection.innerHTML = userChipHTML;
+            if (userChipHTML) {
+                authSection.innerHTML = userChipHTML;
+                sessionStorage.setItem("cached_userchip_html", userChipHTML);
+                populateUserChip(user, activeSection);
+            }
 
             const avatarImg = document.querySelector(".user-avatar-img");
             const avatarInitial = document.getElementById("user-avatar-initial");
