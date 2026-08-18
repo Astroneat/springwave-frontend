@@ -79,14 +79,28 @@ function scheduleRefresh() {
     try {
         const payload = JSON.parse(atob(token.split(".")[1]));
         const expiresIn = payload.exp * 1000 - Date.now();
-        if (expiresIn <= 0) return;
-        const refreshAt = Math.max(expiresIn - 120000, 0);
+        if (expiresIn <= 0) {
+            refreshTokens().then(scheduleRefresh).catch((err) => {
+                if (err && err.status === 401) {
+                    clearSession();
+                    window.location.href = "/login.html";
+                }
+            });
+            return;
+        }
+        const refreshAt = Math.max(expiresIn - 120000, 5000);
         refreshTimer = setTimeout(async () => {
             try {
                 await refreshTokens();
                 scheduleRefresh();
-            } catch {
-                clearSession();
+            } catch (err) {
+                if (err && err.status === 401) {
+                    clearSession();
+                    window.location.href = "/login.html";
+                } else {
+                    // Retry in 15s on network disconnect / sleep wake-up without destroying session
+                    refreshTimer = setTimeout(scheduleRefresh, 15000);
+                }
             }
         }, refreshAt);
     } catch {
@@ -100,15 +114,28 @@ async function refreshTokens() {
     if (refreshPromise) return refreshPromise;
     refreshPromise = (async () => {
         try {
-            const resp = await fetch(`${API_BASE_URL}/auth/refresh`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-            });
-            if (!resp.ok) throw new Error("Refresh failed");
+            let resp;
+            try {
+                resp = await fetch(`${API_BASE_URL}/auth/refresh`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                });
+            } catch (netErr) {
+                throw new ApiError(0, netErr && netErr.message ? netErr.message : "Network error during refresh");
+            }
+            if (!resp.ok) {
+                throw new ApiError(resp.status, "Refresh failed");
+            }
             const data = await resp.json();
+            if (!data || !data.token) {
+                throw new ApiError(500, "Invalid token response");
+            }
             setToken(data.token);
-            setSigningKey(data.signingKey);
+            if (data.signingKey) {
+                setSigningKey(data.signingKey);
+            }
+            return data;
         } finally {
             refreshPromise = null;
         }
@@ -126,9 +153,17 @@ export async function ensureSession() {
         }
         scheduleRefresh();
         return true;
-    } catch {
-        return false;
+    } catch (err) {
+        if (err && err.status === 401) {
+            clearSession();
+            return false;
+        }
+        return true;
     }
+}
+
+if (typeof window !== "undefined" && getToken()) {
+    scheduleRefresh();
 }
 
 async function request(endpoint, options = {}) {
