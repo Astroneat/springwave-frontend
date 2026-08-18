@@ -9,6 +9,7 @@ const HISTORY_KEY = "springwave_chat_history";
 const MAX_HISTORY = 50;
 
 let isOpen = false;
+let isSending = false;
 let conversationHistory = [];
 
 function formatCardDate(dateStr) {
@@ -697,7 +698,10 @@ export async function initChatbot() {
 
   const input = document.getElementById("chatbot-input");
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendMessage();
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   });
 
   input.addEventListener("input", () => {
@@ -815,9 +819,15 @@ document.addEventListener("keydown", (e) => {
 });
 
 async function sendMessage() {
+  if (isSending) return;
   const input = document.getElementById("chatbot-input");
+  const sendBtn = document.getElementById("chatbot-send-btn");
   const text = input.value.trim();
   if (!text) return;
+
+  isSending = true;
+  if (sendBtn) sendBtn.disabled = true;
+  input.disabled = true;
 
   toggleSuggestions(false);
   addMessage("user", text);
@@ -828,6 +838,10 @@ async function sendMessage() {
   if (!isAuthenticated()) {
     addMessage("assistant", t("chatbot.login_required", {}, "Bạn cần đăng nhập tài khoản SpringWave để sử dụng đầy đủ các tính năng tự hành và tương tác này nhé!"));
     saveHistoryToStorage();
+    isSending = false;
+    if (sendBtn) sendBtn.disabled = false;
+    input.disabled = false;
+    input.focus();
     return;
   }
 
@@ -850,6 +864,11 @@ async function sendMessage() {
   } catch (err) {
     msgEl.classList.remove("typing");
     msgEl.querySelector(".message-content").textContent = t("chatbot.error", {}, "Đã xảy ra lỗi khi kết nối tới Trợ lý AI. Vui lòng thử lại sau.");
+  } finally {
+    isSending = false;
+    if (sendBtn) sendBtn.disabled = false;
+    input.disabled = false;
+    input.focus();
   }
 
   document.getElementById("chatbot-messages").scrollTop =

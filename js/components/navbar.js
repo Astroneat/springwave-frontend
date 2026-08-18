@@ -1,7 +1,7 @@
 import { isAuthenticated, getUser, setUser, logout, isStudentVerified } from "../lib/session.js";
 import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificationPolling, stopNotificationPolling } from "../lib/notifications.js";
 import { fetchContent } from "../lib/utils.js";
-import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
+import { initI18n, setLang, getLang, t, applyTranslation } from "../lib/i18n.js";
 import { initPageTransition } from "./pageLoader.js";
 
 export function populateUserChip(user, activeSection) {
@@ -32,16 +32,16 @@ export function populateUserChip(user, activeSection) {
     if (emailEl) emailEl.textContent = user.email || "";
     if (roleEl) {
         if (user.role === 'admin') {
-            roleEl.textContent = "Admin";
+            roleEl.textContent = t("user.role_admin") || "Admin";
             roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider";
         } else if (user.role === 'host') {
-            roleEl.textContent = "Host / Organizer";
+            roleEl.textContent = t("user.role_host") || "Host / Organizer";
             roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider";
         } else if (isStudentVerified(user)) {
-            roleEl.textContent = "Verified Student";
+            roleEl.textContent = t("user.role_verified_student") || "Verified Student";
             roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wider";
         } else {
-            roleEl.textContent = "Student";
+            roleEl.textContent = t("user.role_student") || "Student";
             roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider";
         }
     }
@@ -64,7 +64,7 @@ function getGuestChipHTML(activeSection) {
     return `
         <div class="hidden md:flex items-center gap-2">
             <a href="/login.html" class="figma-navbar-login-btn flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition spring-ease" data-i18n="nav.login_btn">
-                <span data-i18n="nav.login">Login</span>
+                <span data-i18n="nav.login">${t("nav.login") || "Login"}</span>
                 <img src="/assets/images/icon-login.svg" alt="Login Icon" class="w-4 h-4" />
             </a>
         </div>
@@ -78,49 +78,49 @@ function getGuestChipHTML(activeSection) {
             </button>
             <div class="user-dropdown" id="user-dropdown" role="menu" aria-label="User account menu">
                 <div class="px-3 pt-2 pb-3 mb-2 border-b border-slate-100/80">
-                    <p class="text-sm font-bold text-slate-800">Welcome to SpringWave</p>
-                    <p class="text-xs text-slate-500">Sign in to unlock all features</p>
+                    <p class="text-sm font-bold text-slate-800" data-i18n="user.welcome_title">${t("user.welcome_title") || "Welcome to SpringWave"}</p>
+                    <p class="text-xs text-slate-500" data-i18n="user.welcome_subtitle">${t("user.welcome_subtitle") || "Sign in to unlock all features"}</p>
                 </div>
                 <div class="dropdown-nav-group border-b border-slate-100/80 pb-2 mb-2">
-                    <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Navigation</div>
+                    <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider" data-i18n="user.navigation">${t("user.navigation") || "Navigation"}</div>
                     <a href="/index.html" class="dropdown-item" data-section="home">
                         <i class="fa-solid fa-house"></i>
-                        <span data-i18n="nav.home">Home</span>
+                        <span data-i18n="nav.home">${t("nav.home") || "Home"}</span>
                         <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
                     </a>
                     <a href="/explore.html" class="dropdown-item" data-section="explore">
                         <i class="fa-solid fa-compass"></i>
-                        <span data-i18n="nav.explore">Explore</span>
+                        <span data-i18n="nav.explore">${t("nav.explore") || "Explore"}</span>
                         <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
                     </a>
                     <a href="/community.html" class="dropdown-item" data-section="community">
                         <i class="fa-solid fa-comments"></i>
-                        <span data-i18n="nav.community">Community</span>
+                        <span data-i18n="nav.community">${t("nav.community") || "Community"}</span>
                         <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
                     </a>
                     <a href="/quiz.html" class="dropdown-item" data-section="quiz">
                         <i class="fa-solid fa-brain"></i>
-                        <span data-i18n="index.hero_take_quiz">AI Quiz</span>
+                        <span data-i18n="index.hero_take_quiz">${t("index.hero_take_quiz") || "AI Quiz"}</span>
                         <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
                     </a>
                     <a href="/about.html" class="dropdown-item" data-section="about">
                         <i class="fa-solid fa-circle-info"></i>
-                        <span data-i18n="nav.about">About Us</span>
+                        <span data-i18n="nav.about">${t("nav.about") || "About Us"}</span>
                         <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
                     </a>
                 </div>
                 <div class="dropdown-tools-group pb-2 mb-2 border-b border-slate-100/80">
                     <button class="dropdown-item" id="dropdown-mobile-lang-btn">
                         <i class="fa-solid fa-language"></i>
-                        <span>Language: <strong id="dropdown-lang-code" class="text-primary font-extrabold">EN</strong></span>
+                        <span><span data-i18n="common.language">${t("common.language") || "Language"}</span>: <strong id="dropdown-lang-code" class="text-primary font-extrabold">${getLang().toUpperCase()}</strong></span>
                     </button>
                 </div>
                 <div class="flex flex-col gap-2 pt-1">
                     <a href="/login.html" class="w-full py-2 px-3 rounded-xl bg-primary text-white text-center font-bold text-xs shadow-sm hover:bg-primary/90 transition text-decoration-none">
-                        <span data-i18n="nav.login">Login</span>
+                        <span data-i18n="nav.login">${t("nav.login") || "Login"}</span>
                     </a>
                     <a href="/register.html" class="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-700 text-center font-bold text-xs hover:bg-slate-200 transition text-decoration-none">
-                        <span data-i18n="login.register_now">Register</span>
+                        <span data-i18n="login.register_now">${t("login.register_now") || "Register"}</span>
                     </a>
                 </div>
             </div>
@@ -200,56 +200,6 @@ export async function loadNavbar({ activeSection } = {}) {
                 populateUserChip(user, activeSection);
             }
 
-            const avatarImg = document.querySelector(".user-avatar-img");
-            const avatarInitial = document.getElementById("user-avatar-initial");
-            const dropdownAvatarImg = document.querySelector(".dropdown-avatar-img");
-            const dropdownAvatarInitial = document.querySelector(".dropdown-avatar-initial");
-            const userInitial = (user.username || user.fullname || user.email || "U").charAt(0).toUpperCase();
-
-            if (user.avatar) {
-                if (avatarImg) { avatarImg.src = user.avatar; avatarImg.style.display = ""; }
-                if (avatarInitial) avatarInitial.style.display = "none";
-                if (dropdownAvatarImg) { dropdownAvatarImg.src = user.avatar; dropdownAvatarImg.style.display = ""; }
-                if (dropdownAvatarInitial) dropdownAvatarInitial.style.display = "none";
-            } else {
-                if (avatarImg) avatarImg.style.display = "none";
-                if (avatarInitial) { avatarInitial.textContent = userInitial; avatarInitial.style.display = ""; }
-                if (dropdownAvatarImg) dropdownAvatarImg.style.display = "none";
-                if (dropdownAvatarInitial) { dropdownAvatarInitial.textContent = userInitial; dropdownAvatarInitial.style.display = ""; }
-            }
-
-            const usernameEl = document.getElementById("dropdown-username");
-            const emailEl = document.getElementById("dropdown-email");
-            const roleEl = document.getElementById("dropdown-role-badge");
-
-            if (usernameEl) usernameEl.textContent = user.fullname || user.username || "User";
-            if (emailEl) emailEl.textContent = user.email || "";
-            if (roleEl) {
-                if (user.role === 'admin') {
-                    roleEl.textContent = "Admin";
-                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider";
-                } else if (user.role === 'host') {
-                    roleEl.textContent = "Host / Organizer";
-                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider";
-                } else if (isStudentVerified(user)) {
-                    roleEl.textContent = "Verified Student";
-                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wider";
-                } else {
-                    roleEl.textContent = "Student";
-                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider";
-                }
-            }
-
-            const pageLabelEl = document.getElementById("chip-active-page-label");
-            if (pageLabelEl) {
-                const sectionName = activeSection || getSectionFromPath();
-                pageLabelEl.textContent = getSectionTitle(sectionName);
-            }
-
-            const adminDashboardBtn = document.getElementById("admin-dashboard-btn");
-            if (adminDashboardBtn) {
-                adminDashboardBtn.style.display = user?.role === "admin" ? "" : "none";
-            }
             initUserDropdown();
             if (bellIcon) {
                 bellIcon.classList.remove("hidden");
@@ -260,10 +210,10 @@ export async function loadNavbar({ activeSection } = {}) {
             window.addEventListener("avatar-updated", (e) => {
                 const avatarUrl = e.detail?.avatar;
                 if (avatarUrl) {
+                    const avatarImg = document.querySelector(".user-avatar-img");
+                    const dropdownAvatarImg = document.querySelector(".dropdown-avatar-img");
                     if (avatarImg) { avatarImg.src = avatarUrl; avatarImg.style.display = ""; }
-                    if (avatarInitial) avatarInitial.style.display = "none";
                     if (dropdownAvatarImg) { dropdownAvatarImg.src = avatarUrl; dropdownAvatarImg.style.display = ""; }
-                    if (dropdownAvatarInitial) dropdownAvatarInitial.style.display = "none";
                 }
             });
         } else {
@@ -304,15 +254,16 @@ export function getSectionFromPath() {
 
 export function getSectionTitle(sec) {
     switch (sec) {
-        case "explore": return "Explore";
-        case "community": return "Community";
-        case "about": return "About Us";
-        case "profile": return "Profile";
-        case "my-events": return "My Events";
-        case "roadmap": return "Roadmap";
-        case "org-dashboard": return "Dashboard";
-        case "admin": return "Admin";
-        default: return "Home";
+        case "explore": return t("nav.explore") || "Explore";
+        case "community": return t("nav.community") || "Community";
+        case "about": return t("nav.about") || "About Us";
+        case "profile": return t("user.profile") || "Profile";
+        case "my-events": return t("user.my_events") || "My Events";
+        case "roadmap": return t("user.roadmap") || "Roadmap";
+        case "quiz": return t("index.hero_take_quiz") || "AI Quiz";
+        case "org-dashboard": return t("user.host_dashboard") || "Dashboard";
+        case "admin": return t("admin.dashboard") || "Admin";
+        default: return t("nav.home") || "Home";
     }
 }
 
@@ -726,6 +677,10 @@ function initLangSwitcher() {
         const lang = getLang().toUpperCase();
         if (label) label.textContent = lang;
         if (dropdownLangCode) dropdownLangCode.textContent = lang;
+        setActiveLink();
+        if (isAuthenticated()) {
+            populateUserChip(getUser());
+        }
     };
     updateLabel();
     

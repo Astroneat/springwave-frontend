@@ -32,7 +32,7 @@
 
         <!-- QUICK NAVIGATION (MOBILE & DESKTOP EASY ACCESS) -->
         <div class="dropdown-nav-group md:hidden border-b border-slate-100/80 pb-2 mb-2">
-            <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Navigation</div>
+            <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider" data-i18n="user.navigation">Navigation</div>
             <a href="/index.html" class="dropdown-item" data-section="home">
                 <i class="fa-solid fa-house"></i>
                 <span data-i18n="nav.home">Home</span>
@@ -62,7 +62,7 @@
 
         <!-- PERSONAL TOOLS & ACCOUNT -->
         <div class="dropdown-tools-group">
-            <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider hidden md:block">Account & Tools</div>
+            <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider hidden md:block" data-i18n="user.account_tools">Account & Tools</div>
             
             <a href="/profile.html" class="dropdown-item">
                 <i class="fa-regular fa-user"></i>
@@ -71,7 +71,7 @@
 
             <a href="/my-events.html" class="dropdown-item">
                 <i class="fa-solid fa-calendar-check"></i>
-                <span>My Events</span>
+                <span data-i18n="user.my_events">My Events</span>
             </a>
 
             <a href="/roadmap.html" class="dropdown-item" data-requires-verified="true" data-action-name="create a roadmap">
@@ -101,12 +101,12 @@
 
             <button class="dropdown-item" id="verify-student-btn" style="display: none;">
                 <i class="fa-solid fa-id-card"></i>
-                <span>Verify Student</span>
+                <span data-i18n="user.verify_student">Verify Student</span>
             </button>
 
             <button class="dropdown-item md:hidden" id="dropdown-mobile-lang-btn">
                 <i class="fa-solid fa-language"></i>
-                <span>Language: <strong id="dropdown-lang-code" class="text-primary font-extrabold">EN</strong></span>
+                <span><span data-i18n="common.language">Language</span>: <strong id="dropdown-lang-code" class="text-primary font-extrabold">EN</strong></span>
             </button>
         </div>
 
