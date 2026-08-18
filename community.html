@@ -112,9 +112,15 @@
             <h2 class="forum-section-title" data-i18n="community.uni_heading">University Communities</h2>
             <p class="forum-section-subtitle" data-i18n="community.uni_sub">Join your campus community and meet fellow students</p>
           </div>
-          <button id="forumAddUniBtn" class="forum-uni-add-btn" style="display:none;" data-i18n="community.add_uni">
-            <span class="material-symbols-outlined text-sm">add</span> Add University
-          </button>
+          <div class="flex items-center gap-2">
+            <button class="forum-mobile-filter-btn" data-i18n="community.categories_btn">
+              <span class="material-symbols-outlined">filter_list</span>
+              Categories
+            </button>
+            <button id="forumAddUniBtn" class="forum-uni-add-btn" style="display:none;" data-i18n="community.add_uni">
+              <span class="material-symbols-outlined text-sm">add</span> Add University
+            </button>
+          </div>
         </div>
         <div class="forum-uni-grid" id="forumUniGrid">
           <!-- populated by JS -->

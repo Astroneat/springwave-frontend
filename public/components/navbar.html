@@ -1,8 +1,8 @@
-<nav class="fixed top-0 left-0 right-0 w-full z-50 figma-navbar-container" id="navbar" role="navigation" aria-label="Main Navigation">
+<nav class="fixed top-0 left-0 right-0 w-full z-50 figma-navbar-container" id="navbar">
   <div class="figma-navbar-inner spring-ease">
     
     <!-- BRAND LOGO -->
-    <a href="./index.html" class="figma-navbar-brand" aria-label="SpringWave Home">
+    <a href="./index.html" class="figma-navbar-brand">
       <span class="brand-spring">Spring</span><span class="brand-wave">Wave</span>
     </a>
 
@@ -16,90 +16,36 @@
 
     <!-- NAVBAR SEARCH BAR (SHOWN ON EXPLORE PAGE MERGE SCROLL ONLY) -->
     <div class="figma-navbar-search hidden md:flex" id="navbarSearchContainer">
-      <span class="material-symbols-outlined search-icon" aria-hidden="true">search</span>
-      <input type="text" id="search-navbar" placeholder="Search activities, workshops, seminars..." data-i18n-placeholder="explore.search_placeholder" class="explore-search-input" aria-label="Search activities" />
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input type="text" id="search-navbar" placeholder="Search activities, workshops, seminars..." data-i18n-placeholder="explore.search_placeholder" class="explore-search-input" />
     </div>
 
     <!-- RIGHT ACTION BUTTONS -->
-    <div class="flex items-center gap-2 sm:gap-3">
-      <!-- LANG SWITCHER (DESKTOP) -->
-      <button class="lang-switcher-btn bg-white/40 hover:bg-white/70 border border-white/20 px-3.5 py-1.5 rounded-full hidden md:flex items-center gap-1.5 transition cursor-pointer" id="langSwitcher" title="Switch language" aria-label="Switch Language">
-        <span class="material-symbols-outlined text-[#1c274c] text-lg" aria-hidden="true">language</span>
+    <div class="flex items-center gap-3">
+      <!-- LANG SWITCHER -->
+      <button class="lang-switcher-btn bg-white/40 hover:bg-white/70 border border-white/20 px-3.5 py-1.5 rounded-full hidden md:flex items-center gap-1.5 transition cursor-pointer" id="langSwitcher" title="Switch language">
+        <span class="material-symbols-outlined text-[#1c274c] text-lg">language</span>
         <span class="lang-label text-xs font-extrabold text-[#1c274c]" id="langLabel">EN</span>
       </button>
 
+      <!-- MOBILE SEARCH ICON (KÍNH LÚP - SHOWN ON SCROLL IN RESPONSIVE / LOCATED TO THE LEFT OF BELL ICON) -->
+      <button type="button" class="hidden md:!hidden relative items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-white/10 hover:scale-105 transition bg-transparent border-0 text-white cursor-pointer" id="mobile-search-btn" aria-label="Search" title="Search">
+        <span class="material-symbols-outlined text-white text-xl sm:text-2xl" aria-hidden="true">search</span>
+      </button>
+
       <!-- NOTIFICATIONS (AUTHENTICATED ONLY) -->
-      <button type="button" class="hidden relative items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 hover:scale-105 transition bg-transparent border-0 text-white cursor-pointer" id="bell-icon" aria-label="Notifications" aria-expanded="false" aria-controls="notif-dropdown">
-          <i class="fa-solid fa-bell text-white text-lg sm:text-xl" aria-hidden="true"></i>
+      <button type="button" class="hidden relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 hover:scale-105 transition bg-transparent border-0 text-white" id="bell-icon" aria-label="Notifications" aria-expanded="false" aria-controls="notif-dropdown">
+          <i class="fa-solid fa-bell text-white text-xl" aria-hidden="true"></i>
           <span class="absolute top-0 right-0 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden" id="bell-count" aria-hidden="true">0</span>
       </button>
       <div class="hidden" id="notif-dropdown" role="region" aria-label="Notifications"></div>
 
       <!-- AUTH CONTAINER / USER CHIP HUB (DYNAMIC) -->
-      <div id="auth-section" class="flex items-center gap-2">
+      <div id="auth-section" class="flex items-center gap-3">
         <!-- Populated dynamically by js/components/navbar.js -->
       </div>
-
-      <!-- MOBILE HAMBURGER BUTTON (< MD) -->
-      <button type="button" class="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white transition border-0 cursor-pointer" id="mobile-menu-btn" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobile-nav-drawer">
-        <span class="material-symbols-outlined text-2xl" aria-hidden="true">menu</span>
-      </button>
     </div>
 
   </div>
 </nav>
-
-<!-- MOBILE NAVIGATION DRAWER & BACKDROP -->
-<div class="mobile-nav-backdrop" id="mobile-nav-backdrop" aria-hidden="true"></div>
-<aside class="mobile-nav-drawer" id="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Mobile Navigation" aria-hidden="true">
-  <!-- Top Bar: Logo & Close -->
-  <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-    <a href="./index.html" class="flex items-center gap-1 text-lg font-extrabold text-[#1755ba] no-underline">
-      <span>Spring</span><span class="text-[#3b6fd4]">Wave</span>
-    </a>
-    <button type="button" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition border-0 cursor-pointer" id="close-mobile-menu" aria-label="Close menu">
-      <span class="material-symbols-outlined text-xl">close</span>
-    </button>
-  </div>
-
-  <!-- Mobile Main Navigation -->
-  <nav class="flex flex-col gap-1 mb-6" id="mobile-nav-links">
-    <a href="./index.html" data-section="home" class="mobile-nav-link">
-      <span class="material-symbols-outlined text-xl text-primary">home</span>
-      <span data-i18n="nav.home">Home</span>
-    </a>
-    <a href="./explore.html" data-section="explore" class="mobile-nav-link">
-      <span class="material-symbols-outlined text-xl text-primary">explore</span>
-      <span data-i18n="nav.explore">Explore</span>
-    </a>
-    <a href="./community.html" data-section="community" class="mobile-nav-link">
-      <span class="material-symbols-outlined text-xl text-primary">forum</span>
-      <span data-i18n="nav.community">Community</span>
-    </a>
-    <a href="./quiz.html" data-section="quiz" class="mobile-nav-link">
-      <span class="material-symbols-outlined text-xl text-primary">psychology</span>
-      <span data-i18n="index.hero_take_quiz">AI Quiz</span>
-    </a>
-    <a href="./about.html" data-section="about" class="mobile-nav-link">
-      <span class="material-symbols-outlined text-xl text-primary">info</span>
-      <span data-i18n="nav.about">About Us</span>
-    </a>
-  </nav>
-
-  <!-- Mobile Language Switcher & Controls -->
-  <div class="pt-4 border-t border-slate-100 mt-auto">
-    <button type="button" class="w-full py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-between text-sm font-semibold text-slate-700 transition cursor-pointer mb-3" id="mobile-drawer-lang-btn">
-      <span class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-lg text-primary">language</span>
-        <span data-i18n="common.language">Language</span>
-      </span>
-      <span class="font-extrabold text-primary" id="mobile-drawer-lang-code">EN</span>
-    </button>
-
-    <!-- Mobile Auth Actions (Dynamic) -->
-    <div id="mobile-auth-actions" class="flex flex-col gap-2">
-      <!-- Populated by navbar.js -->
-    </div>
-  </div>
-</aside>
 

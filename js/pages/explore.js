@@ -81,26 +81,41 @@ async function loadNavbar() {
 }
 
 function initScrollMerge() {
-    const searchBar = document.querySelector(".explore-search-bar");
+    const searchBar = document.querySelector(".explore-search-wrapper") || document.querySelector(".explore-search-bar");
     const navbar = document.getElementById("navbar");
+    const mobileSearchBtn = document.getElementById("mobile-search-btn");
     if (!searchBar || !navbar) return;
 
     const isMobile = () => window.innerWidth < 768;
 
-    let navbarH = navbar.offsetHeight;
+    let navbarH = navbar.offsetHeight || 60;
     let ticking = false;
 
     const update = () => {
         ticking = false;
-        if (isMobile()) {
-            searchBar.classList.remove("merged");
-            navbar.classList.remove("merged");
-            return;
-        }
         const rect = searchBar.getBoundingClientRect();
         const m = rect.top < navbarH;
-        searchBar.classList.toggle("merged", m);
-        navbar.classList.toggle("merged", m);
+
+        if (isMobile()) {
+            navbar.classList.remove("merged");
+            searchBar.classList.remove("merged");
+            if (mobileSearchBtn) {
+                if (m) {
+                    mobileSearchBtn.classList.remove("hidden");
+                    mobileSearchBtn.classList.add("flex");
+                } else {
+                    mobileSearchBtn.classList.add("hidden");
+                    mobileSearchBtn.classList.remove("flex");
+                }
+            }
+        } else {
+            if (mobileSearchBtn) {
+                mobileSearchBtn.classList.add("hidden");
+                mobileSearchBtn.classList.remove("flex");
+            }
+            searchBar.classList.toggle("merged", m);
+            navbar.classList.toggle("merged", m);
+        }
     };
 
     window.addEventListener("scroll", () => {
@@ -111,12 +126,21 @@ function initScrollMerge() {
     }, { passive: true });
 
     window.addEventListener("resize", () => {
-        navbarH = navbar.offsetHeight;
-        if (isMobile()) {
-            searchBar.classList.remove("merged");
-            navbar.classList.remove("merged");
-        }
+        navbarH = navbar.offsetHeight || 60;
+        update();
     }, { passive: true });
+
+    if (mobileSearchBtn) {
+        mobileSearchBtn.addEventListener("click", () => {
+            const searchTarget = document.querySelector(".explore-search-wrapper") || searchBar;
+            const targetTop = searchTarget.getBoundingClientRect().top + window.scrollY - navbarH - 16;
+            window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+            setTimeout(() => {
+                const input = document.getElementById("search-pref");
+                if (input) input.focus();
+            }, 350);
+        });
+    }
 }
 
 function initNavbarActiveLinks() {

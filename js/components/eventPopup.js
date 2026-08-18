@@ -173,26 +173,32 @@ export async function openEventPopup(activityID, options = {}) {
         }).catch(err => console.warn("Failed to revalidate activity details:", err));
     }
 
-    container.querySelector("#back-btn")?.addEventListener("click", closeEventPopup);
-
-    // Social share button
-    container.querySelector(".event-share-btn")?.addEventListener("click", (e) => {
-        const btn = e.currentTarget;
-        const title = activity.title || "SpringWave Event";
-        const url = `${window.location.origin}/explore.html?event=${activityID}`;
-        if (navigator.share) {
-            navigator.share({ title, url }).catch(() => { });
-        } else {
-            navigator.clipboard.writeText(url).then(() => {
-                const orig = btn.innerHTML;
-                btn.innerHTML = `<i class="fa-solid fa-check text-emerald-600"></i> <span>Copied!</span>`;
-                setTimeout(() => { btn.innerHTML = orig; }, 2000);
-            }).catch(() => { });
-        }
+    container.querySelectorAll("#back-btn, .event-modal-close-btn").forEach(btn => {
+        btn.addEventListener("click", closeEventPopup);
     });
 
-    container.querySelector(".discuss-btn")?.addEventListener("click", () => {
-        openPostModal(activity);
+    // Social share buttons
+    container.querySelectorAll(".event-share-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const currentBtn = e.currentTarget;
+            const title = activity.title || "SpringWave Event";
+            const url = `${window.location.origin}/explore.html?event=${activityID}`;
+            if (navigator.share) {
+                navigator.share({ title, url }).catch(() => { });
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    const orig = currentBtn.innerHTML;
+                    currentBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-600"></i> <span>Copied!</span>`;
+                    setTimeout(() => { currentBtn.innerHTML = orig; }, 2000);
+                }).catch(() => { });
+            }
+        });
+    });
+
+    container.querySelectorAll(".discuss-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            openPostModal(activity);
+        });
     });
 
     initAIMatchButton(container, activityID);
@@ -213,7 +219,7 @@ export async function openEventPopup(activityID, options = {}) {
     if (coverWrapper) {
         const bannerUrl = activity.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop';
         const triggerLightbox = (e) => {
-            if (e.target.closest(".event-modal-top-bar") || e.target.closest("#back-btn")) return;
+            if (e.target.closest(".event-modal-close-btn") || e.target.closest("#back-btn")) return;
             openImageLightbox(bannerUrl, activity.title);
         };
         coverWrapper.addEventListener("click", triggerLightbox);
@@ -225,31 +231,33 @@ export async function openEventPopup(activityID, options = {}) {
         });
     }
 
-    const favoriteBtn = container.querySelector(".favorite-btn");
-    favoriteBtn?.addEventListener("click", async (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (!isAuthenticated()) {
-            alert(t("explore.please_login") || "Please login first to favourite activities!");
-            return;
-        }
-        const isActive = favoriteBtn.classList.contains("active");
-        favoriteBtn.classList.toggle("active");
-
-        if (options.onFavouriteToggle) {
-            options.onFavouriteToggle(activityID, !isActive);
-        }
-
-        try {
-            if (isActive) await removeFavourite(activityID);
-            else await addFavourite(activityID);
-        } catch (err) {
-            favoriteBtn.classList.toggle("active");
-            if (options.onFavouriteToggle) {
-                options.onFavouriteToggle(activityID, isActive);
+    const favoriteBtns = container.querySelectorAll(".favorite-btn");
+    favoriteBtns.forEach(btn => {
+        btn.addEventListener("click", async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!isAuthenticated()) {
+                alert(t("explore.please_login") || "Please login first to favourite activities!");
+                return;
             }
-            console.error("Failed to toggle favourite:", err);
-        }
+            const isActive = btn.classList.contains("active");
+            favoriteBtns.forEach(b => b.classList.toggle("active"));
+
+            if (options.onFavouriteToggle) {
+                options.onFavouriteToggle(activityID, !isActive);
+            }
+
+            try {
+                if (isActive) await removeFavourite(activityID);
+                else await addFavourite(activityID);
+            } catch (err) {
+                favoriteBtns.forEach(b => b.classList.toggle("active"));
+                if (options.onFavouriteToggle) {
+                    options.onFavouriteToggle(activityID, isActive);
+                }
+                console.error("Failed to toggle favourite:", err);
+            }
+        });
     });
 }
 
@@ -427,16 +435,16 @@ function buildPopupHTML(a, backText) {
                 <span>${t("explore.view_full_banner", "View full banner")}</span>
             </div>
             
-            <!-- Top Navigation & Badges -->
-            <div class="event-modal-top-bar">
-                <div class="event-modal-badges">
-                    <span class="event-pill-badge category"><i class="fa-solid fa-tag"></i> ${type}</span>
-                    ${statusBadgeHTML}
-                    ${isNonPartner ? `<span class="event-pill-badge source"><i class="fa-solid fa-globe"></i> Scraped</span>` : ''}
-                </div>
-                <button type="button" class="event-modal-close-btn" id="back-btn" aria-label="Close modal" title="${backText}">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+            <!-- Top Right Close Button -->
+            <button type="button" class="event-modal-close-btn" id="back-btn" aria-label="Close modal" title="${backText}">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Bottom Badges on Cover -->
+            <div class="event-modal-badges">
+                <span class="event-pill-badge category"><i class="fa-solid fa-tag"></i> ${type}</span>
+                ${statusBadgeHTML}
+                ${isNonPartner ? `<span class="event-pill-badge source"><i class="fa-solid fa-globe"></i> Scraped</span>` : ''}
             </div>
         </div>
 
@@ -462,6 +470,102 @@ function buildPopupHTML(a, backText) {
                         <span>Organizer Profile</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </a>` : ''}
+                </div>
+
+                <!-- Mobile Only Flow: Quick Details & Actions -->
+                <div class="event-mobile-info-section md:hidden flex flex-col gap-3.5">
+                    <!-- Primary CTA Card (Mobile) -->
+                    <div class="event-cta-card">
+                        <button class="event-primary-btn participate ${isParticipating ? 'active' : ''}" type="button" ${extUrl ? `data-external-url="${extUrl}"` : ''}>
+                            <i class="fa-solid fa-${participateBtnIcon}"></i>
+                            <span>${finalParticipateBtnText}</span>
+                        </button>
+                    </div>
+
+                    <!-- Event Details Card -->
+                    <div class="event-sidebar-details-card">
+                        <div class="event-sidebar-details-header">
+                            <i class="fa-solid fa-circle-info text-blue-600"></i>
+                            <span>Event Details</span>
+                        </div>
+
+                        <div class="event-sidebar-details-list">
+                            <!-- Date & Time -->
+                            <div class="event-sidebar-info-row">
+                                <div class="sidebar-info-icon date"><i class="fa-regular fa-calendar"></i></div>
+                                <div class="sidebar-info-meta">
+                                    <span class="sidebar-info-label">${t("description.date", "Time & Date")}</span>
+                                    <p class="sidebar-info-value">${heldDate}${endDateFormatted ? ` → ${endDateFormatted}` : ''}</p>
+                                </div>
+                            </div>
+
+                            <!-- Registration Deadline -->
+                            ${deadlineFormatted ? `
+                            <div class="event-sidebar-info-row deadline">
+                                <div class="sidebar-info-icon deadline"><i class="fa-solid fa-hourglass-half"></i></div>
+                                <div class="sidebar-info-meta">
+                                    <span class="sidebar-info-label">${t("profile.apply_deadline", "Deadline")}</span>
+                                    <p class="sidebar-info-value deadline-val">${deadlineFormatted}</p>
+                                </div>
+                            </div>` : ''}
+
+                            <!-- Location -->
+                            <div class="event-sidebar-info-row">
+                                <div class="sidebar-info-icon location"><i class="fa-solid fa-location-dot"></i></div>
+                                <div class="sidebar-info-meta">
+                                    <span class="sidebar-info-label">${t("description.location", "Location")}</span>
+                                    <p class="sidebar-info-value">
+                                        <a href="${googleMapsLink}" target="_blank" class="event-location-link" rel="noopener noreferrer">
+                                            ${escapeHtml(a.location)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Participants -->
+                            ${!isNonPartner ? `
+                            <div class="event-sidebar-info-row">
+                                <div class="sidebar-info-icon capacity"><i class="fa-solid fa-users"></i></div>
+                                <div class="sidebar-info-meta">
+                                    <span class="sidebar-info-label">${t("description.participants", "Registered")}</span>
+                                    <p class="sidebar-info-value participants-count-val" data-count="${participantCount}">${t("explore.registered_count", { n: participantCount }, `${participantCount} students`)}</p>
+                                </div>
+                            </div>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- AI Compatibility Card -->
+                    <div class="event-ai-card">
+                        <div class="event-ai-card-header">
+                            <div class="flex items-center gap-2">
+                                <span class="ai-sparkle-badge"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">AI Match</span>
+                            </div>
+                            <button type="button" class="ai-match-trigger-btn ai-match-btn" title="Calculate Match">
+                                <span>Check Match</span>
+                            </button>
+                        </div>
+
+                        <div class="event-ai-result-panel" style="display:none;"></div>
+                    </div>
+
+                    <!-- Secondary Actions (Discuss, Share, Favorite) -->
+                    <div class="event-secondary-actions-panel">
+                        <button class="event-secondary-btn discuss discuss-btn" data-event-id="${a.activityID || a._id}" data-event-title="${a.title}" type="button">
+                            <i class="fa-solid fa-comments"></i>
+                            <span>${t("explore.discuss", "Discuss")}</span>
+                        </button>
+
+                        <button class="event-secondary-btn event-share-btn icon-btn" type="button" title="Share event">
+                            <i class="fa-solid fa-share-nodes"></i>
+                            <span>${t("explore.share") || "Share"}</span>
+                        </button>
+
+                        <button type="button" class="event-secondary-btn favorite-btn ${isFavourited ? 'active' : ''}" title="Bookmark event">
+                            <i class="fa-solid fa-star"></i>
+                            <span class="favorite-text">${t("explore.favourite") || "Favorite"}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Description Prose -->
@@ -510,8 +614,8 @@ function buildPopupHTML(a, backText) {
                 </div>
             </div>
 
-            <!-- Sticky Action Sidebar (Right Column) -->
-            <aside class="event-modal-sidebar-col">
+            <!-- Sticky Action Sidebar (Right Column - Desktop Only) -->
+            <aside class="event-modal-sidebar-col hidden md:block">
                 <div class="event-sidebar-sticky-panel">
                     
                     <!-- Primary CTA Card -->
@@ -586,7 +690,7 @@ function buildPopupHTML(a, backText) {
                             </button>
                         </div>
 
-                        <div id="ai-match-result" class="event-ai-result-panel" style="display:none;"></div>
+                        <div class="event-ai-result-panel" style="display:none;"></div>
                     </div>
 
                     <!-- Secondary Actions (Discuss, Share, Favorite) -->
@@ -608,17 +712,6 @@ function buildPopupHTML(a, backText) {
                     </div>
                 </div>
             </aside>
-        </div>
-
-        <!-- Mobile Sticky Bottom Bar -->
-        <div class="event-mobile-dock">
-            <div class="event-mobile-dock-info">
-                <span class="dock-date">${heldDate.split(',')[0]}</span>
-                <span class="dock-title truncate">${escapeHtml(a.title)}</span>
-            </div>
-            <button class="event-mobile-dock-btn participate ${isParticipating ? 'active' : ''}" type="button" ${extUrl ? `data-external-url="${extUrl}"` : ''}>
-                <span>${isParticipating ? (t("explore.participated") || "Joined ✓") : participateBtnText}</span>
-            </button>
         </div>
     </div>`;
 }
@@ -802,114 +895,131 @@ function initParticipateButton(activityID) {
 }
 
 function initAIMatchButton(container, activityID) {
-    const btn = container.querySelector(".ai-match-btn");
-    const resultEl = container.querySelector("#ai-match-result");
-    if (!btn || !resultEl) return;
+    const btns = container.querySelectorAll(".ai-match-btn");
+    if (!btns || btns.length === 0) return;
 
     let lastClick = 0;
     const COOLDOWN = 15000;
 
     function setBtnLoading() {
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Analyzing...</span>`;
+        btns.forEach(b => {
+            b.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Analyzing...</span>`;
+        });
     }
 
     function setBtnCooldown(remaining) {
-        btn.innerHTML = `<i class="fa-solid fa-hourglass-half"></i><span>${remaining}s</span>`;
+        btns.forEach(b => {
+            b.innerHTML = `<i class="fa-solid fa-hourglass-half"></i><span>${remaining}s</span>`;
+        });
     }
 
     function resetBtn() {
-        btn.disabled = false;
-        btn.innerHTML = `<span>Check Match</span>`;
+        btns.forEach(b => {
+            b.disabled = false;
+            b.innerHTML = `<span>Check Match</span>`;
+        });
     }
 
-    btn.addEventListener("click", async () => {
-        if (!isAuthenticated()) {
-            alert("Please login first to use AI Match!");
-            return;
-        }
-
-        const now = Date.now();
-        if (now - lastClick < COOLDOWN) {
-            const remaining = Math.ceil((COOLDOWN - (now - lastClick)) / 1000);
-            setBtnCooldown(remaining);
-            setTimeout(() => {
-                resetBtn();
-            }, COOLDOWN - (now - lastClick));
-            return;
-        }
-
-        lastClick = now;
-        btn.disabled = true;
-        setBtnLoading();
-        resultEl.style.display = "none";
-
-        try {
-            const profileResp = await getMyProfile();
-            const profile = profileResp?.profile;
-
-            if (!profile || typeof profile !== "object" || Object.keys(profile).length === 0) {
-                resultEl.innerHTML = `
-                    <div class="ai-match-empty-box">
-                        <span class="material-symbols-outlined text-amber-500 text-2xl">psychology</span>
-                        <h4 class="font-bold text-xs text-slate-800 mt-1.5">Profile Required</h4>
-                        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Complete your AI survey to get personalized compatibility insights.</p>
-                        <a href="/quiz.html" class="inline-block mt-2.5 py-1.5 px-3 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all">Take Quiz</a>
-                    </div>
-                `;
-                resultEl.style.display = "block";
-                resetBtn();
+    btns.forEach(btn => {
+        btn.addEventListener("click", async () => {
+            if (!isAuthenticated()) {
+                alert("Please login first to use AI Match!");
                 return;
             }
 
-            const result = await explainRecommendation(activityID);
-            const score = result?.score ?? result?.compatibility ?? null;
-            const explanation = result?.explanation || result?.message || "This event matches your stated interests and growth milestones.";
-            const tags = result?.tags || result?.highlights || [];
-
-            let pct = 75;
-            let badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
-            let label = "High Match";
-            if (score !== null) {
-                pct = Math.min(100, Math.max(0, Math.round(score * 100)));
-                if (pct >= 80) { badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200"; label = "Strong Match"; }
-                else if (pct >= 60) { badgeClass = "bg-blue-50 text-blue-700 border-blue-200"; label = "Good Match"; }
-                else if (pct >= 40) { badgeClass = "bg-amber-50 text-amber-800 border-amber-200"; label = "Moderate Match"; }
-                else { badgeClass = "bg-red-50 text-red-700 border-red-200"; label = "Low Match"; }
+            const now = Date.now();
+            if (now - lastClick < COOLDOWN) {
+                const remaining = Math.ceil((COOLDOWN - (now - lastClick)) / 1000);
+                setBtnCooldown(remaining);
+                setTimeout(() => {
+                    resetBtn();
+                }, COOLDOWN - (now - lastClick));
+                return;
             }
 
-            const tagsHTML = tags.length
-                ? tags.map(t => `<span class="ai-match-pill-tag">${escapeHtml(t)}</span>`).join("")
-                : "";
+            lastClick = now;
+            btns.forEach(b => { b.disabled = true; });
+            setBtnLoading();
+            const resultEls = container.querySelectorAll(".event-ai-result-panel");
+            resultEls.forEach(el => { el.style.display = "none"; });
 
-            resultEl.innerHTML = `
-                <div class="ai-match-card-content">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-bold text-slate-800">Match Score</span>
-                        <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold border ${badgeClass}">${pct}% • ${label}</span>
-                    </div>
-                    
-                    <!-- Progress Bar -->
-                    <div class="w-full bg-slate-100 rounded-full h-2 mb-3 overflow-hidden">
-                        <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                    </div>
+            try {
+                const profileResp = await getMyProfile();
+                const profile = profileResp?.profile;
 
-                    <p class="text-xs text-slate-600 leading-relaxed text-left mb-2.5">${escapeHtml(explanation)}</p>
-                    
-                    ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 justify-start">${tagsHTML}</div>` : ""}
-                </div>
-            `;
-            resultEl.style.display = "block";
-        } catch (err) {
-            console.error("AI Match error:", err);
-            resultEl.innerHTML = `
-                <div class="ai-match-empty-box text-red-600">
-                    <i class="fa-solid fa-circle-exclamation text-lg"></i>
-                    <p class="text-[11px] mt-1">${err.message || "Failed to analyze compatibility."}</p>
-                </div>
-            `;
-            resultEl.style.display = "block";
-        }
-        resetBtn();
+                if (!profile || typeof profile !== "object" || Object.keys(profile).length === 0) {
+                    const emptyHTML = `
+                        <div class="ai-match-empty-box">
+                            <span class="material-symbols-outlined text-amber-500 text-2xl">psychology</span>
+                            <h4 class="font-bold text-xs text-slate-800 mt-1.5">Profile Required</h4>
+                            <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Complete your AI survey to get personalized compatibility insights.</p>
+                            <a href="/quiz.html" class="inline-block mt-2.5 py-1.5 px-3 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all">Take Quiz</a>
+                        </div>
+                    `;
+                    resultEls.forEach(el => {
+                        el.innerHTML = emptyHTML;
+                        el.style.display = "block";
+                    });
+                    resetBtn();
+                    return;
+                }
+
+                const result = await explainRecommendation(activityID);
+                const score = result?.score ?? result?.compatibility ?? null;
+                const explanation = result?.explanation || result?.message || "This event matches your stated interests and growth milestones.";
+                const tags = result?.tags || result?.highlights || [];
+
+                let pct = 75;
+                let badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                let label = "High Match";
+                if (score !== null) {
+                    pct = Math.min(100, Math.max(0, Math.round(score * 100)));
+                    if (pct >= 80) { badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200"; label = "Strong Match"; }
+                    else if (pct >= 60) { badgeClass = "bg-blue-50 text-blue-700 border-blue-200"; label = "Good Match"; }
+                    else if (pct >= 40) { badgeClass = "bg-amber-50 text-amber-800 border-amber-200"; label = "Moderate Match"; }
+                    else { badgeClass = "bg-red-50 text-red-700 border-red-200"; label = "Low Match"; }
+                }
+
+                const tagsHTML = tags.length
+                    ? tags.map(t => `<span class="ai-match-pill-tag">${escapeHtml(t)}</span>`).join("")
+                    : "";
+
+                const contentHTML = `
+                    <div class="ai-match-card-content">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-800">Match Score</span>
+                            <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold border ${badgeClass}">${pct}% • ${label}</span>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-slate-100 rounded-full h-2 mb-3 overflow-hidden">
+                            <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                        </div>
+
+                        <p class="text-xs text-slate-600 leading-relaxed text-left mb-2.5">${escapeHtml(explanation)}</p>
+                        
+                        ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 justify-start">${tagsHTML}</div>` : ""}
+                    </div>
+                `;
+                resultEls.forEach(el => {
+                    el.innerHTML = contentHTML;
+                    el.style.display = "block";
+                });
+            } catch (err) {
+                console.error("AI Match error:", err);
+                const errorHTML = `
+                    <div class="ai-match-empty-box text-red-600">
+                        <i class="fa-solid fa-circle-exclamation text-lg"></i>
+                        <p class="text-[11px] mt-1">${err.message || "Failed to analyze compatibility."}</p>
+                    </div>
+                `;
+                resultEls.forEach(el => {
+                    el.innerHTML = errorHTML;
+                    el.style.display = "block";
+                });
+            }
+            resetBtn();
+        });
     });
 }
 
