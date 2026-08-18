@@ -869,43 +869,78 @@ function initChangePasswordModal() {
   const statusEl = document.getElementById("change-pass-status");
   const submitBtn = document.getElementById("change-pass-submit-btn");
   const currPassInput = document.getElementById("change-curr-pass");
-  const currPassGroup = currPassInput?.closest(".edit-form-group");
-  const modalTitle = modal?.querySelector("h2");
+  const currPassGroup = document.getElementById("change-curr-pass-group") || currPassInput?.closest(".edit-form-group");
 
   if (!btn || !modal) return;
 
   const closeModal = () => {
-    modal.style.display = "none";
+    modal.classList.remove("active");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 300);
+    document.body.style.overflow = "";
     if (form) form.reset();
     if (statusEl) statusEl.classList.add("hidden");
+    modal.querySelectorAll("input").forEach(input => {
+      if (input.id && input.id.startsWith("change-") && input.type === "text") {
+        input.type = "password";
+      }
+    });
+    modal.querySelectorAll(".pass-toggle-btn i").forEach(icon => {
+      icon.className = "fa-regular fa-eye text-xs";
+    });
   };
 
-  btn.addEventListener("click", () => {
+  const openModal = () => {
     const activeUser = currentUser || getUser();
     const isCreateMode = activeUser?.hasPassword === false;
     modal.style.display = "flex";
+    requestAnimationFrame(() => {
+      modal.classList.add("active");
+    });
+    document.body.style.overflow = "hidden";
     if (statusEl) statusEl.classList.add("hidden");
 
+    const iconEl = document.getElementById("change-pass-icon");
+    const titleTextEl = document.getElementById("change-pass-title-text");
+
     if (isCreateMode) {
-      if (modalTitle) {
-        modalTitle.innerHTML = `<span class="material-symbols-outlined text-[#1755ba]">key</span> ${t("profile.create_pass_title", "Create Password")}`;
-      }
+      if (iconEl) iconEl.textContent = "key";
+      if (titleTextEl) titleTextEl.textContent = t("profile.create_pass_title", "Create Password");
       if (currPassGroup) currPassGroup.style.display = "none";
       if (currPassInput) currPassInput.removeAttribute("required");
       if (submitBtn) submitBtn.textContent = t("profile.create_password", "Create Password");
     } else {
-      if (modalTitle) {
-        modalTitle.innerHTML = `<span class="material-symbols-outlined text-[#1755ba]">lock</span> ${t("profile.change_pass_title", "Change Password")}`;
-      }
+      if (iconEl) iconEl.textContent = "lock";
+      if (titleTextEl) titleTextEl.textContent = t("profile.change_pass_title", "Change Password");
       if (currPassGroup) currPassGroup.style.display = "";
       if (currPassInput) currPassInput.setAttribute("required", "");
       if (submitBtn) submitBtn.textContent = t("profile.save_password", "Save Password");
     }
-  });
+  };
 
+  btn.addEventListener("click", openModal);
   if (closeBtn) closeBtn.addEventListener("click", closeModal);
   if (backdrop) backdrop.addEventListener("click", closeModal);
   if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+  // Password reveal toggles
+  modal.querySelectorAll(".pass-toggle-btn").forEach(toggle => {
+    toggle.addEventListener("click", () => {
+      const targetId = toggle.dataset.target;
+      const targetInput = document.getElementById(targetId);
+      const icon = toggle.querySelector("i");
+      if (!targetInput || !icon) return;
+
+      if (targetInput.type === "password") {
+        targetInput.type = "text";
+        icon.className = "fa-regular fa-eye-slash text-xs";
+      } else {
+        targetInput.type = "password";
+        icon.className = "fa-regular fa-eye text-xs";
+      }
+    });
+  });
 
   if (form) {
     form.addEventListener("submit", async (e) => {
@@ -913,13 +948,37 @@ function initChangePasswordModal() {
       const activeUser = currentUser || getUser();
       const isCreateMode = activeUser?.hasPassword === false;
       const currPass = isCreateMode ? "" : (currPassInput?.value || "");
-      const newPass = document.getElementById("change-new-pass")?.value;
-      const confirmPass = document.getElementById("change-confirm-pass")?.value;
+      const newPass = document.getElementById("change-new-pass")?.value?.trim();
+      const confirmPass = document.getElementById("change-confirm-pass")?.value?.trim();
 
-      if ((!isCreateMode && !currPass) || !newPass || !confirmPass) return;
+      if (!isCreateMode && !currPass) {
+        if (statusEl) {
+          statusEl.textContent = "Vui lòng nhập mật khẩu hiện tại.";
+          statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+        return;
+      }
+
+      if (!newPass || !confirmPass) {
+        if (statusEl) {
+          statusEl.textContent = "Vui lòng nhập đầy đủ mật khẩu mới và xác nhận.";
+          statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+        return;
+      }
+
       if (newPass !== confirmPass) {
         if (statusEl) {
           statusEl.textContent = "Mật khẩu mới và mật khẩu xác nhận không trùng khớp.";
+          statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+        return;
+      }
+
+      const passRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+      if (!passRegex.test(newPass)) {
+        if (statusEl) {
+          statusEl.textContent = "Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm cả chữ cái và chữ số.";
           statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
         }
         return;
@@ -938,7 +997,7 @@ function initChangePasswordModal() {
           updatedUser.hasPassword = true;
           setUser(updatedUser);
           currentUser = updatedUser;
-          if (btn) btn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> Change Password`;
+          if (btn) btn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> ${t("profile.change_password", "Change Password")}`;
         }
         if (statusEl) {
           statusEl.textContent = res.message || (isCreateMode ? "Tạo mật khẩu thành công!" : "Đổi mật khẩu thành công!");

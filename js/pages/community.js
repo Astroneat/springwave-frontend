@@ -246,11 +246,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     discussionsCache = eventDiscussions;
   } else if (category === "uni" && uniId) {
     discussions = await getCommunityDiscussions(uniId);
-    const sectionTitle = document.querySelector(".forum-section-title");
+    const trendingHeader = document.querySelector("#trending .forum-section-header");
+    if (trendingHeader && !document.getElementById("forumUniBackBtn")) {
+      const backLink = document.createElement("a");
+      backLink.id = "forumUniBackBtn";
+      backLink.href = "./community.html?cat=uni";
+      backLink.className = "inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline mb-2 cursor-pointer";
+      backLink.innerHTML = `<span class="material-symbols-outlined text-sm">arrow_back</span> ${t("community.all_universities") || "All Universities"}`;
+      trendingHeader.parentNode.insertBefore(backLink, trendingHeader);
+    }
+    const sectionTitle = document.querySelector("#trending .forum-section-title");
     if (sectionTitle && uniName) {
       sectionTitle.textContent = `${uniName} Discussions`;
     }
-    const sectionSub = document.querySelector(".forum-section-subtitle");
+    const sectionSub = document.querySelector("#trending .forum-section-subtitle");
     if (sectionSub) {
       sectionSub.textContent = `Discussions from ${uniName || 'university'} community`;
     }
@@ -308,7 +317,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load heavy network components concurrently in background
   Promise.allSettled([
-    (category === "all" || category === "uni") ? renderUniGrid().then(() => {
+    (category === "uni" && !uniId) ? renderUniGrid().then(() => {
       const user = getUser();
       const addBtn = document.getElementById("forumAddUniBtn");
       if (addBtn && user?.role === "admin") {
@@ -381,18 +390,41 @@ function showSections(category) {
   const trending = document.getElementById("trending");
   const universities = document.getElementById("universities");
   const careerTopics = document.getElementById("careerTopics");
+  const orgSection = document.getElementById("organizations-section");
+  const statusBar = document.querySelector(".forum-status-bar");
+  const feedTabs = document.getElementById("forumFeedTabs");
   const config = CATEGORIES[category] || CATEGORIES.all;
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const uniId = urlParams.get("uniId");
+
   if (trending) {
-    trending.style.display = category === "uni" ? "none" : "";
+    trending.style.display = (category === "uni" && !uniId) ? "none" : "";
     const title = trending.querySelector(".forum-section-title");
     const sub = trending.querySelector(".forum-section-subtitle");
     if (title) title.textContent = config.sectionTitle;
     if (sub) sub.textContent = config.sectionSubtitle;
   }
 
-  if (universities) universities.style.display = category === "all" || category === "uni" ? "" : "none";
-  if (careerTopics) careerTopics.style.display = category === "all" || category === "skills" ? "" : "none";
+  if (universities) {
+    universities.style.display = (category === "uni" && !uniId) ? "" : "none";
+  }
+
+  if (careerTopics) {
+    careerTopics.style.display = (category === "all" || category === "skills") ? "" : "none";
+  }
+
+  if (orgSection) {
+    orgSection.style.display = (category === "all" || category === "org") ? "" : "none";
+  }
+
+  if (statusBar) {
+    statusBar.style.display = (category === "uni" && !uniId) ? "none" : "";
+  }
+
+  if (feedTabs) {
+    feedTabs.style.display = (category === "uni" && !uniId) ? "none" : "";
+  }
 }
 
 function initSidebarLinkClick() {
@@ -428,14 +460,17 @@ function initFeedTabs() {
    ============================= */
 
 function initForumSidebarToggle() {
-  const toggle = document.getElementById("forumFilterBtn");
+  const toggleBtns = document.querySelectorAll(".forum-mobile-filter-btn");
   const sidebar = document.getElementById("forumSidebar");
-  if (toggle && sidebar) {
-    toggle.addEventListener("click", () => {
-      sidebar.classList.toggle("open");
+  if (sidebar && toggleBtns.length > 0) {
+    toggleBtns.forEach(toggle => {
+      toggle.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+      });
     });
     document.addEventListener("click", (e) => {
-      if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)) {
+      const clickedToggle = Array.from(toggleBtns).some(btn => btn === e.target || btn.contains(e.target));
+      if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !clickedToggle) {
         sidebar.classList.remove("open");
       }
     });

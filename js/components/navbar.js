@@ -4,6 +4,130 @@ import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
 import { initPageTransition } from "./pageLoader.js";
 
+export function populateUserChip(user, activeSection) {
+    if (!user) return;
+    const avatarImg = document.querySelector(".user-avatar-img");
+    const avatarInitial = document.getElementById("user-avatar-initial");
+    const dropdownAvatarImg = document.querySelector(".dropdown-avatar-img");
+    const dropdownAvatarInitial = document.querySelector(".dropdown-avatar-initial");
+    const userInitial = (user.username || user.fullname || user.email || "U").charAt(0).toUpperCase();
+
+    if (user.avatar) {
+        if (avatarImg) { avatarImg.src = user.avatar; avatarImg.style.display = ""; }
+        if (avatarInitial) avatarInitial.style.display = "none";
+        if (dropdownAvatarImg) { dropdownAvatarImg.src = user.avatar; dropdownAvatarImg.style.display = ""; }
+        if (dropdownAvatarInitial) dropdownAvatarInitial.style.display = "none";
+    } else {
+        if (avatarImg) avatarImg.style.display = "none";
+        if (avatarInitial) { avatarInitial.textContent = userInitial; avatarInitial.style.display = ""; }
+        if (dropdownAvatarImg) dropdownAvatarImg.style.display = "none";
+        if (dropdownAvatarInitial) { dropdownAvatarInitial.textContent = userInitial; dropdownAvatarInitial.style.display = ""; }
+    }
+
+    const usernameEl = document.getElementById("dropdown-username");
+    const emailEl = document.getElementById("dropdown-email");
+    const roleEl = document.getElementById("dropdown-role-badge");
+
+    if (usernameEl) usernameEl.textContent = user.fullname || user.username || "User";
+    if (emailEl) emailEl.textContent = user.email || "";
+    if (roleEl) {
+        if (user.role === 'admin') {
+            roleEl.textContent = "Admin";
+            roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider";
+        } else if (user.role === 'host') {
+            roleEl.textContent = "Host / Organizer";
+            roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider";
+        } else if (isStudentVerified(user)) {
+            roleEl.textContent = "Verified Student";
+            roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wider";
+        } else {
+            roleEl.textContent = "Student";
+            roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider";
+        }
+    }
+
+    const pageLabelEl = document.getElementById("chip-active-page-label");
+    if (pageLabelEl) {
+        const sectionName = activeSection || getSectionFromPath();
+        pageLabelEl.textContent = getSectionTitle(sectionName);
+    }
+
+    const adminDashboardBtn = document.getElementById("admin-dashboard-btn");
+    if (adminDashboardBtn) {
+        adminDashboardBtn.style.display = user?.role === "admin" ? "" : "none";
+    }
+}
+
+function getGuestChipHTML(activeSection) {
+    const sec = activeSection || getSectionFromPath();
+    const title = getSectionTitle(sec);
+    return `
+        <div class="hidden md:flex items-center gap-2">
+            <a href="/login.html" class="figma-navbar-login-btn flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition spring-ease" data-i18n="nav.login_btn">
+                <span data-i18n="nav.login">Login</span>
+                <img src="/assets/images/icon-login.svg" alt="Login Icon" class="w-4 h-4" />
+            </a>
+        </div>
+        <div class="md:hidden user-menu guest-menu">
+            <button type="button" class="user-chip" id="user-chip" aria-label="Navigation & Account Menu" aria-haspopup="true" aria-expanded="false" aria-controls="user-dropdown">
+                <div class="user-avatar" id="user-avatar" aria-hidden="true">
+                    <span class="material-symbols-outlined text-base text-primary">person</span>
+                </div>
+                <span class="chip-active-page font-extrabold text-xs text-[#1c274c] truncate max-w-[85px] sm:max-w-[110px]" id="chip-active-page-label">${title}</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-[#1c274c]/70 transition-transform duration-300" aria-hidden="true"></i>
+            </button>
+            <div class="user-dropdown" id="user-dropdown" role="menu" aria-label="User account menu">
+                <div class="px-3 pt-2 pb-3 mb-2 border-b border-slate-100/80">
+                    <p class="text-sm font-bold text-slate-800">Welcome to SpringWave</p>
+                    <p class="text-xs text-slate-500">Sign in to unlock all features</p>
+                </div>
+                <div class="dropdown-nav-group border-b border-slate-100/80 pb-2 mb-2">
+                    <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Navigation</div>
+                    <a href="/index.html" class="dropdown-item" data-section="home">
+                        <i class="fa-solid fa-house"></i>
+                        <span data-i18n="nav.home">Home</span>
+                        <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
+                    </a>
+                    <a href="/explore.html" class="dropdown-item" data-section="explore">
+                        <i class="fa-solid fa-compass"></i>
+                        <span data-i18n="nav.explore">Explore</span>
+                        <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
+                    </a>
+                    <a href="/community.html" class="dropdown-item" data-section="community">
+                        <i class="fa-solid fa-comments"></i>
+                        <span data-i18n="nav.community">Community</span>
+                        <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
+                    </a>
+                    <a href="/quiz.html" class="dropdown-item" data-section="quiz">
+                        <i class="fa-solid fa-brain"></i>
+                        <span data-i18n="index.hero_take_quiz">AI Quiz</span>
+                        <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
+                    </a>
+                    <a href="/about.html" class="dropdown-item" data-section="about">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span data-i18n="nav.about">About Us</span>
+                        <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary active-dot hidden"></span>
+                    </a>
+                </div>
+                <div class="dropdown-tools-group pb-2 mb-2 border-b border-slate-100/80">
+                    <button class="dropdown-item" id="dropdown-mobile-lang-btn">
+                        <i class="fa-solid fa-language"></i>
+                        <span>Language: <strong id="dropdown-lang-code" class="text-primary font-extrabold">EN</strong></span>
+                    </button>
+                </div>
+                <div class="flex flex-col gap-2 pt-1">
+                    <a href="/login.html" class="w-full py-2 px-3 rounded-xl bg-primary text-white text-center font-bold text-xs shadow-sm hover:bg-primary/90 transition text-decoration-none">
+                        <span data-i18n="nav.login">Login</span>
+                    </a>
+                    <a href="/register.html" class="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-700 text-center font-bold text-xs hover:bg-slate-200 transition text-decoration-none">
+                        <span data-i18n="login.register_now">Register</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 export async function loadNavbar({ activeSection } = {}) {
     try {
         initPageTransition();
@@ -13,6 +137,28 @@ export async function loadNavbar({ activeSection } = {}) {
     const cachedNav = sessionStorage.getItem("cached_navbar_html");
     if (navbarContainer && cachedNav && !navbarContainer.innerHTML.trim()) {
         navbarContainer.innerHTML = cachedNav;
+        const authSection = document.getElementById("auth-section");
+        const bellIcon = document.getElementById("bell-icon");
+
+        if (authSection) {
+            if (isAuthenticated()) {
+                const user = getUser();
+                if (cachedUserChip) {
+                    authSection.innerHTML = cachedUserChip;
+                    populateUserChip(user, activeSection);
+                    initUserDropdown();
+                }
+                if (bellIcon) {
+                    bellIcon.classList.remove("hidden");
+                    bellIcon.classList.add("flex");
+                }
+            } else {
+                authSection.innerHTML = getGuestChipHTML(activeSection);
+                initUserDropdown();
+                if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }
+            }
+            updateHostBtn();
+        }
         setActiveLink(activeSection);
     }
 
@@ -116,12 +262,8 @@ export async function loadNavbar({ activeSection } = {}) {
                 }
             });
         } else {
-            authSection.innerHTML = `
-                <a href="/login.html" class="figma-navbar-login-btn flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition spring-ease" data-i18n="nav.login_btn">
-                    <span data-i18n="nav.login">Login</span>
-                    <img src="/assets/images/icon-login.svg" alt="Login Icon" class="w-4 h-4" />
-                </a>
-            `;
+            authSection.innerHTML = getGuestChipHTML(activeSection);
+            initUserDropdown();
             if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }
         }
         updateHostBtn();

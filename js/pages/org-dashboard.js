@@ -111,10 +111,13 @@ function renderOrgDropdown() {
   }
   list.innerHTML = currentOrgs.map(o => {
     const ownerName = o.owner?.fullname || o.owner?.email || "Unknown";
+    const avatarContent = o.avatar 
+      ? `<img src="${o.avatar}" class="w-full h-full object-cover" alt="${o.name}" onerror="this.outerHTML='<span class=\\'font-bold text-sm text-primary\\'>${(o.name?.[0] || '?').toUpperCase()}</span>'" />`
+      : `<span class="font-bold text-sm text-primary">${(o.name?.[0] || "?").toUpperCase()}</span>`;
     return `
       <button class="org-option w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#f8f9fc] transition-colors text-left ${o._id === currentOrgId ? "bg-[#ecedfa] ring-1 ring-primary/20" : ""}" data-id="${o._id}">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#dae1ff] to-[#ecedfa] flex items-center justify-center text-primary font-bold text-sm shrink-0">
-          ${(o.name?.[0] || "?").toUpperCase()}
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#dae1ff] to-[#ecedfa] flex items-center justify-center text-primary font-bold text-sm shrink-0 overflow-hidden">
+          ${avatarContent}
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-sm text-[#191b22] truncate">${o.name}</div>
@@ -194,6 +197,36 @@ async function selectOrg(orgId) {
     document.getElementById("org-name-sidebar").textContent = org.name;
     const roleLabel = isAdminUser() ? "Admin" : (org.membershipRole || "owner");
     document.getElementById("org-role-sidebar").textContent = `Role: ${roleLabel}`;
+
+    // Update avatar in sidebar
+    const sidebarAvatar = document.getElementById("org-avatar-sidebar");
+    const sidebarPlaceholder = document.getElementById("org-avatar-sidebar-placeholder");
+    if (sidebarAvatar && sidebarPlaceholder) {
+      if (org.avatar) {
+        sidebarAvatar.src = org.avatar;
+        sidebarAvatar.classList.remove("hidden");
+        sidebarPlaceholder.classList.add("hidden");
+      } else {
+        sidebarAvatar.classList.add("hidden");
+        sidebarPlaceholder.classList.remove("hidden");
+        sidebarPlaceholder.innerHTML = `<span class="font-bold text-sm text-white">${(org.name?.[0] || "?").toUpperCase()}</span>`;
+      }
+    }
+
+    // Update avatar in org-selector-btn
+    const selectorAvatar = document.getElementById("org-selector-avatar");
+    const selectorPlaceholder = document.getElementById("org-selector-avatar-placeholder");
+    if (selectorAvatar && selectorPlaceholder) {
+      if (org.avatar) {
+        selectorAvatar.src = org.avatar;
+        selectorAvatar.classList.remove("hidden");
+        selectorPlaceholder.classList.add("hidden");
+      } else {
+        selectorAvatar.classList.add("hidden");
+        selectorPlaceholder.classList.remove("hidden");
+        selectorPlaceholder.innerHTML = `<span class="font-bold text-xs text-primary">${(org.name?.[0] || "?").toUpperCase()}</span>`;
+      }
+    }
 
     const badge = document.getElementById("admin-badge");
     if (isAdminUser() && badge) {
@@ -289,11 +322,12 @@ function switchSection(section) {
   // Sync mobile sub-nav active state
   document.querySelectorAll(".mobile-tab-link").forEach(l => {
     if (l.dataset.section === section) {
-      l.classList.add("active", "bg-primary", "text-white");
-      l.classList.remove("bg-white", "text-[#64748b]", "border", "border-[#e2e2eb]");
+      l.classList.add("active", "bg-primary", "text-white", "shadow-2xs");
+      l.classList.remove("bg-white", "text-slate-600", "border", "border-slate-200", "text-[#64748b]", "border-[#e2e2eb]");
+      l.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     } else {
-      l.classList.remove("active", "bg-primary", "text-white");
-      l.classList.add("bg-white", "text-[#64748b]", "border", "border-[#e2e2eb]");
+      l.classList.remove("active", "bg-primary", "text-white", "shadow-2xs");
+      l.classList.add("bg-white", "text-slate-600", "border", "border-slate-200");
     }
   });
 

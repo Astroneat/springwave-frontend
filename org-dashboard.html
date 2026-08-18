@@ -2,42 +2,171 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Host Dashboard — SpringWave</title>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        .sidenav-link { display: flex; align-items: center; gap: 12px; padding: 11px 15px; border-radius: 12px; border: 1px solid transparent; transition: all 0.2s; font-family: var(--font-label-md), 'Inter', sans-serif; font-size: var(--text-label-md); cursor: pointer; }
-        .sidenav-link:hover { background: var(--color-surface-container); }
-        .sidenav-link.active { background: var(--color-surface-container-low); color: var(--color-primary); font-weight: 700; border-color: var(--color-primary); box-shadow: 0 0 15px rgba(59,111,212,0.15); }
-        .tab-btn { padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .tab-btn:active { transform: scale(0.95); }
-        .tab-btn.active { background: #1755ba; color: #fff; box-shadow: 0 4px 12px rgba(23,85,186,0.2); }
-        .tab-btn:not(.active) { background: transparent; color: #64748b; }
-        .tab-btn:not(.active):hover { background: #f1f5f9; }
-        .hover-scale { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .hover-scale:hover { transform: translateY(-4px) scale(1.02); }
+        :root {
+            --host-primary: #1755ba;
+            --host-primary-hover: #134496;
+            --host-bg: #faf8ff;
+            --host-surface: #ffffff;
+            --host-border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--host-bg);
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .host-dashboard-sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: #e2e8f0 transparent;
+        }
+
+        .sidenav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sidenav-link:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .sidenav-link.active {
+            background: #eff6ff;
+            color: var(--host-primary);
+            font-weight: 700;
+            border-color: rgba(23, 85, 186, 0.2);
+            box-shadow: 0 1px 3px rgba(23, 85, 186, 0.08);
+        }
+
+        .mobile-tab-link {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            touch-action: pan-x;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tab-btn:active {
+            transform: scale(0.96);
+        }
+
+        .tab-btn.active {
+            background: var(--host-primary);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(23, 85, 186, 0.25);
+        }
+
+        .tab-btn:not(.active) {
+            background: transparent;
+            color: #64748b;
+        }
+
+        .tab-btn:not(.active):hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .analytics-scope-btn {
+            transition: all 0.2s ease;
+        }
+
+        .analytics-scope-btn.active {
+            background: var(--host-primary);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(23, 85, 186, 0.25);
+        }
+
+        .analytics-scope-btn:not(.active) {
+            background: transparent;
+            color: #64748b;
+        }
+
+        .analytics-scope-btn:not(.active):hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .spring-card {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .spring-card-hover:hover {
+            border-color: rgba(23, 85, 186, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.08);
+        }
+
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         @media (max-width: 767px) {
-            .section-content { padding-top: 60px; }
+            .section-content {
+                padding-top: 4px;
+            }
         }
     </style>
 </head>
-<body class="bg-[#faf8ff] text-[#191b22] font-body-md antialiased min-h-screen">
+<body class="bg-[#faf8ff] text-[#0f172a] antialiased min-h-screen">
     <div id="navbar-container"></div>
 
-    <!-- Sidebar -->
-    <aside class="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[220px] bg-white border-r border-[#ecedfa] shadow-sm z-40 hidden md:flex flex-col">
-        <div class="px-6 py-8">
-            <h2 class="font-headline-md text-xl font-bold text-primary" id="org-name-sidebar">SpringWave</h2>
-            <p class="text-xs text-[#64748b] mt-1" id="org-role-sidebar">Host Dashboard</p>
+    <!-- Desktop Sidebar Navigation -->
+    <aside class="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[240px] bg-white border-r border-slate-200/80 shadow-xs z-40 hidden md:flex flex-col overflow-y-auto host-dashboard-sidebar">
+        <!-- Host Profile Card in Sidebar -->
+        <div class="px-5 py-6 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div id="org-avatar-sidebar-container" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 overflow-hidden">
+                    <img id="org-avatar-sidebar" src="" class="w-full h-full object-cover hidden" alt="Org Avatar" onerror="this.classList.add('hidden'); document.getElementById('org-avatar-sidebar-placeholder')?.classList.remove('hidden');" />
+                    <span id="org-avatar-sidebar-placeholder"><i class="fa-solid fa-crown text-xs"></i></span>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h2 class="text-sm font-bold text-slate-900 truncate" id="org-name-sidebar">SpringWave</h2>
+                    <p class="text-[11px] text-slate-500 font-medium truncate mt-0.5" id="org-role-sidebar">Host Dashboard</p>
+                </div>
+            </div>
         </div>
-        <nav class="flex-1 px-3 space-y-1" id="sidenav">
+
+        <!-- Sidebar Navigation Links -->
+        <nav class="flex-1 px-3 py-4 space-y-1" id="sidenav">
             <div class="sidenav-link active" data-section="dashboard">
                 <span class="material-symbols-outlined text-[20px]">dashboard</span>
                 <span data-i18n="user.host_dashboard">Dashboard</span>
@@ -75,501 +204,587 @@
                 <span>Settings</span>
             </div>
         </nav>
-        <div class="p-4 mt-auto">
-            <div class="p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                <p class="text-xs text-primary mb-2 font-semibold">Need help?</p>
-                <a href="/about.html" class="block w-full py-2 bg-primary text-white text-center rounded-full text-xs font-semibold hover:bg-primary/90 transition-all">Support</a>
+
+        <!-- Sidebar Footer Help Card -->
+        <div class="p-3.5 mt-auto border-t border-slate-100">
+            <div class="p-3.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 rounded-2xl border border-blue-100/80">
+                <div class="flex items-center gap-2 mb-1.5 text-primary">
+                    <i class="fa-solid fa-headset text-xs"></i>
+                    <p class="text-xs font-bold">Need Help?</p>
+                </div>
+                <p class="text-[11px] text-slate-500 mb-3 leading-relaxed">Check our host guides and platform documentation.</p>
+                <a href="/about.html" class="block w-full py-1.5 bg-primary text-white text-center rounded-xl text-xs font-bold hover:bg-primary/90 transition-all shadow-xs">Support Center</a>
             </div>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="pt-[100px] md:pl-[252px] pr-4 md:pr-8 pb-12 px-4">
-        <!-- Org Selector -->
-        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <div id="org-selector-wrapper" class="relative">
-                        <button id="org-selector-btn" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm font-semibold text-[#191b22] outline-none hover:border-primary transition-all spring-ease min-w-[240px] text-left">
-                            <span class="w-8 h-8 rounded-lg bg-[#ecedfa] flex items-center justify-center text-[#64748b] shrink-0">
-                                <i class="fa-solid fa-building"></i>
+    <!-- Main Content Shell -->
+    <main class="pt-[88px] md:pl-[264px] pr-3 sm:pr-6 md:pr-8 pb-16 px-3 sm:px-6 max-w-[1600px] mx-auto min-w-0 overflow-x-hidden">
+        
+        <!-- Top Organization Selector Header -->
+        <div class="mb-5 sm:mb-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+                    <!-- Dropdown trigger -->
+                    <div id="org-selector-wrapper" class="relative flex-1 sm:flex-initial min-w-0">
+                        <button id="org-selector-btn" class="w-full sm:w-auto flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-800 outline-none hover:border-primary/60 hover:shadow-xs transition-all min-w-[200px] sm:min-w-[240px] text-left">
+                            <span id="org-selector-avatar-container" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                                <img id="org-selector-avatar" src="" class="w-full h-full object-cover hidden" alt="Org Avatar" onerror="this.classList.add('hidden'); document.getElementById('org-selector-avatar-placeholder')?.classList.remove('hidden');" />
+                                <span id="org-selector-avatar-placeholder"><i class="fa-solid fa-building"></i></span>
                             </span>
-                            <span class="flex-1 truncate" id="org-selector-label">Select organization...</span>
-                            <i class="fa-solid fa-chevron-down text-[10px] text-[#94a3b8] transition-transform duration-200" id="org-chevron"></i>
+                            <span class="flex-1 truncate text-xs sm:text-sm font-bold text-slate-800" id="org-selector-label">Select organization...</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200 shrink-0" id="org-chevron"></i>
                         </button>
-                        <div id="org-dropdown" class="absolute top-full left-0 mt-1 w-[420px] max-h-[360px] overflow-y-auto rounded-2xl bg-white border border-[#e2e2eb] shadow-xl z-50 hidden">
-                            <div class="sticky top-0 bg-white border-b border-[#ecedfa] p-3">
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="org-dropdown" class="absolute top-full left-0 mt-1.5 w-full sm:w-[380px] max-w-[calc(100vw-32px)] max-h-[340px] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-xl z-50 hidden">
+                            <div class="sticky top-0 bg-white border-b border-slate-100 p-2.5">
                                 <div class="relative">
-                                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8] text-xs"></i>
-                                    <input id="org-search" type="text" placeholder="Search organizations..." class="w-full pl-8 pr-3 py-2 rounded-lg border border-[#ecedfa] bg-[#f8f9fc] text-sm outline-none focus:border-primary">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                    <input id="org-search" type="text" placeholder="Search organizations..." class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs outline-none focus:border-primary focus:bg-white" />
                                 </div>
                             </div>
                             <div id="org-list" class="p-2 space-y-1"></div>
                         </div>
                     </div>
-                    <button id="create-org-btn" class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-primary hover:bg-[#dae1ff] transition-all spring-ease" title="Create Organization">
-                        <i class="fa-solid fa-plus text-sm"></i>
-                    </button>
-                    <button id="view-profile-btn" class="px-3 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-primary hover:bg-[#dae1ff] transition-all spring-ease gap-2 text-xs font-semibold" title="View Public Profile">
-                        <i class="fa-regular fa-eye text-sm"></i> View Profile
-                    </button>
+
+                    <!-- Quick Org Actions -->
+                    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                        <button id="create-org-btn" class="h-9 px-3 sm:px-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-primary hover:bg-primary/10 hover:border-primary/30 transition-all gap-1.5 text-xs font-bold shadow-2xs cursor-pointer active:scale-95" title="Create Organization">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span class="inline">New Org</span>
+                        </button>
+                        <button id="view-profile-btn" class="h-9 px-3 sm:px-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-700 hover:text-primary hover:bg-slate-50 hover:border-slate-300 transition-all gap-1.5 text-xs font-semibold shadow-2xs cursor-pointer active:scale-95" title="View Public Profile">
+                            <i class="fa-regular fa-eye text-xs"></i>
+                            <span class="inline">Profile</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 mt-1.5">
-                    <span class="text-xs text-[#64748b]" id="org-meta"></span>
-                    <span id="admin-badge" class="hidden text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Impersonating</span>
+
+                <!-- Org Meta Badges -->
+                <div class="flex items-center gap-2 mt-1.5 px-0.5">
+                    <span class="text-[11px] sm:text-xs text-slate-500 truncate" id="org-meta"></span>
+                    <span id="admin-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0">Impersonating</span>
                 </div>
             </div>
         </div>
 
-        <!-- Mobile sub-navigation tabs (visible on mobile only) -->
-        <div class="md:hidden flex overflow-x-auto gap-2 py-3 mb-6 border-b border-[#ecedfa] scrollbar-none sticky top-[72px] bg-[#faf8ff] z-30" id="mobile-dashboard-tabs">
-            <button class="mobile-tab-link active px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-primary text-white transition-all spring-ease" data-section="dashboard">
-                Dashboard
+        <!-- Mobile Sub-Navigation Bar (Sticky on Mobile Viewports) -->
+        <div class="md:hidden flex overflow-x-auto gap-1.5 py-2 px-1 mb-5 border-b border-slate-200/80 scrollbar-none sticky top-[72px] bg-[#faf8ff]/95 backdrop-blur-md z-30 -mx-3 px-3" id="mobile-dashboard-tabs">
+            <button class="mobile-tab-link active px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-primary text-white transition-all shadow-2xs flex items-center gap-1.5 shrink-0" data-section="dashboard">
+                <span class="material-symbols-outlined text-[16px]">dashboard</span>
+                <span>Dashboard</span>
             </button>
-            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="events">
-                Events
+            <button class="mobile-tab-link px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 transition-all flex items-center gap-1.5 shrink-0" data-section="events">
+                <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+                <span>Events</span>
             </button>
-            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="participants">
-                Participants
+            <button class="mobile-tab-link px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 transition-all flex items-center gap-1.5 shrink-0" data-section="participants">
+                <span class="material-symbols-outlined text-[16px]">groups</span>
+                <span>Participants</span>
             </button>
-            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="attendance">
-                Attendance
+            <button class="mobile-tab-link px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 transition-all flex items-center gap-1.5 shrink-0" data-section="attendance">
+                <span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+                <span>Attendance</span>
             </button>
-            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="analytics">
-                Analytics
+            <button class="mobile-tab-link px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 transition-all flex items-center gap-1.5 shrink-0" data-section="analytics">
+                <span class="material-symbols-outlined text-[16px]">analytics</span>
+                <span>Analytics</span>
             </button>
-            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="managers">
-                Managers
+            <button class="mobile-tab-link px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 transition-all flex items-center gap-1.5 shrink-0" data-section="reviews">
+                <span class="material-symbols-outlined text-[16px]">reviews</span>
+                <span>Reviews</span>
             </button>
-            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="certificates">
-                Certificates
+            <button class="mobile-tab-link px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 transition-all flex items-center gap-1.5 shrink-0" data-section="managers">
+                <span class="material-symbols-outlined text-[16px]">admin_panel_settings</span>
+                <span>Managers</span>
             </button>
-            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="reviews">
-                Reviews
+            <button class="mobile-tab-link px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 transition-all flex items-center gap-1.5 shrink-0" data-section="certificates">
+                <span class="material-symbols-outlined text-[16px]">workspace_premium</span>
+                <span>Certificates</span>
             </button>
-            <button class="mobile-tab-link px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-[#64748b] border border-[#e2e2eb] transition-all spring-ease" data-section="settings">
-                Settings
+            <button class="mobile-tab-link px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 transition-all flex items-center gap-1.5 shrink-0" data-section="settings">
+                <span class="material-symbols-outlined text-[16px]">settings</span>
+                <span>Settings</span>
             </button>
         </div>
 
-        <!-- Section: Dashboard -->
+        <!-- ==========================================
+             SECTION: DASHBOARD OVERVIEW
+             ========================================== -->
         <div id="section-dashboard" class="section-content">
-            <div class="flex justify-between items-end mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-7 gap-2">
                 <div>
-                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Dashboard</h2>
-                    <p class="text-[#64748b] mt-1">Overview of your organization's activity</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Overview of your organization's activity and performance</p>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8" id="dashboard-stats">
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm hover-scale">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary"><i class="fa-regular fa-calendar text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Total Events</span>
+
+            <!-- Stats Metric Cards (2x2 on Mobile, 4-col on Desktop) -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8" id="dashboard-stats">
+                <div class="spring-card spring-card-hover p-4 sm:p-5">
+                    <div class="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm sm:text-base shrink-0">
+                            <i class="fa-regular fa-calendar"></i>
+                        </div>
+                        <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Total Events</span>
                     </div>
-                    <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-events">0</p>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-slate-900" id="stat-events">0</p>
                 </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm hover-scale">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#d1fae5] flex items-center justify-center text-[#059669]"><i class="fa-solid fa-users text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Participants</span>
+
+                <div class="spring-card spring-card-hover p-4 sm:p-5">
+                    <div class="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm sm:text-base shrink-0">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Participants</span>
                     </div>
-                    <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-participants">0</p>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-slate-900" id="stat-participants">0</p>
                 </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm hover-scale">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#fef3c7] flex items-center justify-center text-[#d97706]"><i class="fa-solid fa-clock text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Upcoming</span>
+
+                <div class="spring-card spring-card-hover p-4 sm:p-5">
+                    <div class="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm sm:text-base shrink-0">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Upcoming</span>
                     </div>
-                    <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-upcoming">0</p>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-slate-900" id="stat-upcoming">0</p>
                 </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm hover-scale">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#fee2e2] flex items-center justify-center text-[#dc2626]"><i class="fa-solid fa-eye text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Total Views</span>
+
+                <div class="spring-card spring-card-hover p-4 sm:p-5">
+                    <div class="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm sm:text-base shrink-0">
+                            <i class="fa-solid fa-eye"></i>
+                        </div>
+                        <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Total Views</span>
                     </div>
-                    <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-views">0</p>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-slate-900" id="stat-views">0</p>
                 </div>
             </div>
-            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-[#ecedfa] flex items-center justify-between">
-                    <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Recent Events</h3>
-                    <button class="text-sm text-primary font-semibold hover:underline" id="goto-events">View All</button>
+
+            <!-- Recent Events Card -->
+            <div class="spring-card overflow-hidden">
+                <div class="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                        <h3 class="text-sm sm:text-base font-bold text-slate-900">Recent Events</h3>
+                    </div>
+                    <button class="text-xs sm:text-sm text-primary font-bold hover:underline flex items-center gap-1 cursor-pointer" id="goto-events">
+                        <span>View All</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </button>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-xs sm:text-sm text-left">
                         <thead>
-                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Event</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Date</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Participants</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
+                            <tr class="border-b border-slate-100 bg-slate-50/60 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                                <th class="py-3 px-3 sm:px-5">Event</th>
+                                <th class="py-3 px-3 sm:px-5 hidden md:table-cell">Date</th>
+                                <th class="py-3 px-3 sm:px-5 hidden sm:table-cell">Participants</th>
+                                <th class="py-3 px-3 sm:px-5">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="dashboard-events-body"></tbody>
+                        <tbody id="dashboard-events-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Events -->
+        <!-- ==========================================
+             SECTION: EVENTS MANAGEMENT
+             ========================================== -->
         <div id="section-events" class="section-content hidden">
-            <div class="flex justify-between items-end mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-7 gap-3">
                 <div>
-                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Events</h2>
-                    <p class="text-[#64748b] mt-1">Manage your organization's events</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Events</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Create and manage your organization's events</p>
                 </div>
-                <button id="create-event-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
-                    <i class="fa-solid fa-plus"></i> Create Event
+                <button id="create-event-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs w-full sm:w-auto">
+                    <i class="fa-solid fa-plus text-xs"></i> <span>Create Event</span>
                 </button>
             </div>
-            <div class="flex items-center justify-between mb-6">
-                <div class="flex gap-1 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
-                    <button class="tab-btn active" data-events-tab="all">All</button>
-                    <button class="tab-btn" data-events-tab="published">Published</button>
-                    <button class="tab-btn" data-events-tab="draft">Draft</button>
+
+            <!-- Events Filters Toolbar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
+                <div class="flex gap-1 bg-white rounded-xl p-1 border border-slate-200/80 shadow-2xs w-fit">
+                    <button class="tab-btn active text-xs sm:text-sm" data-events-tab="all">All</button>
+                    <button class="tab-btn text-xs sm:text-sm" data-events-tab="published">Published</button>
+                    <button class="tab-btn text-xs sm:text-sm" data-events-tab="draft">Draft</button>
                 </div>
-                <button id="toggle-expired-events" class="hidden items-center gap-2 px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] text-sm font-semibold text-[#64748b] transition-all spring-ease cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                <button id="toggle-expired-events" class="hidden items-center justify-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-600 transition-all spring-ease cursor-pointer shadow-2xs w-full sm:w-auto">
+                    <span class="material-symbols-outlined text-[16px]">visibility</span>
                     <span>Show Expired Events</span>
                 </button>
             </div>
-            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+
+            <!-- Events Table -->
+            <div class="spring-card overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-xs sm:text-sm text-left">
                         <thead>
-                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Event</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Date</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Participants</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden lg:table-cell">Type</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
-                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
+                            <tr class="border-b border-slate-100 bg-slate-50/60 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                                <th class="py-3.5 px-3 sm:px-5">Event</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden md:table-cell">Date</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden sm:table-cell">Participants</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden lg:table-cell">Type</th>
+                                <th class="py-3.5 px-3 sm:px-5">Status</th>
+                                <th class="py-3.5 px-3 sm:px-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="events-table-body"></tbody>
+                        <tbody id="events-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-                <div id="events-empty" class="hidden text-center py-16 text-[#94a3b8]">
-                    <i class="fa-solid fa-calendar text-4xl mb-3 block"></i>
-                    <p class="text-base font-semibold">No events yet</p>
-                    <p class="text-sm mt-1">Create your first event to get started</p>
+                <div id="events-empty" class="hidden text-center py-16 px-4 text-slate-400">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3 text-2xl">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                    </div>
+                    <p class="text-sm sm:text-base font-bold text-slate-700">No events found</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Create your first event or switch filters to get started</p>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Participants -->
+        <!-- ==========================================
+             SECTION: PARTICIPANTS MANAGEMENT
+             ========================================== -->
         <div id="section-participants" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 sm:mb-7 gap-4">
                 <div>
-                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Participants</h2>
-                    <p class="text-[#64748b] mt-1">View and manage participants for your events</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Participants</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">View and manage registered participants across events</p>
                 </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                    <button id="open-add-participants-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-sm">
-                        <i class="fa-solid fa-user-plus"></i> Add Participants
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-wrap w-full lg:w-auto">
+                    <button id="open-add-participants-btn" class="py-2.5 px-4 rounded-xl bg-primary text-white text-xs font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs shrink-0">
+                        <i class="fa-solid fa-user-plus text-xs"></i> <span>Add Participants</span>
                     </button>
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="participants-search-input" placeholder="Search by name, email, student ID..." class="pl-9 pr-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-xs w-[220px] md:w-[260px] outline-none focus:border-primary transition-colors shadow-2xs" />
+                    <div class="relative flex-1 sm:flex-initial">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="participants-search-input" placeholder="Search by name, email, MSSV..." class="pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs w-full sm:w-[200px] md:w-[240px] outline-none focus:border-primary transition-all shadow-2xs" />
                     </div>
-                    <div id="participant-event-select-wrapper" class="relative"></div>
+                    <div id="participant-event-select-wrapper" class="relative w-full sm:w-auto"></div>
                 </div>
             </div>
-            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-[#ecedfa] flex items-center justify-between">
-                    <h3 class="font-headline-md text-lg font-bold text-[#191b22]">
+
+            <!-- Participants Table Card -->
+            <div class="spring-card overflow-hidden">
+                <div class="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800">
                         <span id="participant-count">0</span> Participant(s)
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-xs sm:text-sm text-left">
                         <thead>
-                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">User / Full Name</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Student ID (MSSV)</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Email</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Type</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Status</th>
-                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
+                            <tr class="border-b border-slate-100 bg-slate-50/60 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                                <th class="py-3.5 px-3 sm:px-5">User / Full Name</th>
+                                <th class="py-3.5 px-3 sm:px-5">Student ID (MSSV)</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden md:table-cell">Email</th>
+                                <th class="py-3.5 px-3 sm:px-5">Type</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden sm:table-cell">Status</th>
+                                <th class="py-3.5 px-3 sm:px-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="participants-table-body"></tbody>
+                        <tbody id="participants-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-                <div id="participants-empty" class="hidden text-center py-16 text-[#94a3b8]">
-                    <i class="fa-solid fa-users text-4xl mb-3 block"></i>
-                    <p class="text-base font-semibold">Select an event to view participants</p>
+                <div id="participants-empty" class="hidden text-center py-16 px-4 text-slate-400">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3 text-2xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <p class="text-sm sm:text-base font-bold text-slate-700">Select an event</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Choose an event from the selector above to view its participant roster</p>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Attendance -->
+        <!-- ==========================================
+             SECTION: ATTENDANCE & CHECK-IN
+             ========================================== -->
         <div id="section-attendance" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-7 gap-4">
                 <div>
-                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Attendance</h2>
-                    <p class="text-[#64748b] mt-1">Check in participants via QR code or manually</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Attendance</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Check in participants via QR scanner or manually</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div id="attendance-event-select-wrapper" class="relative"></div>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary"><i class="fa-solid fa-qrcode text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Checked In</span>
-                    </div>
-                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-present">0</p>
-                </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#fee2e2] flex items-center justify-center text-[#dc2626]"><i class="fa-solid fa-clock text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Absent</span>
-                    </div>
-                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-absent">0</p>
-                </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#d1fae5] flex items-center justify-center text-[#059669]"><i class="fa-solid fa-users text-lg"></i></div>
-                        <span class="text-[13px] font-semibold text-[#64748b] uppercase">Total</span>
-                    </div>
-                    <p class="text-[28px] font-extrabold text-[#191b22]" id="stat-total-att">0</p>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <div id="attendance-event-select-wrapper" class="relative w-full sm:w-auto"></div>
                 </div>
             </div>
 
-            <!-- Actions -->
-            <div class="flex gap-3 mb-6 flex-wrap">
-                <button id="scan-qr-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
-                    <i class="fa-solid fa-camera"></i> Scan QR Code / Student Card
+            <!-- Attendance Stats (3 Cards) -->
+            <div class="grid grid-cols-3 gap-2.5 sm:gap-4 mb-5 sm:mb-6">
+                <div class="spring-card p-3.5 sm:p-5">
+                    <div class="flex items-center gap-2 mb-1.5 sm:mb-2 text-emerald-600">
+                        <i class="fa-solid fa-circle-check text-xs sm:text-sm"></i>
+                        <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Checked In</span>
+                    </div>
+                    <p class="text-xl sm:text-3xl font-extrabold text-slate-900" id="stat-present">0</p>
+                </div>
+                <div class="spring-card p-3.5 sm:p-5">
+                    <div class="flex items-center gap-2 mb-1.5 sm:mb-2 text-rose-600">
+                        <i class="fa-solid fa-circle-xmark text-xs sm:text-sm"></i>
+                        <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Absent</span>
+                    </div>
+                    <p class="text-xl sm:text-3xl font-extrabold text-slate-900" id="stat-absent">0</p>
+                </div>
+                <div class="spring-card p-3.5 sm:p-5">
+                    <div class="flex items-center gap-2 mb-1.5 sm:mb-2 text-blue-600">
+                        <i class="fa-solid fa-users text-xs sm:text-sm"></i>
+                        <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Total</span>
+                    </div>
+                    <p class="text-xl sm:text-3xl font-extrabold text-slate-900" id="stat-total-att">0</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons Bar -->
+            <div class="flex gap-2.5 mb-5 flex-wrap">
+                <button id="scan-qr-btn" class="py-2.5 px-4 sm:px-5 rounded-full bg-primary text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs w-full sm:w-auto">
+                    <i class="fa-solid fa-camera text-xs"></i> <span>Scan QR Code / Barcode</span>
                 </button>
-                <button id="init-attendance-btn" class="py-2.5 px-5 rounded-full border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95">
-                    <i class="fa-solid fa-rotate"></i> Init Attendance
+                <button id="init-attendance-btn" class="py-2.5 px-4 sm:px-5 rounded-full border border-slate-200 bg-white text-slate-600 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer spring-ease hover:bg-slate-50 active:scale-95 shadow-2xs w-full sm:w-auto">
+                    <i class="fa-solid fa-rotate text-xs"></i> <span>Init Attendance</span>
                 </button>
             </div>
 
-            <!-- Table -->
-            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-[#ecedfa] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Attendance List</h3>
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <div class="relative">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="attendance-search-input" placeholder="Search by name, email, student ID..." class="pl-9 pr-4 py-2 rounded-xl border border-[#e2e2eb] bg-white text-xs w-[220px] md:w-[260px] outline-none focus:border-primary transition-colors shadow-2xs" />
+            <!-- Attendance Table Card -->
+            <div class="spring-card overflow-hidden">
+                <div class="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800">Attendance List</h3>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <div class="relative w-full sm:w-auto">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="attendance-search-input" placeholder="Search attendee..." class="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs w-full sm:w-[180px] md:w-[220px] outline-none focus:border-primary transition-all shadow-2xs" />
                         </div>
-                        <span class="text-sm text-[#64748b]" id="attendance-count">0 records</span>
+                        <span class="text-xs text-slate-500 font-medium" id="attendance-count">0 records</span>
                     </div>
                 </div>
-                <div class="px-6 pt-3" id="checkin-rules-display"></div>
+                <div class="px-4 sm:px-6 pt-3" id="checkin-rules-display"></div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-xs sm:text-sm text-left">
                         <thead>
-                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">User</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Email</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden sm:table-cell">Check-in Time</th>
-                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
+                            <tr class="border-b border-slate-100 bg-slate-50/60 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                                <th class="py-3.5 px-3 sm:px-5">User</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden md:table-cell">Email</th>
+                                <th class="py-3.5 px-3 sm:px-5">Status</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden sm:table-cell">Check-in Time</th>
+                                <th class="py-3.5 px-3 sm:px-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="attendance-table-body"></tbody>
+                        <tbody id="attendance-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-                <div id="attendance-empty" class="hidden text-center py-16 text-[#94a3b8]">
-                    <i class="fa-solid fa-qrcode text-4xl mb-3 block"></i>
-                    <p class="text-base font-semibold">Select an event to view attendance</p>
+                <div id="attendance-empty" class="hidden text-center py-16 px-4 text-slate-400">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3 text-2xl">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <p class="text-sm sm:text-base font-bold text-slate-700">Select an event</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Choose an event from the selector above to track attendee check-in status</p>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Reviews -->
-        <section id="section-reviews" class="section-content hidden animate-fade-in pb-20">
-            <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <!-- ==========================================
+             SECTION: REVIEWS & RATINGS
+             ========================================== -->
+        <section id="section-reviews" class="section-content hidden pb-12">
+            <div class="mb-6 sm:mb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-[#191b22] tracking-tight">Analytics & Event Reports</h2>
-                    <p class="text-[15px] text-[#64748b] mt-1">Select an event to view detailed ratings, reviews, and reports.</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Reviews & Ratings</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Attendee feedback and satisfaction ratings</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div id="analytics-event-select-wrapper" class="relative"></div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <div id="analytics-event-select-wrapper" class="relative w-full sm:w-auto"></div>
                 </div>
             </div>
 
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div class="bg-white rounded-2xl p-6 border border-[#ecedfa] shadow-sm flex items-center gap-6">
-                    <div class="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center text-yellow-500 text-2xl">
+            <!-- Review Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
+                <div class="spring-card p-4 sm:p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 text-xl sm:text-2xl shrink-0">
                         <i class="fa-solid fa-star"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Average Rating</p>
-                        <div class="flex items-end gap-2">
-                            <span class="text-4xl font-extrabold text-gray-900" id="review-avg-rating">—</span>
-                            <span class="text-lg font-medium text-gray-400 mb-1">/ 5.0</span>
+                        <p class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Average Rating</p>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <span class="text-2xl sm:text-3xl font-extrabold text-slate-900" id="review-avg-rating">—</span>
+                            <span class="text-xs text-slate-400 font-medium">/ 5.0</span>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-2xl p-6 border border-[#ecedfa] shadow-sm flex items-center gap-6">
-                    <div class="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center text-primary text-2xl">
+
+                <div class="spring-card p-4 sm:p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-primary text-xl sm:text-2xl shrink-0">
                         <i class="fa-solid fa-comment-dots"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Reviews</p>
-                        <span class="text-4xl font-extrabold text-gray-900" id="review-total-count">—</span>
+                        <p class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Total Reviews</p>
+                        <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5 block" id="review-total-count">—</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Events List with Ratings -->
-            <div class="bg-white rounded-2xl border border-[#ecedfa] shadow-sm overflow-hidden">
-                <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
-                    <h3 class="font-bold text-gray-800">Events Ratings</h3>
+            <!-- Event Ratings List -->
+            <div class="spring-card overflow-hidden">
+                <div class="px-4 sm:px-6 py-4 border-b border-slate-100 bg-white">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800">Events Ratings</h3>
                 </div>
-                <div id="events-ratings-list" class="divide-y divide-gray-100">
-                    <!-- Events rendered here -->
-                    <div class="p-8 text-center text-gray-500 italic">Loading events...</div>
+                <div id="events-ratings-list" class="divide-y divide-slate-100">
+                    <div class="p-8 text-center text-slate-400 italic text-xs sm:text-sm">Loading ratings...</div>
                 </div>
-                <div id="events-ratings-pagination" class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between hidden">
-                    <button id="events-ratings-prev" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-                    <span id="events-ratings-page-info" class="text-sm font-medium text-gray-500">Page 1 of 1</span>
-                    <button id="events-ratings-next" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                <div id="events-ratings-pagination" class="px-4 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between hidden">
+                    <button id="events-ratings-prev" class="px-3.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+                    <span id="events-ratings-page-info" class="text-xs font-medium text-slate-500">Page 1 of 1</span>
+                    <button id="events-ratings-next" class="px-3.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
                 </div>
             </div>
 
             <!-- Review Details Modal -->
-            <div id="review-details-modal" class="fixed inset-0 z-[100] hidden items-center justify-center">
-                <div class="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm" id="review-details-backdrop"></div>
-                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col m-4 transform scale-95 opacity-0 transition-all duration-300" id="review-details-content">
-                    <div class="flex items-center justify-between p-6 border-b border-slate-100">
-                        <h3 class="text-xl font-bold text-slate-800" id="review-modal-title">Event Reviews</h3>
-                        <button class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors" id="close-review-modal-btn">
-                            <i class="fa-solid fa-xmark"></i>
+            <div id="review-details-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-3 sm:p-4">
+                <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="review-details-backdrop"></div>
+                <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform scale-95 opacity-0 transition-all duration-300 overflow-hidden" id="review-details-content">
+                    <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-white shrink-0">
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900" id="review-modal-title">Event Reviews</h3>
+                        <button class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer border-none" id="close-review-modal-btn">
+                            <i class="fa-solid fa-xmark text-sm"></i>
                         </button>
                     </div>
-                    <div class="p-6 overflow-y-auto flex-1" id="review-modal-list">
-                        <!-- Reviews go here -->
-                    </div>
+                    <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-3" id="review-modal-list"></div>
                 </div>
             </div>
         </section>
 
-        <!-- Section: Managers -->
+        <!-- ==========================================
+             SECTION: MANAGERS
+             ========================================== -->
         <div id="section-managers" class="section-content hidden">
-            <div class="flex justify-between items-end mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-7 gap-3">
                 <div>
-                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Managers</h2>
-                    <p class="text-[#64748b] mt-1">Add or remove organization managers</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Managers</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Add and manage organization team members</p>
                 </div>
-                <button id="add-manager-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
-                    <i class="fa-solid fa-user-plus"></i> Add Manager
+                <button id="add-manager-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs w-full sm:w-auto">
+                    <i class="fa-solid fa-user-plus text-xs"></i> <span>Add Manager</span>
                 </button>
             </div>
-            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+
+            <div class="spring-card overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-xs sm:text-sm text-left">
                         <thead>
-                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Name</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Email</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Role</th>
-                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
+                            <tr class="border-b border-slate-100 bg-slate-50/60 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                                <th class="py-3.5 px-3 sm:px-5">Name</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden md:table-cell">Email</th>
+                                <th class="py-3.5 px-3 sm:px-5">Role</th>
+                                <th class="py-3.5 px-3 sm:px-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="managers-table-body"></tbody>
+                        <tbody id="managers-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-                <div id="managers-empty" class="hidden text-center py-16 text-[#94a3b8]">
-                    <i class="fa-solid fa-user-shield text-4xl mb-3 block"></i>
-                    <p class="text-base font-semibold">No managers added yet</p>
+                <div id="managers-empty" class="hidden text-center py-16 px-4 text-slate-400">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3 text-2xl">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <p class="text-sm sm:text-base font-bold text-slate-700">No managers added yet</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Invite teammates by their email address</p>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Certificates -->
+        <!-- ==========================================
+             SECTION: CERTIFICATES MANAGEMENT
+             ========================================== -->
         <div id="section-certificates" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-6 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
                 <div>
-                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Certificates</h2>
-                    <p class="text-[#64748b] mt-1">Issue, manage, and customize certificates for events</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Certificates</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Issue, customize, and verify attendee certificates</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div id="cert-event-select-wrapper" class="relative"></div>
-                    <button id="issue-certs-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
-                        <i class="fa-solid fa-award"></i> Issue Certificates
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
+                    <div id="cert-event-select-wrapper" class="relative w-full sm:w-auto"></div>
+                    <button id="issue-certs-btn" class="py-2.5 px-4 rounded-xl bg-primary text-white text-xs font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs shrink-0">
+                        <i class="fa-solid fa-award text-xs"></i> <span>Issue Certificates</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Certificate Background Customization Panel for Selected Event -->
-            <div id="cert-bg-manage-panel" class="hidden mb-6 bg-white rounded-[24px] border border-[#ecedfa] shadow-sm p-6">
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div class="flex items-center gap-5">
-                        <div class="w-36 h-24 rounded-xl border-2 border-slate-200 overflow-hidden relative shadow-sm bg-slate-100 shrink-0 flex items-center justify-center">
+            <!-- Certificate Background Customization Panel -->
+            <div id="cert-bg-manage-panel" class="hidden mb-6 spring-card p-4 sm:p-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-28 sm:w-36 h-20 sm:h-24 rounded-xl border-2 border-slate-200 overflow-hidden relative shadow-2xs bg-slate-100 shrink-0 flex items-center justify-center">
                             <img id="cert-bg-manage-preview" src="" alt="Background Preview" class="w-full h-full object-cover hidden" />
                             <div id="cert-bg-manage-placeholder" class="text-center p-2 text-slate-400">
-                                <i class="fa-solid fa-certificate text-2xl mb-1 text-amber-500/60 block"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-wider block">Default Royal Theme</span>
+                                <i class="fa-solid fa-certificate text-xl mb-1 text-amber-500/60 block"></i>
+                                <span class="text-[9px] font-bold uppercase tracking-wider block">Default Theme</span>
                             </div>
                         </div>
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-base font-bold text-[#191b22]">Certificate Background Template</h3>
-                                <span id="cert-bg-status-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Default Template</span>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900">Certificate Background</h3>
+                                <span id="cert-bg-status-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">Default</span>
                             </div>
-                            <p class="text-xs text-[#64748b] mt-1 max-w-lg">
-                                Customize the certificate background for this event (A4 landscape ratio 1200x850px recommended). This template will automatically apply to all certificates issued for this event.
+                            <p class="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">
+                                Customize the certificate canvas (A4 landscape ratio 1200x850px recommended). Applies automatically to all issued certificates.
                             </p>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
                         <input type="file" id="cert-bg-manage-input" accept="image/*" class="hidden" />
-                        <button type="button" id="upload-cert-bg-btn" class="px-4 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold border-none cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
+                        <button type="button" id="upload-cert-bg-btn" class="px-3.5 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold border-none cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
                             <i class="fa-solid fa-upload"></i>
-                            <span>Upload Custom Background</span>
+                            <span>Upload Background</span>
                         </button>
-                        <button type="button" id="reset-cert-bg-btn" class="hidden px-4 py-2 rounded-full bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold border border-red-200 cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
+                        <button type="button" id="reset-cert-bg-btn" class="hidden px-3.5 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold border border-red-200 cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
                             <i class="fa-solid fa-rotate-left"></i>
-                            <span>Reset to Default</span>
+                            <span>Reset</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+            <!-- Certificates Table Card -->
+            <div class="spring-card overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-xs sm:text-sm text-left">
                         <thead>
-                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">User</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase hidden md:table-cell">Certificate Code</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Issued At</th>
-                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Status</th>
-                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase">Actions</th>
+                            <tr class="border-b border-slate-100 bg-slate-50/60 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                                <th class="py-3.5 px-3 sm:px-5">User</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden md:table-cell">Certificate Code</th>
+                                <th class="py-3.5 px-3 sm:px-5">Issued At</th>
+                                <th class="py-3.5 px-3 sm:px-5">Status</th>
+                                <th class="py-3.5 px-3 sm:px-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="certs-table-body"></tbody>
+                        <tbody id="certs-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-                <div id="certs-empty" class="hidden text-center py-16 text-[#94a3b8]">
-                    <i class="fa-solid fa-award text-4xl mb-3 block"></i>
-                    <p class="text-base font-semibold">Select an event to view certificates</p>
+                <div id="certs-empty" class="hidden text-center py-16 px-4 text-slate-400">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3 text-2xl">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <p class="text-sm sm:text-base font-bold text-slate-700">Select an event</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Pick an event from the selector to view issued certificates</p>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Settings -->
+        <!-- ==========================================
+             SECTION: ORGANIZATION SETTINGS
+             ========================================== -->
         <div id="section-settings" class="section-content hidden">
-            <div class="flex justify-between items-end mb-8">
+            <div class="flex justify-between items-end mb-6 sm:mb-7">
                 <div>
-                    <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Settings</h2>
-                    <p class="text-[#64748b] mt-1">Update your organization information</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Settings</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Update organization profile and contact information</p>
                 </div>
             </div>
-            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm p-8 max-w-[800px] mx-auto">
-                <form id="org-settings-form" class="space-y-6">
-                    <!-- Organization Avatar Upload -->
-                    <div class="p-4 rounded-2xl bg-[#faf8ff] border border-[#ecedfa] flex items-center gap-6">
+            
+            <div class="spring-card p-5 sm:p-8 max-w-[800px] mx-auto">
+                <form id="org-settings-form" class="space-y-5 sm:space-y-6">
+                    <!-- Avatar Upload -->
+                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-center sm:text-left">
                         <div class="relative group shrink-0">
                             <img id="settings-avatar-preview" src="/assets/images/default-org-avatar.png" alt="Organization Avatar" class="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md bg-white" />
                             <label for="settings-avatar-input" class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
@@ -577,212 +792,224 @@
                             </label>
                             <input type="file" id="settings-avatar-input" accept="image/*" class="hidden" />
                         </div>
-                        <div class="flex-1">
-                            <h4 class="font-semibold text-sm text-[#191b22]" data-i18n="organizations.avatar_title">Organization Logo</h4>
-                            <p class="text-xs text-[#64748b] mt-0.5" data-i18n="organizations.avatar_desc">Upload a logo or avatar for your organization (PNG, JPG, WebP up to 5MB).</p>
-                            <div class="flex items-center gap-3 mt-2">
-                                <button type="button" id="change-org-avatar-btn" class="px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold border-none cursor-pointer spring-ease flex items-center gap-1.5">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-sm text-slate-900" data-i18n="organizations.avatar_title">Organization Logo</h4>
+                            <p class="text-xs text-slate-500 mt-0.5" data-i18n="organizations.avatar_desc">Upload a logo or avatar for your organization (PNG, JPG, WebP up to 5MB).</p>
+                            <div class="flex items-center justify-center sm:justify-start gap-3 mt-2.5">
+                                <button type="button" id="change-org-avatar-btn" class="px-3.5 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold border-none cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
                                     <span class="material-symbols-outlined text-[16px]">upload</span>
                                     <span data-i18n="organizations.upload_avatar">Upload Avatar</span>
                                 </button>
-                                <span id="org-avatar-status" class="text-xs text-green-600 hidden font-medium"></span>
+                                <span id="org-avatar-status" class="text-xs text-green-600 hidden font-bold"></span>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Organization Name</label>
-                        <input id="settings-name" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                        <label for="settings-name" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Organization Name</label>
+                        <input id="settings-name" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs font-medium" />
                     </div>
+
                     <div>
-                        <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Description</label>
-                        <textarea id="settings-desc" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary resize-y" rows="8"></textarea>
+                        <label for="settings-desc" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Description</label>
+                        <textarea id="settings-desc" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs font-medium resize-y" rows="6"></textarea>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Contact Phone</label>
-                            <input id="settings-phone" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                            <label for="settings-phone" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Phone</label>
+                            <input id="settings-phone" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs font-medium" />
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Contact Email</label>
-                            <input id="settings-email" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                            <label for="settings-email" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Email</label>
+                            <input id="settings-email" type="email" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs font-medium" />
                         </div>
                     </div>
+
                     <div>
-                        <label class="block text-sm font-semibold text-[#64748b] mb-1.5">Chapter Website (URL)</label>
-                        <input id="settings-website" type="url" placeholder="https://example.com" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                        <label for="settings-website" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Chapter Website (URL)</label>
+                        <input id="settings-website" type="url" placeholder="https://example.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs font-medium" />
                     </div>
-                    <div class="pt-4 border-t border-[#e2e2eb]">
-                        <h3 class="text-sm font-bold text-[#191b22] mb-4">Connect with us (Social Links)</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Social Links -->
+                    <div class="pt-4 border-t border-slate-100">
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3.5">Connect with us (Social Links)</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-semibold text-[#64748b] mb-1.5"><i class="fa-brands fa-facebook text-[#1877F2] mr-1"></i> Facebook</label>
-                                <input id="settings-facebook" type="url" placeholder="Facebook URL" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                                <label for="settings-facebook" class="block text-xs font-semibold text-slate-600 mb-1"><i class="fa-brands fa-facebook text-[#1877F2] mr-1"></i> Facebook</label>
+                                <input id="settings-facebook" type="url" placeholder="Facebook URL" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs" />
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-[#64748b] mb-1.5"><i class="fa-brands fa-linkedin text-[#0A66C2] mr-1"></i> LinkedIn</label>
-                                <input id="settings-linkedin" type="url" placeholder="LinkedIn URL" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                                <label for="settings-linkedin" class="block text-xs font-semibold text-slate-600 mb-1"><i class="fa-brands fa-linkedin text-[#0A66C2] mr-1"></i> LinkedIn</label>
+                                <input id="settings-linkedin" type="url" placeholder="LinkedIn URL" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs" />
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-[#64748b] mb-1.5"><i class="fa-brands fa-instagram text-[#E4405F] mr-1"></i> Instagram</label>
-                                <input id="settings-instagram" type="url" placeholder="Instagram URL" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                                <label for="settings-instagram" class="block text-xs font-semibold text-slate-600 mb-1"><i class="fa-brands fa-instagram text-[#E4405F] mr-1"></i> Instagram</label>
+                                <input id="settings-instagram" type="url" placeholder="Instagram URL" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs" />
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-[#64748b] mb-1.5"><i class="fa-brands fa-x-twitter text-gray-800 mr-1"></i> Twitter (X)</label>
-                                <input id="settings-twitter" type="url" placeholder="Twitter URL" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary" />
+                                <label for="settings-twitter" class="block text-xs font-semibold text-slate-600 mb-1"><i class="fa-brands fa-x-twitter text-slate-900 mr-1"></i> Twitter (X)</label>
+                                <input id="settings-twitter" type="url" placeholder="Twitter URL" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs" />
                             </div>
                         </div>
                     </div>
-                    <div class="pt-4 flex gap-3">
-                        <button type="submit" class="py-2.5 px-6 rounded-full bg-primary text-white text-sm font-semibold border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">Save Changes</button>
-                        <button type="button" id="delete-org-btn" class="py-2.5 px-6 rounded-full border border-red-200 text-red-500 text-sm font-semibold cursor-pointer spring-ease hover:bg-red-50 active:scale-95">Delete Organization</button>
+
+                    <!-- Form Submit -->
+                    <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+                        <button type="submit" class="py-2.5 px-6 rounded-full bg-primary text-white text-xs sm:text-sm font-bold border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs w-full sm:w-auto">Save Changes</button>
+                        <button type="button" id="delete-org-btn" class="py-2.5 px-6 rounded-full border border-rose-200 text-rose-600 text-xs sm:text-sm font-bold cursor-pointer spring-ease hover:bg-rose-50 active:scale-95 w-full sm:w-auto">Delete Organization</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- SECTION: ANALYTICS & REPORTS -->
+        <!-- ==========================================
+             SECTION: ANALYTICS & REPORTS
+             ========================================== -->
         <div id="section-analytics" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
                 <div>
-                    <h2 class="font-headline-md text-2xl font-bold text-[#191b22]">Analytics & Reports</h2>
-                    <p class="text-sm text-[#64748b] mt-0.5">Real-time engagement metrics, demographics, and activity reports</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Analytics & Reports</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Real-time engagement metrics, demographics, and activity reports</p>
                 </div>
-                <div class="flex flex-col items-stretch md:items-end gap-3">
-                    <div class="flex flex-wrap items-center gap-2 p-1 bg-white border border-[#ecedfa] rounded-2xl shadow-sm w-fit md:ml-auto">
-                        <button type="button" class="analytics-scope-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all spring-ease active" data-analytics-scope="all">All Events</button>
-                        <button type="button" class="analytics-scope-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all spring-ease" data-analytics-scope="event">Specific Event</button>
+                <div class="flex flex-col sm:flex-row items-stretch lg:items-center gap-2.5 flex-wrap">
+                    <div class="flex items-center gap-1 p-1 bg-white border border-slate-200/80 rounded-xl shadow-2xs w-fit">
+                        <button type="button" class="analytics-scope-btn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all active" data-analytics-scope="all">All Events</button>
+                        <button type="button" class="analytics-scope-btn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all" data-analytics-scope="event">Specific Event</button>
                     </div>
-                    <div id="analytics-report-event-select-wrapper" class="relative hidden md:min-w-[280px]"></div>
-                    <button id="export-org-excel-btn" class="py-2.5 px-5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease shadow-md active:scale-95 md:ml-auto">
-                        <i class="fa-solid fa-file-excel"></i> Export Excel Report (.xlsx)
+                    <div id="analytics-report-event-select-wrapper" class="relative hidden w-full sm:w-auto md:min-w-[240px]"></div>
+                    <button id="export-org-excel-btn" class="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease shadow-xs active:scale-95 shrink-0">
+                        <i class="fa-solid fa-file-excel text-xs"></i> <span>Export Excel (.xlsx)</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Analytics Scope Empty State (shown in event mode before an event is picked) -->
-            <div id="analytics-scope-empty" class="hidden bg-white rounded-[24px] border border-[#ecedfa] border-dashed shadow-sm p-10 text-center mb-6">
-                <div class="w-16 h-16 rounded-2xl bg-[#dae1ff] flex items-center justify-center text-primary mx-auto mb-4">
-                    <i class="fa-solid fa-chart-simple text-2xl"></i>
+            <!-- Scope Empty State -->
+            <div id="analytics-scope-empty" class="hidden spring-card border-dashed p-8 sm:p-12 text-center mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3 text-2xl">
+                    <i class="fa-solid fa-chart-simple"></i>
                 </div>
-                <h4 class="text-lg font-bold text-[#191b22] mb-1">Select an event to view its report</h4>
-                <p class="text-sm text-[#64748b] max-w-md mx-auto">Choose a specific event from the dropdown above to see its KPIs, attendance breakdown, and participant demographics.</p>
+                <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-1">Select an event to view report</h4>
+                <p class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">Choose a specific event from the dropdown above to examine KPIs, attendance breakdown, and participant demographics.</p>
             </div>
 
-            <!-- KPI Grid -->
+            <!-- Analytics Content -->
             <div id="analytics-content">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Total Events</p>
-                    <p class="text-[28px] font-extrabold text-[#191b22] mt-1" id="analytics-stat-events">0</p>
-                </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Total Registrations</p>
-                    <p class="text-[28px] font-extrabold text-primary mt-1" id="analytics-stat-regs">0</p>
-                </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Attendance Rate</p>
-                    <p class="text-[28px] font-extrabold text-emerald-600 mt-1" id="analytics-stat-att-rate">0%</p>
-                </div>
-                <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                    <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Avg Rating</p>
-                    <p class="text-[28px] font-extrabold text-amber-500 mt-1" id="analytics-stat-rating">0.0 ★</p>
-                </div>
-            </div>
-
-            <!-- Charts Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
-                    <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Attendance Status Distribution</h3>
-                    <div class="h-[240px] flex items-center justify-center relative">
-                        <canvas id="chart-attendance-donut"></canvas>
+                <!-- KPI Grid (2x2 on Mobile) -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                    <div class="spring-card p-4 sm:p-5">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Events</p>
+                        <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1" id="analytics-stat-events">0</p>
+                    </div>
+                    <div class="spring-card p-4 sm:p-5">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Registrations</p>
+                        <p class="text-2xl sm:text-3xl font-extrabold text-primary mt-1" id="analytics-stat-regs">0</p>
+                    </div>
+                    <div class="spring-card p-4 sm:p-5">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Attendance Rate</p>
+                        <p class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1" id="analytics-stat-att-rate">0%</p>
+                    </div>
+                    <div class="spring-card p-4 sm:p-5">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Avg Rating</p>
+                        <p class="text-2xl sm:text-3xl font-extrabold text-amber-500 mt-1" id="analytics-stat-rating">0.0 ★</p>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
-                    <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Check-in Methods Breakdown</h3>
-                    <div class="h-[240px] flex items-center justify-center relative">
-                        <canvas id="chart-checkin-methods"></canvas>
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
+                    <div class="spring-card p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4">Attendance Status Distribution</h3>
+                        <div class="h-[220px] sm:h-[260px] flex items-center justify-center relative">
+                            <canvas id="chart-attendance-donut"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="spring-card p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4">Check-in Methods Breakdown</h3>
+                        <div class="h-[220px] sm:h-[260px] flex items-center justify-center relative">
+                            <canvas id="chart-checkin-methods"></canvas>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Demographics Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
-                    <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Top Participant Universities</h3>
-                    <div id="top-schools-container" class="space-y-3"></div>
-                </div>
+                <!-- Demographics Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
+                    <div class="spring-card p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4">Top Participant Universities</h3>
+                        <div id="top-schools-container" class="space-y-2.5"></div>
+                    </div>
 
-                <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
-                    <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Top Participant Majors</h3>
-                    <div id="top-majors-container" class="space-y-3"></div>
+                    <div class="spring-card p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4">Top Participant Majors</h3>
+                        <div id="top-majors-container" class="space-y-2.5"></div>
+                    </div>
                 </div>
-            </div>
             </div>
         </div>
     </main>
 
-    <!-- QR Scan Modal -->
-    <div class="popup-overlay p-4 md:p-6 flex items-center justify-center overflow-y-auto" hidden id="scan-overlay">
+    <!-- ==========================================
+         MODALS & OVERLAYS
+         ========================================== -->
+
+    <!-- QR Scan Console Modal -->
+    <div class="popup-overlay p-2 sm:p-4 md:p-6 flex items-center justify-center overflow-y-auto" hidden id="scan-overlay">
         <div class="popup-backdrop" id="scan-backdrop"></div>
-        <div class="popup-container !max-w-[820px] w-full !p-0 max-h-[92vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-slate-200/80 my-auto">
-            <div class="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+        <div class="popup-container !max-w-[820px] w-[calc(100vw-16px)] sm:w-full !p-0 max-h-[92dvh] flex flex-col rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 my-auto bg-white">
+            <div class="sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
                 <div class="flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
-                        <span class="material-symbols-outlined text-xl font-semibold">qr_code_scanner</span>
+                    <span class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-xs shrink-0">
+                        <span class="material-symbols-outlined text-lg sm:text-xl font-bold">qr_code_scanner</span>
                     </span>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-800 leading-tight tracking-tight">Check-In Console</h2>
-                        <p class="text-xs text-slate-500 font-medium">Continuous attendance QR & Barcode scanner</p>
+                        <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Check-In Console</h2>
+                        <p class="text-[10px] sm:text-xs text-slate-500 font-medium">Continuous QR & Barcode Attendance Scanner</p>
                     </div>
                 </div>
-                <button class="w-9 h-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-800 spring-ease cursor-pointer shadow-sm" id="scan-close">
-                    <i class="fa-solid fa-xmark text-sm"></i>
+                <button class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer border-none transition-colors" id="scan-close">
+                    <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-6 overflow-y-auto flex-1 bg-white">
-                <!-- Side-by-side scanner & greeting -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                    <!-- Scanner Panel (Left) -->
-                    <div class="flex flex-col justify-between bg-slate-50/80 border border-slate-200/80 p-4 rounded-2xl relative min-h-[380px]">
-                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-primary/10 text-primary flex items-center gap-1.5 uppercase tracking-wider select-none z-10 border border-primary/20 backdrop-blur-sm">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Live Scanner
+
+            <div class="p-3.5 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1 bg-white">
+                <!-- Scanner & Feedback Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                    <!-- Scanner Panel -->
+                    <div class="flex flex-col justify-between bg-slate-50/80 border border-slate-200/80 p-3 sm:p-4 rounded-2xl relative min-h-[260px] sm:min-h-[340px]">
+                        <span class="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-lg text-[9px] font-bold bg-primary/10 text-primary flex items-center gap-1.5 uppercase tracking-wider select-none z-10 border border-primary/20 backdrop-blur-sm">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live Scanner
                         </span>
-                        <!-- Camera frame with custom scanner viewfinder -->
-                        <div id="scanner-viewfinder-container" class="relative w-full max-w-[340px] mx-auto rounded-2xl overflow-hidden shadow-md border border-slate-300 bg-black mt-6 aspect-square flex items-center justify-center transition-all duration-300">
-                            <video id="qr-video" class="w-full h-full object-cover rounded-2xl transition-all duration-300" playsinline></video>
-                            <div id="scanner-viewfinder" class="absolute inset-0 border-[3px] border-dashed border-primary/50 rounded-2xl pointer-events-none m-7 animate-pulse transition-all duration-300"></div>
+                        
+                        <!-- Camera Viewfinder -->
+                        <div id="scanner-viewfinder-container" class="relative w-full max-w-[240px] sm:max-w-[300px] mx-auto rounded-2xl overflow-hidden shadow-sm border border-slate-300 bg-black mt-5 sm:mt-6 aspect-square flex items-center justify-center transition-all">
+                            <video id="qr-video" class="w-full h-full object-cover rounded-2xl" playsinline></video>
+                            <div id="scanner-viewfinder" class="absolute inset-0 border-[3px] border-dashed border-primary/60 rounded-2xl pointer-events-none m-5 sm:m-7 animate-pulse"></div>
                         </div>
                         
-                        <!-- Camera controls (Camera switch, exposure, zoom) -->
-                        <div class="mt-4 space-y-3" id="camera-controls-container">
-                            <!-- Camera Select Dropdown -->
+                        <!-- Camera Controls -->
+                        <div class="mt-3 space-y-2.5" id="camera-controls-container">
                             <div class="flex flex-col gap-1">
-                                <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Select Camera</label>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Camera</label>
                                 <div class="flex gap-2">
-                                    <select id="scanner-camera-select" class="flex-grow px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-primary font-medium shadow-sm">
+                                    <select id="scanner-camera-select" class="flex-grow px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-primary font-medium shadow-2xs">
                                         <option value="">Detecting cameras...</option>
                                     </select>
-                                    <button id="scanner-mirror-btn" title="Toggle Mirror View" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-primary spring-ease flex items-center justify-center cursor-pointer shadow-sm">
+                                    <button id="scanner-mirror-btn" title="Toggle Mirror View" class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-primary spring-ease flex items-center justify-center cursor-pointer shadow-2xs">
                                         <span class="material-symbols-outlined text-sm">flip</span>
                                     </button>
                                 </div>
                             </div>
                             
-                            <!-- Sliders Grid -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <!-- Zoom Slider -->
+                            <div class="grid grid-cols-2 gap-2.5">
                                 <div class="flex flex-col gap-1">
-                                    <div class="flex justify-between items-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                         <span>Zoom</span>
                                         <span id="zoom-value" class="font-mono text-slate-400">N/A</span>
                                     </div>
                                     <input type="range" id="scanner-zoom-slider" min="1" max="5" step="0.1" value="1" disabled class="w-full accent-primary h-1.5 rounded-lg cursor-pointer bg-slate-200" />
                                 </div>
-                                <!-- Exposure Slider -->
                                 <div class="flex flex-col gap-1">
-                                    <div class="flex justify-between items-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                         <span>Exposure</span>
                                         <span id="exposure-value" class="font-mono text-slate-400">N/A</span>
                                     </div>
@@ -792,245 +1019,250 @@
                         </div>
                     </div>
 
-                    <!-- Greeting & Scan Feedback Panel (Right) -->
-                    <div id="scan-feedback-container" class="flex flex-col items-center justify-center p-6 border border-slate-200/80 bg-slate-50/80 rounded-2xl min-h-[380px] text-center transition-all duration-300 relative">
-                        <!-- Default view -->
-                        <div id="scan-feedback-default" class="space-y-3 my-auto">
-                            <div class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-sm">
-                                <span class="material-symbols-outlined text-3xl font-semibold animate-pulse">qr_code_scanner</span>
+                    <!-- Feedback & Greeting Panel -->
+                    <div id="scan-feedback-container" class="flex flex-col items-center justify-center p-4 sm:p-6 border border-slate-200/80 bg-slate-50/80 rounded-2xl min-h-[240px] sm:min-h-[340px] text-center transition-all relative">
+                        <!-- Default Ready State -->
+                        <div id="scan-feedback-default" class="space-y-2.5 my-auto">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-2xs">
+                                <span class="material-symbols-outlined text-2xl sm:text-3xl font-bold animate-pulse">qr_code_scanner</span>
                             </div>
                             <div>
-                                <h3 class="font-bold text-slate-800 text-lg">Ready to Scan</h3>
-                                <p class="text-xs text-slate-500 mt-1 max-w-[240px] mx-auto leading-relaxed">Position the attendee's ticket QR code or student card barcode inside the camera viewfinder.</p>
+                                <h3 class="font-bold text-slate-900 text-sm sm:text-base">Ready to Scan</h3>
+                                <p class="text-[11px] text-slate-500 mt-0.5 max-w-[200px] mx-auto leading-relaxed">Place ticket QR code or student card barcode inside camera frame.</p>
                             </div>
-                            <span id="scan-feedback-format" class="inline-block text-[10px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-200/60 px-2.5 py-1 rounded-md">QR or Barcode</span>
+                            <span id="scan-feedback-format" class="inline-block text-[9px] font-bold text-slate-400 uppercase tracking-wider bg-slate-200/60 px-2 py-0.5 rounded-md">QR or Barcode</span>
                         </div>
 
-                        <!-- Success view (Greeting panel - Hidden by default) -->
-                        <div id="scan-feedback-success" class="hidden w-full space-y-4 my-auto">
+                        <!-- Success Feedback -->
+                        <div id="scan-feedback-success" class="hidden w-full space-y-3 my-auto">
                             <div class="relative inline-flex mx-auto">
-                                <div id="scan-feedback-avatar-container" class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-emerald-400 to-teal-500 shadow-lg mx-auto flex items-center justify-center overflow-hidden">
+                                <div id="scan-feedback-avatar-container" class="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-emerald-400 to-teal-500 shadow-md mx-auto flex items-center justify-center overflow-hidden">
                                     <img id="scan-feedback-avatar" src="" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" onerror="this.style.display='none'" /><!-- impeccable-disable broken-image: dynamically populated by JS, hidden by default -->
-                                    <span id="scan-feedback-avatar-placeholder" class="material-symbols-outlined text-4xl text-slate-400">person</span>
+                                    <span id="scan-feedback-avatar-placeholder" class="material-symbols-outlined text-3xl text-slate-400">person</span>
                                 </div>
-                                <span class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-md">
-                                    <span class="material-symbols-outlined text-base font-bold">check</span>
+                                <span class="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-xs">
+                                    <span class="material-symbols-outlined text-xs font-bold">check</span>
                                 </span>
                             </div>
-                            <div class="space-y-1.5 text-center">
-                                <div class="flex items-center justify-center gap-2 flex-wrap">
-                                    <span id="scan-feedback-status-label" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-wider shadow-xs">Checked In</span>
+                            <div class="space-y-1 text-center">
+                                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                    <span id="scan-feedback-status-label" class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9px] font-bold uppercase tracking-wider">Checked In</span>
                                     <span id="scan-feedback-format" class="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">QR Ticket</span>
                                 </div>
-                                <h3 id="scan-feedback-name" class="font-extrabold text-2xl text-slate-800 tracking-tight leading-tight">Full Name</h3>
-                                <p id="scan-feedback-username" class="text-xs text-slate-400 font-mono">@username</p>
-                                <p id="scan-feedback-email" class="text-xs text-slate-500 truncate max-w-[250px] mx-auto">email@example.com</p>
+                                <h3 id="scan-feedback-name" class="font-extrabold text-lg sm:text-xl text-slate-900 tracking-tight leading-tight">Full Name</h3>
+                                <p id="scan-feedback-username" class="text-[11px] text-slate-400 font-mono">@username</p>
+                                <p id="scan-feedback-email" class="text-xs text-slate-500 truncate max-w-[220px] mx-auto">email@example.com</p>
                             </div>
-                            <div class="pt-3 border-t border-slate-200/60 text-xs text-slate-400 font-mono">
-                                TICKET CODE: <span id="scan-feedback-code" class="font-bold text-slate-800">SW-XXXXX</span>
+                            <div class="pt-2.5 border-t border-slate-200/60 text-[11px] text-slate-400 font-mono">
+                                TICKET: <span id="scan-feedback-code" class="font-bold text-slate-900">SW-XXXXX</span>
                             </div>
                         </div>
 
-                        <!-- Error view (Hidden by default) -->
-                        <div id="scan-feedback-error" class="hidden w-full space-y-3 my-auto">
-                            <div class="w-16 h-16 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-500 shadow-sm animate-bounce">
-                                <span class="material-symbols-outlined text-3xl font-bold">warning</span>
+                        <!-- Error Feedback -->
+                        <div id="scan-feedback-error" class="hidden w-full space-y-2.5 my-auto">
+                            <div class="w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-500 shadow-2xs">
+                                <span class="material-symbols-outlined text-2xl font-bold">warning</span>
                             </div>
-                            <div class="space-y-1 px-4 text-center">
-                                <span class="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-100 text-[10px] font-bold uppercase tracking-wider">Scan Failed</span>
-                                <h4 id="scan-feedback-error-title" class="font-bold text-lg text-slate-800 leading-tight mt-1">Check-in Error</h4>
+                            <div class="space-y-0.5 px-2 text-center">
+                                <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-100 text-[9px] font-bold uppercase tracking-wider">Scan Failed</span>
+                                <h4 id="scan-feedback-error-title" class="font-bold text-base text-slate-900 leading-tight mt-1">Check-in Error</h4>
                                 <p id="scan-feedback-error-message" class="text-xs text-rose-500 font-medium">Invalid or expired ticket code.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Manual Code entry section -->
-                <div class="bg-white border border-[#ecedfa] p-4 rounded-xl space-y-3 shadow-sm">
+                <!-- Manual Code Entry -->
+                <div class="bg-white border border-slate-200/80 p-3 sm:p-4 rounded-xl space-y-2 shadow-2xs">
                     <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-lg text-[#1755ba]">keyboard</span>
-                        <h4 class="text-sm font-bold text-slate-700">Manual Code Entry</h4>
+                        <span class="material-symbols-outlined text-base text-primary">keyboard</span>
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Manual Code Entry</h4>
                     </div>
                     <div class="flex gap-2">
-                        <input id="manual-ticket-input" class="flex-1 px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-slate-50 text-sm outline-none focus:border-primary font-mono focus:bg-white transition-all uppercase" placeholder="Enter short ticket code..." />
-                        <button id="manual-checkin-btn" class="py-2.5 px-6 rounded-xl bg-primary text-white text-sm font-semibold border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-[0.98]">Submit</button>
+                        <input id="manual-ticket-input" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm outline-none focus:border-primary font-mono focus:bg-white transition-all uppercase" placeholder="Enter ticket code..." />
+                        <button id="manual-checkin-btn" class="py-2 px-4 rounded-xl bg-primary text-white text-xs font-bold border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shrink-0">Submit</button>
                     </div>
                 </div>
 
-                <!-- Recent Check-ins History (Bottom) -->
-                <div class="border border-[#ecedfa] rounded-xl overflow-hidden bg-white shadow-sm">
-                    <div class="bg-slate-50 px-4 py-2.5 border-b border-[#ecedfa] flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Session Activity Log</span>
-                        <span class="text-[10px] text-slate-400 font-medium font-mono" id="history-count">0 Checked In</span>
+                <!-- Session Log -->
+                <div class="border border-slate-200/80 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <div class="bg-slate-50 px-3.5 py-2 border-b border-slate-200/80 flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Session Activity Log</span>
+                        <span class="text-[10px] text-slate-400 font-mono" id="history-count">0 Checked In</span>
                     </div>
-                    <div id="scan-history-list" class="divide-y divide-[#ecedfa] max-h-[160px] overflow-y-auto">
-                        <div class="p-4 text-center text-xs text-slate-400 italic">No scans recorded in this session.</div>
+                    <div id="scan-history-list" class="divide-y divide-slate-100 max-h-[140px] overflow-y-auto text-xs">
+                        <div class="p-3 text-center text-slate-400 italic">No scans recorded in this session.</div>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-[#ecedfa]">
-                    <button class="px-5 py-2.5 rounded-xl border border-[#e2e2eb] text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc]" id="scan-cancel">Close Console</button>
+                <!-- Modal Footer -->
+                <div class="flex justify-end pt-2 border-t border-slate-100">
+                    <button class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold cursor-pointer spring-ease hover:bg-slate-50" id="scan-cancel">Close Console</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Add Manager Modal -->
-    <div class="popup-overlay" hidden id="manager-overlay">
+    <div class="popup-overlay p-3 sm:p-4 flex items-center justify-center" hidden id="manager-overlay" role="dialog" aria-modal="true" aria-labelledby="manager-overlay-title">
         <div class="popup-backdrop" id="manager-backdrop"></div>
-        <div class="popup-container !max-w-[420px] !p-8 text-center">
-            <div class="w-16 h-16 rounded-full bg-[#dae1ff] flex items-center justify-center mx-auto mb-4">
-                <i class="fa-solid fa-user-plus text-primary text-2xl"></i>
+        <div class="popup-container !max-w-[420px] w-full !p-5 sm:!p-7 text-center rounded-2xl sm:rounded-3xl bg-white shadow-2xl border border-slate-200">
+            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3.5 text-2xl">
+                <i class="fa-solid fa-user-plus"></i>
             </div>
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Add Manager</h3>
-            <p class="text-sm text-[#64748b] mb-6">Enter the email of the user to add as a manager</p>
-            <input id="manager-email-input" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary mb-4" placeholder="user@example.com" />
-            <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="manager-cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="manager-confirm">Add</button>
+            <h3 id="manager-overlay-title" class="text-lg font-bold text-slate-900 mb-1">Add Manager</h3>
+            <p class="text-xs text-slate-500 mb-5 leading-relaxed">Enter the email of the user to add them as an organization manager.</p>
+            <input id="manager-email-input" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm outline-none focus:border-primary focus:bg-white mb-4 font-medium" placeholder="user@example.com" />
+            <div class="flex gap-2.5">
+                <button class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold text-xs spring-ease hover:bg-slate-50 active:scale-95 cursor-pointer" id="manager-cancel">Cancel</button>
+                <button class="flex-1 py-2.5 rounded-xl border-none bg-primary text-white font-bold text-xs spring-ease hover:bg-primary/90 active:scale-95 cursor-pointer shadow-xs" id="manager-confirm">Add Manager</button>
             </div>
         </div>
     </div>
 
-    <!-- Create Org Modal -->
-    <div class="popup-overlay" hidden id="create-org-overlay">
+    <!-- Create Organization Modal -->
+    <div class="popup-overlay p-3 sm:p-4 flex items-center justify-center" hidden id="create-org-overlay" role="dialog" aria-modal="true" aria-labelledby="create-org-title">
         <div class="popup-backdrop" id="create-org-backdrop"></div>
-        <div class="popup-container !max-w-[420px] !p-8">
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Create Organization</h3>
-            <p class="text-sm text-[#64748b] mb-6">Register a new organization (this will submit a host registration request)</p>
-            <div class="space-y-4 mb-6">
+        <div class="popup-container !max-w-[440px] w-full !p-5 sm:!p-7 rounded-2xl sm:rounded-3xl bg-white shadow-2xl border border-slate-200">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-building-circle-check"></i>
+                </div>
                 <div>
-                    <label class="block text-sm font-semibold text-[#64748b] mb-1">Organization Name</label>
-                    <input id="create-org-name" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary" placeholder="e.g. Student Club" />
+                    <h3 id="create-org-title" class="text-base font-bold text-slate-900">Create Organization</h3>
+                    <p class="text-[11px] text-slate-500">Register a new club or hosting entity</p>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="create-org-cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="create-org-confirm">Submit</button>
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label for="create-org-name" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Organization Name</label>
+                    <input id="create-org-name" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm outline-none focus:border-primary focus:bg-white font-medium" placeholder="e.g. Student Tech Club" />
+                </div>
+            </div>
+            <div class="flex gap-2.5">
+                <button class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold text-xs spring-ease hover:bg-slate-50 active:scale-95 cursor-pointer" id="create-org-cancel">Cancel</button>
+                <button class="flex-1 py-2.5 rounded-xl border-none bg-primary text-white font-bold text-xs spring-ease hover:bg-primary/90 active:scale-95 cursor-pointer shadow-xs" id="create-org-confirm">Submit</button>
             </div>
         </div>
     </div>
 
-    <!-- Event Detail Modal -->
-    <div class="popup-overlay p-3 sm:p-6" hidden id="event-detail-overlay">
+    <!-- Event Detail Modal Overlay -->
+    <div class="popup-overlay p-2 sm:p-6" hidden id="event-detail-overlay" role="dialog" aria-modal="true" aria-label="Event details">
         <div class="popup-backdrop" id="event-detail-backdrop"></div>
-        <div class="popup-container !max-w-[940px] !p-0 overflow-hidden shadow-2xl rounded-3xl bg-white border border-[#ecedfa]">
+        <div class="popup-container !max-w-[940px] w-full !p-0 overflow-hidden shadow-2xl rounded-2xl sm:rounded-3xl bg-white border border-slate-200">
             <div class="max-h-[90vh] overflow-y-auto relative" id="event-detail-body"></div>
         </div>
     </div>
 
-    <!-- Floating Queue Status Badge -->
-    <div id="queue-status-badge" class="fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-full bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/60 shadow-xl flex items-center gap-2.5 text-xs font-mono transition-all duration-300 pointer-events-none opacity-0 translate-y-4">
+    <!-- Floating Offline Sync Queue Status Badge -->
+    <div id="queue-status-badge" class="fixed bottom-5 right-5 z-50 px-3.5 py-2 rounded-full bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/60 shadow-xl flex items-center gap-2 text-xs font-mono transition-all duration-300 pointer-events-none opacity-0 translate-y-4">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="queue-status-dot"></span>
         <span id="queue-status-text" class="font-semibold text-slate-100">Sync: 0/0</span>
     </div>
 
     <!-- Add / Import Participants Modal -->
-    <div class="popup-overlay" hidden id="add-participants-overlay">
+    <div class="popup-overlay p-2 sm:p-4 flex items-center justify-center" hidden id="add-participants-overlay">
         <div class="popup-backdrop" id="add-participants-backdrop"></div>
-        <div class="popup-container !max-w-[760px] !p-0 overflow-hidden shadow-2xl rounded-3xl bg-white border border-[#ecedfa] flex flex-col max-h-[90vh]">
-            <!-- Modal Header -->
-            <div class="p-6 border-b border-[#ecedfa] flex items-center justify-between bg-white shrink-0">
+        <div class="popup-container !max-w-[760px] w-[calc(100vw-16px)] sm:w-full !p-0 overflow-hidden shadow-2xl rounded-2xl sm:rounded-3xl bg-white border border-slate-200 flex flex-col max-h-[92dvh]">
+            <!-- Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-base sm:text-lg shrink-0">
                         <i class="fa-solid fa-user-plus"></i>
                     </div>
                     <div>
-                        <h3 class="font-headline-md text-xl font-bold text-[#191b22]">Add Participants</h3>
-                        <p class="text-xs text-[#64748b] mt-0.5">Enter manually or import in bulk via Excel/CSV (<span class="font-semibold text-slate-700">Fullname, MSSV, Email</span>)</p>
+                        <h3 id="add-participants-title" class="text-sm sm:text-base font-bold text-slate-900">Add Participants</h3>
+                        <p class="text-[10px] sm:text-xs text-slate-500">Enter manually or import in bulk via Excel/CSV (<strong class="text-slate-700">Fullname, MSSV, Email</strong>)</p>
                     </div>
                 </div>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" id="add-participants-close-btn">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" type="button" aria-label="Close" id="add-participants-close-btn">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
             <!-- Mode Selector Tabs -->
-            <div class="px-6 pt-4 pb-2 flex gap-2 bg-[#f8f9fc] border-b border-[#ecedfa] shrink-0">
-                <button type="button" class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border-none cursor-pointer transition-all bg-primary text-white shadow-xs" id="mode-manual-btn">
-                    <i class="fa-solid fa-pen-to-square"></i> Manual Entry
+            <div class="px-4 sm:px-6 pt-3 pb-2 flex gap-2 bg-slate-50/70 border-b border-slate-100 shrink-0">
+                <button type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border-none cursor-pointer transition-all bg-primary text-white shadow-2xs" id="mode-manual-btn">
+                    <i class="fa-solid fa-pen-to-square text-[10px]"></i> <span>Manual Entry</span>
                 </button>
-                <button type="button" class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border border-[#e2e2eb] bg-white text-[#64748b] cursor-pointer hover:bg-slate-50 transition-all" id="mode-excel-btn">
-                    <i class="fa-solid fa-file-excel text-emerald-600"></i> Import Excel / CSV
+                <button type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 bg-white text-slate-600 cursor-pointer hover:bg-slate-50 transition-all" id="mode-excel-btn">
+                    <i class="fa-solid fa-file-excel text-emerald-600 text-[10px]"></i> <span>Import Excel / CSV</span>
                 </button>
             </div>
 
-            <!-- Modal Content (Scrollable) -->
-            <div class="p-6 overflow-y-auto flex-1 space-y-4">
-                <!-- Excel Upload Area (shown in excel mode or above table) -->
+            <!-- Content Area -->
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                <!-- Excel Upload Section -->
                 <div id="excel-import-section" class="hidden">
-                    <div class="border-2 border-dashed border-[#dae1ff] hover:border-primary rounded-2xl p-6 text-center bg-primary/5 hover:bg-primary/10 transition-all cursor-pointer relative" id="excel-dropzone">
+                    <div class="border-2 border-dashed border-blue-200 hover:border-primary rounded-2xl p-5 sm:p-6 text-center bg-blue-50/40 hover:bg-blue-50/70 transition-all cursor-pointer relative" id="excel-dropzone">
                         <input type="file" id="modal-excel-input" accept=".xlsx,.xls,.csv" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
-                        <div class="w-12 h-12 rounded-2xl bg-white shadow-xs text-emerald-600 flex items-center justify-center text-2xl mx-auto mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-white shadow-2xs text-emerald-600 flex items-center justify-center text-xl mx-auto mb-2.5">
                             <i class="fa-solid fa-file-excel"></i>
                         </div>
-                        <p class="font-bold text-sm text-[#191b22]">Click or drag & drop Excel / CSV file here</p>
-                        <p class="text-xs text-[#64748b] mt-1">Supports columns: <strong class="text-slate-700">Họ và tên (Fullname)</strong>, <strong class="text-slate-700">Mã sinh viên (MSSV)</strong>, <strong class="text-slate-700">Email</strong></p>
+                        <p class="font-bold text-xs sm:text-sm text-slate-900">Click or drag & drop Excel / CSV file here</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Required columns: <strong class="text-slate-700">Họ và tên</strong>, <strong class="text-slate-700">Mã sinh viên</strong>, <strong class="text-slate-700">Email</strong></p>
                     </div>
 
-                    <div class="flex items-center justify-between mt-3 px-1">
-                        <span class="text-xs text-slate-500 italic">Rows will be auto-parsed into the editable grid below.</span>
-                        <button type="button" id="download-template-btn" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1.5 bg-transparent border-none cursor-pointer">
-                            <i class="fa-solid fa-download"></i> Download Sample Excel (.xlsx)
+                    <div class="flex items-center justify-between mt-2.5 px-1 flex-wrap gap-2">
+                        <span class="text-[11px] text-slate-400 italic">Rows will auto-parse into the editable grid below.</span>
+                        <button type="button" id="download-template-btn" class="text-xs text-primary font-bold hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer">
+                            <i class="fa-solid fa-download text-[10px]"></i> Download Template (.xlsx)
                         </button>
                     </div>
                 </div>
 
                 <!-- Parse Notification Banner -->
-                <div id="parse-status-banner" class="hidden p-3.5 rounded-xl text-xs flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800">
-                    <i class="fa-solid fa-circle-check text-emerald-600 text-sm mt-0.5"></i>
-                    <div class="flex-1">
+                <div id="parse-status-banner" class="hidden p-3 rounded-xl text-xs flex items-start gap-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-sm mt-0.5 shrink-0"></i>
+                    <div class="flex-1 min-w-0">
                         <p class="font-bold" id="parse-status-title">File parsed successfully!</p>
-                        <p class="text-emerald-700 mt-0.5" id="parse-status-desc"></p>
+                        <p class="text-emerald-700 mt-0.5 text-[11px]" id="parse-status-desc"></p>
                     </div>
                 </div>
 
                 <!-- Editable Grid Section -->
                 <div>
-                    <div class="flex items-center justify-between mb-2.5">
-                        <label class="text-xs font-bold uppercase tracking-wider text-[#64748b] flex items-center gap-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                             <span>Participant Rows</span>
-                            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-mono font-semibold" id="grid-row-count">0 rows</span>
+                            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-mono font-bold" id="grid-row-count">0 rows</span>
                         </label>
                         <div class="flex items-center gap-2">
-                            <button type="button" id="grid-add-row-btn" class="px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1.5">
-                                <i class="fa-solid fa-plus"></i> Add Row
+                            <button type="button" id="grid-add-row-btn" class="px-2.5 py-1 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-bold cursor-pointer transition-colors flex items-center gap-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Add Row
                             </button>
-                            <button type="button" id="grid-clear-btn" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 text-xs font-semibold cursor-pointer transition-colors">
-                                Clear All
+                            <button type="button" id="grid-clear-btn" class="px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 text-xs font-semibold cursor-pointer transition-colors">
+                                Clear
                             </button>
                         </div>
                     </div>
 
-                    <!-- Editable Rows Table -->
-                    <div class="border border-[#ecedfa] rounded-2xl overflow-hidden bg-white shadow-2xs">
-                        <div class="max-h-[300px] overflow-y-auto">
+                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                        <div class="max-h-[260px] overflow-y-auto">
                             <table class="w-full text-xs text-left border-collapse">
-                                <thead class="sticky top-0 bg-[#f8f9fc] border-b border-[#ecedfa] text-[#64748b] font-bold z-10">
+                                <thead class="sticky top-0 bg-slate-50 border-b border-slate-200 text-slate-600 font-bold z-10">
                                     <tr>
-                                        <th class="py-2.5 px-3 w-10 text-center">#</th>
-                                        <th class="py-2.5 px-3 min-w-[180px]">Full Name <span class="text-red-500">*</span></th>
-                                        <th class="py-2.5 px-3 min-w-[140px]">Student ID (MSSV) <span class="text-red-500">*</span></th>
-                                        <th class="py-2.5 px-3 min-w-[180px]">Email <span class="text-red-500">*</span></th>
-                                        <th class="py-2.5 px-3 w-10 text-center"></th>
+                                        <th class="py-2 px-2.5 w-8 text-center">#</th>
+                                        <th class="py-2 px-2.5 min-w-[140px]">Full Name <span class="text-red-500">*</span></th>
+                                        <th class="py-2 px-2.5 min-w-[110px]">Student ID <span class="text-red-500">*</span></th>
+                                        <th class="py-2 px-2.5 min-w-[140px]">Email <span class="text-red-500">*</span></th>
+                                        <th class="py-2 px-2 w-8 text-center"></th>
                                     </tr>
                                 </thead>
-                                <tbody id="add-participants-grid-body">
-                                    <!-- Dynamic rows -->
-                                </tbody>
+                                <tbody id="add-participants-grid-body" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Modal Footer -->
-            <div class="p-4 px-6 border-t border-[#ecedfa] bg-[#f8f9fc] flex items-center justify-between shrink-0">
-                <span class="text-xs text-[#64748b]" id="add-participants-feedback"></span>
+            <!-- Footer -->
+            <div class="p-3.5 sm:p-4 px-4 sm:px-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
+                <span class="text-xs text-slate-500" id="add-participants-feedback"></span>
                 <div class="flex items-center gap-2">
-                    <button type="button" class="px-5 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-xs spring-ease hover:bg-[#f8f9fc] active:scale-95 cursor-pointer" id="add-participants-cancel-btn">Cancel</button>
-                    <button type="button" class="px-6 py-2.5 rounded-xl border-none bg-primary text-white font-semibold text-xs spring-ease hover:bg-primary/90 active:scale-95 cursor-pointer flex items-center gap-2 shadow-xs" id="save-participants-batch-btn">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Participants
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold text-xs spring-ease hover:bg-slate-50 active:scale-95 cursor-pointer" id="add-participants-cancel-btn">Cancel</button>
+                    <button type="button" class="px-5 py-2 rounded-xl border-none bg-primary text-white font-bold text-xs spring-ease hover:bg-primary/90 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs" id="save-participants-batch-btn">
+                        <i class="fa-solid fa-floppy-disk text-xs"></i> <span>Save Participants</span>
                     </button>
                 </div>
             </div>
@@ -1038,69 +1270,69 @@
     </div>
 
     <!-- Edit External Participant Modal -->
-    <div class="popup-overlay" hidden id="edit-ext-overlay">
+    <div class="popup-overlay p-3 sm:p-4 flex items-center justify-center" hidden id="edit-ext-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-ext-title">
         <div class="popup-backdrop" id="edit-ext-backdrop"></div>
-        <div class="popup-container !max-w-[440px] !p-6 bg-white rounded-3xl border border-[#ecedfa] shadow-2xl">
+        <div class="popup-container !max-w-[440px] w-full !p-5 sm:!p-6 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-lg">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-user-pen"></i>
                     </div>
                     <div>
-                        <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Edit Participant</h3>
-                        <p class="text-xs text-[#64748b]">External Guest (Non-account attendee)</p>
+                        <h3 id="edit-ext-title" class="text-sm sm:text-base font-bold text-slate-900">Edit Participant</h3>
+                        <p class="text-[11px] text-slate-500">External Guest Attendee</p>
                     </div>
                 </div>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" id="edit-ext-close-btn">
-                    <i class="fa-solid fa-xmark text-base"></i>
+                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" type="button" aria-label="Close" id="edit-ext-close-btn">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
             <input type="hidden" id="edit-ext-attendance-id" />
 
-            <div class="space-y-3.5 mb-6">
+            <div class="space-y-3 mb-5">
                 <div>
-                    <label class="block text-xs font-semibold text-[#64748b] mb-1">Full Name <span class="text-red-500">*</span></label>
-                    <input id="edit-ext-fullname" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary focus:bg-white transition-all" placeholder="e.g. Nguyen Van A" />
+                    <label for="edit-ext-fullname" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Full Name <span class="text-red-500">*</span></label>
+                    <input id="edit-ext-fullname" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm outline-none focus:border-primary focus:bg-white" placeholder="e.g. Nguyen Van A" />
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-[#64748b] mb-1">Student ID (MSSV) <span class="text-red-500">*</span></label>
-                    <input id="edit-ext-studentid" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary focus:bg-white transition-all font-mono" placeholder="e.g. 102200001" />
+                    <label for="edit-ext-studentid" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Student ID (MSSV) <span class="text-red-500">*</span></label>
+                    <input id="edit-ext-studentid" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm outline-none focus:border-primary focus:bg-white font-mono" placeholder="e.g. 102200001" />
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-[#64748b] mb-1">Email <span class="text-red-500">*</span></label>
-                    <input id="edit-ext-email" type="email" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-primary focus:bg-white transition-all" placeholder="e.g. student@dut.udn.vn" />
+                    <label for="edit-ext-email" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Email <span class="text-red-500">*</span></label>
+                    <input id="edit-ext-email" type="email" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm outline-none focus:border-primary focus:bg-white" placeholder="e.g. student@dut.udn.vn" />
                 </div>
             </div>
 
-            <div class="flex items-center justify-between gap-3 pt-3 border-t border-[#ecedfa]">
-                <button type="button" class="text-xs font-semibold text-red-600 hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1.5" id="edit-ext-delete-btn">
-                    <i class="fa-solid fa-trash-can"></i> Delete
+            <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                <button type="button" class="text-xs font-bold text-rose-600 hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1" id="edit-ext-delete-btn">
+                    <i class="fa-solid fa-trash-can text-[10px]"></i> Delete
                 </button>
                 <div class="flex gap-2">
-                    <button type="button" class="px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-xs spring-ease hover:bg-[#f8f9fc] active:scale-95 cursor-pointer" id="edit-ext-cancel-btn">Cancel</button>
-                    <button type="button" class="px-5 py-2.5 rounded-xl border-none bg-primary text-white font-semibold text-xs spring-ease hover:bg-primary/90 active:scale-95 cursor-pointer" id="edit-ext-save-btn">Save Changes</button>
+                    <button type="button" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold text-xs spring-ease hover:bg-slate-50 active:scale-95 cursor-pointer" id="edit-ext-cancel-btn">Cancel</button>
+                    <button type="button" class="px-4 py-2 rounded-xl border-none bg-primary text-white font-bold text-xs spring-ease hover:bg-primary/90 active:scale-95 cursor-pointer shadow-xs" id="edit-ext-save-btn">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Revoke Certificate Modal -->
-    <div class="popup-overlay" hidden id="revoke-cert-overlay">
+    <div class="popup-overlay p-3 sm:p-4 flex items-center justify-center" hidden id="revoke-cert-overlay" role="dialog" aria-modal="true" aria-labelledby="revoke-cert-title">
         <div class="popup-backdrop" id="revoke-cert-backdrop"></div>
-        <div class="popup-container !max-w-[440px] !p-6 bg-white rounded-3xl border border-[#ecedfa] shadow-2xl">
+        <div class="popup-container !max-w-[440px] w-full !p-5 sm:!p-6 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 flex items-center justify-center text-lg">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-ban"></i>
                     </div>
                     <div>
-                        <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Revoke Certificate</h3>
-                        <p class="text-xs text-[#64748b]">Invalidate issued certificate</p>
+                        <h3 id="revoke-cert-title" class="text-sm sm:text-base font-bold text-slate-900">Revoke Certificate</h3>
+                        <p class="text-[11px] text-slate-500">Invalidate issued credential</p>
                     </div>
                 </div>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" id="revoke-cert-close-btn">
-                    <i class="fa-solid fa-xmark text-base"></i>
+                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" type="button" aria-label="Close" id="revoke-cert-close-btn">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
@@ -1108,14 +1340,14 @@
 
             <div class="mb-5">
                 <p class="text-xs text-slate-600 mb-3" id="revoke-cert-recipient-desc">Are you sure you want to revoke this certificate?</p>
-                <label class="block text-xs font-semibold text-[#64748b] mb-1.5">Revocation Reason <span class="text-red-500">*</span></label>
-                <textarea id="revoke-cert-reason" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm outline-none focus:border-red-500 focus:bg-white transition-all resize-none" placeholder="e.g. Ineligible attendance / Violated terms of activity"></textarea>
+                <label for="revoke-cert-reason" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Revocation Reason <span class="text-red-500">*</span></label>
+                <textarea id="revoke-cert-reason" rows="3" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm outline-none focus:border-rose-500 focus:bg-white transition-all resize-none font-medium" placeholder="e.g. Ineligible attendance / Violated terms of activity"></textarea>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#ecedfa]">
-                <button type="button" class="px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-xs spring-ease hover:bg-[#f8f9fc] active:scale-95 cursor-pointer" id="revoke-cert-cancel-btn">Cancel</button>
-                <button type="button" class="px-5 py-2.5 rounded-xl border-none bg-red-600 text-white font-semibold text-xs spring-ease hover:bg-red-700 active:scale-95 cursor-pointer flex items-center gap-1.5" id="revoke-cert-confirm-btn">
-                    <i class="fa-solid fa-ban text-[11px]"></i> Confirm Revoke
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button type="button" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold text-xs spring-ease hover:bg-slate-50 active:scale-95 cursor-pointer" id="revoke-cert-cancel-btn">Cancel</button>
+                <button type="button" class="px-4 py-2 rounded-xl border-none bg-rose-600 text-white font-bold text-xs spring-ease hover:bg-rose-700 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs" id="revoke-cert-confirm-btn">
+                    <i class="fa-solid fa-ban text-xs"></i> <span>Confirm Revoke</span>
                 </button>
             </div>
         </div>
