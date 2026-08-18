@@ -65,8 +65,72 @@
     </div>
   </section>
 
+  <!-- CORE PILLARS -->
+  <section class="landing-section" id="core-pillars" style="background: #ffffff; padding: 80px 0 60px 0;">
+    <div class="landing-container">
+      <div class="text-center mb-16 reveal">
+        <div class="section-label">
+          <span class="material-symbols-outlined text-base">widgets</span>
+          <span data-i18n="index.pillars_title">SpringWave Ecosystem</span>
+        </div>
+        <h2 class="section-title" data-i18n="index.pillars_heading">Four Pillars of Your Professional Growth</h2>
+        <p class="section-subtitle mx-auto" data-i18n="index.pillars_desc">A comprehensive suite of tools designed to help students discover opportunities, connect with others, and reach career milestones.</p>
+      </div>
+
+      <div class="pillars-grid reveal">
+        <!-- Card 1: Quiz & Roadmap -->
+        <a href="/quiz.html" class="pillar-card">
+          <div class="pillar-icon-wrap" style="background: rgba(35, 73, 155, 0.08);">
+            <span class="material-symbols-outlined text-2xl" style="color: #23499b;">psychology</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="index.pillar1_title">AI Personalization</h3>
+          <p class="text-xs text-slate-500 leading-relaxed mb-4" data-i18n="index.pillar1_desc">Take our personality & skills quiz to generate your customized AI profile and interactive learning roadmap.</p>
+          <span class="mt-auto inline-flex items-center gap-1 text-xs font-bold text-[#23499b]">
+            <span data-i18n="index.pillar_cta1">Take Quiz</span> <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </span>
+        </a>
+
+        <!-- Card 2: Explore Hub -->
+        <a href="/explore.html" class="pillar-card">
+          <div class="pillar-icon-wrap" style="background: rgba(16, 185, 129, 0.08);">
+            <span class="material-symbols-outlined text-2xl" style="color: #10b981;">explore</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="index.pillar2_title">Activity Explorer</h3>
+          <p class="text-xs text-slate-500 leading-relaxed mb-4" data-i18n="index.pillar2_desc">Search and filter hundreds of extracurricular activities. Leverage semantic AI search to find matching opportunities.</p>
+          <span class="mt-auto inline-flex items-center gap-1 text-xs font-bold text-[#10b981]">
+            <span data-i18n="index.pillar_cta2">Explore Events</span> <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </span>
+        </a>
+
+        <!-- Card 3: Gamified Companion -->
+        <a href="/profile.html#badges-section" class="pillar-card">
+          <div class="pillar-icon-wrap" style="background: rgba(245, 158, 11, 0.08);">
+            <span class="material-symbols-outlined text-2xl" style="color: #f59e0b;">military_tech</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="index.pillar3_title">Gamified Companion</h3>
+          <p class="text-xs text-slate-500 leading-relaxed mb-4" data-i18n="index.pillar3_desc">Gain contribution XP points, level up, and unlock 16 colorful achievement badges through active student life.</p>
+          <span class="mt-auto inline-flex items-center gap-1 text-xs font-bold text-[#f59e0b]">
+            <span data-i18n="index.pillar_cta3">View Profile</span> <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </span>
+        </a>
+
+        <!-- Card 4: Discussion Forum -->
+        <a href="/community.html" class="pillar-card">
+          <div class="pillar-icon-wrap" style="background: rgba(99, 102, 241, 0.08);">
+            <span class="material-symbols-outlined text-2xl" style="color: #6366f1;">forum</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="index.pillar4_title">Community Forum</h3>
+          <p class="text-xs text-slate-500 leading-relaxed mb-4" data-i18n="index.pillar4_desc">Join peer discussions across multiple universities, search for teammates, and share valuable learning resources.</p>
+          <span class="mt-auto inline-flex items-center gap-1 text-xs font-bold text-[#6366f1]">
+            <span data-i18n="index.pillar_cta4">Join Discussions</span> <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- HOW IT WORKS -->
-  <section class="landing-section" id="how-it-works">
+  <section class="landing-section" id="how-it-works" style="background: #f8fafc; padding: 80px 0;">
     <div class="landing-container">
       <div class="text-center mb-16 reveal">
         <div class="section-label">
@@ -74,363 +138,409 @@
           <span data-i18n="index.how_title">How It Works</span>
         </div>
         <h2 class="section-title" data-i18n="index.how_heading">Three Steps to Your Growth Journey</h2>
-        <p class="section-subtitle mx-auto" data-i18n="index.how_desc">SpringWave's AI engine analyzes your profile and creates a personalized path
-          toward your goals.</p>
+        <p class="section-subtitle mx-auto" data-i18n="index.how_desc">SpringWave's AI engine analyzes your profile and creates a personalized path toward your goals.</p>
       </div>
 
-      <div class="steps-grid">
-        <div class="step-connector"></div>
-
-        <div class="step-card reveal reveal-delay-1">
-          <div class="step-number">1</div>
-          <div class="w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center"
-            style="background: rgba(35, 73, 155, 0.08);">
-            <span class="material-symbols-outlined text-2xl" style="color: #23499b;">quiz</span>
+      <div class="relative flex flex-col md:flex-row gap-8 justify-between items-stretch reveal">
+        <!-- Step 1 -->
+        <div class="flex-1 bg-white p-8 rounded-3xl border border-slate-100 flex flex-col items-center text-center shadow-sm relative group hover:shadow-md transition">
+          <div class="absolute -top-4 bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">1</div>
+          <div class="w-16 h-16 mb-6 rounded-2xl flex items-center justify-center bg-primary/5 group-hover:scale-110 transition">
+            <span class="material-symbols-outlined text-3xl text-primary">quiz</span>
           </div>
-          <h3 class="text-xl font-bold mb-3" style="color: #0f172a;" data-i18n="index.step1_title">Take AI Quiz</h3>
-          <p class="text-base leading-relaxed" style="color: #475569;" data-i18n="index.step1_desc">Answer a few questions about your interests,
-            skills, and goals. Our AI builds your unique profile.</p>
+          <h3 class="text-lg font-bold text-slate-900 mb-3" data-i18n="index.step1_title">Take AI Quiz</h3>
+          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step1_desc">Answer a few questions about your interests, skills, and goals. Our AI builds your unique profile.</p>
         </div>
 
-        <div class="step-card reveal reveal-delay-2">
-          <div class="step-number">2</div>
-          <div class="w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center"
-            style="background: rgba(35, 73, 155, 0.08);">
-            <span class="material-symbols-outlined text-2xl" style="color: #23499b;">recommend</span>
-          </div>
-          <h3 class="text-xl font-bold mb-3" style="color: #0f172a;" data-i18n="index.step2_title">Get Personalized Recommendations</h3>
-          <p class="text-base leading-relaxed" style="color: #475569;" data-i18n="index.step2_desc">Receive tailored opportunities ranked by match
-            score — from workshops to career programs.</p>
+        <!-- Connector Line (Only on md+) -->
+        <div class="hidden md:flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-slate-300 text-3xl">chevron_right</span>
         </div>
 
-        <div class="step-card reveal reveal-delay-3">
-          <div class="step-number">3</div>
-          <div class="w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center"
-            style="background: rgba(35, 73, 155, 0.08);">
-            <span class="material-symbols-outlined text-2xl" style="color: #23499b;">rocket_launch</span>
+        <!-- Step 2 -->
+        <div class="flex-1 bg-white p-8 rounded-3xl border border-slate-100 flex flex-col items-center text-center shadow-sm relative group hover:shadow-md transition">
+          <div class="absolute -top-4 bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">2</div>
+          <div class="w-16 h-16 mb-6 rounded-2xl flex items-center justify-center bg-emerald-50 group-hover:scale-110 transition">
+            <span class="material-symbols-outlined text-3xl text-emerald-600">recommend</span>
           </div>
-          <h3 class="text-xl font-bold mb-3" style="color: #0f172a;" data-i18n="index.step3_title">Build Your Growth Journey</h3>
-          <p class="text-base leading-relaxed" style="color: #475569;" data-i18n="index.step3_desc">Track progress, develop skills, and follow your
-            AI-generated roadmap toward your dream career.</p>
+          <h3 class="text-lg font-bold text-slate-900 mb-3" data-i18n="index.step2_title">Get Recommendations</h3>
+          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step2_desc">Receive tailored opportunities ranked by match score — from workshops to career programs.</p>
+        </div>
+
+        <!-- Connector Line (Only on md+) -->
+        <div class="hidden md:flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-slate-300 text-3xl">chevron_right</span>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex-1 bg-white p-8 rounded-3xl border border-slate-100 flex flex-col items-center text-center shadow-sm relative group hover:shadow-md transition">
+          <div class="absolute -top-4 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">3</div>
+          <div class="w-16 h-16 mb-6 rounded-2xl flex items-center justify-center bg-indigo-50 group-hover:scale-110 transition">
+            <span class="material-symbols-outlined text-3xl text-indigo-600">rocket_launch</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-3" data-i18n="index.step3_title">Build Your Growth</h3>
+          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step3_desc">Track progress, develop skills, and follow your AI-generated roadmap toward your dream career.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- AI MATCHING SHOWCASE -->
-  <section class="landing-section" id="discover" style="background: #f1f5f9;">
+  <!-- PLATFORM PREVIEW HUB -->
+  <section class="landing-section" id="platform-preview-hub" style="background: #ffffff; padding: 80px 0;">
+    <div class="landing-container">
+      <div class="text-center mb-12 reveal">
+        <div class="section-label">
+          <span class="material-symbols-outlined text-base">visibility</span>
+          <span data-i18n="index.preview_hub_title">Platform Highlights</span>
+        </div>
+        <h2 class="section-title" data-i18n="index.preview_hub_heading">Explore the SpringWave Interface</h2>
+        <p class="section-subtitle mx-auto" data-i18n="index.preview_hub_desc">Get an inside look at the core interfaces designed to optimize your academic and skill development journey.</p>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="mb-10 reveal">
+        <div class="preview-tabs-list">
+          <button class="preview-tab-btn active" data-tab="preview-ai-matching">
+            <span class="material-symbols-outlined text-base">auto_awesome</span>
+            <span data-i18n="index.tab_ai">AI Recommendations</span>
+          </button>
+          <button class="preview-tab-btn" data-tab="preview-explorer">
+            <span class="material-symbols-outlined text-base">explore</span>
+            <span data-i18n="index.tab_explore">Activity Hub</span>
+          </button>
+          <button class="preview-tab-btn" data-tab="preview-forum">
+            <span class="material-symbols-outlined text-base">forum</span>
+            <span data-i18n="index.tab_forum">Student Forum</span>
+          </button>
+          <button class="preview-tab-btn" data-tab="preview-dashboard">
+            <span class="material-symbols-outlined text-base">dashboard</span>
+            <span data-i18n="index.tab_dashboard">Growth Dashboard</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="max-w-5xl mx-auto reveal">
+        
+        <!-- Tab 1: AI Recommendations -->
+        <div class="preview-tab-panel active" id="preview-ai-matching">
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <a href="/explore.html?category=workshop" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
+              <div class="rec-card-header">
+                <div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white" style="background: linear-gradient(135deg, #23499b, #3b6fd4);">
+                      <span class="material-symbols-outlined text-sm">code</span>
+                    </div>
+                    <span class="rec-card-badge perfect">95% Match</span>
+                  </div>
+                  <h3 class="rec-card-title">AI Innovation Workshop</h3>
+                </div>
+              </div>
+              <div class="match-bar-track">
+                <div class="match-bar-fill high" data-width="95" style="width: 95%;"></div>
+              </div>
+              <div class="checklist">
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Matches your major</div>
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Matches your interests</div>
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Improves missing skills</div>
+              </div>
+            </a>
+
+            <a href="/explore.html?category=sport" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
+              <div class="rec-card-header">
+                <div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white" style="background: linear-gradient(135deg, #e11d48, #fb7185);">
+                      <span class="material-symbols-outlined text-sm">sports_soccer</span>
+                    </div>
+                    <span class="rec-card-badge perfect">91% Match</span>
+                  </div>
+                  <h3 class="rec-card-title">Student Sports Tournament</h3>
+                </div>
+              </div>
+              <div class="match-bar-track">
+                <div class="match-bar-fill high" data-width="91" style="width: 91%;"></div>
+              </div>
+              <div class="checklist">
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Improves physical health</div>
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Builds team collaboration</div>
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Relieves academic stress</div>
+              </div>
+            </a>
+
+            <a href="/explore.html?category=volunteer" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
+              <div class="rec-card-header">
+                <div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white" style="background: linear-gradient(135deg, #d97706, #f59e0b);">
+                      <span class="material-symbols-outlined text-sm">volunteer_activism</span>
+                    </div>
+                    <span class="rec-card-badge good">88% Match</span>
+                  </div>
+                  <h3 class="rec-card-title">Green City Volunteer Program</h3>
+                </div>
+              </div>
+              <div class="match-bar-track">
+                <div class="match-bar-fill medium" data-width="88" style="width: 88%;"></div>
+              </div>
+              <div class="checklist">
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Leadership development</div>
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Community impact</div>
+                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Resume building</div>
+              </div>
+            </a>
+          </div>
+          <div class="text-center mt-8">
+            <a href="/quiz.html" class="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm bg-primary text-white hover:bg-primary-dark transition active:scale-95 shadow">
+              <span data-i18n="index.take_quiz_to_see_matches">Try AI Matchmaker</span>
+              <span class="material-symbols-outlined text-base">psychology</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Tab 2: Activity Hub Explorer -->
+        <div class="preview-tab-panel" id="preview-explorer">
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Mock Card 1 -->
+            <div class="card relative group">
+              <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop" class="card-image">
+              <div class="card-tag-overlay absolute top-2 right-2 bg-[#e6f0fd]/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-[#3493fa] border border-[#3493fa]/30 z-10 shadow-sm">
+                <span class="info-type">Workshop</span>
+              </div>
+              <div class="card-content">
+                <h2 class="card-title">AI Innovation Workshop</h2>
+                <div class="info"><i class="fa-solid fa-location-dot"></i><span class="info-location">Hall A, Tech Campus</span></div>
+                <div class="info"><i class="fa-regular fa-calendar"></i><span class="info-date">10/09/2026</span></div>
+                <div class="card-bottom">
+                  <a href="/explore.html" class="details-btn block text-center leading-[38px] hover:no-underline">View Details</a>
+                </div>
+              </div>
+            </div>
+            <!-- Mock Card 2 -->
+            <div class="card relative group">
+              <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1200&auto=format&fit=crop" class="card-image">
+              <div class="card-tag-overlay absolute top-2 right-2 bg-[#e6f0fd]/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-[#3493fa] border border-[#3493fa]/30 z-10 shadow-sm">
+                <span class="info-type">Sports</span>
+              </div>
+              <div class="card-content">
+                <h2 class="card-title">Student Sports Tournament</h2>
+                <div class="info"><i class="fa-solid fa-location-dot"></i><span class="info-location">Main Gymnasium</span></div>
+                <div class="info"><i class="fa-regular fa-calendar"></i><span class="info-date">15/09/2026</span></div>
+                <div class="card-bottom">
+                  <a href="/explore.html" class="details-btn block text-center leading-[38px] hover:no-underline">View Details</a>
+                </div>
+              </div>
+            </div>
+            <!-- Mock Card 3 -->
+            <div class="card relative group">
+              <img src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?q=80&w=1200&auto=format&fit=crop" class="card-image">
+              <div class="card-tag-overlay absolute top-2 right-2 bg-[#e6f0fd]/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-[#3493fa] border border-[#3493fa]/30 z-10 shadow-sm">
+                <span class="info-type">Volunteering</span>
+              </div>
+              <div class="card-content">
+                <h2 class="card-title">Green City Volunteer Program</h2>
+                <div class="info"><i class="fa-solid fa-location-dot"></i><span class="info-location">City Park</span></div>
+                <div class="info"><i class="fa-regular fa-calendar"></i><span class="info-date">22/09/2026</span></div>
+                <div class="card-bottom">
+                  <a href="/explore.html" class="details-btn block text-center leading-[38px] hover:no-underline">View Details</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mt-8">
+            <a href="/explore.html" class="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm bg-primary text-white hover:bg-primary-dark transition active:scale-95 shadow">
+              <span data-i18n="index.view_all_activities">View All Activities</span>
+              <span class="material-symbols-outlined text-base">explore</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Tab 3: Student Forum -->
+        <div class="preview-tab-panel" id="preview-forum">
+          <div class="flex flex-col gap-4">
+            <!-- Mock Thread 1 -->
+            <a href="/community.html" class="community-thread-card block hover:no-underline p-5 bg-white rounded-2xl border border-slate-100 flex flex-col md:flex-row justify-between gap-6 cursor-pointer" style="color: inherit; text-decoration: none;">
+              <div>
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">M</div>
+                  <div>
+                    <h5 class="text-xs font-bold text-slate-800">Minh Anh</h5>
+                    <p class="text-[9px] text-slate-400">University of Da Nang</p>
+                  </div>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 mb-1">Anyone joining AI Hackathon 2026?</h3>
+                <p class="text-xs text-slate-500 mb-2">Looking for teammates interested in NLP and computer vision.</p>
+              </div>
+              <div class="flex md:flex-col justify-between items-end gap-2 text-right shrink-0">
+                <div class="flex gap-3 text-[11px] text-slate-400">
+                  <span>12 replies</span>
+                  <span>234 views</span>
+                </div>
+              </div>
+            </a>
+            <!-- Mock Thread 2 -->
+            <a href="/community.html" class="community-thread-card block hover:no-underline p-5 bg-white rounded-2xl border border-slate-100 flex flex-col md:flex-row justify-between gap-6 cursor-pointer" style="color: inherit; text-decoration: none;">
+              <div>
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">T</div>
+                  <div>
+                    <h5 class="text-xs font-bold text-slate-800">Thanh Trung</h5>
+                    <p class="text-[9px] text-slate-400">Duy Tan University</p>
+                  </div>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 mb-1">How can I prepare for a startup competition?</h3>
+                <p class="text-xs text-slate-500 mb-2">First time joining a startup pitch competition. Any tips on MVP development?</p>
+              </div>
+              <div class="flex md:flex-col justify-between items-end gap-2 text-right shrink-0">
+                <div class="flex gap-3 text-[11px] text-slate-400">
+                  <span>8 replies</span>
+                  <span>156 views</span>
+                </div>
+              </div>
+            </a>
+          </div>
+          <div class="text-center mt-8">
+            <a href="/community.html" class="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm bg-primary text-white hover:bg-primary-dark transition active:scale-95 shadow">
+              <span data-i18n="index.view_all_discussions">Join the Discussions</span>
+              <span class="material-symbols-outlined text-base">forum</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Tab 4: Growth Dashboard -->
+        <div class="preview-tab-panel" id="preview-dashboard">
+          <div class="grid md:grid-cols-2 gap-8 items-center bg-slate-50 p-8 rounded-3xl border border-slate-100">
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 mb-4" data-i18n="index.dashboard_preview_title">Gamified AI Companion</h3>
+              <p class="text-xs text-slate-500 leading-relaxed mb-4" data-i18n="index.dashboard_preview_desc">Track contribution levels, milestones, and unlock 16 badges representing your community engagement. Receive real-time matching suggestions from your AI Companion.</p>
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                  <span class="material-symbols-outlined text-amber-500">military_tech</span>
+                  <span>16 Unique Milestone Badges</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                  <span class="material-symbols-outlined text-emerald-600">trending_up</span>
+                  <span>Contribution Progression Tracker</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex justify-center">
+              <div class="hero-mockup-card w-full max-w-sm" style="box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                <div class="mockup-header">
+                  <div class="mockup-header-left">
+                    <span class="mockup-logo">SW</span>
+                    <div>
+                      <h4>SpringWave AI</h4>
+                      <p class="mockup-status">Active Companion</p>
+                    </div>
+                  </div>
+                  <div class="mockup-badge">Level 4</div>
+                </div>
+                <div class="mockup-section">
+                  <div class="mockup-section-header">
+                    <span>Growth Milestone</span>
+                    <span>750 / 1000 XP</span>
+                  </div>
+                  <div class="mockup-progress-bar">
+                    <div class="mockup-progress-fill" style="width: 75%;"></div>
+                  </div>
+                </div>
+                <div class="mockup-section">
+                  <p class="mockup-subheading">Recommended for You</p>
+                  <div class="mockup-list">
+                    <div class="mockup-item">
+                      <div class="mockup-item-left">
+                        <span class="material-symbols-outlined mockup-item-icon color-blue">code</span>
+                        <div>
+                          <h5>AI Hackathon</h5>
+                          <p>Software Engineering</p>
+                        </div>
+                      </div>
+                      <span class="mockup-tag match-98">98% Match</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mt-8">
+            <a href="/profile.html" class="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm bg-primary text-white hover:bg-primary-dark transition active:scale-95 shadow">
+              <span data-i18n="index.view_profile">Go to Profile</span>
+              <span class="material-symbols-outlined text-base">account_circle</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ ACCORDION -->
+  <section class="landing-section" id="faq" style="background: #f8fafc; padding: 80px 0;">
     <div class="landing-container">
       <div class="text-center mb-16 reveal">
         <div class="section-label">
-          <span class="material-symbols-outlined text-base">auto_awesome</span>
-          <span data-i18n="index.ai_title">AI Matching</span>
+          <span class="material-symbols-outlined text-base">quiz</span>
+          <span data-i18n="index.faq_label">FAQ</span>
         </div>
-        <h2 class="section-title" data-i18n="index.ai_heading">Smart Recommendations, Real Results</h2>
-        <p class="section-subtitle mx-auto" data-i18n="index.ai_desc">Our AI analyzes your major, interests, skill gaps, and career goals to find
-          the perfect opportunities for you.</p>
+        <h2 class="section-title" data-i18n="index.faq_heading">Frequently Asked Questions</h2>
+        <p class="section-subtitle mx-auto" data-i18n="index.faq_desc">Find answers to the most common questions about the SpringWave platform and its AI engine.</p>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 reveal">
-        <a href="/explore.html?category=workshop" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
-          <div class="rec-card-header">
-            <div>
-              <div class="flex items-center gap-2 mb-2">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-                  style="background: linear-gradient(135deg, #23499b, #3b6fd4);">
-                  <span class="material-symbols-outlined text-sm">code</span>
-                </div>
-                <span class="rec-card-badge perfect">95% <span data-i18n="index.ai_match">Match</span></span>
-              </div>
-              <h3 class="rec-card-title">AI Innovation Workshop</h3>
-            </div>
-          </div>
-          <div class="match-bar-track">
-            <div class="match-bar-fill high" data-width="95"></div>
-          </div>
-          <div class="checklist">
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Matches your
-              major</div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Matches your
-              interests</div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Improves missing
-              skills</div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Supports your
-              career goals</div>
-          </div>
-        </a>
-
-        <a href="/explore.html?category=sport" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
-          <div class="rec-card-header">
-            <div>
-              <div class="flex items-center gap-2 mb-2">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-                  style="background: linear-gradient(135deg, #e11d48, #fb7185);">
-                  <span class="material-symbols-outlined text-sm">sports_soccer</span>
-                </div>
-                <span class="rec-card-badge perfect">91% <span data-i18n="index.ai_match">Match</span></span>
-              </div>
-              <h3 class="rec-card-title">Student Sports Tournament</h3>
-            </div>
-          </div>
-          <div class="match-bar-track">
-            <div class="match-bar-fill high" data-width="91"></div>
-          </div>
-          <div class="checklist">
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Improves physical health</div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Builds team collaboration</div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Relieves academic stress</div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Connects with fellow athletes</div>
-          </div>
-        </a>
-
-        <a href="/explore.html?category=volunteer" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
-          <div class="rec-card-header">
-            <div>
-              <div class="flex items-center gap-2 mb-2">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-                  style="background: linear-gradient(135deg, #d97706, #f59e0b);">
-                  <span class="material-symbols-outlined text-sm">volunteer_activism</span>
-                </div>
-                <span class="rec-card-badge good">88% <span data-i18n="index.ai_match">Match</span></span>
-              </div>
-              <h3 class="rec-card-title">Volunteer Program</h3>
-            </div>
-          </div>
-          <div class="match-bar-track">
-            <div class="match-bar-fill medium" data-width="88"></div>
-          </div>
-          <div class="checklist">
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Leadership
-              development</div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Community impact
-            </div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Team
-              collaboration</div>
-            <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> Resume building
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <div class="text-center mt-12 reveal">
-        <p class="text-sm font-medium" style="color: #64748b;" data-i18n="index.ai_evaluates">Our AI evaluates 15+ dimensions to find your ideal
-          opportunities</p>
-        <div class="flex items-center justify-center gap-2 mt-3">
-          <span class="material-symbols-outlined text-lg" style="color: #23499b;">psychology</span>
-          <span class="text-sm font-semibold" style="color: #23499b;" data-i18n="index.ai_powered">Powered by SpringWave AI</span>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!-- DASHBOARD SHOWCASE -->
-  <section class="landing-section relative overflow-hidden" id="dashboard-showcase">
-    <div class="landing-container">
-      <a href="/profile.html#badges-section" class="dashboard-showcase-card grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center overflow-visible block hover:no-underline" style="color: inherit; text-decoration: none;">
-        
-        <div class="reveal active showcase-text-content flex flex-col items-center lg:items-start text-center lg:text-left w-full">
-          <div class="section-label">
-            <span class="material-symbols-outlined text-base">dashboard</span>
-            <span data-i18n="index.showcase_badge">Gamified Companion</span>
-          </div>
-          <h2 class="section-title !text-center lg:!text-left mb-6" data-i18n="index.showcase_heading">Your Gamified Growth Dashboard</h2>
-          <p class="section-subtitle !text-center lg:!text-left mb-6 mx-auto lg:mx-0" data-i18n="index.showcase_desc">
-            Track your extracurricular progress, levels, and badge milestones in real-time. Our AI Companion keeps you motivated and recommends opportunities based on your skills.
-          </p>
-          <div class="flex flex-col gap-4 mt-6 w-full max-w-lg lg:max-w-none text-left">
-            <div class="flex items-start gap-3">
-              <span class="material-symbols-outlined text-accent text-xl bg-accent/10 p-1.5 rounded-lg">military_tech</span>
-              <div>
-                <h4 class="font-bold text-slate-800 text-sm" data-i18n="index.showcase_badges_title">Earn Colorful Badges</h4>
-                <p class="text-xs text-slate-500" data-i18n="index.showcase_badges_desc">Unlock newbie, explorer, and legendary badges as you engage in student life.</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <span class="material-symbols-outlined text-emerald-600 text-xl bg-emerald-50/70 p-1.5 rounded-lg">trending_up</span>
-              <div>
-                <h4 class="font-bold text-slate-800 text-sm" data-i18n="index.showcase_levels_title">Real-time Level Progression</h4>
-                <p class="text-xs text-slate-500" data-i18n="index.showcase_levels_desc">Gain contribution score points for writing replies, starting threads, and participating in workshops.</p>
-              </div>
+      <div class="faq-accordion reveal">
+        <!-- Question 1 -->
+        <div class="faq-item">
+          <button class="faq-header">
+            <span data-i18n="index.faq_q1">How does the SpringWave AI matchmaker work?</span>
+            <span class="material-symbols-outlined faq-icon">expand_more</span>
+          </button>
+          <div class="faq-content">
+            <div class="faq-body">
+              <p data-i18n="index.faq_a1">SpringWave utilizes our custom RAG/LLM engine to evaluate your survey responses across four criteria: Communication, Technical, Creativity, and Social Impact. It compares your profile against our extracurricular catalog to recommend activities that align with your career goals and skill gap recommendations.</p>
             </div>
           </div>
         </div>
 
-        <div class="flex justify-center reveal active showcase-card-content w-full overflow-visible">
-          <div class="hero-mockup-wrapper">
-            <div class="hero-mockup-card" id="hero-mockup" style="transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1);">
-              <!-- Card Header -->
-              <div class="mockup-header">
-                <div class="mockup-header-left">
-                  <span class="mockup-logo">SW</span>
-                  <div>
-                    <h4>SpringWave AI</h4>
-                    <p class="mockup-status" data-i18n="index.mockup_companion">Active Companion</p>
-                  </div>
-                </div>
-                <div class="mockup-badge">Level 4</div>
-              </div>
-              <!-- Card Content: XP Progress -->
-              <div class="mockup-section">
-                <div class="mockup-section-header">
-                  <span data-i18n="index.mockup_milestone">Growth Milestone</span>
-                  <span>750 / 1000 XP</span>
-                </div>
-                <div class="mockup-progress-bar">
-                  <div class="mockup-progress-fill" style="width: 75%;"></div>
-                </div>
-              </div>
-              <!-- Card Content: AI Matches -->
-              <div class="mockup-section">
-                <p class="mockup-subheading" data-i18n="index.mockup_recommended">Recommended for You</p>
-                <div class="mockup-list">
-                  <div class="mockup-item">
-                    <div class="mockup-item-left">
-                      <span class="material-symbols-outlined mockup-item-icon color-blue">code</span>
-                      <div>
-                        <h5 data-i18n="index.mockup_event1_title">AI Hackathon</h5>
-                        <p data-i18n="index.mockup_event1_type">Software Engineering</p>
-                      </div>
-                    </div>
-                    <span class="mockup-tag match-98" data-i18n="index.mockup_event1_match">98% Match</span>
-                  </div>
-                  <div class="mockup-item">
-                    <div class="mockup-item-left">
-                      <span class="material-symbols-outlined mockup-item-icon color-green">forum</span>
-                      <div>
-                        <h5 data-i18n="index.mockup_event2_title">Leadership Forum</h5>
-                        <p data-i18n="index.mockup_event2_type">Communication</p>
-                      </div>
-                    </div>
-                    <span class="mockup-tag match-95" data-i18n="index.mockup_event2_match">95% Match</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Floating overlay elements for parallax depth -->
-            <div class="mockup-overlay-badge mockup-badge-1 floating-up">
-              <span class="material-symbols-outlined text-sm">stars</span> <span data-i18n="index.mockup_star">Community Star</span>
-            </div>
-            <div class="mockup-overlay-badge mockup-badge-2 floating-down">
-              <span class="material-symbols-outlined text-sm">auto_awesome</span> <span data-i18n="index.mockup_match_95">95% Match</span>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
-</section>
-
-
-
-  <!-- SOCIAL PROOF -->
-  <section class="landing-section" id="social-proof">
-    <div class="landing-container">
-      <div class="text-center mb-16 reveal active">
-        <div class="section-label">
-          <span class="material-symbols-outlined text-base">forum</span>
-          <span data-i18n="index.community_title">Community</span>
-        </div>
-        <h2 class="section-title" data-i18n="index.community_heading">Connect Across Universities</h2>
-        <p class="section-subtitle mx-auto" data-i18n="index.community_desc">Join discussions with students from Da Nang's top universities. Share insights, ask questions, and grow together.</p>
-      </div>
-
-      <!-- Bento Grid Layout -->
-      <div class="bento-grid reveal active">
-        
-        <!-- Bento Card 1: Main Testimonial (Large) -->
-        <div class="bento-card bento-large testimonial-card">
-          <div class="testimonial-stars mb-4">
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-          </div>
-          <p class="testimonial-quote text-lg font-medium leading-relaxed mb-6" data-i18n="index.testimonial_lc">
-            "SpringWave recommended a UX workshop that completely changed my career direction. I found my passion for product design, collaborated with tech mentors, and secured an internship within months!"
-          </p>
-          <div class="testimonial-author mt-auto">
-            <div class="testimonial-avatar" style="background: #a5c8e9; color: #1c274c;">LC</div>
-            <div>
-              <p class="testimonial-name font-bold">Linh Chi</p>
-              <p class="testimonial-role text-xs" data-i18n="index.uni_due">University of Economics, Da Nang</p>
+        <!-- Question 2 -->
+        <div class="faq-item">
+          <button class="faq-header">
+            <span data-i18n="index.faq_q2">What is the gamification contribution system?</span>
+            <span class="material-symbols-outlined faq-icon">expand_more</span>
+          </button>
+          <div class="faq-content">
+            <div class="faq-body">
+              <p data-i18n="index.faq_a2">Every time you engage with the community — starting a thread in the forum, replying to a discussion, or participating in university clubs — you earn Experience Points (XP). Unlocking certain XP thresholds increases your level and unlocks 16 uniquely-colored badges showcased on your profile.</p>
             </div>
           </div>
         </div>
 
-        <!-- Bento Card 2: Community Post (Medium) -->
-        <div class="bento-card bento-medium discussion-card">
-          <div class="discussion-header mb-4">
-            <div class="discussion-avatar" style="background: linear-gradient(135deg, #23499b, #3b6fd4);">MA</div>
-            <div>
-              <p class="discussion-user font-bold">Minh Anh</p>
-              <p class="discussion-uni text-xs" data-i18n="index.uni_ud">University of Da Nang</p>
-            </div>
-          </div>
-          <h4 class="font-bold text-base mb-2" data-i18n="index.testimonial_ma_title">Hackathon Team Building</h4>
-          <p class="discussion-text text-sm leading-relaxed mb-4" data-i18n="index.testimonial_ma">
-            "Anyone joining the AI Hackathon next month? Looking for team members interested in NLP."
-          </p>
-          <div class="discussion-footer mt-auto flex items-center justify-between text-xs text-slate-400">
-            <span><span class="material-symbols-outlined text-sm align-middle mr-1">chat_bubble</span> <span data-i18n="index.replies_12">12 replies</span></span>
-            <span><span class="material-symbols-outlined text-sm align-middle mr-1">schedule</span> <span data-i18n="index.time_ago_2h">2h ago</span></span>
-          </div>
-        </div>
-
-        <!-- Bento Card 3: Small Stats Highlight -->
-        <div class="bento-card bento-small stats-highlight-card">
-          <div class="stars-icon-wrap mb-3">
-            <span class="material-symbols-outlined text-3xl text-amber-500">workspace_premium</span>
-          </div>
-          <h4 class="font-extrabold text-2xl text-slate-800">4.9 / 5.0</h4>
-          <p class="text-xs text-slate-500 mt-1" data-i18n="index.bento_stars_desc">Average workshop rating from 1,200+ feedback surveys.</p>
-        </div>
-
-        <!-- Bento Card 4: Community Post (Medium) -->
-        <div class="bento-card bento-medium discussion-card">
-          <div class="discussion-header mb-4">
-            <div class="discussion-avatar" style="background: linear-gradient(135deg, #059669, #10b981);">TT</div>
-            <div>
-              <p class="discussion-user font-bold">Thanh Trung</p>
-              <p class="discussion-uni text-xs" data-i18n="index.uni_dtu">Duy Tan University</p>
-            </div>
-          </div>
-          <h4 class="font-bold text-base mb-2" data-i18n="index.testimonial_tt_title">Volunteering Opportunities</h4>
-          <p class="discussion-text text-sm leading-relaxed mb-4" data-i18n="index.testimonial_tt">
-            "Best volunteering programs this month? Looking for something meaningful to do on weekends."
-          </p>
-          <div class="discussion-footer mt-auto flex items-center justify-between text-xs text-slate-400">
-            <span><span class="material-symbols-outlined text-sm align-middle mr-1">chat_bubble</span> <span data-i18n="index.replies_8">8 replies</span></span>
-            <span><span class="material-symbols-outlined text-sm align-middle mr-1">schedule</span> <span data-i18n="index.time_ago_5h">5h ago</span></span>
-          </div>
-        </div>
-
-        <!-- Bento Card 5: Testimonial (Medium) -->
-        <div class="bento-card bento-medium testimonial-card">
-          <div class="testimonial-stars mb-4">
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-            <span class="material-symbols-outlined text-sm">star</span>
-          </div>
-          <p class="testimonial-quote text-sm leading-relaxed mb-4" data-i18n="index.testimonial_kn">
-            "SpringWave helped me realize my goal of becoming a Product Manager was achievable. The AI roadmap was incredibly accurate."
-          </p>
-          <div class="testimonial-author mt-auto">
-            <div class="testimonial-avatar" style="background: #cffafe; color: #0d9488;">KN</div>
-            <div>
-              <p class="testimonial-name font-bold">Khoa Nguyen</p>
-              <p class="testimonial-role text-xs" data-i18n="index.uni_dut">University of Science and Technology</p>
+        <!-- Question 3 -->
+        <div class="faq-item">
+          <button class="faq-header">
+            <span data-i18n="index.faq_q3">Can I register as an organizer (Host) on the platform?</span>
+            <span class="material-symbols-outlined faq-icon">expand_more</span>
+          </button>
+          <div class="faq-content">
+            <div class="faq-body">
+              <p data-i18n="index.faq_a3">Yes, absolutely! By clicking "Register Host" in the navbar, you can submit an organizer request. Once approved by the administrator, you'll gain access to the Organization Dashboard to create activities, map venues, register attendees, and scan attendance QR codes.</p>
             </div>
           </div>
         </div>
 
-        <!-- Bento Card 6: Small Interactive Widget -->
-        <div class="bento-card bento-small ai-tag-card">
-          <span class="material-symbols-outlined text-3xl text-purple-600 mb-2">auto_awesome</span>
-          <h4 class="font-bold text-base text-slate-800" data-i18n="index.bento_smart_connect">Smart Connect</h4>
-          <p class="text-xs text-slate-500 mt-1" data-i18n="index.bento_smart_connect_desc">Cross-uni study buddies matched dynamically by skill set.</p>
+        <!-- Question 4 -->
+        <div class="faq-item">
+          <button class="faq-header">
+            <span data-i18n="index.faq_q4">Is student verification required to participate in events?</span>
+            <span class="material-symbols-outlined faq-icon">expand_more</span>
+          </button>
+          <div class="faq-content">
+            <div class="faq-body">
+              <p data-i18n="index.faq_a4">Some official partner workshops and tournaments require verified student status to ensure certificate integrity. You can easily upload a student ID image in your settings, and the administrative dashboard will verify it within 24 hours.</p>
+            </div>
+          </div>
         </div>
-
       </div>
     </div>
   </section>

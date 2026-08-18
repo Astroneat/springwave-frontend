@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initWordRotation();
   initHeroMockupParallax();
   checkAutoVerificationNotice();
+  initPreviewHubTabs();
+  initFAQAccordion();
 });
 
 function checkAutoVerificationNotice() {
@@ -208,5 +210,58 @@ function initHeroMockupParallax() {
 
   container.addEventListener("mouseleave", () => {
     card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+  });
+}
+
+function initPreviewHubTabs() {
+  const tabButtons = document.querySelectorAll(".preview-tab-btn");
+  const tabPanels = document.querySelectorAll(".preview-tab-panel");
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.dataset.tab;
+      
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      tabPanels.forEach(panel => {
+        if (panel.id === targetId) {
+          panel.classList.add("active");
+        } else {
+          panel.classList.remove("active");
+        }
+      });
+    });
+  });
+}
+
+function initFAQAccordion() {
+  const faqHeaders = document.querySelectorAll(".faq-header");
+
+  faqHeaders.forEach(header => {
+    header.addEventListener("click", () => {
+      const item = header.closest(".faq-item");
+      const content = header.nextElementSibling;
+      const isActive = item.classList.contains("active");
+
+      // Close all other FAQ items for accordian style
+      document.querySelectorAll(".faq-item").forEach(otherItem => {
+        if (otherItem !== item) {
+          otherItem.classList.remove("active");
+          const otherContent = otherItem.querySelector(".faq-content");
+          if (otherContent) {
+            otherContent.style.maxHeight = null;
+          }
+        }
+      });
+
+      if (isActive) {
+        item.classList.remove("active");
+        content.style.maxHeight = null;
+      } else {
+        item.classList.add("active");
+        content.style.maxHeight = content.scrollHeight + "px";
+      }
+    });
   });
 }
