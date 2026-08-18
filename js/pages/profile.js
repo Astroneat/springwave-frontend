@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser, setUser, isStudentVerified } from "../lib/session.js";
-import { changeInfo, getFavourites, getUserContribution, uploadAvatar, getParticipatedActivities, getMyTickets } from "../api/user.js";
+import { changeInfo, getFavourites, getUserContribution, uploadAvatar, getParticipatedActivities, getMyTickets, requestEmailChange, confirmEmailChange } from "../api/user.js";
 import { getCurrentUser, changePassword } from "../api/auth.js";
 import { getMyProfile } from "../api/profile.js";
 import {
@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await renderAIProfile();
     initEditProfile();
     initChangePasswordModal();
+    initChangeEmailModal();
     
     // Expose for onclick handlers
     window.openReviewModal = openReviewModal;
@@ -289,6 +290,9 @@ function initEditProfile() {
 function openEditModal() {
     const user = currentUser || getUser();
     if (!user) return;
+
+    const emailDisplay = document.getElementById("edit-email-display");
+    if (emailDisplay) emailDisplay.value = user.email || "";
 
     document.getElementById("edit-fullname").value = user.fullname || "";
     document.getElementById("edit-dob").value = user.dob ? user.dob.split("T")[0] : "";
@@ -1035,3 +1039,256 @@ function initChangePasswordModal() {
     });
   }
 }
+
+function initChangeEmailModal() {
+  const openBtn = document.getElementById("open-change-email-btn");
+  const modal = document.getElementById("change-email-modal");
+  const backdrop = document.getElementById("change-email-backdrop");
+  const closeBtn = document.getElementById("change-email-modal-close");
+  const cancelBtn = document.getElementById("change-email-btn-cancel");
+  const backBtn = document.getElementById("change-email-back-btn");
+  const step1Form = document.getElementById("change-email-step1-form");
+  const step2Form = document.getElementById("change-email-step2-form");
+  const step1Status = document.getElementById("change-email-step1-status");
+  const step2Status = document.getElementById("change-email-step2-status");
+  const sendOtpBtn = document.getElementById("change-email-send-otp-btn");
+  const confirmBtn = document.getElementById("change-email-confirm-btn");
+  const resendBtn = document.getElementById("change-email-resend-btn");
+  const otpInput = document.getElementById("change-email-otp-input");
+  const timerEl = document.getElementById("change-email-timer");
+  const targetEmailDisplay = document.getElementById("change-email-target-display");
+  const currentEmailInput = document.getElementById("change-email-current");
+  const newEmailInput = document.getElementById("change-email-new");
+  const passInput = document.getElementById("change-email-pass");
+  const passGroup = document.getElementById("change-email-pass-group");
+
+  if (!modal) return;
+
+  let timerInterval = null;
+  let countdownSeconds = 600;
+  let currentTargetEmail = "";
+
+  const startTimer = () => {
+    clearInterval(timerInterval);
+    countdownSeconds = 600;
+    if (resendBtn) resendBtn.disabled = true;
+
+    const updateDisplay = () => {
+      const minutes = Math.floor(countdownSeconds / 60);
+      const seconds = countdownSeconds % 60;
+      if (timerEl) {
+        timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+      if (countdownSeconds <= 0) {
+        clearInterval(timerInterval);
+        if (resendBtn) resendBtn.disabled = false;
+        if (timerEl) timerEl.textContent = "00:00 (Hết hạn)";
+      }
+      countdownSeconds--;
+    };
+
+    updateDisplay();
+    timerInterval = setInterval(updateDisplay, 1000);
+  };
+
+  const closeModal = () => {
+    clearInterval(timerInterval);
+    modal.classList.remove("active");
+    setTimeout(() => {
+      modal.style.display = "none";
+      if (step1Form) { step1Form.reset(); step1Form.style.display = "block"; }
+      if (step2Form) { step2Form.reset(); step2Form.style.display = "none"; }
+      if (step1Status) step1Status.classList.add("hidden");
+      if (step2Status) step2Status.classList.add("hidden");
+    }, 300);
+    document.body.style.overflow = "";
+  };
+
+  const openModal = () => {
+    const user = currentUser || getUser();
+    if (!user) return;
+
+    if (currentEmailInput) currentEmailInput.value = user.email || "";
+    if (newEmailInput) newEmailInput.value = "";
+    if (passInput) passInput.value = "";
+
+    const isNoPassword = user.hasPassword === false;
+    if (passGroup) passGroup.style.display = isNoPassword ? "none" : "";
+    if (passInput) {
+      if (isNoPassword) passInput.removeAttribute("required");
+      else passInput.setAttribute("required", "");
+    }
+
+    if (step1Form) step1Form.style.display = "block";
+    if (step2Form) step2Form.style.display = "none";
+    if (step1Status) step1Status.classList.add("hidden");
+    if (step2Status) step2Status.classList.add("hidden");
+
+    modal.style.display = "flex";
+    requestAnimationFrame(() => modal.classList.add("active"));
+    document.body.style.overflow = "hidden";
+  };
+
+  if (openBtn) openBtn.addEventListener("click", openModal);
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+  if (backdrop) backdrop.addEventListener("click", closeModal);
+  if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      clearInterval(timerInterval);
+      if (step2Form) step2Form.style.display = "none";
+      if (step1Form) step1Form.style.display = "block";
+      if (step2Status) step2Status.classList.add("hidden");
+    });
+  }
+
+  modal.querySelectorAll(".pass-toggle-btn").forEach(toggle => {
+    toggle.addEventListener("click", () => {
+      const targetId = toggle.dataset.target;
+      const targetInput = document.getElementById(targetId);
+      const icon = toggle.querySelector("i");
+      if (!targetInput || !icon) return;
+
+      if (targetInput.type === "password") {
+        targetInput.type = "text";
+        icon.className = "fa-regular fa-eye-slash text-xs";
+      } else {
+        targetInput.type = "password";
+        icon.className = "fa-regular fa-eye text-xs";
+      }
+    });
+  });
+
+  if (step1Form) {
+    step1Form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const user = currentUser || getUser();
+      const newEmail = newEmailInput?.value?.trim();
+      const isNoPassword = user?.hasPassword === false;
+      const password = isNoPassword ? "" : (passInput?.value || "");
+
+      if (!newEmail) {
+        if (step1Status) {
+          step1Status.textContent = t("profile.enter_new_email") || "Vui lòng nhập địa chỉ email mới.";
+          step1Status.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+        return;
+      }
+
+      if (user?.email && user.email.toLowerCase() === newEmail.toLowerCase()) {
+        if (step1Status) {
+          step1Status.textContent = t("profile.email_same_current") || "Email mới trùng với email hiện tại của bạn.";
+          step1Status.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+        return;
+      }
+
+      if (sendOtpBtn) sendOtpBtn.disabled = true;
+      if (step1Status) {
+        step1Status.textContent = t("profile.sending_otp") || "Đang gửi mã OTP xác thực...";
+        step1Status.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
+      }
+
+      try {
+        await requestEmailChange({ newEmail, password });
+        currentTargetEmail = newEmail;
+        if (targetEmailDisplay) targetEmailDisplay.textContent = newEmail;
+
+        step1Form.style.display = "none";
+        step2Form.style.display = "block";
+        if (step2Status) step2Status.classList.add("hidden");
+        if (otpInput) {
+          otpInput.value = "";
+          setTimeout(() => otpInput.focus(), 200);
+        }
+        startTimer();
+      } catch (err) {
+        if (step1Status) {
+          step1Status.textContent = err.message || "Gửi mã OTP thất bại. Vui lòng thử lại.";
+          step1Status.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+      } finally {
+        if (sendOtpBtn) sendOtpBtn.disabled = false;
+      }
+    });
+  }
+
+  if (resendBtn) {
+    resendBtn.addEventListener("click", async () => {
+      const user = currentUser || getUser();
+      const isNoPassword = user?.hasPassword === false;
+      const password = isNoPassword ? "" : (passInput?.value || "");
+
+      resendBtn.disabled = true;
+      if (step2Status) {
+        step2Status.textContent = t("profile.resending_otp") || "Đang gửi lại mã xác thực...";
+        step2Status.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
+      }
+
+      try {
+        await requestEmailChange({ newEmail: currentTargetEmail, password });
+        if (step2Status) {
+          step2Status.textContent = t("profile.otp_resent_success") || "Mã xác thực mới đã được gửi lại thành công!";
+          step2Status.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block";
+        }
+        startTimer();
+      } catch (err) {
+        resendBtn.disabled = false;
+        if (step2Status) {
+          step2Status.textContent = err.message || "Gửi lại mã thất bại.";
+          step2Status.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+      }
+    });
+  }
+
+  if (step2Form) {
+    step2Form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const otp = otpInput?.value?.trim();
+
+      if (!otp || otp.length !== 6) {
+        if (step2Status) {
+          step2Status.textContent = t("profile.enter_full_otp") || "Vui lòng nhập đủ 6 chữ số mã OTP.";
+          step2Status.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+        return;
+      }
+
+      if (confirmBtn) confirmBtn.disabled = true;
+      if (step2Status) {
+        step2Status.textContent = t("profile.verifying_otp") || "Đang xác thực mã OTP...";
+        step2Status.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
+      }
+
+      try {
+        const result = await confirmEmailChange({ otp });
+        currentUser = result.user;
+        setUser(result.user);
+
+        const editEmailDisplay = document.getElementById("edit-email-display");
+        if (editEmailDisplay) editEmailDisplay.value = result.user.email || "";
+
+        await loadUserProfile();
+
+        if (step2Status) {
+          step2Status.innerHTML = `<strong>${result.message || "Đổi email thành công!"}</strong><br><span class="text-[11px] opacity-90">${result.studentStatusMessage || ""}</span>`;
+          step2Status.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block leading-relaxed";
+        }
+
+        setTimeout(() => {
+          closeModal();
+        }, 2200);
+      } catch (err) {
+        if (step2Status) {
+          step2Status.textContent = err.message || "Xác thực OTP thất bại. Vui lòng kiểm tra lại.";
+          step2Status.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
+        }
+      } finally {
+        if (confirmBtn) confirmBtn.disabled = false;
+      }
+    });
+  }
+}
+

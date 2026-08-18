@@ -12,6 +12,14 @@ export function changeInfo(data) {
     return put("/user/changeInfo", data);
 }
 
+export function requestEmailChange({ newEmail, password }) {
+    return post("/user/request-email-change", { newEmail, password });
+}
+
+export function confirmEmailChange({ otp }) {
+    return post("/user/confirm-email-change", { otp });
+}
+
 function normalizeFavEvents(response) {
     if (response.events) {
         return { activities: response.events.map(e => ({ ...e, activityID: e._id })) };

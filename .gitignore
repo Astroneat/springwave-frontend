@@ -10,3 +10,4 @@ dist/
 .env.local
 /.stitch
 CLAUDE.md
+/docs
