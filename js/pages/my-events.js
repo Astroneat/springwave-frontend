@@ -66,15 +66,16 @@ function renderEvents() {
   const list = document.getElementById("events-list");
   if (!list) return;
 
-  const activeEvents = allTickets.filter(t => !isInactive(t) && !isEventExpired(t));
-  const pastEvents = allTickets.filter(t => isInactive(t) || isEventExpired(t));
+  const validTickets = allTickets.filter(t => t && t.event && (t.event._id || t.event.title));
+  const activeEvents = validTickets.filter(t => !isInactive(t) && !isEventExpired(t));
+  const pastEvents = validTickets.filter(t => isInactive(t) || isEventExpired(t));
 
   const activeBadge = document.getElementById("active-count-badge");
   const inactiveBadge = document.getElementById("inactive-count-badge");
   if (activeBadge) activeBadge.textContent = `${activeEvents.length} Active`;
   if (inactiveBadge) inactiveBadge.textContent = `${pastEvents.length} Past`;
 
-  const eventsToDisplay = showPast ? allTickets : activeEvents;
+  const eventsToDisplay = showPast ? validTickets : activeEvents;
 
   if (!eventsToDisplay || eventsToDisplay.length === 0) {
     list.innerHTML = `
@@ -363,7 +364,7 @@ async function loadPage() {
 
   try {
     const { tickets } = await getMyTickets();
-    allTickets = tickets || [];
+    allTickets = (tickets || []).filter(t => t && t.event && (t.event._id || t.event.title));
 
     if (allTickets.length === 0) {
       list.innerHTML = `

@@ -81,15 +81,16 @@ function renderTickets() {
   const list = document.getElementById("tickets-list");
   if (!list) return;
 
-  const activeTickets = allTickets.filter(t => !isInactive(t));
-  const inactiveTickets = allTickets.filter(t => isInactive(t));
+  const validTickets = allTickets.filter(t => t && t.event && (t.event._id || t.event.title));
+  const activeTickets = validTickets.filter(t => !isInactive(t));
+  const inactiveTickets = validTickets.filter(t => isInactive(t));
 
   const activeBadge = document.getElementById("active-count-badge");
   const expiredBadge = document.getElementById("expired-count-badge");
   if (activeBadge) activeBadge.textContent = `${activeTickets.length} Active`;
   if (expiredBadge) expiredBadge.textContent = `${inactiveTickets.length} Inactive & Expired`;
 
-  const ticketsToDisplay = showExpired ? allTickets : activeTickets;
+  const ticketsToDisplay = showExpired ? validTickets : activeTickets;
 
   if (!ticketsToDisplay || ticketsToDisplay.length === 0) {
     list.innerHTML = `
@@ -218,7 +219,7 @@ async function loadPage() {
 
   try {
     const { tickets } = await getMyTickets();
-    allTickets = tickets || [];
+    allTickets = (tickets || []).filter(t => t && t.event && (t.event._id || t.event.title));
 
     if (allTickets.length === 0) {
       list.innerHTML = `
