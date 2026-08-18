@@ -396,7 +396,48 @@ async function loadCards() {
             const doc = parser.parseFromString(templateHTML, "text/html");
             cachedTemplate = doc.querySelector(".card");
         }
-        const activities = (await getActivities()).activities || [];
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const tag = urlParams.get("tag");
+        const keyword = urlParams.get("keyword");
+        const category = urlParams.get("category");
+
+        let activities = [];
+        if (tag) {
+            const data = await searchActivities({ tag });
+            activities = data.activities || [];
+        } else if (keyword) {
+            const data = await searchSemantic({ q: keyword });
+            activities = data.activities || [];
+            const searchPref = document.getElementById("search-pref");
+            const navbarInput = document.getElementById("search-navbar");
+            if (searchPref) searchPref.value = keyword;
+            if (navbarInput) navbarInput.value = keyword;
+        } else {
+            const data = await getActivities();
+            activities = data.activities || [];
+        }
+
+        if (category) {
+            let chip = document.querySelector(`.category-chip[data-category="${category}"]`);
+            if (!chip) {
+                const chips = document.querySelectorAll(".category-chip");
+                for (const c of chips) {
+                    const chipText = c.textContent.trim().toLowerCase();
+                    if (chipText === category.toLowerCase() || chipText.includes(category.toLowerCase())) {
+                        chip = c;
+                        break;
+                    }
+                }
+            }
+
+            if (chip) {
+                document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
+                chip.classList.add("active");
+                currentCategory = chip.dataset.category;
+            }
+        }
+
         allActivities = activities;
         await applyFiltersAndSort();
     } catch (err) {
