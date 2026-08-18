@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="roadmap.title">Roadmap - SpringWave</title>
   <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     rel="stylesheet">
@@ -15,201 +15,282 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-  <style>
-    .roadmap-wizard { max-width: 800px; margin: 20px auto; }
-    .wizard-progress { display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative; }
-    .wizard-progress::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #e5e7eb; z-index: 1; transform: translateY(-50%); }
-    .wizard-step-indicator { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 2px solid #e5e7eb; display: flex; align-items: center; justify-content: center; z-index: 2; font-weight: bold; transition: all 0.3s; font-size: 14px; }
-    .wizard-step-indicator.active { border-color: #1755ba; background: #1755ba; color: #fff; }
-    .wizard-step-indicator.completed { border-color: #1755ba; background: #fff; color: #1755ba; }
-    .wizard-step { display: none; animation: slideIn 0.3s ease-out; }
-    .wizard-step.active { display: block; }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-    
-    @media (max-width: 480px) {
-      .wizard-step-indicator { width: 28px; height: 28px; font-size: 12px; }
-      .roadmap-wizard { margin: 10px auto; padding: 16px !important; }
-      .timeline-card { flex-direction: column; gap: 8px; }
-      .timeline-item { padding-left: 20px; gap: 10px; }
-      .timeline-container { margin-left: 10px; }
-    }
-    
-    .time-chip, .category-chip, .day-chip { padding: 8px 16px; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; transition: all 0.2s; user-select: none; }
-    .time-chip.active, .category-chip.active, .day-chip.active { background: #1755ba; color: white; border-color: #1755ba; }
-    
-    .skill-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #f3f4f6; border-radius: 999px; font-size: 14px; }
-    .skill-tag button { color: #6b7280; cursor: pointer; }
-    .skill-tag button:hover { color: #ef4444; }
-    
-    .timeline-container { position: relative; padding: 20px 0; margin-left: 20px; }
-    .timeline-line { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #e5e7eb; }
-    .timeline-item { position: relative; padding-left: 30px; margin-bottom: 2rem; display: flex; align-items: flex-start; gap: 20px; }
-    .timeline-dot { position: absolute; left: -5px; top: 10px; width: 12px; height: 12px; border-radius: 50%; background: #1755ba; border: 2px solid white; box-shadow: 0 0 0 2px #1755ba; }
-    .timeline-card { background: white; border: 1px solid #f3f4f6; border-radius: 16px; padding: 16px; flex: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s; display: flex; gap: 16px; }
-    .timeline-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    
-    .swipe-modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-    .swipe-modal.active { display: flex; }
-    .swipe-card-stack { position: relative; width: 320px; height: 450px; }
-    .swipe-card { position: absolute; inset: 0; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; text-align: center; transition: transform 0.3s; will-change: transform; user-select: none; }
-    .swipe-card:active { cursor: grabbing; }
-    
-    .loading-overlay { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; background: rgba(255,255,255,0.8); backdrop-filter: blur(2px); }
-    .loading-overlay.active { display: flex; }
-  </style>
 </head>
 
-<body class="bg-background font-body-md">
+<body class="bg-background font-body-md text-on-surface antialiased min-h-screen">
   <div id="navbar-container"></div>
 
-  <!-- Animated Glowing Background Blobs -->
-  <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
-    <div class="mesh-blob-1 absolute top-[15%] left-[5%] w-[400px] h-[400px] rounded-full bg-blue-500/5 blur-[120px]"></div>
-    <div class="mesh-blob-2 absolute bottom-[25%] right-[5%] w-[350px] h-[350px] rounded-full bg-purple-500/5 blur-[120px]"></div>
+  <!-- Soft Ambient Glow Background -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+    <div class="absolute top-[12%] left-[10%] w-[450px] h-[450px] rounded-full bg-blue-500/5 blur-[140px]"></div>
+    <div class="absolute bottom-[20%] right-[8%] w-[400px] h-[400px] rounded-full bg-indigo-500/5 blur-[140px]"></div>
   </div>
 
-  <div class="relative z-10 pt-24 pb-20 px-4 container mx-auto max-w-5xl">
-    <div id="notice-container" class="mb-6"></div>
-    
-    <!-- WIZARD VIEW -->
-    <div id="roadmap-wizard" class="roadmap-wizard bg-white rounded-2xl shadow-sm border border-gray-100 p-8" role="region" aria-label="Roadmap Creation Wizard">
-      <h1 class="text-3xl font-bold text-center mb-8 text-gray-800" data-i18n="roadmap.page_title">Create Your Roadmap</h1>
+  <main class="relative z-10 pt-24 pb-24 px-4 sm:px-6">
+    <div class="roadmap-page-wrapper">
+      <div id="notice-container" class="mb-6"></div>
       
-      <div class="wizard-progress" id="wizard-progress" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="6">
-        <div class="wizard-step-indicator active">1</div>
-        <div class="wizard-step-indicator">2</div>
-        <div class="wizard-step-indicator">3</div>
-        <div class="wizard-step-indicator">4</div>
-        <div class="wizard-step-indicator">5</div>
-        <div class="wizard-step-indicator">6</div>
-      </div>
-      
-      <!-- Step 1: Goal -->
-      <div class="wizard-step active" id="step-1" role="tabpanel" aria-label="Step 1: Goal">
-        <h2 class="text-xl font-bold mb-4" data-i18n="roadmap.step_goal">Your Goal</h2>
-        <textarea id="goal-input" class="w-full border border-gray-200 rounded-xl p-4 min-h-[150px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-y" data-i18n="[placeholder]roadmap.goal_placeholder" placeholder="Describe your goal... What do you want to achieve?" aria-label="Goal description"></textarea>
+      <!-- HERO HEADER -->
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <div class="roadmap-header-badge">
+          <span class="material-symbols-outlined text-sm">explore</span>
+          <span>AI Growth Navigator</span>
+        </div>
+        <h1 class="roadmap-page-title mb-3" data-i18n="roadmap.page_title">Design Your Roadmap</h1>
+        <p class="text-slate-500 text-sm md:text-base leading-relaxed">
+          Craft an actionable milestone timeline tailored to your career aspirations, schedule availability, and preferred learning domains.
+        </p>
       </div>
 
-      <!-- Step 2: Timeframe -->
-      <div class="wizard-step" id="step-2" role="tabpanel" aria-label="Step 2: Timeframe">
-        <h2 class="text-xl font-bold mb-4" data-i18n="roadmap.step_timeframe">Timeframe</h2>
-        <div class="flex gap-4 mb-6">
-          <button class="flex-1 py-3 border border-gray-200 rounded-xl font-semibold hover:border-blue-500 transition-colors" id="btn-short-term" type="button" data-i18n="roadmap.short_term">Short-term</button>
-          <button class="flex-1 py-3 border border-gray-200 rounded-xl font-semibold hover:border-blue-500 transition-colors" id="btn-long-term" type="button" data-i18n="roadmap.long_term">Long-term</button>
-        </div>
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <label for="start-date" class="block text-sm text-gray-500 mb-1" data-i18n="roadmap.start_date">Start Date</label>
-            <input type="date" id="start-date" class="w-full border border-gray-200 rounded-xl p-3">
+      <!-- WIZARD STEPPER -->
+      <div class="roadmap-stepper-container" id="roadmap-stepper-wrap">
+        <div class="roadmap-stepper-bar" id="wizard-progress" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="6">
+          <div class="roadmap-step-tab active" data-step="1">
+            <div class="roadmap-step-tab-progress"></div>
+            <span class="roadmap-step-tab-label">1. Goal</span>
           </div>
-          <div class="flex-1">
-            <label for="end-date" class="block text-sm text-gray-500 mb-1" data-i18n="roadmap.end_date">End Date</label>
-            <input type="date" id="end-date" class="w-full border border-gray-200 rounded-xl p-3">
+          <div class="roadmap-step-tab" data-step="2">
+            <div class="roadmap-step-tab-progress"></div>
+            <span class="roadmap-step-tab-label">2. Timeframe</span>
           </div>
-        </div>
-      </div>
-
-      <!-- Step 3: Availability -->
-      <div class="wizard-step" id="step-3" role="tabpanel" aria-label="Step 3: Availability">
-        <h2 class="text-xl font-bold mb-4" data-i18n="roadmap.step_availability">Availability</h2>
-        <div class="mb-6">
-          <p class="text-sm text-gray-500 mb-2">Time of day (multi-select)</p>
-          <div class="flex flex-wrap gap-2" id="time-chips" role="group" aria-label="Time of day">
-            <div class="time-chip" data-value="morning" data-i18n="roadmap.morning" tabindex="0" role="checkbox" aria-checked="false">Morning (8-12h)</div>
-            <div class="time-chip" data-value="afternoon" data-i18n="roadmap.afternoon" tabindex="0" role="checkbox" aria-checked="false">Afternoon (13-17h)</div>
-            <div class="time-chip" data-value="evening" data-i18n="roadmap.evening" tabindex="0" role="checkbox" aria-checked="false">Evening (18-22h)</div>
+          <div class="roadmap-step-tab" data-step="3">
+            <div class="roadmap-step-tab-progress"></div>
+            <span class="roadmap-step-tab-label">3. Schedule</span>
           </div>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500 mb-2">Days</p>
-          <div class="flex flex-wrap gap-2" id="day-chips" role="radiogroup" aria-label="Days preference">
-            <div class="day-chip active" data-value="weekday" data-i18n="roadmap.weekday" tabindex="0" role="radio" aria-checked="true">Weekdays</div>
-            <div class="day-chip" data-value="weekend" data-i18n="roadmap.weekend" tabindex="0" role="radio" aria-checked="false">Weekends</div>
-            <div class="day-chip" data-value="both" data-i18n="roadmap.both" tabindex="0" role="radio" aria-checked="false">Both</div>
+          <div class="roadmap-step-tab" data-step="4">
+            <div class="roadmap-step-tab-progress"></div>
+            <span class="roadmap-step-tab-label">4. Location</span>
           </div>
-        </div>
-      </div>
-
-      <!-- Step 4: Location -->
-      <div class="wizard-step" id="step-4" role="tabpanel" aria-label="Step 4: Location">
-        <h2 class="text-xl font-bold mb-4" data-i18n="roadmap.step_location">Location</h2>
-        <input type="text" id="location-search" class="w-full border border-gray-200 rounded-xl p-3 mb-4" data-i18n="[placeholder]roadmap.search_location" placeholder="Search location..." aria-label="Location search">
-        <div id="roadmap-map" class="w-full h-[300px] rounded-xl z-0 mb-4 bg-gray-100" aria-label="Interactive map"></div>
-        <div class="flex items-center gap-4">
-          <label for="radius-slider" class="text-sm font-semibold" data-i18n="roadmap.radius">Radius</label>
-          <input type="range" id="radius-slider" min="1" max="50" value="5" class="flex-1" aria-label="Search radius in kilometers">
-          <span id="radius-val" class="text-sm font-bold w-12 text-right">5km</span>
-        </div>
-      </div>
-
-      <!-- Step 5: Categories & Certificate -->
-      <div class="wizard-step" id="step-5" role="tabpanel" aria-label="Step 5: Categories">
-        <h2 class="text-xl font-bold mb-4" data-i18n="roadmap.step_categories">Categories</h2>
-        <div class="flex flex-wrap gap-2 mb-6" id="category-chips" role="group" aria-label="Event Categories">
-          <!-- Dynamically loaded -->
-        </div>
-        <label class="flex items-center gap-3 cursor-pointer">
-          <input type="checkbox" id="cert-toggle" class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500">
-          <span class="font-medium text-gray-700" data-i18n="roadmap.want_certificate">I want events with certificates</span>
-        </label>
-      </div>
-
-      <!-- Step 6: Skills -->
-      <div class="wizard-step" id="step-6" role="tabpanel" aria-label="Step 6: Skills">
-        <h2 class="text-xl font-bold mb-4" data-i18n="roadmap.step_skills">Expected Skills</h2>
-        <div class="border border-gray-200 rounded-xl p-2 flex flex-wrap gap-2 mb-4 items-center min-h-[50px]" id="skills-container">
-          <input type="text" id="skill-input" class="border-none outline-none flex-1 min-w-[150px] bg-transparent text-sm" data-i18n="[placeholder]roadmap.add_skill" placeholder="Type a skill and press Enter" aria-label="Add skill tag">
-        </div>
-        <p class="text-sm text-gray-500 mb-2" data-i18n="roadmap.popular_skills">Popular skills:</p>
-        <div class="flex flex-wrap gap-2" id="popular-skills">
-          <div class="category-chip skill-suggest text-sm py-1" tabindex="0">Communication</div>
-          <div class="category-chip skill-suggest text-sm py-1" tabindex="0">Leadership</div>
-          <div class="category-chip skill-suggest text-sm py-1" tabindex="0">Teamwork</div>
-          <div class="category-chip skill-suggest text-sm py-1" tabindex="0">Problem Solving</div>
+          <div class="roadmap-step-tab" data-step="5">
+            <div class="roadmap-step-tab-progress"></div>
+            <span class="roadmap-step-tab-label">5. Fields</span>
+          </div>
+          <div class="roadmap-step-tab" data-step="6">
+            <div class="roadmap-step-tab-progress"></div>
+            <span class="roadmap-step-tab-label">6. Skills</span>
+          </div>
         </div>
       </div>
       
-      <!-- Wizard Actions -->
-      <div class="flex justify-between mt-8 pt-6 border-t border-gray-100">
-        <button id="btn-back" type="button" class="px-6 py-2.5 rounded-xl text-gray-600 font-semibold hover:bg-gray-50 hidden" data-i18n="roadmap.back">Back</button>
-        <div class="flex-1"></div>
-        <button id="btn-next" type="button" class="px-6 py-2.5 rounded-xl bg-[#1755ba] text-white font-semibold hover:bg-blue-700" data-i18n="roadmap.next">Next</button>
-        <button id="btn-generate" type="button" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hidden shadow-lg shadow-blue-500/30" data-i18n="roadmap.generate">Generate Roadmap</button>
+      <!-- WIZARD VIEW CARD -->
+      <div id="roadmap-wizard" class="roadmap-wizard-card" role="region" aria-label="Roadmap Creation Wizard">
+        
+        <!-- Step 1: Goal -->
+        <div class="roadmap-step-pane active" id="step-1" role="tabpanel" aria-label="Step 1: Goal">
+          <h2 class="roadmap-step-heading" data-i18n="roadmap.step_goal">What is your primary growth goal?</h2>
+          <p class="roadmap-step-subheading">Describe what you want to achieve or pick a common focus area to get started.</p>
+          
+          <div class="roadmap-goal-presets" id="goal-presets">
+            <button type="button" class="roadmap-preset-pill" data-preset="Master full-stack software development and build production-ready web applications.">💻 Software Engineering</button>
+            <button type="button" class="roadmap-preset-pill" data-preset="Enhance leadership, team coordination, and volunteering impact in student organizations.">🤝 Student Leadership</button>
+            <button type="button" class="roadmap-preset-pill" data-preset="Gain practical digital marketing, brand growth, and content strategy experience.">📈 Digital Marketing</button>
+            <button type="button" class="roadmap-preset-pill" data-preset="Improve public speaking, stage presence, and confidence in professional pitching.">🎤 Public Speaking</button>
+            <button type="button" class="roadmap-preset-pill" data-preset="Explore artificial intelligence, data analytics, and prompt engineering foundations.">🤖 AI & Data Science</button>
+          </div>
+
+          <textarea id="goal-input" class="roadmap-textarea" data-i18n="[placeholder]roadmap.goal_placeholder" placeholder="Describe your goal in detail... (e.g. I want to build a portfolio of tech hackathons and gain leadership skills before graduation)" aria-label="Goal description"></textarea>
+        </div>
+
+        <!-- Step 2: Timeframe -->
+        <div class="roadmap-step-pane" id="step-2" role="tabpanel" aria-label="Step 2: Timeframe">
+          <h2 class="roadmap-step-heading" data-i18n="roadmap.step_timeframe">Choose your timeline horizon</h2>
+          <p class="roadmap-step-subheading">Set the duration and active date range for your personalized activity schedule.</p>
+          
+          <div class="roadmap-timeframe-toggle">
+            <button class="roadmap-timeframe-option active" id="btn-short-term" type="button">
+              <span class="timeframe-title" data-i18n="roadmap.short_term">Short-term Sprint (1 Month)</span>
+              <span class="timeframe-desc">Fast-paced sprint focused on immediate workshops and weekend hackathons.</span>
+            </button>
+            <button class="roadmap-timeframe-option" id="btn-long-term" type="button">
+              <span class="timeframe-title" data-i18n="roadmap.long_term">Long-term Milestone (6 Months)</span>
+              <span class="timeframe-desc">Comprehensive semester plan balancing conferences, clubs, and competitions.</span>
+            </button>
+          </div>
+
+          <div class="roadmap-date-inputs">
+            <div class="roadmap-date-field">
+              <label for="start-date" data-i18n="roadmap.start_date">Start Date</label>
+              <input type="date" id="start-date" aria-label="Start date">
+            </div>
+            <div class="roadmap-date-field">
+              <label for="end-date" data-i18n="roadmap.end_date">End Date</label>
+              <input type="date" id="end-date" aria-label="End date">
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Availability -->
+        <div class="roadmap-step-pane" id="step-3" role="tabpanel" aria-label="Step 3: Availability">
+          <h2 class="roadmap-step-heading" data-i18n="roadmap.step_availability">Your weekly schedule & preferred time slots</h2>
+          <p class="roadmap-step-subheading">Select your ideal parts of the day and preferred days to participate in events.</p>
+          
+          <div class="mb-6">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Time of Day (Multi-select)</label>
+            <div class="roadmap-slot-grid" id="time-chips" role="group" aria-label="Time of day">
+              <div class="roadmap-slot-card" data-value="morning" tabindex="0" role="checkbox" aria-checked="false">
+                <div class="slot-icon-box"><i class="fa-regular fa-sun"></i></div>
+                <div>
+                  <div class="slot-text-title" data-i18n="roadmap.morning">Morning</div>
+                  <div class="slot-text-sub">08:00 – 12:00</div>
+                </div>
+              </div>
+              <div class="roadmap-slot-card" data-value="afternoon" tabindex="0" role="checkbox" aria-checked="false">
+                <div class="slot-icon-box"><i class="fa-solid fa-sun"></i></div>
+                <div>
+                  <div class="slot-text-title" data-i18n="roadmap.afternoon">Afternoon</div>
+                  <div class="slot-text-sub">13:00 – 17:00</div>
+                </div>
+              </div>
+              <div class="roadmap-slot-card" data-value="evening" tabindex="0" role="checkbox" aria-checked="false">
+                <div class="slot-icon-box"><i class="fa-regular fa-moon"></i></div>
+                <div>
+                  <div class="slot-text-title" data-i18n="roadmap.evening">Evening</div>
+                  <div class="slot-text-sub">18:00 – 22:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Days Preference</label>
+            <div class="roadmap-day-selector" id="day-chips" role="radiogroup" aria-label="Days preference">
+              <div class="roadmap-day-pill active" data-value="weekday" data-i18n="roadmap.weekday" tabindex="0" role="radio" aria-checked="true">Weekdays (Mon – Fri)</div>
+              <div class="roadmap-day-pill" data-value="weekend" data-i18n="roadmap.weekend" tabindex="0" role="radio" aria-checked="false">Weekends (Sat – Sun)</div>
+              <div class="roadmap-day-pill" data-value="both" data-i18n="roadmap.both" tabindex="0" role="radio" aria-checked="false">All Days / Flexible</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Location -->
+        <div class="roadmap-step-pane" id="step-4" role="tabpanel" aria-label="Step 4: Location">
+          <h2 class="roadmap-step-heading" data-i18n="roadmap.step_location">Location & Mobility Radius</h2>
+          <p class="roadmap-step-subheading">Pin your living area or campus to prioritize local in-person events within your commute reach.</p>
+          
+          <div class="roadmap-search-bar">
+            <span class="material-symbols-outlined search-icon">pin_drop</span>
+            <input type="text" id="location-search" data-i18n="[placeholder]roadmap.search_location" placeholder="Search address, district or campus..." aria-label="Location search">
+          </div>
+
+          <div id="roadmap-map" class="roadmap-map-frame" aria-label="Interactive map"></div>
+
+          <div class="roadmap-slider-row">
+            <span class="material-symbols-outlined text-blue-600 text-lg">radar</span>
+            <label for="radius-slider" class="text-xs font-bold text-slate-700 whitespace-nowrap" data-i18n="roadmap.radius">Radius:</label>
+            <input type="range" id="radius-slider" min="1" max="50" value="5" class="flex-1 accent-[#1755ba] cursor-pointer" aria-label="Search radius in kilometers">
+            <span id="radius-val" class="text-xs font-extrabold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200 min-w-[54px] text-center">5km</span>
+          </div>
+        </div>
+
+        <!-- Step 5: Categories & Certificate -->
+        <div class="roadmap-step-pane" id="step-5" role="tabpanel" aria-label="Step 5: Categories">
+          <h2 class="roadmap-step-heading" data-i18n="roadmap.step_categories">Domains & Field Interests</h2>
+          <p class="roadmap-step-subheading">Select domains you care about and choose whether accredited certificates are needed.</p>
+          
+          <div class="roadmap-categories-wrap" id="category-chips" role="group" aria-label="Event Categories">
+            <!-- Dynamically loaded -->
+          </div>
+
+          <label class="roadmap-cert-card" for="cert-toggle">
+            <input type="checkbox" id="cert-toggle" class="w-5 h-5 rounded-md accent-[#1755ba] cursor-pointer">
+            <div>
+              <div class="text-sm font-bold text-amber-950 flex items-center gap-2">
+                <i class="fa-solid fa-award text-amber-600"></i>
+                <span data-i18n="roadmap.want_certificate">Prioritize Verified Certificate Activities</span>
+              </div>
+              <div class="text-xs text-amber-800/80 mt-0.5">Filter for events offering verifiable certificates upon completion.</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Step 6: Skills -->
+        <div class="roadmap-step-pane" id="step-6" role="tabpanel" aria-label="Step 6: Skills">
+          <h2 class="roadmap-step-heading" data-i18n="roadmap.step_skills">Target Skills & Competencies</h2>
+          <p class="roadmap-step-subheading">Add specific skills you aim to develop throughout this journey.</p>
+          
+          <div class="roadmap-skills-box" id="skills-container">
+            <input type="text" id="skill-input" class="roadmap-skill-input" data-i18n="[placeholder]roadmap.add_skill" placeholder="Type a skill (e.g. React, Negotiation) and press Enter" aria-label="Add skill tag">
+          </div>
+
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" data-i18n="roadmap.popular_skills">Suggested Skills:</p>
+          <div class="roadmap-skills-suggestions" id="popular-skills">
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Communication</button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Leadership</button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Teamwork</button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Problem Solving</button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Project Management</button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Data Analysis</button>
+          </div>
+        </div>
+        
+        <!-- WIZARD CONTROLS FOOTER -->
+        <div class="roadmap-controls-footer">
+          <button id="btn-back" type="button" class="roadmap-btn-secondary hidden" data-i18n="roadmap.back">
+            <i class="fa-solid fa-arrow-left mr-1.5"></i> Back
+          </button>
+          
+          <div class="text-xs font-bold text-slate-400" id="step-counter-label">Step 1 of 6</div>
+          
+          <button id="btn-next" type="button" class="roadmap-btn-primary" data-i18n="roadmap.next">
+            Next <i class="fa-solid fa-arrow-right ml-1.5"></i>
+          </button>
+          
+          <button id="btn-generate" type="button" class="roadmap-btn-generate hidden" data-i18n="roadmap.generate">
+            <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> Generate Roadmap
+          </button>
+        </div>
       </div>
+      
+      <!-- RESULT VIEW -->
+      <div id="roadmap-result" class="hidden">
+        
+        <!-- AI Analysis Hero Card -->
+        <div class="roadmap-result-hero">
+          <div class="roadmap-ai-quote-box">
+            <div class="roadmap-ai-tag">
+              <span class="material-symbols-outlined text-xs">auto_awesome</span>
+              <span data-i18n="roadmap.ai_analysis">AI Strategic Diagnosis</span>
+            </div>
+            <h2 class="text-xl font-bold text-slate-900">Your Tailored Growth Trajectory</h2>
+            <div id="ai-comment" class="roadmap-ai-text"></div>
+          </div>
+          <div class="w-full flex items-center justify-center p-2 bg-slate-50 rounded-2xl border border-slate-100">
+            <canvas id="spider-chart" width="280" height="280" aria-label="Spider chart of user competencies"></canvas>
+          </div>
+        </div>
+        
+        <!-- Milestone Timeline Header -->
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900" style="font-family: var(--font-headline-lg), 'Aleo', serif;" data-i18n="roadmap.your_timeline">Milestone Timeline</h2>
+            <p class="text-slate-500 text-xs md:text-sm">Sequential curated events mapped to your schedule.</p>
+          </div>
+        </div>
+
+        <!-- Timeline Flow -->
+        <div class="roadmap-timeline-flow" id="timeline-container">
+          <!-- Rendered dynamically by JS -->
+        </div>
+        
+        <!-- Result Actions Bar -->
+        <div class="flex flex-wrap items-center justify-center gap-4 mt-12 pt-8 border-t border-slate-200">
+          <button id="btn-confirm" type="button" class="px-8 py-3.5 rounded-2xl bg-[#1755ba] text-white font-bold hover:bg-[#124496] shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2" data-i18n="roadmap.confirm_roadmap">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Confirm & Track Roadmap</span>
+          </button>
+          
+          <button id="btn-regenerate" type="button" class="px-6 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-all flex items-center gap-2" data-i18n="roadmap.regenerate">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Reconfigure Parameters</span>
+          </button>
+          
+          <a href="/profile.html" class="px-6 py-3.5 rounded-2xl text-slate-500 font-bold hover:text-slate-800 transition-all" data-i18n="roadmap.back_to_profile">
+            Back to Profile
+          </a>
+        </div>
+      </div>
+
     </div>
-    
-    <!-- RESULT VIEW -->
-    <div id="roadmap-result" class="hidden">
-      <!-- AI Analysis -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8 flex flex-col md:flex-row gap-8 items-center">
-        <div class="flex-1">
-          <h2 class="text-2xl font-bold flex items-center gap-2 mb-4">
-            <span class="material-symbols-outlined text-[#1755ba]">auto_awesome</span> 
-            <span data-i18n="roadmap.ai_analysis">AI Analysis</span>
-          </h2>
-          <p id="ai-comment" class="text-gray-600 leading-relaxed text-lg"></p>
-        </div>
-        <div class="w-full md:w-[300px]">
-          <canvas id="spider-chart" width="300" height="300" aria-label="Spider chart of user competencies"></canvas>
-        </div>
-      </div>
-      
-      <!-- Timeline -->
-      <h2 class="text-2xl font-bold mb-6 text-gray-800" data-i18n="roadmap.your_timeline">Your Timeline</h2>
-      <div class="timeline-container" id="timeline-container">
-        <!-- Rendered by JS -->
-      </div>
-      
-      <!-- Result Actions -->
-      <div class="flex flex-wrap justify-center gap-4 mt-10">
-        <button id="btn-confirm" type="button" class="px-8 py-3 rounded-xl bg-[#1755ba] text-white font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all" data-i18n="roadmap.confirm_roadmap">Confirm Roadmap</button>
-        <button id="btn-regenerate" type="button" class="px-8 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-all" data-i18n="roadmap.regenerate">Regenerate</button>
-        <a href="/profile.html" class="px-8 py-3 rounded-xl text-gray-500 font-bold hover:text-gray-800 transition-all" data-i18n="roadmap.back_to_profile">Back to Profile</a>
-      </div>
-    </div>
-    
-  </div>
+  </main>
 
   <div id="footer-container"></div>
   <div id="chatbot-container"></div>
@@ -219,27 +300,30 @@
     <div class="popup-container" id="popup-container"></div>
   </div>
 
-  <!-- Swipe Modal -->
+  <!-- Swipe Alternative Modal -->
   <div class="swipe-modal" id="swipe-modal" role="dialog" aria-modal="true" aria-label="Choose alternative event">
     <div class="flex flex-col items-center">
-      <h3 class="text-white text-2xl font-bold mb-6" data-i18n="roadmap.swipe_title">Choose an Event</h3>
+      <h3 class="text-white text-xl font-bold mb-5 flex items-center gap-2" data-i18n="roadmap.swipe_title">
+        <span class="material-symbols-outlined text-blue-400">swap_horiz</span>
+        <span>Choose an Alternative Event</span>
+      </h3>
       <div class="swipe-card-stack" id="swipe-card-stack">
         <!-- Cards rendered here -->
       </div>
-      <div class="flex gap-6 mt-8">
-        <button id="swipe-btn-skip" type="button" class="w-14 h-14 rounded-full bg-white text-red-500 shadow-lg text-2xl hover:scale-110 transition-transform" aria-label="Skip event"><i class="fa-solid fa-xmark"></i></button>
-        <button id="swipe-btn-select" type="button" class="w-14 h-14 rounded-full bg-white text-green-500 shadow-lg text-2xl hover:scale-110 transition-transform" aria-label="Select event"><i class="fa-solid fa-check"></i></button>
+      <div class="flex gap-6 mt-6">
+        <button id="swipe-btn-skip" type="button" class="w-13 h-13 rounded-full bg-white text-slate-500 hover:text-red-500 shadow-xl text-xl hover:scale-105 transition-all flex items-center justify-center" aria-label="Skip event"><i class="fa-solid fa-xmark"></i></button>
+        <button id="swipe-btn-select" type="button" class="w-13 h-13 rounded-full bg-[#1755ba] text-white hover:bg-blue-700 shadow-xl text-xl hover:scale-105 transition-all flex items-center justify-center" aria-label="Select event"><i class="fa-solid fa-check"></i></button>
       </div>
-      <p class="text-white/70 text-sm mt-4" data-i18n="roadmap.swipe_or">or swipe (← / → keys)</p>
+      <p class="text-white/70 text-xs mt-4" data-i18n="roadmap.swipe_or">Keyboard shortcuts: ← Skip &nbsp;|&nbsp; → Select &nbsp;|&nbsp; Esc Close</p>
     </div>
   </div>
 
-  <!-- Loading Overlay -->
+  <!-- High-End Loading Overlay -->
   <div class="loading-overlay" id="loading-overlay" role="dialog" aria-modal="true" aria-label="Generating Roadmap">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center max-w-sm">
-      <div class="w-16 h-16 border-4 border-blue-100 border-t-[#1755ba] rounded-full animate-spin mb-4"></div>
-      <h3 class="text-xl font-bold text-gray-800 mb-2" data-i18n="roadmap.generating">AI is creating your roadmap...</h3>
-      <p class="text-sm text-gray-500">Matching your goals with the best opportunities</p>
+    <div class="bg-white p-8 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-center text-center max-w-sm mx-4">
+      <div class="w-14 h-14 border-4 border-blue-100 border-t-[#1755ba] rounded-full animate-spin mb-5"></div>
+      <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="roadmap.generating">AI is creating your roadmap...</h3>
+      <p class="text-xs text-slate-500 leading-relaxed">Analyzing your time commitments, learning preferences, and current catalog opportunities.</p>
     </div>
   </div>
 

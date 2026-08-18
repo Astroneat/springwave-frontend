@@ -22,6 +22,16 @@ let currentSection = "dashboard";
 // Analytics scope state
 let analyticsScope = "all"; // "all" or "event"
 let analyticsEventId = null;
+// LocalStorage keys for dialog selects (persisted per-section)
+const DIALOG_STATE_KEY_PREFIX = "orgDash.eventSelect.";
+// Map of section name → hidden input IDs (used to re-read persisted state)
+const DIALOG_SELECT_MAP = {
+  participant: "participant-event-select",
+  attendance: "attendance-event-select",
+  cert: "cert-event-select",
+  analytics: "analytics-event-select",
+  analyticsReport: "analytics-report-event-select",
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!isAuthenticated()) {
@@ -369,6 +379,23 @@ async function loadEvents() {
     currentEvents = rawEvents.filter(a => a._id);
     renderEventsTable();
     populateEventSelects();
+
+    // Auto-trigger data loading for the current active section
+    if (currentSection === "participants") {
+      const ps = document.getElementById("participant-event-select");
+      if (ps && ps.value) loadParticipants(ps.value);
+    } else if (currentSection === "attendance") {
+      const as = document.getElementById("attendance-event-select");
+      if (as && as.value) loadAttendance(as.value);
+    } else if (currentSection === "certificates") {
+      const cs = document.getElementById("cert-event-select");
+      if (cs && cs.value) loadCertificates(cs.value);
+    } else if (currentSection === "reviews") {
+      const rev = document.getElementById("analytics-event-select");
+      filterAnalyticsBySelectedEvent(rev?.value || "");
+    } else if (currentSection === "analytics") {
+      loadOrgAnalytics();
+    }
   } catch (err) {
     console.error("Load events error:", err);
   }
@@ -813,223 +840,523 @@ function initCreateEvent() {
 }
 
 function populateEventSelects() {
-  renderCustomSelect("participant-event-select-wrapper", "participant-event-select", currentEvents, "Select an event...");
-  renderCustomSelect("attendance-event-select-wrapper", "attendance-event-select", currentEvents, "Select an event...");
-  renderCustomSelect("cert-event-select-wrapper", "cert-event-select", currentEvents, "Select an event...");
-  renderCustomSelect("analytics-event-select-wrapper", "analytics-event-select", currentEvents, "All Events");
-  renderCustomSelect("analytics-report-event-select-wrapper", "analytics-report-event-select", currentEvents, "Select an event...");
+  renderEventSelectDialog("participant-event-select-wrapper", "participant-event-select", currentEvents, "Select an event...", "participant", false);
+  renderEventSelectDialog("attendance-event-select-wrapper", "attendance-event-select", currentEvents, "Select an event...", "attendance", false);
+  renderEventSelectDialog("cert-event-select-wrapper", "cert-event-select", currentEvents, "Select an event...", "cert", false);
+  renderEventSelectDialog("analytics-event-select-wrapper", "analytics-event-select", currentEvents, "All Events", "analytics", true);
+  renderEventSelectDialog("analytics-report-event-select-wrapper", "analytics-report-event-select", currentEvents, "Select an event...", "analyticsReport", false);
+  initEventSelectDialogs();
 }
 
-function renderCustomSelect(wrapperId, hiddenInputId, events, placeholder = "Select an event...") {
+// ─── Event Select Dialog & Cache Management ───────────────────────────────────
+
+const EVENT_CACHE_GLOBAL_PREFIX = "sw_host_event_global_";
+const EVENT_CACHE_SECTION_PREFIX = "sw_host_event_section_";
+
+function _resolveThumbnailUrl(thumb) {
+  if (!thumb) return "";
+  if (thumb.startsWith("http://") || thumb.startsWith("https://") || thumb.startsWith("data:") || thumb.startsWith("blob:")) return thumb;
+  return `${CDN_DOMAIN}/${thumb}`;
+}
+
+function saveEventSelection(sectionKey, eventId, events, hiddenInputId) {
+  if (!currentOrgId) return;
+  const ev = events.find(e => e._id === eventId);
+  const payload = {
+    eventId: eventId || "",
+    eventTitle: ev?.title || "",
+    eventThumbnail: ev?.thumbnail || "",
+    updatedAt: Date.now()
+  };
+  try {
+    if (eventId) {
+      localStorage.setItem(`${EVENT_CACHE_GLOBAL_PREFIX}${currentOrgId}`, JSON.stringify(payload));
+    }
+    if (sectionKey) {
+      localStorage.setItem(`${EVENT_CACHE_SECTION_PREFIX}${currentOrgId}_${sectionKey}`, JSON.stringify(payload));
+    }
+    if (hiddenInputId) {
+      localStorage.setItem(`${DIALOG_STATE_KEY_PREFIX}${hiddenInputId}`, JSON.stringify(payload));
+    }
+  } catch (_) {}
+}
+
+function restoreDialogState(hiddenInputId, events, sectionKey, allowAllOption = false) {
+  if (!currentOrgId) return allowAllOption ? "" : (events[0]?._id || "");
+  try {
+    // 1. Check section specific selection for this org
+    if (sectionKey) {
+      const secRaw = localStorage.getItem(`${EVENT_CACHE_SECTION_PREFIX}${currentOrgId}_${sectionKey}`);
+      if (secRaw) {
+        const parsed = JSON.parse(secRaw);
+        if (allowAllOption && parsed.eventId === "") return "";
+        if (parsed.eventId && events.some(e => e._id === parsed.eventId)) return parsed.eventId;
+      }
+    }
+    // 2. Check global selection for this org
+    const globRaw = localStorage.getItem(`${EVENT_CACHE_GLOBAL_PREFIX}${currentOrgId}`);
+    if (globRaw) {
+      const parsed = JSON.parse(globRaw);
+      if (parsed.eventId && events.some(e => e._id === parsed.eventId)) return parsed.eventId;
+    }
+    // 3. Check legacy key
+    const legacyRaw = localStorage.getItem(`${DIALOG_STATE_KEY_PREFIX}${hiddenInputId}`);
+    if (legacyRaw) {
+      const parsed = JSON.parse(legacyRaw);
+      if (allowAllOption && parsed.eventId === "") return "";
+      if (parsed.eventId && events.some(e => e._id === parsed.eventId)) return parsed.eventId;
+    }
+    // 4. Defaults
+    if (allowAllOption) return "";
+    if (events.length > 0) return events[0]._id;
+    return "";
+  } catch (_) {
+    return (events.length > 0 && !allowAllOption) ? events[0]._id : "";
+  }
+}
+
+function _renderTriggerContent(selectedEvent, placeholder, allowAllOption) {
+  if (selectedEvent) {
+    const thumbUrl = _resolveThumbnailUrl(selectedEvent.thumbnail);
+    const thumbHtml = thumbUrl
+      ? `<img src="${thumbUrl}" class="w-full h-full object-cover" alt="" loading="lazy">`
+      : `<div class="w-full h-full bg-[#dae1ff] text-primary flex items-center justify-center"><i class="fa-regular fa-calendar text-xs"></i></div>`;
+    return `
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <div class="trigger-thumbnail w-9 h-9 rounded-xl bg-[#ecedfa] overflow-hidden shrink-0 flex items-center justify-center border border-slate-200/80 shadow-2xs">
+          ${thumbHtml}
+        </div>
+        <div class="min-w-0 flex-1 text-left">
+          <span class="custom-select-selected-value font-bold text-xs sm:text-sm text-[#191b22] truncate block leading-tight max-w-[180px] sm:max-w-[240px]">
+            ${selectedEvent.title}
+          </span>
+          <span class="text-[11px] text-[#64748b] flex items-center gap-1 mt-0.5 truncate font-medium">
+            <i class="fa-regular fa-clock text-[10px] text-primary"></i> ${formatDate(selectedEvent.heldDate)}
+          </span>
+        </div>
+      </div>
+      <div class="w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">unfold_more</span>
+      </div>
+    `;
+  } else if (allowAllOption) {
+    return `
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <div class="trigger-thumbnail w-9 h-9 rounded-xl bg-blue-50 text-primary flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
+          <i class="fa-solid fa-layer-group text-sm"></i>
+        </div>
+        <div class="min-w-0 flex-1 text-left">
+          <span class="custom-select-selected-value font-bold text-xs sm:text-sm text-[#191b22] truncate block leading-tight">
+            All Events (Overview)
+          </span>
+          <span class="text-[11px] text-[#64748b] flex items-center gap-1 mt-0.5 truncate font-medium">
+            <i class="fa-solid fa-chart-pie text-[10px] text-primary"></i> Aggregate view
+          </span>
+        </div>
+      </div>
+      <div class="w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">unfold_more</span>
+      </div>
+    `;
+  } else {
+    return `
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <div class="trigger-thumbnail w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200/80">
+          <i class="fa-regular fa-calendar text-sm"></i>
+        </div>
+        <div class="min-w-0 flex-1 text-left">
+          <span class="custom-select-selected-value font-bold text-xs sm:text-sm text-slate-600 truncate block leading-tight">
+            ${placeholder}
+          </span>
+          <span class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 truncate">
+            <i class="fa-solid fa-hand-pointer text-[10px]"></i> Click to choose event
+          </span>
+        </div>
+      </div>
+      <div class="w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">unfold_more</span>
+      </div>
+    `;
+  }
+}
+
+function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, sectionKey, allowAllOption = false) {
   const wrapper = document.getElementById(wrapperId);
   if (!wrapper) return;
 
-  // Preserve the current selected value
-  let currentValue = "";
-  const existingInput = document.getElementById(hiddenInputId);
-  if (existingInput) {
-    currentValue = existingInput.value;
+  // Clean up any existing dialog for this hiddenInputId
+  const oldDialog = document.getElementById(hiddenInputId + "-dialog");
+  if (oldDialog) {
+    if (oldDialog._escHandler) document.removeEventListener("keydown", oldDialog._escHandler);
+    oldDialog.remove();
   }
 
-  // Clear wrapper
+  let currentValue = restoreDialogState(hiddenInputId, events, sectionKey, allowAllOption);
+  let selectedEvent = events.find(e => e._id === currentValue) || null;
+  if (!selectedEvent && !allowAllOption && events.length > 0) {
+    currentValue = events[0]._id;
+    selectedEvent = events[0];
+  }
+
   wrapper.innerHTML = "";
 
-  // Create container
-  const container = document.createElement("div");
-  container.className = "custom-select-container relative min-w-[280px]";
-
-  // Find selected event
-  const selectedEvent = events.find(e => e._id === currentValue);
-
-  // Trigger button HTML
+  // Trigger button
   const triggerBtn = document.createElement("button");
   triggerBtn.type = "button";
-  triggerBtn.className = "custom-select-trigger w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary flex items-center justify-between cursor-pointer transition-all duration-200 hover:border-primary/50 shadow-sm";
-  
-  const triggerContent = document.createElement("div");
-  triggerContent.className = "flex items-center gap-3 min-w-0";
-
-  const triggerImgDiv = document.createElement("div");
-  triggerImgDiv.className = "trigger-thumbnail w-6 h-6 rounded-md bg-[#ecedfa] overflow-hidden shrink-0" + (selectedEvent && selectedEvent.thumbnail ? "" : " hidden");
-  const triggerImg = document.createElement("img");
-  triggerImg.className = "w-full h-full object-cover";
-  if (selectedEvent && selectedEvent.thumbnail) {
-    triggerImg.src = selectedEvent.thumbnail;
-  }
-  triggerImgDiv.appendChild(triggerImg);
-  triggerContent.appendChild(triggerImgDiv);
-
-  const triggerText = document.createElement("span");
-  triggerText.className = "custom-select-selected-value text-[#191b22] font-semibold truncate";
-  triggerText.textContent = selectedEvent ? selectedEvent.title : placeholder;
-  triggerContent.appendChild(triggerText);
-
-  triggerBtn.appendChild(triggerContent);
-
-  const arrow = document.createElement("span");
-  arrow.className = "material-symbols-outlined select-arrow text-[#64748b] transition-transform duration-200 text-[20px]";
-  arrow.textContent = "keyboard_arrow_down";
-  triggerBtn.appendChild(arrow);
-
-  container.appendChild(triggerBtn);
-
-  // Dropdown list
-  const dropdown = document.createElement("div");
-  dropdown.className = "custom-select-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-[#ecedfa] rounded-2xl shadow-xl z-[100] max-h-[320px] flex flex-col hidden transform origin-top scale-95 opacity-0 transition-all duration-200";
-
-  // Search box
-  const searchDiv = document.createElement("div");
-  searchDiv.className = "p-3 border-b border-[#ecedfa]";
-  searchDiv.innerHTML = `
-    <div class="relative flex items-center">
-      <span class="material-symbols-outlined absolute left-3 text-[#64748b] text-[18px]">search</span>
-      <input type="text" class="custom-select-search w-full pl-9 pr-4 py-2 rounded-xl border border-[#e2e2eb] text-sm outline-none focus:border-primary placeholder-[#94a3b8]" placeholder="Search event...">
-    </div>
-  `;
-  dropdown.appendChild(searchDiv);
-
-  // List container
-  const list = document.createElement("div");
-  list.className = "custom-select-list overflow-y-auto flex-grow p-1 max-h-[220px]";
-
-  // Populate list
-  function renderListItems(filteredEvents) {
-    list.innerHTML = "";
-    if (filteredEvents.length === 0) {
-      list.innerHTML = `<div class="p-4 text-center text-[#94a3b8] text-xs">No events found</div>`;
-      return;
-    }
-
-    filteredEvents.forEach(e => {
-      const item = document.createElement("div");
-      item.className = "custom-select-item flex items-center gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#f8f9fc] transition-colors" + (e._id === currentValue ? " bg-[#f0f4ff]" : "");
-      
-      const thumb = e.thumbnail 
-        ? `<img src="${e.thumbnail}" class="w-10 h-10 rounded-lg object-cover shrink-0" />`
-        : `<div class="w-10 h-10 rounded-lg bg-[#ecedfa] flex items-center justify-center text-[#94a3b8] shrink-0"><i class="fa-regular fa-image text-sm"></i></div>`;
-      
-      item.innerHTML = `
-        ${thumb}
-        <div class="min-w-0 flex-grow">
-          <div class="text-sm font-semibold text-[#191b22] truncate">${e.title}</div>
-          <div class="text-xs text-[#64748b] flex items-center gap-1 mt-0.5">
-            <span class="material-symbols-outlined text-[12px]">calendar_today</span>
-            ${formatDate(e.heldDate)}
-          </div>
-        </div>
-        ${e._id === currentValue ? `<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>` : ""}
-      `;
-
-      item.addEventListener("click", () => {
-        // Update input and trigger event
-        input.value = e._id;
-        triggerText.textContent = e.title;
-        if (e.thumbnail) {
-          triggerImg.src = e.thumbnail;
-          triggerImgDiv.classList.remove("hidden");
-        } else {
-          triggerImgDiv.classList.add("hidden");
-        }
-
-        // Update selected visual state in-place (no full re-render)
-        list.querySelectorAll(".custom-select-item").forEach(el => {
-          el.classList.remove("bg-[#f0f4ff]");
-          const icon = el.querySelector(".material-symbols-outlined.text-primary");
-          if (icon) icon.remove();
-        });
-        item.classList.add("bg-[#f0f4ff]");
-        const checkSpan = document.createElement("span");
-        checkSpan.className = "material-symbols-outlined text-primary text-[18px]";
-        checkSpan.textContent = "check_circle";
-        item.appendChild(checkSpan);
-
-        closeDropdown();
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-
-      list.appendChild(item);
-    });
-  }
-
-  renderListItems(events);
-  dropdown.appendChild(list);
-  container.appendChild(dropdown);
+  triggerBtn.id = hiddenInputId + "-trigger";
+  triggerBtn.className = "custom-select-trigger w-full sm:w-auto min-w-[220px] md:min-w-[270px] max-w-full";
+  triggerBtn.setAttribute("aria-haspopup", "dialog");
+  triggerBtn.setAttribute("aria-expanded", "false");
+  triggerBtn.setAttribute("aria-controls", hiddenInputId + "-dialog");
+  triggerBtn.innerHTML = _renderTriggerContent(selectedEvent, placeholder, allowAllOption);
+  wrapper.appendChild(triggerBtn);
 
   // Hidden input
   const input = document.createElement("input");
   input.type = "hidden";
   input.id = hiddenInputId;
-  input.className = "custom-select-value";
   input.value = currentValue;
-  container.appendChild(input);
+  wrapper.appendChild(input);
 
-  wrapper.appendChild(container);
+  // Section-based title
+  const dialogTitle = sectionKey === "attendance"
+    ? "Select Event for Attendance"
+    : sectionKey === "cert"
+    ? "Select Event for Certificates"
+    : sectionKey === "participant"
+    ? "Select Event for Participants"
+    : sectionKey === "analytics"
+    ? "Filter Reviews by Event"
+    : sectionKey === "analyticsReport"
+    ? "Select Event for Analytics Report"
+    : "Select Event";
 
-  // Dropdown open/close logic
-  let isOpen = false;
-  function openDropdown() {
-    isOpen = true;
-    dropdown.classList.remove("hidden");
-    // Animation frame for transition
-    requestAnimationFrame(() => {
-      dropdown.classList.remove("scale-95", "opacity-0");
-      dropdown.classList.add("scale-100", "opacity-100");
-    });
-    arrow.style.transform = "rotate(180deg)";
-    // Focus search
-    setTimeout(() => {
-      searchDiv.querySelector("input").focus();
-    }, 50);
+  const orgName = currentOrgs.find(o => o._id === currentOrgId)?.name || "Your Organization";
+
+  // Filter counts
+  const publishedCount = events.filter(e => e.status === "published").length;
+  const draftCount = events.filter(e => e.status === "draft").length;
+  const upcomingCount = events.filter(e => e.heldDate && new Date(e.heldDate) >= new Date()).length;
+  const pastCount = events.filter(e => isEventExpired(e.heldDate)).length;
+
+  // Dialog DOM
+  const dialog = document.createElement("div");
+  dialog.id = hiddenInputId + "-dialog";
+  dialog.className = "event-select-dialog hidden";
+  dialog.setAttribute("role", "dialog");
+  dialog.setAttribute("aria-modal", "true");
+  dialog.setAttribute("aria-labelledby", `${hiddenInputId}-dialog-title`);
+  dialog.innerHTML = `
+    <div class="event-select-backdrop" aria-hidden="true"></div>
+    <div class="event-select-dialog-inner">
+      <div class="event-select-drag-handle"></div>
+      <div class="event-select-dialog-header">
+        <div>
+          <h3 id="${hiddenInputId}-dialog-title" class="event-select-dialog-title">${dialogTitle}</h3>
+          <p class="event-select-dialog-subtitle">Choose an event from ${orgName}</p>
+        </div>
+        <button type="button" class="event-select-dialog-close" aria-label="Close dialog">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="event-select-dialog-search-container">
+        <div class="event-select-dialog-search">
+          <span class="material-symbols-outlined event-select-search-icon">search</span>
+          <input type="text" class="event-select-search-input" placeholder="Search event by name, date, location..." autocomplete="off">
+          <button type="button" class="event-select-search-clear hidden" aria-label="Clear search">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="event-select-filter-pills">
+          <button type="button" class="event-select-pill active" data-filter="all">All (${events.length})</button>
+          <button type="button" class="event-select-pill" data-filter="published">Published (${publishedCount})</button>
+          <button type="button" class="event-select-pill" data-filter="draft">Draft (${draftCount})</button>
+          <button type="button" class="event-select-pill" data-filter="upcoming">Upcoming (${upcomingCount})</button>
+          <button type="button" class="event-select-pill" data-filter="past">Past (${pastCount})</button>
+        </div>
+      </div>
+
+      <div class="event-select-dialog-list"></div>
+
+      <div class="event-select-dialog-footer">
+        <span class="text-xs text-[#64748b] font-medium" id="${hiddenInputId}-dialog-count">Showing ${events.length} event(s)</span>
+        <button type="button" class="event-select-dialog-cancel px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] text-[#64748b] text-xs font-semibold cursor-pointer transition-colors">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+
+  const listEl = dialog.querySelector(".event-select-dialog-list");
+  const searchInput = dialog.querySelector(".event-select-search-input");
+  const searchClearBtn = dialog.querySelector(".event-select-search-clear");
+  const filterPills = dialog.querySelectorAll(".event-select-pill");
+  const closeBtn = dialog.querySelector(".event-select-dialog-close");
+  const cancelBtn = dialog.querySelector(".event-select-dialog-cancel");
+  const backdrop = dialog.querySelector(".event-select-backdrop");
+  const countEl = dialog.querySelector(`#${hiddenInputId}-dialog-count`);
+
+  let activeFilter = "all";
+  let activeQuery = "";
+
+  function _filterEventsList() {
+    let list = events;
+    if (activeFilter === "published") {
+      list = list.filter(e => e.status === "published");
+    } else if (activeFilter === "draft") {
+      list = list.filter(e => e.status === "draft");
+    } else if (activeFilter === "upcoming") {
+      list = list.filter(e => e.heldDate && new Date(e.heldDate) >= new Date());
+    } else if (activeFilter === "past") {
+      list = list.filter(e => isEventExpired(e.heldDate));
+    }
+
+    if (activeQuery) {
+      const q = activeQuery.toLowerCase().trim();
+      list = list.filter(e => {
+        const title = (e.title || "").toLowerCase();
+        const loc = (e.location || "").toLowerCase();
+        const dateStr = formatDate(e.heldDate).toLowerCase();
+        const cat = (e.category?.name || e.type || "").toLowerCase();
+        return title.includes(q) || loc.includes(q) || dateStr.includes(q) || cat.includes(q);
+      });
+    }
+
+    return list;
   }
 
-  function closeDropdown() {
-    isOpen = false;
-    dropdown.classList.remove("scale-100", "opacity-100");
-    dropdown.classList.add("scale-95", "opacity-0");
-    arrow.style.transform = "";
-    // Wait for animation before hiding
-    setTimeout(() => {
-      if (!isOpen) dropdown.classList.add("hidden");
-    }, 200);
+  function _renderCards() {
+    const filtered = _filterEventsList();
+    listEl.innerHTML = "";
+
+    if (countEl) {
+      countEl.innerHTML = `Showing <strong class="text-slate-800">${filtered.length}</strong> of ${events.length} event(s)`;
+    }
+
+    // If org has 0 events total
+    if (events.length === 0) {
+      listEl.innerHTML = `
+        <div class="event-select-empty">
+          <i class="fa-regular fa-calendar-xmark text-4xl text-slate-300 mb-1"></i>
+          <p class="font-bold text-slate-700 text-sm">No events created yet</p>
+          <p class="text-xs text-slate-500 max-w-[260px] leading-relaxed">Create your first event for ${orgName} to manage participants and attendance.</p>
+          <a href="/hostActivity.html?org=${currentOrgId || ''}" class="mt-3 px-5 py-2.5 rounded-full bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all shadow-xs">
+            <i class="fa-solid fa-plus mr-1"></i> Create Event
+          </a>
+        </div>
+      `;
+      return;
+    }
+
+    // If query returned 0 matches
+    if (filtered.length === 0) {
+      listEl.innerHTML = `
+        <div class="event-select-empty">
+          <i class="fa-solid fa-magnifying-glass text-3xl text-slate-300 mb-1"></i>
+          <p class="font-bold text-slate-700 text-sm">No events found matching "${activeQuery}"</p>
+          <p class="text-xs text-slate-500">Try searching for a different keyword or change filter.</p>
+          <button type="button" class="clear-search-action text-xs text-primary font-semibold hover:underline mt-2 cursor-pointer bg-transparent border-none">
+            Reset search & filters
+          </button>
+        </div>
+      `;
+      listEl.querySelector(".clear-search-action")?.addEventListener("click", () => {
+        activeQuery = "";
+        searchInput.value = "";
+        searchClearBtn.classList.add("hidden");
+        activeFilter = "all";
+        filterPills.forEach(p => p.classList.toggle("active", p.dataset.filter === "all"));
+        _renderCards();
+      });
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    // If allowAllOption is true and activeFilter is all without query
+    if (allowAllOption && activeFilter === "all" && !activeQuery) {
+      const isAllSelected = !input.value;
+      const allCard = document.createElement("div");
+      allCard.className = `event-select-card ${isAllSelected ? "event-select-card-selected" : ""}`;
+      allCard.innerHTML = `
+        <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center text-primary text-2xl shrink-0 border border-blue-200/60 shadow-2xs">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <h4 class="font-bold text-sm text-[#191b22]">All Events (Overview)</h4>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Aggregate</span>
+          </div>
+          <p class="text-xs text-[#64748b] mt-1">Show combined metrics and reviews for all ${events.length} events</p>
+        </div>
+        <div class="shrink-0 ml-2">
+          ${isAllSelected
+            ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
+            : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>'}
+        </div>
+      `;
+      allCard.addEventListener("click", () => {
+        _selectEventItem(null);
+      });
+      fragment.appendChild(allCard);
+    }
+
+    filtered.forEach(e => {
+      const isSelected = input.value === e._id;
+      const isExpired = isEventExpired(e.heldDate);
+      const isUpcoming = e.heldDate && new Date(e.heldDate) >= new Date();
+      const thumbUrl = _resolveThumbnailUrl(e.thumbnail);
+
+      const thumbHtml = thumbUrl
+        ? `<img src="${thumbUrl}" class="w-full h-full object-cover" alt="" loading="lazy">`
+        : `<div class="w-full h-full bg-[#dae1ff] text-primary flex items-center justify-center"><i class="fa-regular fa-calendar text-base"></i></div>`;
+
+      let statusBadgeHtml = '';
+      if (e.status === 'published') {
+        statusBadgeHtml = `<span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[10px] font-semibold">Published</span>`;
+      } else {
+        statusBadgeHtml = `<span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60 text-[10px] font-semibold">Draft</span>`;
+      }
+
+      let timingBadge = '';
+      if (isExpired) {
+        timingBadge = `<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-semibold">Past</span>`;
+      } else if (isUpcoming) {
+        timingBadge = `<span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/60 text-[10px] font-semibold">Upcoming</span>`;
+      }
+
+      const card = document.createElement("div");
+      card.className = `event-select-card ${isSelected ? "event-select-card-selected" : ""}`;
+      card.innerHTML = `
+        <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/80 relative shadow-2xs">
+          ${thumbHtml}
+        </div>
+        <div class="min-w-0 flex-1">
+          <h4 class="font-bold text-sm text-[#191b22] line-clamp-1 leading-snug">${e.title}</h4>
+          <div class="text-xs text-[#64748b] mt-1 flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center gap-1"><i class="fa-regular fa-calendar text-[11px] text-primary"></i> ${formatDate(e.heldDate)}</span>
+            ${e.location ? `<span class="text-slate-300">·</span><span class="truncate max-w-[140px]"><i class="fa-solid fa-location-dot text-[10px] text-rose-500 mr-0.5"></i> ${e.location}</span>` : ""}
+          </div>
+          <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            ${statusBadgeHtml}
+            ${timingBadge}
+            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-semibold">
+              <i class="fa-solid fa-users text-[9px] mr-1"></i>${e.participants?.length || 0}
+            </span>
+            ${e.hasCertificate ? '<span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[10px] font-semibold"><i class="fa-solid fa-award text-[9px] mr-1"></i>Cert</span>' : ''}
+            ${e.hasAttendance ? '<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/60 text-[10px] font-semibold"><i class="fa-solid fa-qrcode text-[9px] mr-1"></i>Check-in</span>' : ''}
+          </div>
+        </div>
+        <div class="shrink-0 ml-2">
+          ${isSelected
+            ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
+            : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>'}
+        </div>
+      `;
+
+      card.addEventListener("click", () => {
+        _selectEventItem(e);
+      });
+
+      fragment.appendChild(card);
+    });
+
+    listEl.appendChild(fragment);
+  }
+
+  function _selectEventItem(ev) {
+    const newId = ev ? ev._id : "";
+    input.value = newId;
+    triggerBtn.innerHTML = _renderTriggerContent(ev, placeholder, allowAllOption);
+    saveEventSelection(sectionKey, newId, events, hiddenInputId);
+    closeDialog();
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function openDialog() {
+    dialog.classList.remove("hidden");
+    triggerBtn.setAttribute("aria-expanded", "true");
+    document.body.style.overflow = "hidden";
+    activeFilter = "all";
+    activeQuery = "";
+    searchInput.value = "";
+    searchClearBtn.classList.add("hidden");
+    filterPills.forEach(p => p.classList.toggle("active", p.dataset.filter === "all"));
+    _renderCards();
+    setTimeout(() => searchInput.focus(), 60);
+  }
+
+  function closeDialog() {
+    dialog.classList.add("hidden");
+    triggerBtn.setAttribute("aria-expanded", "false");
+    document.body.style.overflow = "";
   }
 
   triggerBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (isOpen) {
-      closeDropdown();
-    } else {
-      // Close all other custom dropdowns first
-      document.querySelectorAll(".custom-select-dropdown").forEach(d => {
-        d.classList.add("hidden", "scale-95", "opacity-0");
-      });
-      document.querySelectorAll(".select-arrow").forEach(a => {
-        a.style.transform = "";
-      });
-      openDropdown();
+    openDialog();
+  });
+
+  closeBtn?.addEventListener("click", closeDialog);
+  cancelBtn?.addEventListener("click", closeDialog);
+  backdrop?.addEventListener("click", closeDialog);
+
+  searchInput?.addEventListener("input", (e) => {
+    activeQuery = e.target.value;
+    searchClearBtn.classList.toggle("hidden", !activeQuery);
+    _renderCards();
+  });
+
+  searchClearBtn?.addEventListener("click", () => {
+    activeQuery = "";
+    searchInput.value = "";
+    searchClearBtn.classList.add("hidden");
+    searchInput.focus();
+    _renderCards();
+  });
+
+  filterPills.forEach(pill => {
+    pill.addEventListener("click", () => {
+      activeFilter = pill.dataset.filter || "all";
+      filterPills.forEach(p => p.classList.toggle("active", p === pill));
+      _renderCards();
+    });
+  });
+
+  const _escHandler = (ev) => {
+    if (ev.key === "Escape" && !dialog.classList.contains("hidden")) {
+      ev.stopPropagation();
+      closeDialog();
     }
-  });
+  };
+  document.addEventListener("keydown", _escHandler);
+  dialog._escHandler = _escHandler;
+}
 
-  // Search logic
-  const searchInput = searchDiv.querySelector("input");
-  searchInput.addEventListener("input", (e) => {
-    const q = e.target.value.toLowerCase().trim();
-    const filtered = events.filter(ev => ev.title.toLowerCase().includes(q));
-    renderListItems(filtered);
-  });
+function initEventSelectDialogs() {
+  initParticipantEventSelect();
+  initAttendanceEventSelect();
+  initCertEventSelect();
+  initAnalyticsEventSelect();
+  initAnalyticsReportEventSelect();
+}
 
-  // Close on click outside
-  document.addEventListener("click", (e) => {
-    if (!container.contains(e.target)) {
-      closeDropdown();
+function initAnalyticsEventSelect() {
+  const wrapper = document.getElementById("analytics-event-select-wrapper");
+  if (!wrapper || wrapper.dataset.analyticsInitialized === "true") return;
+  wrapper.dataset.analyticsInitialized = "true";
+  wrapper.addEventListener("change", (e) => {
+    if (e.target.id === "analytics-event-select") {
+      filterAnalyticsBySelectedEvent(e.target.value);
     }
   });
 }
 
-// ─── Participants ───
-
 function initParticipantEventSelect() {
   const wrapper = document.getElementById("participant-event-select-wrapper");
-  if (!wrapper) return;
+  if (!wrapper || wrapper.dataset.participantInitialized === "true") return;
+  wrapper.dataset.participantInitialized = "true";
   wrapper.addEventListener("change", (e) => {
     if (e.target.id === "participant-event-select") {
       if (e.target.value) {
@@ -1042,6 +1369,7 @@ function initParticipantEventSelect() {
     }
   });
 }
+
 
 let currentParticipantsList = [];
 
@@ -1726,7 +2054,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initAttendanceEventSelect() {
   const wrapper = document.getElementById("attendance-event-select-wrapper");
-  if (!wrapper) return;
+  if (!wrapper || wrapper.dataset.attendanceInitialized === "true") return;
+  wrapper.dataset.attendanceInitialized = "true";
   wrapper.addEventListener("change", (e) => {
     if (e.target.id === "attendance-event-select") {
       if (e.target.value) {
@@ -2997,7 +3326,8 @@ function initCertBackgroundManager() {
 
 function initCertEventSelect() {
   const wrapper = document.getElementById("cert-event-select-wrapper");
-  if (!wrapper) return;
+  if (!wrapper || wrapper.dataset.certInitialized === "true") return;
+  wrapper.dataset.certInitialized = "true";
   wrapper.addEventListener("change", (e) => {
     if (e.target.id === "cert-event-select") {
       selectedCertEventId = e.target.value || null;

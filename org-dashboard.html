@@ -259,20 +259,20 @@
 
         <!-- Section: Participants -->
         <div id="section-participants" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-8 gap-4">
                 <div>
                     <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Participants</h2>
                     <p class="text-[#64748b] mt-1">View and manage participants for your events</p>
                 </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                    <button id="open-add-participants-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-sm">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap w-full lg:w-auto">
+                    <button id="open-add-participants-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-sm">
                         <i class="fa-solid fa-user-plus"></i> Add Participants
                     </button>
-                    <div class="relative">
+                    <div class="relative w-full sm:w-auto">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="participants-search-input" placeholder="Search by name, email, student ID..." class="pl-9 pr-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-xs w-[220px] md:w-[260px] outline-none focus:border-primary transition-colors shadow-2xs" />
+                        <input type="text" id="participants-search-input" placeholder="Search by name, email, student ID..." class="pl-9 pr-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-xs w-full sm:w-[220px] md:w-[260px] outline-none focus:border-primary transition-colors shadow-2xs" />
                     </div>
-                    <div id="participant-event-select-wrapper" class="relative"></div>
+                    <div id="participant-event-select-wrapper" class="relative w-full sm:w-auto"></div>
                 </div>
             </div>
             <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
@@ -305,13 +305,13 @@
 
         <!-- Section: Attendance -->
         <div id="section-attendance" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 gap-4">
                 <div>
                     <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Attendance</h2>
                     <p class="text-[#64748b] mt-1">Check in participants via QR code or manually</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div id="attendance-event-select-wrapper" class="relative"></div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <div id="attendance-event-select-wrapper" class="relative w-full sm:w-auto"></div>
                 </div>
             </div>
 
@@ -386,13 +386,13 @@
 
         <!-- Section: Reviews -->
         <section id="section-reviews" class="section-content hidden animate-fade-in pb-20">
-            <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <h2 class="text-3xl font-extrabold text-[#191b22] tracking-tight">Analytics & Event Reports</h2>
                     <p class="text-[15px] text-[#64748b] mt-1">Select an event to view detailed ratings, reviews, and reports.</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div id="analytics-event-select-wrapper" class="relative"></div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <div id="analytics-event-select-wrapper" class="relative w-full sm:w-auto"></div>
                 </div>
             </div>
 
@@ -488,14 +488,14 @@
 
         <!-- Section: Certificates -->
         <div id="section-certificates" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-6 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6 gap-4">
                 <div>
                     <h2 class="font-headline-lg text-[32px] font-bold text-[#191b22]">Certificates</h2>
                     <p class="text-[#64748b] mt-1">Issue, manage, and customize certificates for events</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div id="cert-event-select-wrapper" class="relative"></div>
-                    <button id="issue-certs-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    <div id="cert-event-select-wrapper" class="relative w-full sm:w-auto"></div>
+                    <button id="issue-certs-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs">
                         <i class="fa-solid fa-award"></i> Issue Certificates
                     </button>
                 </div>
@@ -643,18 +643,18 @@
 
         <!-- SECTION: ANALYTICS & REPORTS -->
         <div id="section-analytics" class="section-content hidden">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
                 <div>
                     <h2 class="font-headline-md text-2xl font-bold text-[#191b22]">Analytics & Reports</h2>
                     <p class="text-sm text-[#64748b] mt-0.5">Real-time engagement metrics, demographics, and activity reports</p>
                 </div>
-                <div class="flex flex-col items-stretch md:items-end gap-3">
-                    <div class="flex flex-wrap items-center gap-2 p-1 bg-white border border-[#ecedfa] rounded-2xl shadow-sm w-fit md:ml-auto">
+                <div class="flex flex-col sm:flex-row items-stretch lg:items-end gap-3 flex-wrap">
+                    <div class="flex flex-wrap items-center gap-2 p-1 bg-white border border-[#ecedfa] rounded-2xl shadow-sm w-fit">
                         <button type="button" class="analytics-scope-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all spring-ease active" data-analytics-scope="all">All Events</button>
                         <button type="button" class="analytics-scope-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all spring-ease" data-analytics-scope="event">Specific Event</button>
                     </div>
-                    <div id="analytics-report-event-select-wrapper" class="relative hidden md:min-w-[280px]"></div>
-                    <button id="export-org-excel-btn" class="py-2.5 px-5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease shadow-md active:scale-95 md:ml-auto">
+                    <div id="analytics-report-event-select-wrapper" class="relative hidden w-full sm:w-auto md:min-w-[280px]"></div>
+                    <button id="export-org-excel-btn" class="py-2.5 px-5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease shadow-md active:scale-95">
                         <i class="fa-solid fa-file-excel"></i> Export Excel Report (.xlsx)
                     </button>
                 </div>

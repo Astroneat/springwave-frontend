@@ -789,18 +789,30 @@ function toggleSuggestions(show) {
 
 function toggleChat() {
   isOpen = !isOpen;
-  document.getElementById("chatbot-widget").classList.toggle("open", isOpen);
+  const widget = document.getElementById("chatbot-widget");
+  const bubble = document.getElementById("chatbot-bubble");
+  if (widget) widget.classList.toggle("open", isOpen);
+  if (bubble) bubble.setAttribute("aria-expanded", isOpen ? "true" : "false");
   if (isOpen) {
-    document.getElementById("chatbot-input").focus();
+    document.getElementById("chatbot-input")?.focus();
     const container = document.getElementById("chatbot-messages");
-    container.scrollTop = container.scrollHeight;
+    if (container) container.scrollTop = container.scrollHeight;
   }
 }
 
 function closeChat() {
   isOpen = false;
-  document.getElementById("chatbot-widget").classList.remove("open");
+  const widget = document.getElementById("chatbot-widget");
+  const bubble = document.getElementById("chatbot-bubble");
+  if (widget) widget.classList.remove("open");
+  if (bubble) bubble.setAttribute("aria-expanded", "false");
 }
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && isOpen) {
+    closeChat();
+  }
+});
 
 async function sendMessage() {
   const input = document.getElementById("chatbot-input");

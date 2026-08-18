@@ -97,6 +97,10 @@ export async function openReviewModal(eventId, eventTitle, eventThumbnail, orgNa
 
         document.getElementById("close-review-modal").addEventListener("click", closeReviewModal);
 
+        popupOverlay.setAttribute("role", "dialog");
+        popupOverlay.setAttribute("aria-modal", "true");
+        popupOverlay.setAttribute("aria-label", "Write Event Review");
+
         popupOverlay.removeAttribute("hidden");
         // Force reflow
         void popupOverlay.offsetWidth;
@@ -108,6 +112,14 @@ export async function openReviewModal(eventId, eventTitle, eventThumbnail, orgNa
         if (backdrop) {
             backdrop.onclick = closeReviewModal;
         }
+
+        const handleEscape = (e) => {
+            if (e.key === "Escape" && popupOverlay && popupOverlay.classList.contains("active")) {
+                closeReviewModal();
+                document.removeEventListener("keydown", handleEscape);
+            }
+        };
+        document.addEventListener("keydown", handleEscape);
 
     } catch (err) {
         console.error("Failed to load review modal", err);

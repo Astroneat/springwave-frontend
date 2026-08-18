@@ -36,6 +36,16 @@ async function ensurePostModalElements() {
     cancelBtn?.addEventListener("click", closePostModal);
     if (backdrop) backdrop.addEventListener("click", closePostModal);
 
+    overlay?.setAttribute("role", "dialog");
+    overlay?.setAttribute("aria-modal", "true");
+    overlay?.setAttribute("aria-label", "Create Discussion Post");
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay && !overlay.classList.contains("hidden") && overlay.style.display !== "none") {
+            closePostModal();
+        }
+    });
+
     const initModalTurnstile = () => {
         if (typeof turnstile !== "undefined" && document.getElementById("turnstile-container-modal")) {
             turnstile.render("#turnstile-container-modal", {

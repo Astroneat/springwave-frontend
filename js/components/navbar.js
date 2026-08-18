@@ -4,6 +4,60 @@ import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t } from "../lib/i18n.js";
 import { initPageTransition } from "./pageLoader.js";
 
+export function populateUserChip(user, activeSection) {
+    if (!user) return;
+    const avatarImg = document.querySelector(".user-avatar-img");
+    const avatarInitial = document.getElementById("user-avatar-initial");
+    const dropdownAvatarImg = document.querySelector(".dropdown-avatar-img");
+    const dropdownAvatarInitial = document.querySelector(".dropdown-avatar-initial");
+    const userInitial = (user.username || user.fullname || user.email || "U").charAt(0).toUpperCase();
+
+    if (user.avatar) {
+        if (avatarImg) { avatarImg.src = user.avatar; avatarImg.style.display = ""; }
+        if (avatarInitial) avatarInitial.style.display = "none";
+        if (dropdownAvatarImg) { dropdownAvatarImg.src = user.avatar; dropdownAvatarImg.style.display = ""; }
+        if (dropdownAvatarInitial) dropdownAvatarInitial.style.display = "none";
+    } else {
+        if (avatarImg) avatarImg.style.display = "none";
+        if (avatarInitial) { avatarInitial.textContent = userInitial; avatarInitial.style.display = ""; }
+        if (dropdownAvatarImg) dropdownAvatarImg.style.display = "none";
+        if (dropdownAvatarInitial) { dropdownAvatarInitial.textContent = userInitial; dropdownAvatarInitial.style.display = ""; }
+    }
+
+    const usernameEl = document.getElementById("dropdown-username");
+    const emailEl = document.getElementById("dropdown-email");
+    const roleEl = document.getElementById("dropdown-role-badge");
+
+    if (usernameEl) usernameEl.textContent = user.fullname || user.username || "User";
+    if (emailEl) emailEl.textContent = user.email || "";
+    if (roleEl) {
+        if (user.role === 'admin') {
+            roleEl.textContent = "Admin";
+            roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider";
+        } else if (user.role === 'host') {
+            roleEl.textContent = "Host / Organizer";
+            roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider";
+        } else if (isStudentVerified(user)) {
+            roleEl.textContent = "Verified Student";
+            roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wider";
+        } else {
+            roleEl.textContent = "Student";
+            roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider";
+        }
+    }
+
+    const pageLabelEl = document.getElementById("chip-active-page-label");
+    if (pageLabelEl) {
+        const sectionName = activeSection || getSectionFromPath();
+        pageLabelEl.textContent = getSectionTitle(sectionName);
+    }
+
+    const adminDashboardBtn = document.getElementById("admin-dashboard-btn");
+    if (adminDashboardBtn) {
+        adminDashboardBtn.style.display = user?.role === "admin" ? "" : "none";
+    }
+}
+
 export async function loadNavbar({ activeSection } = {}) {
     try {
         initPageTransition();
@@ -11,32 +65,56 @@ export async function loadNavbar({ activeSection } = {}) {
 
     const navbarContainer = document.getElementById("navbar-container");
     const cachedNav = sessionStorage.getItem("cached_navbar_html");
+    const cachedUserChip = sessionStorage.getItem("cached_userchip_html");
+
+    // 1. FAST PATH: Instant synchronous render from sessionStorage cache (0ms delay)
     if (navbarContainer && cachedNav && !navbarContainer.innerHTML.trim()) {
         navbarContainer.innerHTML = cachedNav;
+        const authSection = document.getElementById("auth-section");
+        const bellIcon = document.getElementById("bell-icon");
+
+        if (authSection) {
+            if (isAuthenticated()) {
+                const user = getUser();
+                if (cachedUserChip) {
+                    authSection.innerHTML = cachedUserChip;
+                    populateUserChip(user, activeSection);
+                    initUserDropdown();
+                }
+                if (bellIcon) {
+                    bellIcon.classList.remove("hidden");
+                    bellIcon.classList.add("flex");
+                }
+            } else {
+                authSection.innerHTML = `
+                    <a href="/login.html" class="figma-navbar-login-btn flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition spring-ease" data-i18n="nav.login_btn">
+                        <span data-i18n="nav.login">Login</span>
+                        <img src="/assets/images/icon-login.svg" alt="Login Icon" class="w-4 h-4" />
+                    </a>
+                `;
+                if (bellIcon) { bellIcon.classList.add("hidden"); bellIcon.classList.remove("flex"); }
+            }
+            updateHostBtn();
+        }
         setActiveLink(activeSection);
     }
 
-    if (isAuthenticated()) {
-        try {
-            const { getCurrentUser } = await import("../api/auth.js");
-            const res = await getCurrentUser();
-            if (res && res.user) {
-                setUser(res.user);
-            }
-        } catch (err) {
-            console.warn("Sync session on navbar load failed:", err);
-        }
+    // 2. Fetch fresh navbar and userchip in parallel
+    const [html, userChipHTML] = await Promise.all([
+        fetchContent("/components/navbar.html"),
+        isAuthenticated() ? fetchContent("/components/userchip.html") : Promise.resolve("")
+    ]);
 
-        try {
-            const { initVerificationGuard } = await import("./verificationGuard.js");
-            initVerificationGuard();
-        } catch (e) {}
+    if (html && navbarContainer) {
+        // Update DOM if not already present or if changed
+        if (!cachedNav || navbarContainer.innerHTML !== html) {
+            navbarContainer.innerHTML = html;
+            sessionStorage.setItem("cached_navbar_html", html);
+        }
     }
 
-    const html = await fetchContent("/components/navbar.html");
-    if (html && navbarContainer) {
-        navbarContainer.innerHTML = html;
-        sessionStorage.setItem("cached_navbar_html", html);
+    if (userChipHTML) {
+        sessionStorage.setItem("cached_userchip_html", userChipHTML);
     }
 
     setActiveLink(activeSection);
@@ -46,60 +124,13 @@ export async function loadNavbar({ activeSection } = {}) {
     if (authSection) {
         if (isAuthenticated()) {
             const user = getUser();
-            const userChipHTML = await fetchContent("/components/userchip.html");
-            authSection.innerHTML = userChipHTML;
-
-            const avatarImg = document.querySelector(".user-avatar-img");
-            const avatarInitial = document.getElementById("user-avatar-initial");
-            const dropdownAvatarImg = document.querySelector(".dropdown-avatar-img");
-            const dropdownAvatarInitial = document.querySelector(".dropdown-avatar-initial");
-            const userInitial = (user.username || user.fullname || user.email || "U").charAt(0).toUpperCase();
-
-            if (user.avatar) {
-                if (avatarImg) { avatarImg.src = user.avatar; avatarImg.style.display = ""; }
-                if (avatarInitial) avatarInitial.style.display = "none";
-                if (dropdownAvatarImg) { dropdownAvatarImg.src = user.avatar; dropdownAvatarImg.style.display = ""; }
-                if (dropdownAvatarInitial) dropdownAvatarInitial.style.display = "none";
-            } else {
-                if (avatarImg) avatarImg.style.display = "none";
-                if (avatarInitial) { avatarInitial.textContent = userInitial; avatarInitial.style.display = ""; }
-                if (dropdownAvatarImg) dropdownAvatarImg.style.display = "none";
-                if (dropdownAvatarInitial) { dropdownAvatarInitial.textContent = userInitial; dropdownAvatarInitial.style.display = ""; }
+            const chipContent = userChipHTML || cachedUserChip || sessionStorage.getItem("cached_userchip_html");
+            if (chipContent) {
+                authSection.innerHTML = chipContent;
+                populateUserChip(user, activeSection);
+                initUserDropdown();
             }
 
-            const usernameEl = document.getElementById("dropdown-username");
-            const emailEl = document.getElementById("dropdown-email");
-            const roleEl = document.getElementById("dropdown-role-badge");
-
-            if (usernameEl) usernameEl.textContent = user.fullname || user.username || "User";
-            if (emailEl) emailEl.textContent = user.email || "";
-            if (roleEl) {
-                if (user.role === 'admin') {
-                    roleEl.textContent = "Admin";
-                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider";
-                } else if (user.role === 'host') {
-                    roleEl.textContent = "Host / Organizer";
-                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider";
-                } else if (isStudentVerified(user)) {
-                    roleEl.textContent = "Verified Student";
-                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wider";
-                } else {
-                    roleEl.textContent = "Student";
-                    roleEl.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider";
-                }
-            }
-
-            const pageLabelEl = document.getElementById("chip-active-page-label");
-            if (pageLabelEl) {
-                const sectionName = activeSection || getSectionFromPath();
-                pageLabelEl.textContent = getSectionTitle(sectionName);
-            }
-
-            const adminDashboardBtn = document.getElementById("admin-dashboard-btn");
-            if (adminDashboardBtn) {
-                adminDashboardBtn.style.display = user?.role === "admin" ? "" : "none";
-            }
-            initUserDropdown();
             if (bellIcon) {
                 bellIcon.classList.remove("hidden");
                 bellIcon.classList.add("flex");
@@ -109,6 +140,10 @@ export async function loadNavbar({ activeSection } = {}) {
             window.addEventListener("avatar-updated", (e) => {
                 const avatarUrl = e.detail?.avatar;
                 if (avatarUrl) {
+                    const avatarImg = document.querySelector(".user-avatar-img");
+                    const avatarInitial = document.getElementById("user-avatar-initial");
+                    const dropdownAvatarImg = document.querySelector(".dropdown-avatar-img");
+                    const dropdownAvatarInitial = document.querySelector(".dropdown-avatar-initial");
                     if (avatarImg) { avatarImg.src = avatarUrl; avatarImg.style.display = ""; }
                     if (avatarInitial) avatarInitial.style.display = "none";
                     if (dropdownAvatarImg) { dropdownAvatarImg.src = avatarUrl; dropdownAvatarImg.style.display = ""; }
@@ -127,9 +162,29 @@ export async function loadNavbar({ activeSection } = {}) {
         updateHostBtn();
     }
 
-    await initI18n();
+    // 3. Background Non-Blocking Session & Verification Sync
+    if (isAuthenticated()) {
+        import("../api/auth.js").then(({ getCurrentUser }) => {
+            return getCurrentUser();
+        }).then(res => {
+            if (res && res.user) {
+                setUser(res.user);
+                populateUserChip(res.user, activeSection);
+                updateHostBtn();
+            }
+        }).catch(err => {
+            console.warn("Background sync session failed:", err);
+        });
+
+        import("./verificationGuard.js").then(({ initVerificationGuard }) => {
+            initVerificationGuard();
+        }).catch(() => {});
+    }
+
+    initI18n().catch(() => {});
     initLangSwitcher();
     initSlidingIndicator();
+    initMobileMenuDrawer();
 
     return document.getElementById("navbar");
 }
@@ -147,6 +202,7 @@ export function getSectionFromPath() {
     if (path.includes("explore")) return "explore";
     if (path.includes("community")) return "community";
     if (path.includes("about")) return "about";
+    if (path.includes("quiz")) return "quiz";
     if (path.includes("profile")) return "profile";
     if (path.includes("my-events")) return "my-events";
     if (path.includes("roadmap")) return "roadmap";
@@ -160,6 +216,7 @@ export function getSectionTitle(sec) {
         case "explore": return "Explore";
         case "community": return "Community";
         case "about": return "About Us";
+        case "quiz": return "AI Quiz";
         case "profile": return "Profile";
         case "my-events": return "My Events";
         case "roadmap": return "Roadmap";
@@ -171,7 +228,7 @@ export function getSectionTitle(sec) {
 
 export function setActiveLink(section) {
     const sec = section || getSectionFromPath();
-    const navLinks = document.querySelectorAll(".nav-links a, .figma-navbar-link, .dropdown-item[data-section]");
+    const navLinks = document.querySelectorAll(".nav-links a, .figma-navbar-link, .dropdown-item[data-section], .mobile-nav-link[data-section]");
     navLinks.forEach(link => {
         link.classList.remove("active");
         if (link.dataset.section === sec) {
@@ -182,6 +239,106 @@ export function setActiveLink(section) {
     const pageLabelEl = document.getElementById("chip-active-page-label");
     if (pageLabelEl) {
         pageLabelEl.textContent = getSectionTitle(sec);
+    }
+}
+
+function initMobileMenuDrawer() {
+    const menuBtn = document.getElementById("mobile-menu-btn");
+    const drawer = document.getElementById("mobile-nav-drawer");
+    const backdrop = document.getElementById("mobile-nav-backdrop");
+    const closeBtn = document.getElementById("close-mobile-menu");
+    const mobileAuth = document.getElementById("mobile-auth-actions");
+    const mobileLangBtn = document.getElementById("mobile-drawer-lang-btn");
+    const mobileLangCode = document.getElementById("mobile-drawer-lang-code");
+
+    if (!drawer || !backdrop) return;
+
+    const openDrawer = () => {
+        drawer.classList.add("open");
+        backdrop.classList.add("open");
+        drawer.setAttribute("aria-hidden", "false");
+        backdrop.setAttribute("aria-hidden", "false");
+        menuBtn?.setAttribute("aria-expanded", "true");
+        document.body.style.overflow = "hidden";
+    };
+
+    const closeDrawer = () => {
+        drawer.classList.remove("open");
+        backdrop.classList.remove("open");
+        drawer.setAttribute("aria-hidden", "true");
+        backdrop.setAttribute("aria-hidden", "true");
+        menuBtn?.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+    };
+
+    menuBtn?.addEventListener("click", openDrawer);
+    closeBtn?.addEventListener("click", closeDrawer);
+    backdrop?.addEventListener("click", closeDrawer);
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && drawer.classList.contains("open")) {
+            closeDrawer();
+        }
+    });
+
+    // Populate mobile auth actions
+    if (mobileAuth) {
+        if (isAuthenticated()) {
+            const user = getUser();
+            mobileAuth.innerHTML = `
+                <a href="/profile.html" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold text-xs transition hover:bg-primary/20">
+                    <i class="fa-regular fa-user"></i>
+                    <span>${escapeHtml(user.fullname || user.username || "Profile")}</span>
+                </a>
+                <a href="/my-events.html" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs transition hover:bg-slate-200">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>My Events</span>
+                </a>
+                <a href="/roadmap.html" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs transition hover:bg-slate-200">
+                    <i class="fa-solid fa-route"></i>
+                    <span data-i18n="user.roadmap">Roadmap</span>
+                </a>
+                ${user.role === 'admin' ? `
+                    <a href="/admin.html" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-semibold text-xs transition hover:bg-purple-100">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span data-i18n="admin.dashboard">Admin Dashboard</span>
+                    </a>
+                ` : ''}
+                ${user.role === 'host' ? `
+                    <a href="/org-dashboard.html" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-amber-50 text-amber-800 font-semibold text-xs transition hover:bg-amber-100">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span data-i18n="user.host_dashboard">Host Dashboard</span>
+                    </a>
+                ` : ''}
+                <button type="button" id="mobile-logout-btn" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs transition border-0 cursor-pointer text-left">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span data-i18n="user.logout">Logout</span>
+                </button>
+            `;
+            document.getElementById("mobile-logout-btn")?.addEventListener("click", () => {
+                logout();
+                window.location.href = "/index.html";
+            });
+        } else {
+            mobileAuth.innerHTML = `
+                <a href="/login.html" class="w-full py-2.5 px-4 rounded-xl bg-primary text-white text-center font-bold text-xs shadow-md transition hover:bg-primary/90">
+                    <span data-i18n="nav.login">Login</span>
+                </a>
+                <a href="/register.html" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-700 text-center font-bold text-xs transition hover:bg-slate-200">
+                    <span data-i18n="login.register_now">Register</span>
+                </a>
+            `;
+        }
+    }
+
+    if (mobileLangBtn && mobileLangCode) {
+        mobileLangCode.textContent = getLang().toUpperCase();
+        mobileLangBtn.addEventListener("click", () => {
+            const next = getLang() === "en" ? "vi" : "en";
+            setLang(next).then(() => {
+                mobileLangCode.textContent = next.toUpperCase();
+            });
+        });
     }
 }
 
