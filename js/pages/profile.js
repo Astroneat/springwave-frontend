@@ -365,6 +365,7 @@ async function handleEditSubmit(e) {
         currentUser = result.user;
         setUser(result.user);
         await loadUserProfile();
+        await renderAIProfile();
         statusEl.className = "edit-form-status success";
         statusEl.textContent = t("profile.profile_updated");
         setTimeout(closeEditModal, 1200);
@@ -522,6 +523,8 @@ async function renderAIProfile() {
     }
 
     const p = data.profile;
+    const studentUser = currentUser || getUser();
+    const displayMajor = studentUser?.major || data.user?.major || p.major;
     
     // Add Retake button to the header
     card.querySelector("h2").innerHTML = `
@@ -539,21 +542,21 @@ async function renderAIProfile() {
 
     container.innerHTML = `
       <div class="ai-profile-section">
-        ${p.major ? `<div class="ai-profile-field"><span class="ai-profile-label">Major</span><span class="ai-profile-value">${escapeHtml(p.major)}</span></div>` : ''}
-        ${p.goal ? `<div class="ai-profile-field"><span class="ai-profile-label">Goal</span><span class="ai-profile-value">${escapeHtml(p.goal)}</span></div>` : ''}
+        ${displayMajor ? `<div class="ai-profile-field"><span class="ai-profile-label" data-i18n="profile.ai_major">${t("profile.ai_major", "Major")}</span><span class="ai-profile-value">${escapeHtml(displayMajor)}</span></div>` : ''}
+        ${p.goal ? `<div class="ai-profile-field"><span class="ai-profile-label" data-i18n="profile.ai_goal">${t("profile.ai_goal", "Goal")}</span><span class="ai-profile-value">${escapeHtml(p.goal)}</span></div>` : ''}
         ${p.skills?.length ? `
           <div class="ai-profile-field">
-            <span class="ai-profile-label">Skills</span>
+            <span class="ai-profile-label" data-i18n="profile.ai_skills">${t("profile.ai_skills", "Skills")}</span>
             <div class="ai-profile-tags">${p.skills.map(s => `<span class="ai-profile-tag">${escapeHtml(s)}</span>`).join('')}</div>
           </div>
         ` : ''}
         ${p.preferredActivities?.length ? `
           <div class="ai-profile-field">
-            <span class="ai-profile-label">Preferred Activities</span>
+            <span class="ai-profile-label" data-i18n="profile.ai_preferred_activities">${t("profile.ai_preferred_activities", "Preferred Activities")}</span>
             <div class="ai-profile-tags">${p.preferredActivities.map(a => `<span class="ai-profile-tag">${escapeHtml(a)}</span>`).join('')}</div>
           </div>
         ` : ''}
-        ${p.description ? `<div class="ai-profile-field"><span class="ai-profile-label">About</span><p class="ai-profile-desc">${escapeHtml(p.description)}</p></div>` : ''}
+        ${p.description ? `<div class="ai-profile-field"><span class="ai-profile-label" data-i18n="profile.ai_about">${t("profile.ai_about", "About")}</span><p class="ai-profile-desc">${escapeHtml(p.description)}</p></div>` : ''}
       </div>
     `;
   } catch (error) {

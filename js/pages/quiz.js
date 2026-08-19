@@ -474,7 +474,7 @@ async function finishQuiz() {
       try {
         await submitSurvey(answerData);
         try {
-          await generateProfile({ answers: answerData });
+          await generateProfile(answerData);
         } catch (profileErr) {
           console.warn("Profile generation failed:", profileErr);
         }
