@@ -21,10 +21,16 @@ export class ApiError extends Error {
 }
 
 let requestQueue = 0;
-const MAX_CONCURRENT = 5;
+const MAX_CONCURRENT = 20;
 const queueWaiters = [];
-function enqueueRequest() {
+function enqueueRequest(isPriority = false) {
     return new Promise(resolve => {
+        // Priority tasks (AI, Chatbot, Explain) execute immediately without blocking
+        if (isPriority) {
+            requestQueue++;
+            resolve();
+            return;
+        }
         if (requestQueue < MAX_CONCURRENT) {
             requestQueue++;
             resolve();
@@ -170,7 +176,10 @@ async function request(endpoint, options = {}) {
     await ensureSession();
     checkRateLimit();
 
-    await enqueueRequest();
+    const isAiEndpoint = /^\/(chatbot|recommendations\/explain|roadmap\/generate|profile\/generate|survey\/submit)/.test(endpoint);
+    const isPriority = options.priority === true || isAiEndpoint;
+
+    await enqueueRequest(isPriority);
 
     const token = getToken();
     const signingKey = getSigningKey();
@@ -198,7 +207,8 @@ async function request(endpoint, options = {}) {
     }
 
     startProgress();
-    const timeoutMs = options.timeout || 40000;
+    const defaultTimeout = isAiEndpoint ? 60000 : 40000;
+    const timeoutMs = options.timeout || defaultTimeout;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
