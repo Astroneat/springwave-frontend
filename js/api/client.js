@@ -282,34 +282,38 @@ async function request(endpoint, options = {}) {
     }
 }
 
-export function get(endpoint) {
-    return request(endpoint);
+export function get(endpoint, options = {}) {
+    return request(endpoint, { ...options });
 }
 
-export function post(endpoint, body) {
+export function post(endpoint, body, options = {}) {
     return request(endpoint, {
         method: "POST",
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        ...options
     });
 }
 
-export function put(endpoint, body) {
+export function put(endpoint, body, options = {}) {
     return request(endpoint, {
         method: "PUT",
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        ...options
     });
 }
 
-export function patch(endpoint, body) {
+export function patch(endpoint, body, options = {}) {
     return request(endpoint, {
         method: "PATCH",
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        ...options
     });
 }
 
-export function del(endpoint) {
+export function del(endpoint, options = {}) {
     return request(endpoint, {
-        method: "DELETE"
+        method: "DELETE",
+        ...options
     });
 }
 

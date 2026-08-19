@@ -236,9 +236,17 @@ async function loadRecommendations() {
             const safeLoc = escapeHtml(a.location);
             const safeHeld = escapeHtml(held);
             const safeThumb = escapeAttr(a.thumbnail);
+            const pct = Number.isFinite(a.percentage) ? a.percentage : (a.score ? Math.round(a.score * 100) : null);
+            const matchBadgeHTML = pct !== null ? `
+                <div class="recommendation-match-pill">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> ${pct}% Match
+                </div>
+            ` : '';
+
             return `
                 <div class="recommendation-card" data-id="${escapeAttr(a._id || a.activityID)}" style="cursor:pointer;">
-                    <div class="recommendation-thumb">
+                    <div class="recommendation-thumb relative">
+                        ${matchBadgeHTML}
                         ${a.thumbnail ? `<img src="${safeThumb}" alt="${safeTitle}">` : '<div class="recommendation-thumb-placeholder"><span class="material-symbols-outlined">event</span></div>'}
                     </div>
                     <div class="recommendation-body">

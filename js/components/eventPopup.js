@@ -2,7 +2,7 @@ import { sanitizeHtml } from "../lib/sanitize.js";
 import { getActivityById, checkParticipation, unparticipateActivity, participateActivity, getEventComments, addEventComment, getSimilarEvents } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getParticipatedActivities, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { t } from "../lib/i18n.js";
+import { t, getLang } from "../lib/i18n.js";
 import { isAuthenticated, getUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
 import { formatDate, capitalize, timeAgo, isToday, isPastDate, getEventStatus } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
@@ -444,7 +444,7 @@ function buildPopupHTML(a, backText) {
             <div class="event-modal-badges">
                 <span class="event-pill-badge category"><i class="fa-solid fa-tag"></i> ${type}</span>
                 ${statusBadgeHTML}
-                ${isNonPartner ? `<span class="event-pill-badge source"><i class="fa-solid fa-globe"></i> Scraped</span>` : ''}
+                ${isNonPartner ? `<span class="event-pill-badge non-partner"><i class="fa-solid fa-arrow-up-right-from-square"></i> Non-Partner</span>` : ''}
             </div>
         </div>
 
@@ -944,61 +944,90 @@ function initAIMatchButton(container, activityID) {
             resultEls.forEach(el => { el.style.display = "none"; });
 
             try {
-                const profileResp = await getMyProfile();
-                const profile = profileResp?.profile;
+                const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
+                const isVi = currentLang.startsWith('vi');
 
-                if (!profile || typeof profile !== "object" || Object.keys(profile).length === 0) {
-                    const emptyHTML = `
-                        <div class="ai-match-empty-box">
-                            <span class="material-symbols-outlined text-amber-500 text-2xl">psychology</span>
-                            <h4 class="font-bold text-xs text-slate-800 mt-1.5">Profile Required</h4>
-                            <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Complete your AI survey to get personalized compatibility insights.</p>
-                            <a href="/quiz.html" class="inline-block mt-2.5 py-1.5 px-3 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all">Take Quiz</a>
-                        </div>
-                    `;
-                    resultEls.forEach(el => {
-                        el.innerHTML = emptyHTML;
-                        el.style.display = "block";
-                    });
-                    resetBtn();
-                    return;
-                }
+                const result = await explainRecommendation(activityID, currentLang);
+                const pct = Number.isFinite(result?.percentage) ? result.percentage : (result?.score ? Math.round(result.score * 100) : 75);
+                const fallbackExplanation = isVi 
+                    ? "Sự kiện này phù hợp với sở thích và mục tiêu phát triển của bạn."
+                    : "This event aligns well with your interests and growth goals.";
+                const explanation = result?.explanation || result?.message || fallbackExplanation;
+                const tags = Array.isArray(result?.tags) ? result.tags : [];
+                const breakdown = result?.breakdown || {};
 
-                const result = await explainRecommendation(activityID);
-                const score = result?.score ?? result?.compatibility ?? null;
-                const explanation = result?.explanation || result?.message || "This event matches your stated interests and growth milestones.";
-                const tags = result?.tags || result?.highlights || [];
+                let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+                let progressGradient = "linear-gradient(90deg, #10b981, #059669)";
+                let levelText = isVi ? "Rất phù hợp" : "Strong Match";
 
-                let pct = 75;
-                let badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
-                let label = "High Match";
-                if (score !== null) {
-                    pct = Math.min(100, Math.max(0, Math.round(score * 100)));
-                    if (pct >= 80) { badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200"; label = "Strong Match"; }
-                    else if (pct >= 60) { badgeClass = "bg-blue-50 text-blue-700 border-blue-200"; label = "Good Match"; }
-                    else if (pct >= 40) { badgeClass = "bg-amber-50 text-amber-800 border-amber-200"; label = "Moderate Match"; }
-                    else { badgeClass = "bg-red-50 text-red-700 border-red-200"; label = "Low Match"; }
+                if (pct >= 80) {
+                    badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+                    progressGradient = "linear-gradient(90deg, #10b981, #059669)";
+                    levelText = isVi ? "Rất phù hợp" : "Strong Match";
+                } else if (pct >= 60) {
+                    badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
+                    progressGradient = "linear-gradient(90deg, #3b82f6, #1d4ed8)";
+                    levelText = isVi ? "Phù hợp tốt" : "Good Match";
+                } else if (pct >= 45) {
+                    badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+                    progressGradient = "linear-gradient(90deg, #f59e0b, #d97706)";
+                    levelText = isVi ? "Phù hợp vừa" : "Moderate Match";
+                } else {
+                    badgeClass = "bg-purple-100 text-purple-800 border-purple-300";
+                    progressGradient = "linear-gradient(90deg, #8b5cf6, #6d28d9)";
+                    levelText = isVi ? "Khám phá mới" : "Explore";
                 }
 
                 const tagsHTML = tags.length
-                    ? tags.map(t => `<span class="ai-match-pill-tag">${escapeHtml(t)}</span>`).join("")
+                    ? tags.map(t => `<span class="ai-match-pill-tag"><i class="fa-solid fa-sparkles text-[9px] mr-1"></i>${escapeHtml(t)}</span>`).join("")
                     : "";
+
+                const breakdownHTML = (breakdown.majorFit || breakdown.surveyFit || breakdown.activityFit) ? `
+                    <div class="ai-match-breakdown-grid mb-3">
+                        <div class="ai-breakdown-item">
+                            <span class="ai-breakdown-label"><i class="fa-solid fa-graduation-cap text-blue-500"></i> ${isVi ? 'Ngành học' : 'Major'}</span>
+                            <span class="ai-breakdown-value">${breakdown.majorFit || 60}%</span>
+                        </div>
+                        <div class="ai-breakdown-item">
+                            <span class="ai-breakdown-label"><i class="fa-solid fa-bolt text-amber-500"></i> ${isVi ? 'Năng lực' : 'Competency'}</span>
+                            <span class="ai-breakdown-value">${breakdown.surveyFit || 60}%</span>
+                        </div>
+                        <div class="ai-breakdown-item">
+                            <span class="ai-breakdown-label"><i class="fa-solid fa-bullseye text-emerald-500"></i> ${isVi ? 'Mục tiêu' : 'Goal'}</span>
+                            <span class="ai-breakdown-value">${breakdown.activityFit || 60}%</span>
+                        </div>
+                    </div>
+                ` : '';
 
                 const contentHTML = `
                     <div class="ai-match-card-content">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-slate-800">Match Score</span>
-                            <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold border ${badgeClass}">${pct}% • ${label}</span>
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-pie text-fuchsia-600"></i> ${isVi ? 'Điểm Tương Thích' : 'Match Score'}
+                            </span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${badgeClass}">
+                                ${pct}% • ${levelText}
+                            </span>
                         </div>
                         
                         <!-- Progress Bar -->
-                        <div class="w-full bg-slate-100 rounded-full h-2 mb-3 overflow-hidden">
-                            <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                        <div class="w-full bg-slate-200/80 rounded-full h-2.5 mb-3 overflow-hidden p-0.5">
+                            <div class="h-full rounded-full transition-all duration-700 ease-out" style="width: ${pct}%; background: ${progressGradient};"></div>
                         </div>
 
-                        <p class="text-xs text-slate-600 leading-relaxed text-left mb-2.5">${escapeHtml(explanation)}</p>
+                        ${breakdownHTML}
+
+                        <p class="text-xs text-slate-700 leading-relaxed text-left mb-3 bg-white/70 p-2.5 rounded-xl border border-fuchsia-100">
+                            ${escapeHtml(explanation)}
+                        </p>
                         
-                        ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 justify-start">${tagsHTML}</div>` : ""}
+                        ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 justify-start mb-2">${tagsHTML}</div>` : ""}
+
+                        <div class="mt-2 text-right">
+                            <a href="/quiz.html" class="text-[10.5px] text-fuchsia-700 hover:text-fuchsia-900 font-semibold hover:underline inline-flex items-center gap-1">
+                                <i class="fa-solid fa-sliders"></i> ${isVi ? 'Cập nhật hồ sơ AI Quiz →' : 'Update AI Quiz Profile →'}
+                            </a>
+                        </div>
                     </div>
                 `;
                 resultEls.forEach(el => {
@@ -1007,10 +1036,13 @@ function initAIMatchButton(container, activityID) {
                 });
             } catch (err) {
                 console.error("AI Match error:", err);
+                const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
+                const isVi = currentLang.startsWith('vi');
+                const defaultErr = isVi ? "Không thể phân tích độ phù hợp lúc này." : "Unable to analyze compatibility at this time.";
                 const errorHTML = `
-                    <div class="ai-match-empty-box text-red-600">
+                    <div class="ai-match-empty-box text-rose-600">
                         <i class="fa-solid fa-circle-exclamation text-lg"></i>
-                        <p class="text-[11px] mt-1">${err.message || "Failed to analyze compatibility."}</p>
+                        <p class="text-[11px] mt-1">${err.message || defaultErr}</p>
                     </div>
                 `;
                 resultEls.forEach(el => {
