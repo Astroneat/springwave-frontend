@@ -3502,7 +3502,7 @@ textarea {
 }
 
 .dr-day {
-  @apply aspect-square flex items-center justify-center text-sm font-medium text-[#333] rounded-full cursor-pointer;
+  @apply aspect-square flex items-center justify-center text-sm font-medium text-[#333] rounded-full cursor-pointer relative select-none;
   transition:
     background 0.15s ease,
     color 0.15s ease;
@@ -3512,11 +3512,41 @@ textarea {
   background: rgba(0, 0, 0, 0.06);
 }
 
+.dr-day-num {
+  @apply text-[13px] leading-none font-medium;
+}
+
+.dr-day-events {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3.5px;
+  background-color: #ef4444;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.35);
+  border: 1.5px solid #ffffff;
+  pointer-events: none;
+  z-index: 2;
+}
+
 .dr-day.other-month {
   @apply text-[#ccc];
 }
 
 .dr-day.today {
+  @apply font-bold text-accent;
+}
+
+.dr-day.today .dr-day-num {
   @apply font-bold text-accent;
 }
 
@@ -3539,6 +3569,20 @@ textarea {
 
 .dr-day.range-end.in-range {
   @apply rounded-r-full rounded-l-none;
+}
+
+.dr-day.range-start .dr-day-num,
+.dr-day.range-end .dr-day-num,
+.dr-day.selected .dr-day-num {
+  @apply text-white font-bold;
+}
+
+.dr-day.range-start .dr-day-events,
+.dr-day.range-end .dr-day-events,
+.dr-day.selected .dr-day-events {
+  border-color: #1755ba;
+  background-color: #ef4444;
+  color: #ffffff;
 }
 
 .dr-cal-footer {
@@ -6235,6 +6279,16 @@ textarea {
   color: #7c3aed;
 }
 
+.forum-category-uni {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.forum-category-org {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
 .forum-category-general {
   background: rgba(100, 116, 139, 0.1);
   color: #475569;
@@ -6678,6 +6732,31 @@ textarea {
 
 .forum-comment-like-btn.liked:hover {
   background: rgba(35, 73, 155, 0.15);
+}
+
+.forum-comment-reply-btn {
+  @apply flex items-center gap-1 text-xs text-slate-400 border-none bg-transparent cursor-pointer px-1.5 py-0.5 rounded;
+  transition: all 0.2s ease;
+}
+
+.forum-comment-reply-btn:hover {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.forum-comment-delete-btn {
+  @apply flex items-center justify-center text-xs text-slate-400 border-none bg-transparent cursor-pointer p-1 rounded;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.forum-comment-delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  transform: scale(1.18);
+}
+
+.forum-comment-delete-btn:active {
+  transform: scale(0.95);
 }
 
 .forum-comment-input {

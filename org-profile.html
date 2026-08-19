@@ -34,168 +34,316 @@
         .hover-lift:hover {
             transform: translateY(-4px) scale(1.02);
         }
+
+        /* Success/Error Toast */
+        .org-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border-radius: 14px;
+            background: #1e293b;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+
+        .org-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .org-toast.toast-success {
+            background: #0f172a;
+            border-left: 4px solid #10b981;
+        }
+
+        .org-toast.toast-error {
+            background: #0f172a;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* Tab styling */
+        .event-tab-btn.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
     </style>
 </head>
 
 <body class="bg-[#faf8ff] text-[#191b22] font-body-md antialiased overflow-x-hidden">
     <!-- NAVBAR -->
     <div id="navbar-container"></div>
-    <main class="min-h-screen">
+
+    <!-- Error / Not Found State -->
+    <div id="org-error-state" class="hidden min-h-[70vh] flex flex-col items-center justify-center text-center px-4 py-16">
+        <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mb-6 shadow-sm">
+            <span class="material-symbols-outlined text-4xl">domain_disabled</span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold text-[#191b22] mb-2" id="org-error-title">Organization Not Found</h1>
+        <p class="text-[#64748b] max-w-md mb-8 text-sm md:text-base" id="org-error-desc">
+            The organization you are looking for does not exist, has been removed, or the link is incorrect.
+        </p>
+        <div class="flex flex-wrap gap-4 justify-center">
+            <a href="/explore.html" class="px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-md hover:bg-primary/90 transition-all">
+                Explore Activities
+            </a>
+            <a href="/community.html" class="px-6 py-3 rounded-xl bg-white border border-[#ecedfa] text-[#191b22] font-semibold text-sm hover:bg-slate-50 transition-all">
+                Join Community
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main id="org-main-content" class="min-h-screen">
         <!-- Hero Section -->
         <section class="relative w-full">
             <div class="h-64 md:h-[400px] w-full relative overflow-hidden group">
-                <div id="org-cover" class="w-full h-full bg-cover bg-center"
-                    data-alt="A wide panoramic aerial view of a vibrant university campus during sunrise, with modern glass buildings reflecting soft golden light. The atmosphere is academic and innovative, featuring a color palette dominated by sophisticated royal blue and warm off-white tones, captured in a clean and high-fidelity architectural photography style."
+                <div id="org-cover" class="w-full h-full bg-cover bg-center transition-all duration-300"
+                    data-alt="Organization cover image"
                     style="background-color: #f1f5f9;"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent"></div>
                 <!-- Cover Edit Button -->
                 <button id="edit-cover-btn"
-                    class="hidden absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all duration-200 cursor-pointer z-10 md:opacity-0 group-hover:opacity-100">
-                    <span class="material-symbols-outlined text-md">photo_camera</span>
+                    class="hidden absolute top-4 right-4 bg-black/65 hover:bg-black/85 text-white px-3.5 py-2 rounded-xl flex items-center gap-2 text-sm font-semibold transition-all duration-200 cursor-pointer z-10 shadow-lg backdrop-blur-sm">
+                    <span class="material-symbols-outlined text-lg">photo_camera</span>
                     <span>Edit Cover Photo</span>
                 </button>
                 <input type="file" id="cover-file-input" accept="image/*" class="hidden" />
             </div>
-            <div class="max-w-[1200px] mx-auto px-8 relative">
-                <div class="flex flex-col md:flex-row items-end gap-6 -mt-16 md:-mt-24">
-                    <div class="relative group">
+            <div class="max-w-[1200px] mx-auto px-4 sm:px-8 relative">
+                <div class="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 md:-mt-24 text-center md:text-left">
+                    <div class="relative group shrink-0">
                         <div
-                            class="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-[#faf8ff] bg-white overflow-hidden shadow-xl relative">
+                            class="w-32 h-32 md:w-44 md:h-44 rounded-full border-4 border-[#faf8ff] bg-white overflow-hidden shadow-xl relative">
                             <img id="org-avatar" class="w-full h-full object-cover"
-                                data-alt="A professional circular logo for Google Developer Student Clubs, featuring the iconic minimalist Google colors of red, blue, yellow, and green arranged in a clean, geometric developer-centric emblem. The lighting is flat and modern, set against a pristine white background with a soft studio glow."
+                                alt="Organization Logo"
                                 src="" />
                             <!-- Avatar Edit Overlay -->
                             <button id="edit-avatar-btn"
-                                class="hidden absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center gap-1 transition-opacity duration-200 cursor-pointer md:opacity-0 group-hover:opacity-100">
-                                <span class="material-symbols-outlined text-lg md:text-2xl">photo_camera</span>
-                                <span class="text-[10px] md:text-xs font-semibold">Update Logo</span>
+                                class="hidden absolute inset-0 bg-black/50 hover:bg-black/60 text-white flex flex-col items-center justify-center gap-1 transition-opacity duration-200 cursor-pointer backdrop-blur-[2px]">
+                                <span class="material-symbols-outlined text-2xl">photo_camera</span>
+                                <span class="text-[11px] font-semibold">Update Logo</span>
                             </button>
                             <input type="file" id="avatar-file-input" accept="image/*" class="hidden" />
                         </div>
                         <div
-                            class="absolute bottom-2 right-2 w-6 h-6 md:w-8 md:h-8 bg-green-500 border-2 border-white rounded-full">
+                            class="absolute bottom-2 right-2 w-6 h-6 md:w-7 md:h-7 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center shadow"
+                            title="Active Organization">
+                            <span class="material-symbols-outlined text-white text-xs font-bold" style="font-variation-settings:'FILL' 1;">check</span>
                         </div>
                     </div>
                     <div
-                        class="flex-1 pb-4 flex flex-col md:flex-row justify-between items-start md:items-end w-full gap-4">
+                        class="flex-1 pb-4 flex flex-col md:flex-row justify-between items-center md:items-end w-full gap-4">
                         <div>
-                            <h1 id="org-name" class="font-bold text-2xl md:text-[32px] text-[#191b22]">Organization Name
+                            <h1 id="org-name" class="font-bold text-2xl md:text-3xl text-[#191b22] leading-tight">
+                                Organization Name
                             </h1>
-                            <p class="font-semibold text-sm text-[#64748b] flex items-center gap-1">
-                                <span class="material-symbols-outlined text-lg"
+                            <p class="font-semibold text-xs sm:text-sm text-[#64748b] flex items-center justify-center md:justify-start gap-1.5 mt-1.5">
+                                <span class="material-symbols-outlined text-lg text-primary"
                                     style="font-variation-settings: 'FILL' 1;">verified</span>
-
+                                <span id="org-verified-label" class="text-primary font-semibold">Verified Organization</span>
                             </p>
                         </div>
-                        <div class="flex gap-3">
-                            <button class="follow-btn flex items-center gap-2 font-semibold text-sm bg-primary text-white px-8 py-3 rounded-full shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all" data-following="false">
-                                <span class="material-symbols-outlined text-md">add</span>
-                                <span class="follow-label">Follow</span>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <!-- Follow Button -->
+                            <button id="follow-btn" class="follow-btn flex items-center gap-2 font-semibold text-sm bg-primary text-white px-7 py-2.5 rounded-full shadow-md hover:shadow-primary/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer" data-following="false">
+                                <span id="follow-icon" class="material-symbols-outlined text-lg">add</span>
+                                <span id="follow-label" class="follow-label">Follow</span>
                             </button>
-                            <button
-                                class="material-symbols-outlined p-3 rounded-full border border-[#ecedfa] text-[#64748b] hover:bg-[#f8f9fc] transition-colors">share</button>
+                            <!-- Share Button -->
+                            <button id="share-org-btn" title="Share Organization Profile"
+                                class="flex items-center justify-center p-2.5 rounded-full border border-[#ecedfa] text-[#64748b] bg-white hover:text-primary hover:bg-[#f8f9fc] hover:border-primary/30 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95">
+                                <span class="material-symbols-outlined text-xl">share</span>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+
         <!-- Content Grid -->
-        <section class="max-w-[1200px] mx-auto px-8 py-16">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <section class="max-w-[1200px] mx-auto px-4 sm:px-8 py-10 md:py-14">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10">
                 <!-- Main Content (Left Column) -->
-                <div class="lg:col-span-8 space-y-16">
+                <div class="lg:col-span-8 space-y-10">
                     <!-- About Section -->
-                    <div class="bg-white border border-[#ecedfa] p-6 rounded-[24px] shadow-sm">
-                        <h2 class="font-bold text-xl text-primary mb-4">About Organization</h2>
-                        <p id="org-bio" class=" text-base text-[#64748b] mb-8 leading-relaxed">
+                    <div class="bg-white border border-[#ecedfa] p-6 sm:p-8 rounded-[24px] shadow-sm">
+                        <h2 class="font-bold text-lg sm:text-xl text-[#191b22] mb-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">info</span>
+                            About Organization
+                        </h2>
+                        <p id="org-bio" class="text-sm sm:text-base text-[#64748b] mb-8 leading-relaxed whitespace-pre-line">
                             Loading organization details...
                         </p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                            <div class="flex items-center gap-3">
+                        
+                        <!-- Contact Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 pt-4 border-t border-[#f1f5f9]">
+                            <!-- Email -->
+                            <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-[#faf8ff] border border-[#ecedfa]/60">
                                 <div
-                                    class="w-10 h-10 rounded-xl bg-[#dae1ff]/20 flex items-center justify-center text-primary">
-                                    <span class="material-symbols-outlined">mail</span>
+                                    class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                    <span class="material-symbols-outlined text-xl">mail</span>
                                 </div>
-                                <div>
+                                <div class="min-w-0 flex-1">
                                     <p class="font-semibold text-xs text-[#64748b]">Email Contact</p>
-                                    <p id="org-email" class="font-semibold text-sm text-[#191b22]">-</p>
+                                    <p id="org-email" class="font-semibold text-sm text-[#191b22] truncate">-</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3">
+                            
+                            <!-- Phone -->
+                            <div id="org-phone-item" class="flex items-center gap-3.5 p-3 rounded-2xl bg-[#faf8ff] border border-[#ecedfa]/60">
                                 <div
-                                    class="w-10 h-10 rounded-xl bg-[#dae1ff]/20 flex items-center justify-center text-primary">
-                                    <span class="material-symbols-outlined">public</span>
+                                    class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                    <span class="material-symbols-outlined text-xl">call</span>
                                 </div>
-                                <div>
-                                    <p class="font-semibold text-xs text-[#64748b]">Chapter Website</p>
-                                    <a id="org-website" href="#" target="_blank" class="font-semibold text-sm text-[#191b22] hover:text-primary hover:underline transition-colors block truncate max-w-[200px]">-</a>
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-xs text-[#64748b]">Phone Number</p>
+                                    <p id="org-phone" class="font-semibold text-sm text-[#191b22] truncate">-</p>
+                                </div>
+                            </div>
+
+                            <!-- Website -->
+                            <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-[#faf8ff] border border-[#ecedfa]/60 sm:col-span-2">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                    <span class="material-symbols-outlined text-xl">language</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-xs text-[#64748b]">Official Website</p>
+                                    <a id="org-website" href="#" target="_blank" class="font-semibold text-sm text-primary hover:underline transition-colors block truncate">-</a>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <p class="font-semibold text-sm text-[#191b22]">Connect with us:</p>
-                            <div class="flex gap-2">
-                                <a class="w-10 h-10 rounded-full flex items-center justify-center border border-[#ecedfa] text-[#64748b] hover:text-[#0077b5] hover:border-[#0077b5] transition-all" data-social="linkedin" href="#">
-                                    <svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+
+                        <!-- Social Media Links -->
+                        <div id="org-socials-container" class="flex flex-wrap items-center gap-3 pt-2">
+                            <p class="font-semibold text-xs sm:text-sm text-[#191b22]">Connect with us:</p>
+                            <div class="flex items-center gap-2">
+                                <a class="w-9 h-9 rounded-full flex items-center justify-center border border-[#ecedfa] text-[#64748b] hover:text-[#0077b5] hover:border-[#0077b5] hover:bg-[#0077b5]/5 transition-all" data-social="linkedin" href="#" target="_blank" title="LinkedIn">
+                                    <svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
                                         <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path>
                                     </svg>
                                 </a>
-                                <a class="w-10 h-10 rounded-full flex items-center justify-center border border-[#ecedfa] text-[#64748b] hover:text-[#1877f2] hover:border-[#1877f2] transition-all" data-social="facebook" href="#">
-                                    <svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+                                <a class="w-9 h-9 rounded-full flex items-center justify-center border border-[#ecedfa] text-[#64748b] hover:text-[#1877f2] hover:border-[#1877f2] hover:bg-[#1877f2]/5 transition-all" data-social="facebook" href="#" target="_blank" title="Facebook">
+                                    <svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
                                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path>
                                     </svg>
                                 </a>
-                                <a class="w-10 h-10 rounded-full flex items-center justify-center border border-[#ecedfa] text-[#64748b] hover:text-[#1da1f2] hover:border-[#1da1f2] transition-all" data-social="twitter" href="#">
-                                    <svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+                                <a class="w-9 h-9 rounded-full flex items-center justify-center border border-[#ecedfa] text-[#64748b] hover:text-[#e4405f] hover:border-[#e4405f] hover:bg-[#e4405f]/5 transition-all" data-social="instagram" href="#" target="_blank" title="Instagram">
+                                    <i class="fa-brands fa-instagram text-base"></i>
+                                </a>
+                                <a class="w-9 h-9 rounded-full flex items-center justify-center border border-[#ecedfa] text-[#64748b] hover:text-[#1da1f2] hover:border-[#1da1f2] hover:bg-[#1da1f2]/5 transition-all" data-social="twitter" href="#" target="_blank" title="Twitter / X">
+                                    <svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
                                         <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path>
                                     </svg>
                                 </a>
                             </div>
                         </div>
                     </div>
-                    <!-- Upcoming Events -->
-                    <div id="events-section">
-                        <div class="flex justify-between items-end mb-8">
-                            <h2 class="font-bold text-xl text-[#191b22]">Upcoming Events</h2>
-                            <a class="text-primary font-semibold text-sm flex items-center gap-1 hover:underline"
-                                href="#">
-                                View Calendar
-                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                            </a>
+
+                    <!-- Events Section -->
+                    <div id="events-section" class="space-y-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="font-bold text-xl text-[#191b22] flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">event</span>
+                                    Organization Activities
+                                </h2>
+                                <p class="text-xs text-[#64748b] mt-0.5" id="events-count-hint">Discover and register for activities organized by this host</p>
+                            </div>
+                            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                                <!-- Filter Tabs -->
+                                <div class="flex p-1 bg-[#ecedfa]/60 rounded-xl text-xs font-semibold text-[#64748b]">
+                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg active transition-all cursor-pointer" data-tab="all">All</button>
+                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg transition-all cursor-pointer" data-tab="upcoming">Upcoming</button>
+                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg transition-all cursor-pointer" data-tab="past">Past</button>
+                                </div>
+                                <a class="text-primary font-semibold text-xs sm:text-sm flex items-center gap-1 hover:underline shrink-0"
+                                    href="/explore.html">
+                                    Explore All
+                                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                </a>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 sm:gap-6" id="org-events-grid">
-                            <!-- Events will be rendered here -->
+
+                        <!-- Events Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6" id="org-events-grid">
+                            <!-- Events will be rendered dynamically -->
                         </div>
                     </div>
                 </div>
+
                 <!-- Sidebar (Right Column) -->
                 <aside class="lg:col-span-4 space-y-6">
                     <!-- Stats Card -->
                     <div
-                        class="bg-white border border-[#ecedfa] p-6 rounded-[24px] shadow-sm border-l-4 border-l-primary">
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between">
+                        class="bg-white border border-[#ecedfa] p-6 rounded-[24px] shadow-sm border-t-4 border-t-primary">
+                        <h3 class="font-bold text-sm text-[#191b22] mb-4 uppercase tracking-wider text-slate-500">Activity Overview</h3>
+                        <div class="space-y-4">
+                            <!-- Events Hosted -->
+                            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-[#faf8ff] border border-[#ecedfa]/50">
                                 <div class="flex flex-col">
                                     <span id="org-stats-events"
-                                        class="font-display-lg text-[40px] text-primary">0</span>
-                                    <span class="font-semibold text-sm text-[#64748b]">Events Hosted</span>
+                                        class="font-display-lg text-2xl font-bold text-primary">0</span>
+                                    <span class="font-semibold text-xs text-[#64748b]">Events Hosted</span>
                                 </div>
                                 <div
-                                    class="w-14 h-14 rounded-2xl bg-[#dae1ff]/20 flex items-center justify-center text-primary">
-                                    <span class="material-symbols-outlined text-3xl">event_available</span>
+                                    class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                    <span class="material-symbols-outlined text-2xl">event_available</span>
                                 </div>
                             </div>
-                            <div class="h-px bg-outline-variant/30 w-full"></div>
-                            <div class="flex items-center justify-between">
+                            <!-- Followers -->
+                            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-[#faf8ff] border border-[#ecedfa]/50">
                                 <div class="flex flex-col">
                                     <span id="org-stats-followers"
-                                        class="font-display-lg text-[40px] text-primary">0</span>
-                                    <span class="font-semibold text-sm text-[#64748b]">Followers</span>
+                                        class="font-display-lg text-2xl font-bold text-primary">0</span>
+                                    <span class="font-semibold text-xs text-[#64748b]">Followers</span>
                                 </div>
                                 <div
-                                    class="w-14 h-14 rounded-2xl bg-[#dae1ff]/20 flex items-center justify-center text-primary">
-                                    <span class="material-symbols-outlined text-3xl">group</span>
+                                    class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                    <span class="material-symbols-outlined text-2xl">group</span>
                                 </div>
+                            </div>
+                            <!-- Ratings / Reviews -->
+                            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-[#faf8ff] border border-[#ecedfa]/50">
+                                <div class="flex flex-col">
+                                    <div class="flex items-center gap-1.5">
+                                        <span id="org-stats-rating" class="font-display-lg text-2xl font-bold text-amber-500">5.0</span>
+                                        <span class="material-symbols-outlined text-amber-400 text-lg" style="font-variation-settings:'FILL' 1;">star</span>
+                                    </div>
+                                    <span class="font-semibold text-xs text-[#64748b]" id="org-stats-reviews-label">Community Rating</span>
+                                </div>
+                                <div
+                                    class="w-11 h-11 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                                    <span class="material-symbols-outlined text-2xl">reviews</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trust & Safety Banner -->
+                    <div class="bg-gradient-to-br from-primary/5 via-blue-50/50 to-indigo-50/30 border border-primary/15 p-5 rounded-[24px] shadow-sm">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-lg">verified_user</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs sm:text-sm text-[#191b22]">SpringWave Verified</h4>
+                                <p class="text-xs text-[#64748b] mt-1 leading-relaxed">
+                                    This organization's credentials and hosting authority have been reviewed and approved by the SpringWave Community Board.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -203,6 +351,13 @@
             </div>
         </section>
     </main>
+
+    <!-- Toast Notification Container -->
+    <div id="org-toast" class="org-toast">
+        <span id="org-toast-icon" class="material-symbols-outlined text-lg">check_circle</span>
+        <span id="org-toast-msg">Action completed</span>
+    </div>
+
     <!-- FOOTER -->
     <div id="footer-container"></div>
 

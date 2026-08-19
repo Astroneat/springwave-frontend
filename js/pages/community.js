@@ -51,12 +51,14 @@ import { getPublicOrganizations, toggleFollowOrganization, getOrganizationPublic
 import { CDN_DOMAIN } from "../config.js";
 
 const CATEGORIES = {
-  all:   { label: () => t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
-  event: { label: () => t("community.event_discussions"),      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
-  skills:{ label: () => t("community.skill_development"),      sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
-  uni:   { label: () => t("community.uni_communities"), sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
-  mine:  { label: () => t("community.my_discussions"),         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
-  saved: { label: () => t("community.saved_posts"),            sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
+  all:     { label: () => t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
+  general: { label: () => t("community.general_chat") || "General Chat", sectionTitle: "General Chat",   sectionSubtitle: "Open discussions, questions, and casual conversations" },
+  event:   { label: () => t("community.event_discussions"),      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
+  skills:  { label: () => t("community.skill_development"),      sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
+  uni:     { label: () => t("community.uni_communities"),        sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
+  org:     { label: () => t("community.org_communities"),        sectionTitle: "Organizations",            sectionSubtitle: "Discover clubs, teams, and organizations. Follow to stay updated on their events." },
+  mine:    { label: () => t("community.my_discussions"),         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
+  saved:   { label: () => t("community.saved_posts"),            sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
 };
 
 function getCategoryFromURL() {
@@ -141,6 +143,9 @@ async function getEventDiscussions() {
 }
 
 function eventToDiscussion(event) {
+  const commentCount = Array.isArray(event.comments)
+    ? event.comments.length
+    : (Array.isArray(event.commentsList) ? event.commentsList.length : (Number(event.replyCount) || 0));
   return {
     id: event.activityID || event._id,
     author: event.hostName || "SpringWave",
@@ -150,11 +155,12 @@ function eventToDiscussion(event) {
     preview: (event.description || "").slice(0, 120) + ((event.description || "").length > 120 ? "..." : ""),
     category: "event",
     tags: [event.type || "event"],
-    replies: event.participants || 0,
+    replies: commentCount,
+    replyCount: commentCount,
     views: 0,
     lastActivity: event.heldDate ? formatDate(event.heldDate) : "Upcoming",
     relatedEvent: event.activityID || event._id,
-    _event: { title: event.title, date: event.heldDate, attendees: event.participants || 0 },
+    _event: { title: event.title, date: event.heldDate, attendees: event.participants?.length || event.participants || 0 },
   };
 }
 
@@ -197,6 +203,14 @@ function showProfileModal() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const category = getCategoryFromURL();
+  setActiveCategory(category);
+  updatePageTitle(category);
+  showSections(category);
+
+  // Load right sidebar concurrently right away
+  loadSidebar(category).catch(() => {});
+
   await loadNavbar();
   let user = getUser();
 
@@ -227,17 +241,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     showProfileModal();
   }
 
-  const category = getCategoryFromURL();
-  setActiveCategory(category);
-  updatePageTitle(category);
-  showSections(category);
-
   const urlParams = new URLSearchParams(window.location.search);
   const uniId = urlParams.get("uniId");
   const uniName = urlParams.get("uniName");
 
   let discussions;
-  if (category === "event") {
+  if (category === "general") {
+    discussions = await getDiscussionsByCategory("general");
+  } else if (category === "event") {
     const [userDiscussions, eventDiscussions] = await Promise.all([
       getDiscussionsByCategory("event"),
       getEventDiscussions(),
@@ -263,11 +274,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (sectionSub) {
       sectionSub.textContent = `Discussions from ${uniName || 'university'} community`;
     }
+  } else if (category === "all") {
+    const [allDisc, eventDisc] = await Promise.all([
+      getDiscussionsByCategory("all"),
+      getEventDiscussions().catch(() => [])
+    ]);
+    const combined = [...allDisc];
+    for (const ed of eventDisc) {
+      const edRelEvent = String(ed.relatedEvent || ed.id || ed._id);
+      const existing = combined.find(d => 
+        String(d.id || d._id) === String(ed.id || ed._id) || 
+        (d.relatedEvent && String(d.relatedEvent) === edRelEvent)
+      );
+      if (existing) {
+        if (!existing._event && ed._event) existing._event = ed._event;
+      } else {
+        combined.push(ed);
+      }
+    }
+    discussions = combined;
   } else {
     discussions = await getDiscussionsByCategory(category);
   }
 
-  if (category === "event") {
+  if (category === "event" || category === "all") {
     const storedDiscRaw = localStorage.getItem("springwave_event_discussions");
     if (storedDiscRaw) {
       try {
@@ -303,10 +333,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch {}
   }
 
-  // Strict category filtering
+  // Category filtering
   if (category === "all") {
-    discussions = discussions.filter(d => d.category !== "event");
-  } else if (category === "skills" || category === "uni" || category === "event") {
+    // Aggregated Newsfeed: Show all public discussions across categories (general, event, skills, etc.)
+    // Only exclude internal private university discussions
+    discussions = discussions.filter(d => d.scope !== "community");
+  } else if (category === "skills" || category === "uni" || category === "event" || category === "general") {
     discussions = discussions.filter(d => d.category === category);
   }
 
@@ -315,7 +347,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   await enrichDiscussionsEventData(discussions);
 
   renderDiscussions(discussions, category);
+  renderPopularDiscussions(discussions);
   initFeedTabs();
+
+  // Concurrently enrich and sync accurate comment/reply counts from database
+  enrichDiscussionsReplies(discussions);
 
   // Register interactive click and modal handlers immediately so UI is instantly smooth
   initSidebarLinkClick();
@@ -341,8 +377,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       initUniDialog();
     }).catch(() => {}) : Promise.resolve(),
-    (category === "all" || category === "skills") ? renderTopicGrid().catch(() => {}) : Promise.resolve(),
-    (category === "all" || category === "org") ? renderOrgGrid().catch(() => {}) : Promise.resolve(),
+    (category === "skills") ? renderTopicGrid().catch(() => {}) : Promise.resolve(),
+    (category === "org") ? renderOrgGrid().catch(() => {}) : Promise.resolve(),
     loadSidebar(category).catch(() => {}),
     initChatbot().catch(() => {}),
     loadFooter().catch(() => {})
@@ -407,33 +443,43 @@ function showSections(category) {
 
   const urlParams = new URLSearchParams(window.location.search);
   const uniId = urlParams.get("uniId");
+  const uniName = urlParams.get("uniName");
 
-  if (trending) {
-    trending.style.display = (category === "uni" && !uniId) ? "none" : "";
-    const title = trending.querySelector(".forum-section-title");
-    const sub = trending.querySelector(".forum-section-subtitle");
-    if (title) title.textContent = config.sectionTitle;
-    if (sub) sub.textContent = config.sectionSubtitle;
-  }
+  // Keep conversation heading and list hidden by default while loading data
+  if (trending) trending.style.display = "none";
+  if (universities) universities.style.display = "none";
+  if (careerTopics) careerTopics.style.display = "none";
+  if (orgSection) orgSection.style.display = "none";
 
-  if (universities) {
-    universities.style.display = (category === "uni" && !uniId) ? "" : "none";
-  }
-
-  if (careerTopics) {
-    careerTopics.style.display = (category === "all" || category === "skills") ? "" : "none";
-  }
-
-  if (orgSection) {
-    orgSection.style.display = (category === "all" || category === "org") ? "" : "none";
-  }
-
-  if (statusBar) {
-    statusBar.style.display = (category === "uni" && !uniId) ? "none" : "";
-  }
-
-  if (feedTabs) {
-    feedTabs.style.display = (category === "uni" && !uniId) ? "none" : "";
+  if (category === "uni") {
+    if (uniId) {
+      if (trending) {
+        const title = trending.querySelector(".forum-section-title");
+        const sub = trending.querySelector(".forum-section-subtitle");
+        if (title) title.textContent = uniName ? `${uniName} Discussions` : config.sectionTitle;
+        if (sub) sub.textContent = `Discussions from ${uniName || 'university'} community`;
+      }
+      // Keep other components (publisher bar, feed tabs) visible
+      if (statusBar) statusBar.style.display = "";
+      if (feedTabs) feedTabs.style.display = "";
+    } else {
+      if (statusBar) statusBar.style.display = "none";
+      if (feedTabs) feedTabs.style.display = "none";
+    }
+  } else if (category === "skills" || category === "org") {
+    if (statusBar) statusBar.style.display = "none";
+    if (feedTabs) feedTabs.style.display = "none";
+  } else {
+    // "all", "event", "mine", "saved"
+    if (trending) {
+      const title = trending.querySelector(".forum-section-title");
+      const sub = trending.querySelector(".forum-section-subtitle");
+      if (title) title.textContent = config.sectionTitle;
+      if (sub) sub.textContent = config.sectionSubtitle;
+    }
+    // Keep other components (publisher bar, feed tabs) visible during load
+    if (statusBar) statusBar.style.display = "";
+    if (feedTabs) feedTabs.style.display = "";
   }
 }
 
@@ -497,37 +543,65 @@ function initForumSidebarToggle() {
 
 async function loadSidebar(category) {
   const container = document.getElementById("forumSidebarContainer");
-  const html = await fetchContent("./components/forum-sidebar.html");
-  container.innerHTML = html;
+  if (!container) return;
 
-  const widgets = container.querySelectorAll(".forum-sidebar-widget");
-  if (category === "event") {
-    if (widgets[0]) widgets[0].style.display = "none";
-    if (widgets[1]) widgets[1].style.display = "";
-    if (widgets[2]) widgets[2].style.display = "none";
-  } else if (category === "skills") {
-    if (widgets[0]) widgets[0].style.display = "none";
-    if (widgets[1]) widgets[1].style.display = "none";
-    if (widgets[2]) widgets[2].style.display = "";
-  } else if (category === "uni") {
-    if (widgets[0]) widgets[0].style.display = "";
-    if (widgets[1]) widgets[1].style.display = "none";
-    if (widgets[2]) widgets[2].style.display = "none";
-  } else {
-    if (widgets[0]) widgets[0].style.display = "";
-    if (widgets[1]) widgets[1].style.display = "";
-    if (widgets[2]) widgets[2].style.display = "";
+  if (!document.getElementById("sidebarPopular")) {
+    const html = await fetchContent("./components/forum-sidebar.html");
+    container.innerHTML = html;
   }
 
-  await renderPopularDiscussions();
-  await renderUpcomingEvents();
-  await renderAISuggestions();
+  const widgets = container.querySelectorAll(".forum-sidebar-widget");
+  widgets.forEach((w) => {
+    w.style.display = "";
+  });
+
+  await Promise.allSettled([
+    renderPopularDiscussions(),
+    renderUpcomingEvents(),
+    renderAISuggestions()
+  ]);
 }
 
-async function renderPopularDiscussions() {
+async function enrichDiscussionsReplies(discussions) {
+  if (!Array.isArray(discussions) || discussions.length === 0) return;
+  await Promise.allSettled(
+    discussions.map(async (d) => {
+      const discId = String(d.id || d._id);
+      let storedCount = 0;
+      try {
+        const stored = JSON.parse(localStorage.getItem(`forum_comments_${discId}`) || "[]");
+        storedCount = stored.length;
+      } catch {}
+
+      try {
+        const comments = await getComments(discId);
+        if (Array.isArray(comments)) {
+          const count = Math.max(comments.length, storedCount);
+          d.replies = count;
+          d.replyCount = count;
+          updateFeedDiscussionReplyCount(discId, count);
+        }
+      } catch {
+        if (storedCount > (d.replies || 0)) {
+          d.replies = storedCount;
+          d.replyCount = storedCount;
+          updateFeedDiscussionReplyCount(discId, storedCount);
+        }
+      }
+    })
+  );
+  renderPopularDiscussions(discussions).catch(() => {});
+}
+
+async function renderPopularDiscussions(discussionsList = null) {
   const container = document.getElementById("sidebarPopular");
   if (!container) return;
-  const popular = await getPopularDiscussions();
+  const currentList = discussionsList || window._currentDiscussions || [];
+  const popular = await getPopularDiscussions(currentList);
+  if (!popular || popular.length === 0) {
+    container.innerHTML = '<div class="forum-sidebar-empty" style="padding:12px;text-align:center;color:#94a3b8;font-size:13px;">No discussions yet</div>';
+    return;
+  }
   container.innerHTML = popular
     .map(
       (d, i) => `
@@ -535,7 +609,7 @@ async function renderPopularDiscussions() {
       <span class="forum-sidebar-popular-rank">${String(i + 1).padStart(2, "0")}</span>
       <div class="forum-sidebar-popular-info">
         <span class="forum-sidebar-popular-title">${d.title}</span>
-        <span class="forum-sidebar-popular-replies">${d.replies} replies</span>
+        <span class="forum-sidebar-popular-replies">${Number.isFinite(Number(d.replies)) ? Number(d.replies) : 0} replies</span>
       </div>
     </div>
   `
@@ -625,8 +699,31 @@ function renderDiscussions(discussions, category) {
   const container = document.getElementById("forumDiscussions");
   if (!container) return;
 
+  const trending = document.getElementById("trending");
+  const feedTabs = document.getElementById("forumFeedTabs");
+  const statusBar = document.querySelector(".forum-status-bar");
+  const urlParams = new URLSearchParams(window.location.search);
+  const uniId = urlParams.get("uniId");
+
+  if (category === "uni") {
+    if (uniId) {
+      if (trending) trending.style.display = "";
+      if (feedTabs) feedTabs.style.display = "";
+      if (statusBar) statusBar.style.display = "";
+    }
+  } else if (category === "org" || category === "skills") {
+    if (trending) trending.style.display = "none";
+    if (feedTabs) feedTabs.style.display = "none";
+    if (statusBar) statusBar.style.display = "none";
+  } else {
+    if (trending) trending.style.display = "";
+    if (feedTabs) feedTabs.style.display = "";
+    if (statusBar) statusBar.style.display = "";
+  }
+
   if (discussions.length === 0) {
     const emptyMessages = {
+      general:["chat", "No general discussions yet", "Start an open conversation, ask a question, or share something with the community!"],
       mine:   ["forum", "No discussions yet", "You haven't started any discussions yet. Click 'Start Discussion' to create one!"],
       saved:  ["bookmark", "No saved posts", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later."],
       uni:    ["account_balance", "No university discussions", "Join a university community above to see discussions from your campus."],
@@ -675,7 +772,7 @@ function renderDiscussions(discussions, category) {
         <div class="forum-discussion-stats">
           <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id || d._id}">
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
-            ${d.replies} replies
+            ${Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0)} replies
           </button>
         </div>
         <div class="forum-discussion-actions">
@@ -721,7 +818,7 @@ function buildDiscussionCardHTML(d) {
         <div class="forum-discussion-stats">
           <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id || d._id}">
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
-            ${d.replies || 0} replies
+            ${Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0)} replies
           </button>
           <span class="forum-discussion-stat">
             <span class="material-symbols-outlined text-sm">visibility</span>
@@ -738,6 +835,24 @@ function buildDiscussionCardHTML(d) {
         </div>
       </div>
       </div>`;
+}
+
+function updateFeedDiscussionReplyCount(discussionId, newCount) {
+  const cards = document.querySelectorAll(`.forum-discussion-card[data-discussion-id="${discussionId}"]`);
+  cards.forEach(card => {
+    const btn = card.querySelector(".forum-reply-btn");
+    if (btn) {
+      btn.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${newCount} replies`;
+    }
+  });
+  if (Array.isArray(window._currentDiscussions)) {
+    const item = window._currentDiscussions.find(d => String(d.id || d._id) === String(discussionId));
+    if (item) {
+      item.replies = newCount;
+      item.replyCount = newCount;
+    }
+  }
+  renderPopularDiscussions(window._currentDiscussions).catch(() => {});
 }
 
 function renderAvatar(avatar, name) {
@@ -878,6 +993,7 @@ async function openDiscussionDetail(id) {
   if (statsEl) {
     statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${comments.length} replies`;
   }
+  updateFeedDiscussionReplyCount(id, comments.length);
 
   requestAnimationFrame(() => { container.scrollTop = 0; });
   wireDiscussionEvents(id, container);
@@ -966,7 +1082,20 @@ function wireDiscussionEvents(id, container) {
       const replyToId = input.dataset.replyToId;
       if (!replyToId) return;
       const text = input.value.trim();
-      addReply(id, text, replyToId).then(newComment => {
+
+      if (!requireVerifiedOrRedirect()) return;
+
+      const check = canPerformAction('addComment');
+      if (!check.allowed) {
+        alert(`Please wait ${check.remaining} seconds before posting another reply.`);
+        return;
+      }
+      markActionPerformed('addComment');
+
+      const currentDiscussions = window._currentDiscussions || [];
+      const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(id) || (d.relatedEvent && String(d.relatedEvent) === String(id)));
+
+      addReply(id, text, replyToId, discContext).then(newComment => {
         grantContribution("reply").then((res) => {
           if (res && res.newBadges && Array.isArray(res.newBadges)) {
             res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
@@ -1002,6 +1131,15 @@ function wireDiscussionEvents(id, container) {
           const current = parseInt(countEl.textContent) || 0;
           countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
         }
+        const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
+        if (statsEl) {
+          const current = parseInt(statsEl.textContent.replace(/[^0-9]/g, '')) || 0;
+          statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
+        }
+        updateFeedDiscussionReplyCount(id, (parseInt(countEl?.textContent) || 0) + 1);
+      }).catch(err => {
+        console.error("Failed to post reply:", err);
+        showToast(err?.message || "Failed to post reply. Please try again.", true);
       });
       return;
     }
@@ -1063,6 +1201,7 @@ function wireDiscussionEvents(id, container) {
             const current = parseInt(statsEl.textContent.replace(/[^0-9]/g, '')) || 0;
             statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${Math.max(0, current - 1)} replies`;
           }
+          updateFeedDiscussionReplyCount(id, Math.max(0, (parseInt(countEl?.textContent) || 0) - 1));
           const commentsContainer = document.getElementById("discussion-detail-comments");
           if (commentsContainer && commentsContainer.children.length === 0) {
             commentsContainer.innerHTML = buildEmptyState();
@@ -1141,63 +1280,71 @@ async function submitDiscussionComment(id, container) {
   markActionPerformed('addComment');
 
   const replyToId = input.dataset.replyToId;
-  let newComment;
-  if (replyToId) {
-    newComment = await addReply(id, text, replyToId);
-  } else {
-    newComment = await addComment(id, text);
-  }
-  grantContribution("reply").then((res) => {
-    if (res && res.newBadges && Array.isArray(res.newBadges)) {
-      res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+  const currentDiscussions = window._currentDiscussions || [];
+  const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(id) || (d.relatedEvent && String(d.relatedEvent) === String(id)));
+
+  try {
+    let newComment;
+    if (replyToId) {
+      newComment = await addReply(id, text, replyToId, discContext);
+    } else {
+      newComment = await addComment(id, text, discContext);
     }
-  }).catch(() => {});
-  input.value = "";
-  const submittedReplyToId = input.dataset.replyToId;
-  delete input.dataset.replyToId;
-  input.placeholder = "Write a comment...";
-  const cancelBtn = container.querySelector("#cancel-reply-btn");
-  if (cancelBtn) cancelBtn.style.display = "none";
-  if (newComment) {
-    if (submittedReplyToId) {
-      const parentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${submittedReplyToId}"]`);
-      if (parentEl) {
-        let repliesContainer = parentEl.querySelector(".forum-comment-replies");
-        if (!repliesContainer) {
-          repliesContainer = document.createElement("div");
-          repliesContainer.className = "forum-comment-replies";
-          const inlineEditor = parentEl.querySelector(".forum-comment-inline-reply");
-          if (inlineEditor) {
-            parentEl.querySelector(".forum-comment-body").insertBefore(repliesContainer, inlineEditor);
+    grantContribution("reply").then((res) => {
+      if (res && res.newBadges && Array.isArray(res.newBadges)) {
+        res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+      }
+    }).catch(() => {});
+    input.value = "";
+    const submittedReplyToId = replyToId;
+    delete input.dataset.replyToId;
+    input.placeholder = "Write a comment...";
+    const cancelBtn = container.querySelector("#cancel-reply-btn");
+    if (cancelBtn) cancelBtn.style.display = "none";
+    if (newComment) {
+      if (submittedReplyToId) {
+        const parentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${submittedReplyToId}"]`);
+        if (parentEl) {
+          let repliesContainer = parentEl.querySelector(".forum-comment-replies");
+          if (!repliesContainer) {
+            repliesContainer = document.createElement("div");
+            repliesContainer.className = "forum-comment-replies";
+            const inlineEditor = parentEl.querySelector(".forum-comment-inline-reply");
+            if (inlineEditor) {
+              parentEl.querySelector(".forum-comment-body").insertBefore(repliesContainer, inlineEditor);
+            } else {
+              parentEl.querySelector(".forum-comment-body").appendChild(repliesContainer);
+            }
+          }
+          const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
+          if (expandBtn) {
+            expandBtn.insertAdjacentHTML("beforebegin", buildCommentHTML(newComment, getUser(), "", 1));
           } else {
-            parentEl.querySelector(".forum-comment-body").appendChild(repliesContainer);
+            repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
           }
         }
-        const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
-        if (expandBtn) {
-          expandBtn.insertAdjacentHTML("beforebegin", buildCommentHTML(newComment, getUser(), "", 1));
-        } else {
-          repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
+      } else {
+        const list = container.querySelector("#discussion-detail-comments");
+        if (list) {
+          const empty = list.querySelector(".forum-comments-empty");
+          if (empty) empty.remove();
+          list.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 0));
         }
       }
-    } else {
-      const list = container.querySelector("#discussion-detail-comments");
-      if (list) {
-        const empty = list.querySelector(".forum-comments-empty");
-        if (empty) empty.remove();
-        list.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 0));
+      const countEl = container.querySelector(".forum-comments-count");
+      const current = parseInt(countEl?.textContent) || 0;
+      if (countEl) {
+        countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
       }
+      const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
+      if (statsEl) {
+        statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
+      }
+      updateFeedDiscussionReplyCount(id, current + 1);
     }
-    const countEl = container.querySelector(".forum-comments-count");
-    if (countEl) {
-      const current = parseInt(countEl.textContent) || 0;
-      countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
-    }
-    const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
-    if (statsEl) {
-      const current = parseInt(statsEl.textContent.replace(/[^0-9]/g, '')) || 0;
-      statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
-    }
+  } catch (err) {
+    console.error("Comment submission failed:", err);
+    showToast(err?.message || "Failed to post comment. Please try again.", true);
   }
 }
 
@@ -1207,12 +1354,14 @@ function groupComments(comments) {
   const roots = [];
 
   comments.forEach(c => {
-    map[c.id] = c;
-    childMap[c.id] = childMap[c.id] || [];
+    const cId = String(c.id || c._id);
+    c.id = cId;
+    map[cId] = c;
+    childMap[cId] = childMap[cId] || [];
   });
 
   comments.forEach(c => {
-    const parentId = c.replyToId || (c.replyTo && (c.replyTo.id || c.replyTo.userId));
+    const parentId = c.replyToId ? String(c.replyToId) : null;
     if (parentId && map[parentId]) {
       (childMap[parentId] = childMap[parentId] || []).push(c);
     } else {
@@ -1225,7 +1374,8 @@ function groupComments(comments) {
 
 function collectDescendants(comment, childMap) {
   const result = [];
-  const children = childMap[comment.id] || [];
+  const cId = String(comment.id || comment._id);
+  const children = childMap[cId] || [];
   children.forEach(child => {
     result.push(child);
     result.push(...collectDescendants(child, childMap));
@@ -1334,7 +1484,7 @@ function buildDiscussionDetailHTML(d, comments) {
           <div class="forum-discussion-stats">
             <span class="forum-discussion-stat">
               <span class="material-symbols-outlined text-sm">chat_bubble</span>
-              ${d.replies || d.replyCount || comments.length} replies
+              ${comments ? comments.length : (Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0))} replies
             </span>
           </div>
         </div>
@@ -1368,33 +1518,40 @@ function buildDiscussionDetailHTML(d, comments) {
 }
 
 function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtml = "", hiddenCount = 0) {
+  const cId = String(c.id || c._id);
+  c.id = cId;
   const liked = c.likedBy && currentUser && c.likedBy.some ? c.likedBy.some(id => String(id) === String(currentUser._id)) : false;
   const replyToHtml = c.replyTo && c.replyTo.userName
-    ? `<span class="forum-comment-reply-to">@${c.replyTo.userName}</span>`
+    ? `<span class="forum-comment-reply-to">@${c.replyTo.userName}</span> `
     : "";
   const nestedClass = depth > 0 ? " forum-comment-nested" : "";
   const user = currentUser || getUser();
   return `
-    <div class="discussion-detail-comment${nestedClass}" data-comment-id="${c.id}">
-      ${depth === 0 ? `<div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName)}</div>` : ""}
+    <div class="discussion-detail-comment${nestedClass}" data-comment-id="${cId}">
+      ${depth === 0 ? `<div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName || c.author)}</div>` : ""}
       <div class="forum-comment-body">
         <div class="forum-comment-header">
-          ${depth > 0 ? `<div class="forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName)}</div>` : ""}
+          ${depth > 0 ? `<div class="forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName || c.author)}</div>` : ""}
           <span class="forum-comment-author">${c.author || c.userName}</span>
-          <span class="forum-comment-date">${timeAgo(c.date || c.createdAt)}</span>
+          <span class="forum-comment-date">${timeAgo(c.createdAt || c.date)}</span>
         </div>
         <p class="forum-comment-text">${replyToHtml}${c.content}</p>
         <div class="forum-comment-footer">
-          <button class="forum-comment-like-btn ${liked ? 'liked' : ''}" data-comment-id="${c.id}">
+          <button class="forum-comment-like-btn ${liked ? 'liked' : ''}" data-comment-id="${cId}">
             <span class="material-symbols-outlined text-xs">thumb_up</span>
             <span class="like-count">${c.likes || 0}</span>
           </button>
-          <button class="forum-comment-reply-btn" data-comment-id="${c.id}" data-author="${c.author || c.userName}">
+          <button class="forum-comment-reply-btn" data-comment-id="${cId}" data-author="${c.author || c.userName}">
             <span class="material-symbols-outlined text-xs">reply</span>
             <span>Reply</span>
           </button>
-          ${currentUser && String(c.userID) === String(currentUser._id) ? `
-          <button class="forum-comment-delete-btn" data-comment-id="${c.id}">
+          ${currentUser && (
+            String(c.userID || c.userId) === String(currentUser._id || currentUser.id) ||
+            currentUser.role === "admin" ||
+            (c.userName && (c.userName === currentUser.fullname || c.userName === currentUser.username)) ||
+            (c.author && (c.author === currentUser.fullname || c.author === currentUser.username))
+          ) ? `
+          <button class="forum-comment-delete-btn" data-comment-id="${cId}" title="Delete comment">
             <span class="material-symbols-outlined text-xs">delete</span>
           </button>` : ""}
         </div>
@@ -1440,6 +1597,11 @@ async function renderUniGrid() {
   const myUniId = myUni?._id || myUni?.id;
   const user = getUser();
   const isAdmin = user?.role === "admin";
+  const universities = document.getElementById("universities");
+  const category = getCategoryFromURL();
+  if (universities && category === "uni") {
+    universities.style.display = "";
+  }
 
   if (!unis || unis.length === 0) {
     container.innerHTML = `
@@ -1584,6 +1746,11 @@ async function renderTopicGrid() {
   const container = document.getElementById("forumTopicGrid");
   if (!container) return;
   const topics = await getSkillTopics();
+  const careerTopics = document.getElementById("careerTopics");
+  const category = getCategoryFromURL();
+  if (careerTopics && category === "skills") {
+    careerTopics.style.display = "";
+  }
   if (!topics || topics.length === 0) {
     container.innerHTML = `
       <div class="forum-empty" style="grid-column:1/-1;">
@@ -2292,6 +2459,12 @@ async function renderOrgGrid() {
   }
 
   const orgs = orgsData?.organizations || [];
+
+  const orgSection = document.getElementById("organizations-section");
+  const category = getCategoryFromURL();
+  if (orgSection && category === "org") {
+    orgSection.style.display = "";
+  }
 
   if (!orgs || orgs.length === 0) {
     container.innerHTML = `

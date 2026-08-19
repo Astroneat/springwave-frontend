@@ -2,14 +2,8 @@ import { get, post, put, del } from "./client.js";
 import { getToken, getUser } from "../lib/session.js";
 import { formatDate } from "../lib/utils.js";
 
-const DISCUSSIONS_FALLBACK = [
-  { id: "mock-1", author: "Minh Anh", university: "University of Da Nang", avatar: "M", title: "Anyone joining AI Hackathon 2026?", preview: "Looking for teammates interested in NLP and computer vision.", category: "general", tags: ["AI", "Hackathon"], replies: 12, views: 234, lastActivity: "2h ago" },
-  { id: "mock-2", author: "Thanh Trung", university: "Duy Tan University", avatar: "T", title: "How can I prepare for a startup competition?", preview: "First time joining a startup pitch competition.", category: "skills", tags: ["Startup", "Pitching"], replies: 8, views: 156, lastActivity: "5h ago" },
-  { id: "mock-3", author: "Huy Nguyen", university: "University of Education", avatar: "H", title: "Best opportunities for first-year students?", preview: "Just started uni and want to make the most of my time.", category: "skills", tags: ["First Year"], replies: 24, views: 412, lastActivity: "1d ago" },
-  { id: "mock-4", author: "Linh Chi", university: "University of Economics", avatar: "L", title: "Volunteer Program at Green City Project", preview: "Anyone participated in the Green City volunteering program?", category: "general", tags: ["Volunteer"], replies: 6, views: 89, lastActivity: "3h ago" },
-  { id: "mock-5", author: "Khoa Nguyen", university: "University of Science and Technology", avatar: "K", title: "Recommendations for UI/UX workshops", preview: "Looking for good UI/UX design workshops.", category: "skills", tags: ["UI/UX"], replies: 15, views: 198, lastActivity: "6h ago" },
-  { id: "mock-6", author: "Phuong Anh", university: "University of Foreign Languages", avatar: "P", title: "Networking tips for international students", preview: "Being an international student, I find it hard to connect.", category: "skills", tags: ["Networking"], replies: 19, views: 276, lastActivity: "4h ago" },
-];
+const DISCUSSIONS_FALLBACK = [];
+const COMMENTS_FALLBACK = [];
 
 const UNIVERSITIES_FALLBACK = [
   { id: 1, name: "University of Da Nang", memberCount: 2840, activeDiscussions: 156, color: "#3B6FD4" },
@@ -25,21 +19,6 @@ const SKILLS_FALLBACK = [
   { id: 4, name: "Social Impact", icon: "volunteer_activism", discussionCount: 89, color: "#10B981", description: "Leadership, community, volunteering & more" },
 ];
 
-const COMMENTS_FALLBACK = [
-  { id: 1, discussionId: "mock-1", author: "Quang Huy", avatar: "Q", content: "Count me in!", date: "1h ago", likes: 5 },
-  { id: 2, discussionId: "mock-1", author: "Mai Lan", avatar: "M", content: "Great initiative!", date: "45m ago", likes: 3, replyToId: 1, replyTo: { userId: 1, userName: "Quang Huy" } },
-  { id: 3, discussionId: "mock-2", author: "Bao Tran", avatar: "B", content: "Focus on your MVP first.", date: "4h ago", likes: 8 },
-  { id: 4, discussionId: "mock-3", author: "Thao Vy", avatar: "T", content: "First year is the best time to explore!", date: "12h ago", likes: 10 },
-  { id: 5, discussionId: "mock-4", author: "Kim Ngan", avatar: "K", content: "Amazing experience!", date: "2h ago", likes: 4 },
-  { id: 6, discussionId: "mock-5", author: "Tuan Anh", avatar: "T", content: "Check Coursera for free courses.", date: "5h ago", likes: 6 },
-  { id: 7, discussionId: "mock-6", author: "Minh Thu", avatar: "M", content: "Join the International Student Club!", date: "3h ago", likes: 5 },
-  { id: 8, discussionId: "mock-3", author: "Anh Khoa", avatar: "A", content: "Totally agree! Join clubs and talk to seniors.", date: "10h ago", likes: 6, replyToId: 4, replyTo: { userId: 4, userName: "Thao Vy" } },
-  { id: 9, discussionId: "mock-3", author: "Bich Ngoc", avatar: "B", content: "What clubs would you recommend for a freshman?", date: "9h ago", likes: 3 },
-  { id: 10, discussionId: "mock-3", author: "Thao Vy", avatar: "T", content: "The English club and the coding club are great starters!", date: "8h ago", likes: 7, replyToId: 9, replyTo: { userId: 9, userName: "Bich Ngoc" } },
-  { id: 11, discussionId: "mock-3", author: "Cong Minh", avatar: "C", content: "Don't forget about volunteer groups too!", date: "6h ago", likes: 4, replyToId: 9, replyTo: { userId: 9, userName: "Bich Ngoc" } },
-  { id: 12, discussionId: "mock-1", author: "Hoa Nguyen", avatar: "H", content: "I'm interested! What's the timeline?", date: "30m ago", likes: 2 },
-];
-
 let discussionsCache = null;
 let commentsCache = {};
 
@@ -50,10 +29,8 @@ export async function getTrendingDiscussions() {
       discussionsCache = data.discussions;
       return data.discussions;
     }
-  } catch {
-    console.warn('[Forum] API unavailable, using fallback data for trending discussions');
-  }
-  return DISCUSSIONS_FALLBACK;
+  } catch {}
+  return [];
 }
 
 export async function getDiscussionsByCategory(category) {
@@ -68,15 +45,39 @@ export async function getDiscussionsByCategory(category) {
       return data.discussions;
     }
   } catch {}
-  if (category === "all") return DISCUSSIONS_FALLBACK;
-  return DISCUSSIONS_FALLBACK.filter(d => d.category === category);
+  return [];
 }
 
 const COMMENTS_KEY_PREFIX = "forum_comments_";
 
+function parseCommentTimestamp(c) {
+  if (c.createdAt && !isNaN(new Date(c.createdAt).getTime())) {
+    return new Date(c.createdAt).toISOString();
+  }
+  if (c.date && !isNaN(new Date(c.date).getTime())) {
+    return new Date(c.date).toISOString();
+  }
+  const idStr = String(c.id || c._id || "");
+  if (/^[0-9a-fA-F]{24}$/.test(idStr)) {
+    const ts = parseInt(idStr.substring(0, 8), 16) * 1000;
+    if (!isNaN(ts) && ts > 0) return new Date(ts).toISOString();
+  }
+  const numId = Number(c.id || c._id);
+  if (Number.isFinite(numId) && numId > 1000000000000) {
+    return new Date(numId).toISOString();
+  }
+  return new Date().toISOString();
+}
+
 function getStoredComments(discussionId) {
   try {
-    return JSON.parse(localStorage.getItem(COMMENTS_KEY_PREFIX + discussionId) || "[]");
+    const list = JSON.parse(localStorage.getItem(COMMENTS_KEY_PREFIX + discussionId) || "[]");
+    return list.map(c => {
+      const realTs = parseCommentTimestamp(c);
+      c.createdAt = realTs;
+      c.date = realTs;
+      return c;
+    });
   } catch {
     return [];
   }
@@ -85,10 +86,24 @@ function getStoredComments(discussionId) {
 function storeComment(discussionId, comment) {
   const key = COMMENTS_KEY_PREFIX + discussionId;
   const stored = getStoredComments(discussionId);
-  if (!stored.find(c => String(c.id) === String(comment.id))) {
+  const commentId = String(comment.id || comment._id);
+  const realTs = parseCommentTimestamp(comment);
+  comment.createdAt = realTs;
+  comment.date = realTs;
+  const idx = stored.findIndex(c => String(c.id || c._id) === commentId);
+  if (idx !== -1) {
+    stored[idx] = { ...stored[idx], ...comment };
+  } else {
     stored.push(comment);
-    localStorage.setItem(key, JSON.stringify(stored));
   }
+  localStorage.setItem(key, JSON.stringify(stored));
+}
+
+function removeStoredComment(discussionId, commentId) {
+  const key = COMMENTS_KEY_PREFIX + discussionId;
+  const stored = getStoredComments(discussionId);
+  const filtered = stored.filter(c => String(c.id || c._id) !== String(commentId));
+  localStorage.setItem(key, JSON.stringify(filtered));
 }
 
 export async function getComments(discussionId) {
@@ -96,11 +111,61 @@ export async function getComments(discussionId) {
   const stored = getStoredComments(discussionId);
   try {
     const data = await get(`/community/discussions/${discussionId}/comments`);
-    if (data?.comments) {
-      commentsCache[discussionId] = data.comments;
-      return data.comments;
+    if (data?.comments && data.comments.length > 0) {
+      const mapped = data.comments.map(c => {
+        const cId = String(c._id || c.id);
+        const localMatch = stored.find(s => String(s.id || s._id) === cId);
+        const realTs = parseCommentTimestamp(c);
+        return {
+          ...c,
+          id: cId,
+          _id: cId,
+          date: realTs,
+          createdAt: realTs,
+          replyToId: c.replyToId ? String(c.replyToId) : (localMatch && localMatch.replyToId ? String(localMatch.replyToId) : null),
+          replyTo: c.replyTo || (localMatch ? localMatch.replyTo : null),
+        };
+      });
+      commentsCache[discussionId] = mapped;
+      return mapped;
     }
   } catch {}
+
+  // If discussion comments not found, try event comments endpoint
+  try {
+    const evData = await get(`/events/${discussionId}/comments`);
+    if (evData?.comments && evData.comments.length > 0) {
+      const mapped = evData.comments.map(c => {
+        const cId = String(c._id || c.id);
+        const localMatch = stored.find(s => String(s.id || s._id) === cId);
+        const realTs = parseCommentTimestamp(c);
+        return {
+          id: cId,
+          _id: cId,
+          discussionId,
+          userID: c.userID,
+          author: c.userName || "User",
+          userName: c.userName || "User",
+          avatar: (c.userName || "?").charAt(0).toUpperCase(),
+          content: c.content,
+          date: realTs,
+          createdAt: realTs,
+          likes: 0,
+          replyToId: c.replyToId ? String(c.replyToId) : (localMatch && localMatch.replyToId ? String(localMatch.replyToId) : null),
+          replyTo: c.replyTo || (localMatch ? localMatch.replyTo : null),
+        };
+      });
+      // Merge with any local replies not yet in backend
+      stored.forEach(s => {
+        if (!mapped.find(m => String(m.id || m._id) === String(s.id || s._id))) {
+          mapped.push(s);
+        }
+      });
+      commentsCache[discussionId] = mapped;
+      return mapped;
+    }
+  } catch {}
+
   const merged = [...fallback];
   stored.forEach(s => {
     if (!merged.find(m => String(m.id) === String(s.id))) {
@@ -117,13 +182,58 @@ export async function addComment(discussionId, content) {
       storeComment(discussionId, data.comment);
       return data.comment;
     }
-    return null;
-  } catch {
-    const user = getUser() || {};
-    const comment = { id: Date.now(), discussionId, author: user.fullname || "You", avatar: (user.fullname || "Y")[0], content, date: "Just now", likes: 0 };
-    storeComment(discussionId, comment);
-    return comment;
+  } catch (err) {
+    // If not found in discussions, try event comments
+    if (err?.status === 404 || err?.message?.toLowerCase().includes("not found")) {
+      try {
+        const evData = await post(`/events/${discussionId}/comments`, { content });
+        if (evData?.comment) {
+          const user = getUser() || {};
+            const nowIso = evData.comment.createdAt || new Date().toISOString();
+            const mapped = {
+              id: String(evData.comment._id || Date.now()),
+              _id: String(evData.comment._id || Date.now()),
+              discussionId,
+              userID: evData.comment.userID || user._id,
+              author: evData.comment.userName || user.fullname || user.username || "You",
+              userName: evData.comment.userName || user.fullname || user.username || "You",
+              avatar: (evData.comment.userName || user.fullname || "U")[0].toUpperCase(),
+              content: evData.comment.content,
+              date: nowIso,
+              createdAt: nowIso,
+              likes: 0,
+            };
+          storeComment(discussionId, mapped);
+          return mapped;
+        }
+      } catch (evErr) {
+        // If it's a mock discussion or client-side fallback post
+        if (String(discussionId).startsWith("mock-") || evErr?.status === 404) {
+          const user = getUser() || {};
+          const nowIso = new Date().toISOString();
+          const localComment = {
+            id: Date.now(),
+            _id: Date.now(),
+            discussionId,
+            userID: user._id || "local-user",
+            author: user.fullname || user.username || "You",
+            userName: user.fullname || user.username || "You",
+            avatar: (user.fullname || user.username || "U")[0].toUpperCase(),
+            content,
+            date: nowIso,
+            createdAt: nowIso,
+            likes: 0,
+          };
+          storeComment(discussionId, localComment);
+          return localComment;
+        }
+        throw evErr;
+      }
+    }
+    console.error("Failed to add comment:", err);
+    throw err;
   }
+  return null;
 }
 
 export async function getTopComment(discussionId) {
@@ -164,12 +274,41 @@ export async function getUpcomingEvents() {
   return [];
 }
 
-export async function getPopularDiscussions() {
+export async function getPopularDiscussions(currentDiscussions = []) {
   try {
     const data = await get("/community/sidebar");
-    if (data?.popular) return data.popular;
+    if (data?.popular && data.popular.length > 0) return data.popular;
   } catch {}
-  return [];
+
+  const globalList = (typeof window !== "undefined" && window._currentDiscussions) || [];
+  const rawList = currentDiscussions.length > 0 
+    ? currentDiscussions 
+    : (globalList.length > 0 ? globalList : (discussionsCache || []));
+
+  // Prioritize real user/event discussions over mock fallback data
+  let list = rawList.filter(d => !String(d.id || d._id).startsWith("mock-"));
+  if (list.length === 0) {
+    list = rawList.length > 0 ? rawList : DISCUSSIONS_FALLBACK;
+  }
+
+  const scored = list.map(d => {
+    const discId = String(d.id || d._id);
+    const stored = getStoredComments(discId);
+    const replyCount = Math.max(Number(d.replies) || 0, Number(d.replyCount) || 0, stored.length);
+    const viewCount = Number(d.views) || 0;
+    const score = replyCount * 3 + viewCount;
+    return {
+      id: discId,
+      _id: discId,
+      title: d.title || "Untitled Discussion",
+      replies: replyCount,
+      views: viewCount,
+      score,
+    };
+  });
+
+  scored.sort((a, b) => b.score - a.score || b.replies - a.replies);
+  return scored.slice(0, 5);
 }
 
 export async function getAISuggestions() {
@@ -284,10 +423,22 @@ export async function likeComment(discussionId, commentId) {
 }
 
 export async function deleteDiscussionComment(discussionId, commentId) {
+  removeStoredComment(discussionId, commentId);
   try {
     await del(`/community/discussions/${discussionId}/comments/${commentId}`);
     return true;
-  } catch {
+  } catch (err) {
+    if (err?.status === 404 || err?.message?.toLowerCase().includes("not found")) {
+      try {
+        await del(`/events/${discussionId}/comments/${commentId}`);
+        return true;
+      } catch (evErr) {
+        console.error("Delete event comment failed:", evErr);
+      }
+    }
+    if (String(discussionId).startsWith("mock-") || String(commentId).startsWith("mock-")) {
+      return true;
+    }
     return false;
   }
 }
@@ -299,13 +450,60 @@ export async function addReply(discussionId, content, replyToId) {
       storeComment(discussionId, data.comment);
       return data.comment;
     }
-    return null;
-  } catch {
-    const user = getUser() || {};
-    const comment = { id: Date.now(), discussionId, author: user.fullname || "You", avatar: (user.fullname || "Y")[0], content, replyToId, date: "Just now", likes: 0, replyTo: { userId: replyToId } };
-    storeComment(discussionId, comment);
-    return comment;
+  } catch (err) {
+    // If not found in discussions, try event comments endpoint
+    if (err?.status === 404 || err?.message?.toLowerCase().includes("not found")) {
+      try {
+        const evData = await post(`/events/${discussionId}/comments`, { content });
+        if (evData?.comment) {
+          const user = getUser() || {};
+            const nowIso = evData.comment.createdAt || new Date().toISOString();
+            const mapped = {
+              id: String(evData.comment._id || Date.now()),
+              _id: String(evData.comment._id || Date.now()),
+              discussionId,
+              userID: evData.comment.userID || user._id,
+              author: evData.comment.userName || user.fullname || user.username || "You",
+              userName: evData.comment.userName || user.fullname || user.username || "You",
+              avatar: (evData.comment.userName || user.fullname || "U")[0].toUpperCase(),
+              content: evData.comment.content,
+              replyToId,
+              date: nowIso,
+              createdAt: nowIso,
+              likes: 0,
+            };
+          storeComment(discussionId, mapped);
+          return mapped;
+        }
+      } catch (evErr) {
+        // If it's a mock discussion or client-side fallback post
+        if (String(discussionId).startsWith("mock-") || evErr?.status === 404) {
+          const user = getUser() || {};
+          const nowIso = new Date().toISOString();
+          const localComment = {
+            id: Date.now(),
+            _id: Date.now(),
+            discussionId,
+            userID: user._id || "local-user",
+            author: user.fullname || user.username || "You",
+            userName: user.fullname || user.username || "You",
+            avatar: (user.fullname || user.username || "U")[0].toUpperCase(),
+            content,
+            replyToId,
+            date: nowIso,
+            createdAt: nowIso,
+            likes: 0,
+          };
+          storeComment(discussionId, localComment);
+          return localComment;
+        }
+        throw evErr;
+      }
+    }
+    console.error("Failed to add reply:", err);
+    throw err;
   }
+  return null;
 }
 
 export async function getNotifications() {
@@ -398,9 +596,7 @@ export async function getSavedDiscussions() {
     const data = await get("/community/discussions/saved/me");
     if (data?.discussions) return data.discussions;
   } catch {}
-  const savedIds = getSavedIds();
-  if (savedIds.length === 0) return [];
-  return DISCUSSIONS_FALLBACK.filter(d => savedIds.includes(String(d.id)));
+  return [];
 }
 
 export async function getMyDiscussions() {

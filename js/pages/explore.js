@@ -15,6 +15,7 @@ import { sanitizeHtml, escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
 
 let allActivities = [];
+let masterActivitiesList = [];
 let currentFilteredActivities = [];
 let currentPage = 1;
 const pageSize = 20;
@@ -287,6 +288,13 @@ function initSearchButton() {
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";
 
+        // If searching with specific date range, auto switch status filter to 'all' so events in that range aren't hidden
+        if (dates.startDate) {
+            document.querySelectorAll(".status-option").forEach(c => c.classList.remove("active"));
+            document.querySelector(".status-option[data-status='all']")?.classList.add("active");
+            currentStatus = "all";
+        }
+
         const cardsContainer = document.getElementById("cards-container");
         cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching")}</div>`;
         const pagContainer = document.getElementById("pagination-container");
@@ -295,11 +303,17 @@ function initSearchButton() {
         try {
             const catChip = document.querySelector(".category-chip.active");
             const catValue = catChip && catChip.dataset.category !== "all" ? catChip.dataset.category : undefined;
+
+            const fromDateStr = dates.startDate ? `${toLocalISODate(dates.startDate)}T00:00:00.000Z` : undefined;
+            const toDateStr = dates.endDate 
+                ? `${toLocalISODate(dates.endDate)}T23:59:59.999Z` 
+                : (dates.startDate ? `${toLocalISODate(dates.startDate)}T23:59:59.999Z` : undefined);
+
             const params = {
                 location: location || undefined,
                 category: catValue,
-                heldDateFrom: dates.startDate ? dates.startDate.toISOString().split("T")[0] : undefined,
-                heldDateTo: dates.endDate ? dates.endDate.toISOString().split("T")[0] : undefined
+                heldDateFrom: fromDateStr,
+                heldDateTo: toDateStr
             };
 
             const data = keyword
@@ -315,12 +329,25 @@ function initSearchButton() {
                 );
             }
             if (dates.startDate && dates.endDate) {
+                const s = new Date(dates.startDate);
+                s.setHours(0, 0, 0, 0);
+                const e = new Date(dates.endDate);
+                e.setHours(23, 59, 59, 999);
                 activities = activities.filter(a => {
+                    if (!a.heldDate) return false;
                     const held = new Date(a.heldDate);
-                    return held >= dates.startDate && held <= dates.endDate;
+                    return held >= s && held <= e;
                 });
             } else if (dates.startDate) {
-                activities = activities.filter(a => new Date(a.heldDate) >= dates.startDate);
+                const s = new Date(dates.startDate);
+                s.setHours(0, 0, 0, 0);
+                const e = new Date(dates.startDate);
+                e.setHours(23, 59, 59, 999);
+                activities = activities.filter(a => {
+                    if (!a.heldDate) return false;
+                    const held = new Date(a.heldDate);
+                    return held >= s && held <= e;
+                });
             }
             if (keyword) {
                 const kwLower = keyword.toLowerCase();
@@ -361,14 +388,16 @@ function initSearchButton() {
         if (searchLoc) searchLoc.value = "";
         if (searchPref) searchPref.value = "";
         if (navbarInput) navbarInput.value = "";
-        if (window.__searchDates) {
+        if (typeof window.__resetSearchDates === "function") {
+            window.__resetSearchDates();
+        } else if (window.__searchDates) {
             window.__searchDates.startDate = null;
             window.__searchDates.endDate = null;
+            const placeholder = document.getElementById("drPlaceholder");
+            const value = document.getElementById("drValue");
+            if (placeholder) placeholder.classList.remove("hidden");
+            if (value) value.classList.remove("visible");
         }
-        const placeholder = document.getElementById("drPlaceholder");
-        const value = document.getElementById("drValue");
-        if (placeholder) placeholder.classList.remove("hidden");
-        if (value) value.classList.remove("visible");
 
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
@@ -376,6 +405,9 @@ function initSearchButton() {
         document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
         document.querySelector(".sort-option[data-sort='newest']")?.classList.add("active");
         currentSort = "newest";
+        document.querySelectorAll(".status-option").forEach(b => b.classList.remove("active"));
+        document.querySelector(".status-option[data-status='upcoming']")?.classList.add("active");
+        currentStatus = "upcoming";
 
         const cardsContainer = document.getElementById("cards-container");
         if (cardsContainer) cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching") || "Refreshing..."}</div>`;
@@ -384,7 +416,8 @@ function initSearchButton() {
 
         try {
             const data = await getActivities();
-            await renderCards(data.activities || []);
+            masterActivitiesList = data.activities || [];
+            await renderCards(masterActivitiesList);
         } catch (e) {
             if (cardsContainer) cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("common.error") || "Error fetching data"}</div>`;
         }
@@ -421,7 +454,9 @@ async function loadCards() {
             cachedTemplate = doc.querySelector(".card");
         }
         const activities = (await getActivities()).activities || [];
+        masterActivitiesList = activities;
         allActivities = activities;
+        if (typeof window.__renderSearchCalendar === "function") window.__renderSearchCalendar();
         await applyFiltersAndSort();
     } catch (err) {
         console.error(err);
@@ -438,6 +473,7 @@ async function renderCards(activities) {
     }
 
     allActivities = activities;
+    if (typeof window.__renderSearchCalendar === "function") window.__renderSearchCalendar();
     await applyFiltersAndSort();
 }
 
@@ -708,14 +744,16 @@ function initSidebar() {
         if (searchInput) searchInput.value = "";
         if (navbarInput) navbarInput.value = "";
         if (locInput) locInput.value = "";
-        if (window.__searchDates) {
+        if (typeof window.__resetSearchDates === "function") {
+            window.__resetSearchDates();
+        } else if (window.__searchDates) {
             window.__searchDates.startDate = null;
             window.__searchDates.endDate = null;
+            const placeholder = document.getElementById("drPlaceholder");
+            const value = document.getElementById("drValue");
+            if (placeholder) placeholder.classList.remove("hidden");
+            if (value) value.classList.remove("visible");
         }
-        const placeholder = document.getElementById("drPlaceholder");
-        const value = document.getElementById("drValue");
-        if (placeholder) placeholder.classList.remove("hidden");
-        if (value) value.classList.remove("visible");
 
         document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
@@ -723,6 +761,9 @@ function initSidebar() {
         document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
         document.querySelector(".sort-option[data-sort='newest']")?.classList.add("active");
         currentSort = "newest";
+        document.querySelectorAll(".status-option").forEach(b => b.classList.remove("active"));
+        document.querySelector(".status-option[data-status='upcoming']")?.classList.add("active");
+        currentStatus = "upcoming";
         await applyFiltersAndSort();
     });
 
@@ -1115,6 +1156,20 @@ function initSearchDatePicker() {
         }
     }
 
+    function getEventCountsByDate() {
+        const counts = {};
+        const source = (masterActivitiesList && masterActivitiesList.length > 0) ? masterActivitiesList : allActivities;
+        if (!Array.isArray(source)) return counts;
+        for (const a of source) {
+            if (!a || !a.heldDate) continue;
+            const d = new Date(a.heldDate);
+            if (isNaN(d.getTime())) continue;
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            counts[key] = (counts[key] || 0) + 1;
+        }
+        return counts;
+    }
+
     function renderCalendar() {
         grid.innerHTML = "";
         const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -1124,11 +1179,30 @@ function initSearchDatePicker() {
         const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
         const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
         const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-        for (let i = startOffset - 1; i >= 0; i--) { const el = document.createElement("div"); el.className = "dr-day other-month"; el.textContent = daysInPrevMonth - i; grid.appendChild(el); }
+        for (let i = startOffset - 1; i >= 0; i--) {
+            const el = document.createElement("div");
+            el.className = "dr-day other-month";
+            el.innerHTML = `<span class="dr-day-num">${daysInPrevMonth - i}</span>`;
+            grid.appendChild(el);
+        }
         const today = new Date();
+        const eventCounts = getEventCountsByDate();
         for (let d = 1; d <= daysInMonth; d++) {
-            const el = document.createElement("div"); el.className = "dr-day"; el.textContent = d;
+            const el = document.createElement("div");
+            el.className = "dr-day";
             const date = new Date(currentYear, currentMonth, d);
+            const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+            const count = eventCounts[dateKey] || 0;
+
+            let dayHtml = `<span class="dr-day-num">${d}</span>`;
+            if (count > 0) {
+                el.classList.add("has-events");
+                const countLabel = count > 99 ? "99+" : count;
+                dayHtml += `<span class="dr-day-events" title="${count} ${count === 1 ? 'event' : 'events'}">${countLabel}</span>`;
+                el.title = `${d}/${currentMonth + 1}/${currentYear}: ${count} ${count === 1 ? 'event' : 'events'}`;
+            }
+            el.innerHTML = dayHtml;
+
             if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) el.classList.add("today");
             el.dataset.date = date.toISOString();
             if (startDate && endDate && date > startDate && date < endDate) el.classList.add("in-range");
@@ -1146,8 +1220,22 @@ function initSearchDatePicker() {
         }
         const totalCells = startOffset + daysInMonth;
         const remaining = (7 - (totalCells % 7)) % 7;
-        for (let i = 1; i <= remaining; i++) { const el = document.createElement("div"); el.className = "dr-day other-month"; el.textContent = i; grid.appendChild(el); }
+        for (let i = 1; i <= remaining; i++) {
+            const el = document.createElement("div");
+            el.className = "dr-day other-month";
+            el.innerHTML = `<span class="dr-day-num">${i}</span>`;
+            grid.appendChild(el);
+        }
     }
+
+    window.__renderSearchCalendar = renderCalendar;
+    window.__resetSearchDates = () => {
+        startDate = null;
+        endDate = null;
+        syncSearchDates();
+        renderCalendar();
+        formatDisplay();
+    };
 
     function openDropdown() {
         dropdown.removeAttribute("hidden");

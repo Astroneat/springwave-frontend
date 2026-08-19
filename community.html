@@ -33,6 +33,10 @@
               <span class="material-symbols-outlined forum-category-icon">forum</span>
               All Discussions
             </a>
+            <a class="forum-category-item" href="./community.html?cat=general" data-i18n="community.general_chat">
+              <span class="material-symbols-outlined forum-category-icon">chat</span>
+              General Chat
+            </a>
             <a class="forum-category-item" href="./community.html?cat=event" data-i18n="community.event_discussions">
               <span class="material-symbols-outlined forum-category-icon">event</span>
               Event Discussions
@@ -44,6 +48,10 @@
             <a class="forum-category-item" href="./community.html?cat=uni" data-i18n="community.uni_communities">
               <span class="material-symbols-outlined forum-category-icon">account_balance</span>
               University Communities
+            </a>
+            <a class="forum-category-item" href="./community.html?cat=org" data-i18n="community.org_communities">
+              <span class="material-symbols-outlined forum-category-icon">corporate_fare</span>
+              Organizations
             </a>
             <a class="forum-category-item" href="./community.html?cat=mine" data-i18n="community.my_discussions">
               <span class="material-symbols-outlined forum-category-icon">person</span>
@@ -79,7 +87,7 @@
       </div>
 
       <!-- FEED FILTER TABS -->
-      <div class="forum-feed-tabs" id="forumFeedTabs">
+      <div class="forum-feed-tabs" id="forumFeedTabs" style="display: none;">
         <button class="feed-tab active" data-sort="newest">
           <span class="material-symbols-outlined">schedule</span>
           <span data-i18n="community.tab_latest">Latest</span>
@@ -90,7 +98,7 @@
         </button>
       </div>
 
-      <div class="forum-section" id="trending">
+      <div class="forum-section" id="trending" style="display: none;">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
             <h2 class="forum-section-title" data-i18n="community.trending">Trending Discussions</h2>
@@ -106,7 +114,7 @@
         </div>
       </div>
 
-      <div class="forum-section" id="universities">
+      <div class="forum-section" id="universities" style="display: none;">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
             <h2 class="forum-section-title" data-i18n="community.uni_heading">University Communities</h2>
@@ -127,7 +135,7 @@
         </div>
       </div>
 
-      <div class="forum-section" id="organizations-section">
+      <div class="forum-section" id="organizations-section" style="display: none;">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
             <h2 class="forum-section-title">Organizations</h2>
@@ -139,7 +147,7 @@
         </div>
       </div>
 
-      <div class="forum-section" id="careerTopics">
+      <div class="forum-section" id="careerTopics" style="display: none;">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
             <h2 class="forum-section-title" data-i18n="community.skills_heading">Skills Discussions</h2>
@@ -155,7 +163,47 @@
     <!-- RIGHT SIDEBAR -->
     <aside class="forum-sidebar-right" id="forumSidebarRight">
       <div id="forumSidebarContainer">
-        <!-- loaded by JS from forum-sidebar.html -->
+        <div class="forum-sidebar">
+          <div class="forum-sidebar-widget">
+            <div class="forum-sidebar-widget-header">
+              <span class="material-symbols-outlined forum-sidebar-widget-icon">trending_up</span>
+              <h3 data-i18n="community.popular">Popular Discussions</h3>
+            </div>
+            <div class="forum-sidebar-widget-body" id="sidebarPopular">
+              <div class="space-y-2.5 p-2 animate-pulse">
+                <div class="h-4 bg-slate-200/80 rounded w-3/4"></div>
+                <div class="h-3.5 bg-slate-200/80 rounded w-1/2"></div>
+                <div class="h-4 bg-slate-200/80 rounded w-4/5"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="forum-sidebar-widget">
+            <div class="forum-sidebar-widget-header">
+              <span class="material-symbols-outlined forum-sidebar-widget-icon">event</span>
+              <h3 data-i18n="community.upcoming_events">Upcoming Events</h3>
+            </div>
+            <div class="forum-sidebar-widget-body" id="sidebarUpcomingEvents">
+              <div class="space-y-2.5 p-2 animate-pulse">
+                <div class="h-4 bg-slate-200/80 rounded w-3/4"></div>
+                <div class="h-3.5 bg-slate-200/80 rounded w-2/3"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="forum-sidebar-widget forum-sidebar-widget-ai">
+            <div class="forum-sidebar-widget-header">
+              <span class="material-symbols-outlined forum-sidebar-widget-icon" style="color: var(--color-accent);">auto_awesome</span>
+              <h3 data-i18n="community.ai_suggested">AI Suggested for You</h3>
+            </div>
+            <div class="forum-sidebar-widget-body" id="sidebarAISuggested">
+              <div class="space-y-2.5 p-2 animate-pulse">
+                <div class="h-4 bg-slate-200/80 rounded w-4/5"></div>
+                <div class="h-3.5 bg-slate-200/80 rounded w-3/5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   </section>

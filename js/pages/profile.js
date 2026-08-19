@@ -15,6 +15,7 @@ import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/n
 import { openReviewModal } from "../components/reviewModal.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { t } from "../lib/i18n.js";
 import { populateUniversitySelect } from "../api/universities.js";
 
