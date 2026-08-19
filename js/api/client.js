@@ -212,11 +212,18 @@ async function request(endpoint, options = {}) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    // Strip custom wrapper options so invalid types (e.g. boolean priority) are never passed to native fetch
+    const { priority: customPriority, timeout: customTimeout, ...restOptions } = options;
+    const validFetchPriority = typeof customPriority === 'string' && ['high', 'low', 'auto'].includes(customPriority)
+        ? customPriority
+        : (isPriority ? 'high' : undefined);
+
     try {
         let response;
         try {
             response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                ...options,
+                ...restOptions,
+                ...(validFetchPriority ? { priority: validFetchPriority } : {}),
                 signal: options.signal || controller.signal,
                 headers,
                 credentials: "include",
@@ -244,7 +251,10 @@ async function request(endpoint, options = {}) {
                     headers["X-Signature"] = signature;
                 }
                 response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                    ...options, headers, credentials: "include",
+                    ...restOptions,
+                    ...(validFetchPriority ? { priority: validFetchPriority } : {}),
+                    headers,
+                    credentials: "include",
                 });
             } catch {
                 clearSession();
