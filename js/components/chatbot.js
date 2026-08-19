@@ -474,7 +474,18 @@ function formatMessageContent(text) {
     try {
       const decodedJson = jsonString.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
       const data = JSON.parse(decodedJson.trim());
-      if (data && (data.id || data.eventId)) {
+      if (Array.isArray(data)) {
+        const validEvents = data.filter((d) => d && (d.id || d.eventId));
+        if (validEvents.length > 0) {
+          return validEvents
+            .map((d) => {
+              const placeholder = `___EVENT_CARD_TOKEN_${cardIndex++}___`;
+              cardsMap[placeholder] = renderEventCardFromJSON(d);
+              return placeholder;
+            })
+            .join("\n\n");
+        }
+      } else if (data && (data.id || data.eventId)) {
         const placeholder = `___EVENT_CARD_TOKEN_${cardIndex++}___`;
         cardsMap[placeholder] = renderEventCardFromJSON(data);
         return placeholder;
@@ -631,6 +642,22 @@ function bindMessageClicks() {
       const card = e.target.closest("[data-event-id]");
       if (card && card.dataset.eventId && !e.target.closest("button:not(.chat-event-btn-blue):not(.chat-event-btn-action):not(.action-btn-secondary):not(.ticket-row-view-btn)")) {
         openEventPopup(card.dataset.eventId);
+        return;
+      }
+
+      // 5. Retry Button Click
+      const retryBtn = e.target.closest("[data-action-retry]");
+      if (retryBtn) {
+        e.stopPropagation();
+        const retryText = retryBtn.dataset.actionRetry || "";
+        const msgEl = retryBtn.closest(".message");
+        if (msgEl) msgEl.remove();
+        const input = document.getElementById("chatbot-input");
+        if (input && retryText) {
+          input.value = retryText;
+          sendMessage();
+        }
+        return;
       }
     });
     container.dataset.boundClicks = "true";
@@ -863,7 +890,30 @@ async function sendMessage() {
     saveHistoryToStorage();
   } catch (err) {
     msgEl.classList.remove("typing");
-    msgEl.querySelector(".message-content").textContent = t("chatbot.error", {}, "Đã xảy ra lỗi khi kết nối tới Trợ lý AI. Vui lòng thử lại sau.");
+    const errMsg = String(err?.message || "").toLowerCase();
+    const errStatus = err?.status;
+    const isTimeout = errMsg.includes("abort") || errMsg.includes("timeout") || errStatus === "AbortError" || errStatus === 504;
+    const isRateLimit = errStatus === 429 || errMsg.includes("429") || errMsg.includes("too many requests");
+
+    let errorMsgText = "";
+    if (isTimeout) {
+      errorMsgText = "⏱️ Trợ lý AI đang phản hồi lâu hơn bình thường (timeout). Bạn có thể thử lại ngay hoặc gửi câu hỏi ngắn gọn hơn nhé.";
+    } else if (isRateLimit) {
+      errorMsgText = "🚦 Bạn đang gửi yêu cầu quá nhanh. Vui lòng đợi ít giây rồi thử lại.";
+    } else {
+      errorMsgText = t("chatbot.error", {}, "Đã xảy ra lỗi khi kết nối tới Trợ lý AI. Vui lòng thử lại sau.");
+    }
+
+    const safeText = escapeHtml(text).replace(/"/g, '&quot;');
+    msgEl.querySelector(".message-content").innerHTML = `
+      <div class="chatbot-error-notice">
+        <p class="text-xs leading-relaxed text-rose-700 m-0">${errorMsgText}</p>
+        <button type="button" class="chatbot-retry-btn" data-action-retry="${safeText}">
+          <i class="fa-solid fa-rotate-right"></i> Thử lại
+        </button>
+      </div>
+    `;
+    bindMessageClicks();
   } finally {
     isSending = false;
     if (sendBtn) sendBtn.disabled = false;
