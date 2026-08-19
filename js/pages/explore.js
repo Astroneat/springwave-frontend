@@ -462,7 +462,6 @@ async function loadCards() {
             cachedTemplate = doc.querySelector(".card");
         }
         const activities = (await getActivities()).activities || [];
-        masterActivitiesList = activities;
         allActivities = activities;
         if (typeof window.__renderSearchCalendar === "function") window.__renderSearchCalendar();
         await applyFiltersAndSort();

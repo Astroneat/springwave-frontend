@@ -52,6 +52,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // Expose for onclick handlers
     window.openReviewModal = openReviewModal;
+
+    // Check hash for badges redirection scroll
+    if (window.location.hash === "#badges-section") {
+        setTimeout(() => {
+            const el = document.getElementById("badges-section");
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }, 150);
+    }
 });
 
 async function loadNavbar() {
