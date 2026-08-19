@@ -17136,11 +17136,12 @@ body {
 
 .journey-connecting-line {
   position: absolute !important;
-  top: 48px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   left: 64px !important;
   right: 64px !important;
-  height: 1px !important;
-  background: var(--sw-border) !important;
+  height: 2px !important;
+  background: #94A3B8 !important;
   z-index: 1 !important;
 }
 
@@ -17424,11 +17425,12 @@ body {
 
 .how-connecting-path {
   position: absolute !important;
-  top: 140px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   left: 12% !important;
   right: 12% !important;
-  height: 1px !important;
-  border-top: 1px solid var(--sw-border-strong) !important;
+  height: 2px !important;
+  background: #94A3B8 !important;
   z-index: 1 !important;
 }
 
