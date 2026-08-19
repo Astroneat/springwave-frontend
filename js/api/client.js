@@ -362,3 +362,96 @@ export function putFormData(endpoint, formData) {
         body: formData
     });
 }
+
+export async function postStream(endpoint, body, callbacks = {}, options = {}) {
+    const { onMessage, onError, onDone } = callbacks;
+    await ensureSession();
+    checkRateLimit();
+
+    await enqueueRequest(true);
+
+    const token = getToken();
+    const signingKey = getSigningKey();
+    const headers = { Accept: "text/event-stream", ...options.headers };
+    const method = "POST";
+    headers["Content-Type"] = "application/json";
+
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    const bodyStr = JSON.stringify(body);
+    if (token && signingKey) {
+        const timestamp = Date.now().toString();
+        const nonce = crypto.randomUUID();
+        const pathOnly = endpoint.split('?')[0];
+        const signature = await computeSignature(signingKey, method, pathOnly, bodyStr, timestamp, nonce);
+        headers["X-Timestamp"] = timestamp;
+        headers["X-Nonce"] = nonce;
+        headers["X-Signature"] = signature;
+    }
+
+    startProgress();
+    const timeoutMs = options.timeout || 90000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: "POST",
+            headers,
+            body: bodyStr,
+            signal: options.signal || controller.signal,
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            let errData = null;
+            try { errData = await response.json(); } catch {}
+            throw new ApiError(response.status, errData?.error || errData?.message || `Stream request failed (${response.status})`);
+        }
+
+        if (!response.body) {
+            throw new ApiError(500, "ReadableStream not supported in this browser");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const parts = buffer.split("\n\n");
+            buffer = parts.pop() || "";
+
+            for (const part of parts) {
+                const trimmed = part.trim();
+                if (!trimmed) continue;
+                for (const line of trimmed.split("\n")) {
+                    if (line.startsWith("data: ")) {
+                        const jsonStr = line.slice(6).trim();
+                        try {
+                            const data = JSON.parse(jsonStr);
+                            if (onMessage) onMessage(data);
+                        } catch (parseErr) {
+                            console.warn("[SSE] JSON parse warning:", parseErr.message, jsonStr);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (onDone) onDone();
+    } catch (err) {
+        if (onError) onError(err);
+        else throw err;
+    } finally {
+        clearTimeout(timeoutId);
+        releaseRequest();
+        completeProgress();
+    }
+}
+

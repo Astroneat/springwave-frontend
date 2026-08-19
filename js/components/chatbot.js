@@ -1,5 +1,5 @@
 import { isAuthenticated, getUser } from "../lib/session.js";
-import { sendChatMessage, fetchChatHistory, clearChatHistory } from "../api/chatbot.js";
+import { sendChatMessage, sendChatMessageStream, fetchChatHistory, clearChatHistory } from "../api/chatbot.js";
 import { t, applyTranslation } from "../lib/i18n.js";
 import { openEventPopup } from "./eventPopup.js";
 import { formatDate } from "../lib/utils.js";
@@ -874,20 +874,61 @@ async function sendMessage() {
 
   const msgEl = addMessage("assistant", "");
   msgEl.classList.add("typing");
-  msgEl.querySelector(".message-content").innerHTML =
-    "<span></span><span></span><span></span>";
+  const contentEl = msgEl.querySelector(".message-content");
+  contentEl.innerHTML = "<span></span><span></span><span></span>";
+
+  let accumulatedText = "";
+  let hasReceivedToken = false;
 
   try {
-    const data = await sendChatMessage(text);
-    msgEl.classList.remove("typing");
-    msgEl.querySelector(".message-content").innerHTML = formatMessageContent(data.reply);
-    
-    if (data.history && Array.isArray(data.history)) {
-      conversationHistory = data.history;
-    } else {
-      conversationHistory.push({ role: "assistant", content: data.reply });
-    }
-    saveHistoryToStorage();
+    await sendChatMessageStream(text, conversationHistory, {
+      onMessage: (data) => {
+        if (data.type === "start") {
+          // Connection established
+        } else if (data.type === "token") {
+          if (!hasReceivedToken) {
+            hasReceivedToken = true;
+            msgEl.classList.remove("typing");
+            contentEl.innerHTML = "";
+          }
+          accumulatedText += data.text;
+          contentEl.innerHTML = formatMessageContent(accumulatedText);
+          const container = document.getElementById("chatbot-messages");
+          if (container) container.scrollTop = container.scrollHeight;
+        } else if (data.type === "tool_start") {
+          // Tool execution in progress
+        } else if (data.type === "action_blocks") {
+          if (!hasReceivedToken) {
+            hasReceivedToken = true;
+            msgEl.classList.remove("typing");
+          }
+          accumulatedText = data.finalReply || accumulatedText;
+          contentEl.innerHTML = formatMessageContent(accumulatedText);
+          bindMessageClicks();
+          const container = document.getElementById("chatbot-messages");
+          if (container) container.scrollTop = container.scrollHeight;
+        } else if (data.type === "done") {
+          msgEl.classList.remove("typing");
+          const finalReply = data.reply || accumulatedText;
+          contentEl.innerHTML = formatMessageContent(finalReply);
+          bindMessageClicks();
+
+          if (data.history && Array.isArray(data.history)) {
+            conversationHistory = data.history;
+          } else {
+            conversationHistory.push({ role: "assistant", content: finalReply });
+          }
+          saveHistoryToStorage();
+          const container = document.getElementById("chatbot-messages");
+          if (container) container.scrollTop = container.scrollHeight;
+        } else if (data.type === "error") {
+          throw new Error(data.message || "Streaming error");
+        }
+      },
+      onError: (err) => {
+        throw err;
+      }
+    });
   } catch (err) {
     msgEl.classList.remove("typing");
     const errMsg = String(err?.message || "").toLowerCase();
@@ -905,7 +946,7 @@ async function sendMessage() {
     }
 
     const safeText = escapeHtml(text).replace(/"/g, '&quot;');
-    msgEl.querySelector(".message-content").innerHTML = `
+    contentEl.innerHTML = `
       <div class="chatbot-error-notice">
         <p class="text-xs leading-relaxed text-rose-700 m-0">${errorMsgText}</p>
         <button type="button" class="chatbot-retry-btn" data-action-retry="${safeText}">
