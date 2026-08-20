@@ -1102,5 +1102,183 @@
     "issued_by_label": "Được cấp bởi / Issued by",
     "org_role": "Ban Tổ Chức Hoạt Động",
     "footer_note": "© 2026 SpringWave Platform. Mọi chứng nhận đều được lưu vết điện tử và có thể xác thực trực tuyến."
+  },
+  "quiz": {
+    "title": "SpringWave - Trắc nghiệm AI",
+    "exit_quiz": "Thoát",
+    "start_title": "Khám phá Hoạt động Hoàn hảo",
+    "start_desc": "Trả lời 10 câu hỏi nhanh để nhận gợi ý hoạt động phù hợp được cá nhân hóa bằng AI.",
+    "questions": "10 câu hỏi",
+    "duration": "2-3 phút",
+    "ai_results": "Kết quả bằng AI",
+    "start_btn": "Bắt đầu Trắc nghiệm",
+    "previous": "Trước",
+    "next": "Tiếp theo",
+    "explore_activities": "Khám phá Hoạt động Đề xuất",
+    "retake": "Làm lại Trắc nghiệm",
+    "retake_btn": "Làm lại Trắc nghiệm",
+    "question": "Câu hỏi",
+    "multi_select": "Chọn tất cả các đáp án phù hợp",
+    "finish": "Hoàn thành",
+    "analyzing": "Đang phân tích câu trả lời của bạn...",
+    "persona_badge": "Hình mẫu của bạn",
+    "strengths_title": "Điểm mạnh nổi bật",
+    "advice_title": "Lời khuyên Phát triển",
+    "suggested_activities": "Hoạt động Đề xuất",
+    "register_explore": "Đăng ký để Khám phá Hoạt động",
+    "result_title": "Hồ sơ Tính cách của bạn",
+    "result_desc": "Dựa trên câu trả lời của bạn, đây là điểm số của bạn trên bốn lĩnh vực cốt lõi.",
+    "categories": {
+      "academic_stage": "Giai đoạn học tập",
+      "core_interests": "Sở thích cốt lõi",
+      "activity_pref": "Sở thích hoạt động",
+      "team_role": "Vai trò trong nhóm",
+      "learning_style": "Phong cách học tập",
+      "key_goals": "Mục tiêu chính",
+      "main_obstacle": "Rào cản chính",
+      "environment": "Môi trường",
+      "schedule": "Lịch trình",
+      "key_motivator": "Động lực chính"
+    },
+    "q1": {
+      "question": "Bạn hiện đang là sinh viên năm mấy?",
+      "answers": [
+        "Năm 1 (Tân sinh viên - Đang khám phá cuộc sống & cơ hội đại học)",
+        "Năm 2 (Sinh viên năm hai - Bắt đầu học chuyên ngành & tham gia CLB)",
+        "Năm 3 (Sinh viên năm ba - Xây dựng kỹ năng & làm dự án thực tế)",
+        "Năm cuối / Đang tốt nghiệp (Chuẩn bị CV, thực tập & khởi đầu sự nghiệp)"
+      ]
+    },
+    "q2": {
+      "question": "Lĩnh vực bạn quan tâm hoặc đam mê nhất là gì?",
+      "answers": [
+        "Công nghệ thông tin, Kỹ thuật phần mềm & AI",
+        "Kinh doanh, Khởi nghiệp & Marketing",
+        "Thiết kế, Mỹ thuật, Truyền thông & Sáng tạo nội dung",
+        "Khoa học xã hội, Ngôn ngữ, Nhân văn & Tâm lý học",
+        "Chăm sóc sức khỏe, Thể hình & Thể thao",
+        "Khoa học tự nhiên & Nghiên cứu học thuật"
+      ]
+    },
+    "q3": {
+      "question": "Loại hình hoạt động nào truyền cảm hứng cho bạn nhất?",
+      "answers": [
+        "Các buổi masterclass chuyên sâu / Workshop thực hành thực tế",
+        "Cuộc thi học thuật / Hackathon & Giải quyết tình huống thực tế (Case study)",
+        "Lễ hội nghệ thuật, Hòa nhạc & Triển lãm sáng tạo",
+        "Gặp mặt CLB sinh viên & Các buổi giao lưu, kết nối xã hội",
+        "Tình nguyện, Từ thiện cộng đồng & Chiến dịch môi trường"
+      ]
+    },
+    "q4": {
+      "question": "Trong một nhóm hoặc dự án, vai trò nào bạn cảm thấy tự tin nhất?",
+      "answers": [
+        "Trưởng nhóm / Người lên kế hoạch & Điều phối dự án",
+        "Chuyên gia kỹ thuật / Người giải quyết vấn đề cốt lõi & Xây dựng sản phẩm",
+        "Người tạo ý tưởng / Nhà thiết kế sáng tạo & Sáng tạo nội dung",
+        "Người kết nối / Chăm sóc thành viên & Hỗ trợ, điều phối chung"
+      ]
+    },
+    "q5": {
+      "question": "Cách bạn nạp lại năng lượng và học tập hiệu quả nhất là gì?",
+      "answers": [
+        "Tham gia vào các buổi tranh luận và thảo luận nhóm sôi nổi",
+        "Nghiên cứu độc lập sâu trong môi trường yên tĩnh, tập trung",
+        "Học qua thực hành, làm các dự án thực tế",
+        "Lắng nghe chia sẻ từ chuyên gia và ghi chép hệ thống"
+      ]
+    },
+    "q6": {
+      "question": "Mục tiêu chính của bạn khi tham gia hoạt động ngoại khóa lúc này là gì?",
+      "answers": [
+        "Làm đẹp CV để tìm kiếm cơ hội thực tập và việc làm",
+        "Mở rộng mối quan hệ và tìm những người bạn có cùng sở thích",
+        "Mài giũa kỹ năng mềm và tăng sự tự tin trước đám đông",
+        "Thư giãn, giảm căng thẳng học tập và giải trí",
+        "Khám phá tiềm năng tiềm ẩn và thử thách bản thân với điều mới"
+      ]
+    },
+    "q7": {
+      "question": "E ngại lớn nhất của bạn khi cân nhắc tham gia một sự kiện là gì?",
+      "answers": [
+        "Ngần ngại khi đi một mình / Ngại ngùng trước đám đông xa lạ",
+        "Lịch học dày đặc, nhiều bài tập và thời hạn gấp rút",
+        "Hội chứng kẻ giả mạo / Cảm thấy bản thân chưa đủ năng lực hoặc kinh nghiệm",
+        "Khoảng cách di chuyển xa hoặc chi phí đăng ký tham gia",
+        "Chưa tìm thấy sự kiện có giá trị thực tiễn thực sự"
+      ]
+    },
+    "q8": {
+      "question": "Hình thức sự kiện nào thuận tiện và thoải mái nhất đối với bạn?",
+      "answers": [
+        "Trực tiếp ngay tại khuôn viên trường học",
+        "Ngoài trường học, tại các địa điểm trong thành phố hoặc trụ sở doanh nghiệp",
+        "Trực tuyến / Online (qua Zoom, Google Meet)",
+        "Linh hoạt, miễn là chủ đề hấp dẫn"
+      ]
+    },
+    "q9": {
+      "question": "Khi nào bạn có nhiều thời gian rảnh nhất để tham gia hoạt động?",
+      "answers": [
+        "Sáng cuối tuần (Thứ Bảy / Chủ Nhật)",
+        "Chiều cuối tuần",
+        "Tối các ngày trong tuần (18h - 21h)",
+        "Khoảng thời gian trống ngắn giữa các ca học"
+      ]
+    },
+    "q10": {
+      "question": "Yếu tố nào thúc đẩy bạn đăng ký tham gia ngay lập tức?",
+      "answers": [
+        "Bạn thân hoặc bạn bè cùng lớp cũng tham gia cùng",
+        "Dàn diễn giả nổi tiếng và cố vấn hàng đầu trong ngành",
+        "Cơ hội việc làm/thực tập, thư giới thiệu hoặc giải thưởng",
+        "Chủ đề thú vị, mới lạ và kích thích sự tò mò",
+        "Miễn phí tham gia, có chứng nhận giá trị và quà tặng độc đáo"
+      ]
+    },
+    "personas": {
+      "tech_builder": {
+        "title": "Nhà kiến tạo Công nghệ",
+        "tagline": "Xây dựng các giải pháp kỹ thuật và kiến trúc hệ thống qua mã nguồn.",
+        "strengths": ["Tư duy Logic", "Kiến trúc Phần mềm", "Giải quyết Vấn đề", "Làm chủ Công nghệ"],
+        "advice": "Hãy tiếp tục thử thách bản thân với các bài toán thuật toán khó, thực hiện các dự án cá nhân và tham gia hackathon để rèn luyện kỹ năng thực tiễn."
+      },
+      "community_leader": {
+        "title": "Nhà lãnh đạo Cộng đồng",
+        "tagline": "Kết nối tập thể, điều phối dự án và tạo dựng mối quan hệ bền vững.",
+        "strengths": ["Năng lực Lãnh đạo", "Khả năng Tổ chức", "Thuyết trình trước đám đông", "Lập kế hoạch Chiến lược"],
+        "advice": "Hãy đón nhận các vai trò quản lý trong các tổ chức sinh viên, rèn luyện kỹ năng lắng nghe và dẫn dắt đội ngũ đạt mục tiêu chung."
+      },
+      "creative_innovator": {
+        "title": "Nhà đổi mới Sáng tạo",
+        "tagline": "Hiện thực hóa các ý tưởng độc đáo qua nghệ thuật, thiết kế và truyền thông.",
+        "strengths": ["Thiết kế Mỹ thuật", "Tư duy Đổi mới", "Sáng tạo Ý tưởng", "Nhạy bén Thẩm mỹ"],
+        "advice": "Tiếp tục làm phong phú portfolio cá nhân, thử nghiệm các xu hướng thiết kế mới và hợp tác cùng các đối tác công nghệ để hiện thực hóa ý tưởng."
+      },
+      "career_strategist": {
+        "title": "Nhà chiến lược Sự nghiệp",
+        "tagline": "Tối ưu hóa các cơ hội, định hình kỹ năng và vạch lối thành công.",
+        "strengths": ["Xây dựng Hồ sơ", "Kết nối Doanh nghiệp", "Hiểu biết Ngành nghề", "Định hướng Mục tiêu"],
+        "advice": "Hãy tham gia các buổi networking doanh nghiệp, tìm kiếm cơ hội thực tập sớm và tinh chỉnh CV để nêu bật các thành tựu định lượng."
+      },
+      "deep_learner": {
+        "title": "Nhà nghiên cứu Chuyên sâu",
+        "tagline": "Khai mở tri thức học thuật, đi sâu vào bản chất và nghiên cứu chi tiết.",
+        "strengths": ["Nghiên cứu Khoa học", "Phân tích Phản biện", "Tập trung Chuyên sâu", "Xử lý Dữ liệu"],
+        "advice": "Hãy tham gia các nhóm nghiên cứu khoa học của trường, đọc các bài báo chuyên ngành và trao đổi kiến thức học thuật cùng bạn bè."
+      },
+      "changemaker": {
+        "title": "Nhà kiến tạo Thay đổi",
+        "tagline": "Tạo tác động tích cực cho xã hội, hỗ trợ cộng đồng và bảo vệ môi trường.",
+        "strengths": ["Lòng Trắc ẩn", "Trách nhiệm Xã hội", "Kỹ năng Hợp tác", "Đồng cảm & Sẻ chia"],
+        "advice": "Tích cực tham gia các dự án tình nguyện xã hội, điều phối các chiến dịch cộng đồng và thực hành làm việc nhóm bền vững."
+      },
+      "dynamic_explorer": {
+        "title": "Nhà khám phá Năng động",
+        "tagline": "Trải nghiệm cái mới, đón nhận đa dạng thử thách và tận hưởng đời sống sinh viên.",
+        "strengths": ["Thích ứng Nhanh", "Tò mò Khám phá", "Đa tài Đa nghệ", "Tư duy Cởi mở"],
+        "advice": "Hãy tiếp tục thử sức ở nhiều lĩnh vực khác nhau, tham gia các CLB năng động để tích lũy trải nghiệm sống phong phú."
+      }
+    }
   }
 }

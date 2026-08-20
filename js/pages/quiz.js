@@ -310,10 +310,10 @@ function renderQuestion() {
   document.getElementById("questionNumber").textContent = `${t("quiz.question")} ${currentQuestion + 1} / ${QUESTIONS.length}`;
   
   const categoryEl = document.getElementById("questionCategory");
-  categoryEl.textContent = q.category;
+  const transCategory = t("quiz.categories." + q.categoryKey, {}, q.category);
   categoryEl.style.background = color + "15";
   categoryEl.style.color = color;
-  categoryEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${q.icon || "help"}</span> ${q.category}`;
+  categoryEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${q.icon || "help"}</span> ${transCategory}`;
 
   const title = document.getElementById("questionTitle");
   title.textContent = translatedQuestion !== `quiz.${qKey}.question` ? translatedQuestion : q.question;
