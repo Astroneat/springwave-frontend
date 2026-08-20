@@ -877,58 +877,21 @@ async function sendMessage() {
   const contentEl = msgEl.querySelector(".message-content");
   contentEl.innerHTML = "<span></span><span></span><span></span>";
 
-  let accumulatedText = "";
-  let hasReceivedToken = false;
-
   try {
-    await sendChatMessageStream(text, conversationHistory, {
-      onMessage: (data) => {
-        if (data.type === "start") {
-          // Connection established
-        } else if (data.type === "token") {
-          if (!hasReceivedToken) {
-            hasReceivedToken = true;
-            msgEl.classList.remove("typing");
-            contentEl.innerHTML = "";
-          }
-          accumulatedText += data.text;
-          contentEl.innerHTML = formatMessageContent(accumulatedText);
-          const container = document.getElementById("chatbot-messages");
-          if (container) container.scrollTop = container.scrollHeight;
-        } else if (data.type === "tool_start") {
-          // Tool execution in progress
-        } else if (data.type === "action_blocks") {
-          if (!hasReceivedToken) {
-            hasReceivedToken = true;
-            msgEl.classList.remove("typing");
-          }
-          accumulatedText = data.finalReply || accumulatedText;
-          contentEl.innerHTML = formatMessageContent(accumulatedText);
-          bindMessageClicks();
-          const container = document.getElementById("chatbot-messages");
-          if (container) container.scrollTop = container.scrollHeight;
-        } else if (data.type === "done") {
-          msgEl.classList.remove("typing");
-          const finalReply = data.reply || accumulatedText;
-          contentEl.innerHTML = formatMessageContent(finalReply);
-          bindMessageClicks();
+    const data = await sendChatMessage(text, conversationHistory);
+    msgEl.classList.remove("typing");
+    const finalReply = data?.reply || "";
+    contentEl.innerHTML = formatMessageContent(finalReply);
+    bindMessageClicks();
 
-          if (data.history && Array.isArray(data.history)) {
-            conversationHistory = data.history;
-          } else {
-            conversationHistory.push({ role: "assistant", content: finalReply });
-          }
-          saveHistoryToStorage();
-          const container = document.getElementById("chatbot-messages");
-          if (container) container.scrollTop = container.scrollHeight;
-        } else if (data.type === "error") {
-          throw new Error(data.message || "Streaming error");
-        }
-      },
-      onError: (err) => {
-        throw err;
-      }
-    });
+    if (data?.history && Array.isArray(data.history)) {
+      conversationHistory = data.history;
+    } else {
+      conversationHistory.push({ role: "assistant", content: finalReply });
+    }
+    saveHistoryToStorage();
+    const container = document.getElementById("chatbot-messages");
+    if (container) container.scrollTop = container.scrollHeight;
   } catch (err) {
     msgEl.classList.remove("typing");
     const errMsg = String(err?.message || "").toLowerCase();
