@@ -883,56 +883,91 @@ async function sendMessage() {
   const contentEl = msgEl.querySelector(".message-content");
   contentEl.innerHTML = "<span></span><span></span><span></span>";
 
-  try {
-    const data = await sendChatMessage(text, conversationHistory);
-    msgEl.classList.remove("typing");
-    const finalReply = data?.reply || "";
-    contentEl.innerHTML = formatMessageContent(finalReply);
-    bindMessageClicks();
+  // Use streaming endpoint — survives long generations past proxy/socket timeouts.
+  // Tokens stream in real-time, giving instant feedback and avoiding the 45s socket
+  // kill that hit the non-streaming path on long/multi-turn questions.
+  const streamingData = { tokens: "", gotToken: false };
 
-    if (data?.history && Array.isArray(data.history)) {
-      conversationHistory = data.history;
-    } else {
-      conversationHistory.push({ role: "assistant", content: finalReply });
+  sendChatMessageStream(text, conversationHistory, {
+    onMessage(data) {
+      if (data.type === "token" && data.text) {
+        streamingData.tokens += data.text;
+        streamingData.gotToken = true;
+        // First token → remove typing indicator, show live stream
+        if (msgEl.classList.contains("typing")) {
+          msgEl.classList.remove("typing");
+          contentEl.innerHTML = "";
+        }
+        contentEl.innerHTML = formatMessageContent(streamingData.tokens);
+        bindMessageClicks();
+        const container = document.getElementById("chatbot-messages");
+        if (container) container.scrollTop = container.scrollHeight;
+      } else if (data.type === "done" && data.reply) {
+        msgEl.classList.remove("typing");
+        // Use final reply from backend to ensure exact content (sanitized, no partial cuts)
+        const finalReply = data.reply;
+        contentEl.innerHTML = formatMessageContent(finalReply);
+        bindMessageClicks();
+        if (data.history && Array.isArray(data.history)) {
+          conversationHistory = data.history;
+        } else {
+          conversationHistory.push({ role: "assistant", content: finalReply });
+        }
+        saveHistoryToStorage();
+        const container = document.getElementById("chatbot-messages");
+        if (container) container.scrollTop = container.scrollHeight;
+      } else if (data.type === "error") {
+        msgEl.classList.remove("typing");
+        showError(data.message || "Đã xảy ra lỗi.", text);
+      }
+    },
+    onError(err) {
+      msgEl.classList.remove("typing");
+      const errMsg = String(err?.message || "").toLowerCase();
+      const errStatus = err?.status;
+      const isTimeout = errMsg.includes("abort") || errMsg.includes("timeout") || errStatus === "AbortError" || errStatus === 504;
+      let msg = isTimeout
+        ? "⏱️ Trợ lý AI đang phản hồi lâu hơn bình thường (timeout). Bạn có thể thử lại ngay hoặc gửi câu hỏi ngắn gọn hơn nhé."
+        : t("chatbot.error", {}, "Đã xảy ra lỗi khi kết nối tới Trợ lý AI. Vui lòng thử lại sau.");
+      showError(msg, text);
     }
-    saveHistoryToStorage();
-    const container = document.getElementById("chatbot-messages");
-    if (container) container.scrollTop = container.scrollHeight;
-  } catch (err) {
-    msgEl.classList.remove("typing");
-    const errMsg = String(err?.message || "").toLowerCase();
-    const errStatus = err?.status;
-    const isTimeout = errMsg.includes("abort") || errMsg.includes("timeout") || errStatus === "AbortError" || errStatus === 504;
-    const isRateLimit = errStatus === 429 || errMsg.includes("429") || errMsg.includes("too many requests");
+  }, { timeout: 120000 });
 
-    let errorMsgText = "";
-    if (isTimeout) {
-      errorMsgText = "⏱️ Trợ lý AI đang phản hồi lâu hơn bình thường (timeout). Bạn có thể thử lại ngay hoặc gửi câu hỏi ngắn gọn hơn nhé.";
-    } else if (isRateLimit) {
-      errorMsgText = "🚦 Bạn đang gửi yêu cầu quá nhanh. Vui lòng đợi ít giây rồi thử lại.";
-    } else {
-      errorMsgText = t("chatbot.error", {}, "Đã xảy ra lỗi khi kết nối tới Trợ lý AI. Vui lòng thử lại sau.");
-    }
-
-    const safeText = escapeHtml(text).replace(/"/g, '&quot;');
-    contentEl.innerHTML = `
-      <div class="chatbot-error-notice">
-        <p class="text-xs leading-relaxed text-rose-700 m-0">${errorMsgText}</p>
-        <button type="button" class="chatbot-retry-btn" data-action-retry="${safeText}">
-          <i class="fa-solid fa-rotate-right"></i> Thử lại
-        </button>
-      </div>
-    `;
-    bindMessageClicks();
-  } finally {
+  // Re-enable input after a short delay to let SSE done/error handlers fire.
+  setTimeout(() => {
     isSending = false;
     if (sendBtn) sendBtn.disabled = false;
     input.disabled = false;
     input.focus();
-  }
+  }, 100);
+}
 
-  document.getElementById("chatbot-messages").scrollTop =
-    document.getElementById("chatbot-messages").scrollHeight;
+/**
+ * Show an error message in the bot response slot with a retry button.
+ */
+function showError(errorMsg, originalText) {
+  const errMsgEl = document.createElement("div");
+  errMsgEl.className = "chatbot-error-notice";
+  const safeText = escapeHtml(originalText || "").replace(/"/g, '&quot;');
+  errMsgEl.innerHTML = `
+    <p class="text-xs leading-relaxed text-rose-700 m-0">${escapeHtml(errorMsg)}</p>
+    <button type="button" class="chatbot-retry-btn" data-action-retry="${safeText}">
+      <i class="fa-solid fa-rotate-right"></i> Thử lại
+    </button>
+  `;
+  // Find the bot message element (last one) and replace its content
+  const container = document.getElementById("chatbot-messages");
+  const lastBotMsg = container ? Array.from(container.querySelectorAll(".message.bot")).pop() : null;
+  if (lastBotMsg) {
+    lastBotMsg.classList.remove("typing");
+    const contentEl = lastBotMsg.querySelector(".message-content");
+    if (contentEl) contentEl.innerHTML = "";
+    if (contentEl) contentEl.appendChild(errMsgEl);
+    bindMessageClicks();
+  }
+  // Still push to history so retry works
+  conversationHistory.push({ role: "assistant", content: errorMsg });
+  saveHistoryToStorage();
 }
 
 function addMessage(role, content) {
