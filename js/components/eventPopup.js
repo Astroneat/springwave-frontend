@@ -584,9 +584,9 @@ function buildPopupHTML(a, backText) {
 
                 <!-- Similar Events Section -->
                 <div class="event-modal-section" id="similar-events-section">
-                    <h3 class="event-section-heading">Similar Activities</h3>
+                    <h3 class="event-section-heading" data-i18n="explore.similar_activities">${t("explore.similar_activities", "Similar Activities")}</h3>
                     <div id="similar-events-container" class="similar-events-grid">
-                        <div class="empty-state">Loading similar events...</div>
+                        <div class="empty-state" data-i18n="explore.loading_similar_activities">${t("explore.loading_similar_activities", "Loading similar events...")}</div>
                     </div>
                 </div>
 
@@ -1060,11 +1060,17 @@ async function loadSimilarEvents(activityID) {
     if (!container) return;
 
     try {
-        const data = await getSimilarEvents(activityID, 4);
-        const events = data?.events || [];
+        const data = await getSimilarEvents(activityID, 10);
+        const rawEvents = data?.events || [];
+
+        // Filter out events that have ended or whose registration deadline has passed
+        const events = rawEvents.filter(a => {
+            const status = getEventStatus(a);
+            return status === 'registration_open';
+        }).slice(0, 4);
 
         if (events.length === 0) {
-            container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">No similar activities found.</p>`;
+            container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center" data-i18n="explore.no_similar_activities">${t('explore.no_similar_activities', 'No similar activities currently open for registration.')}</p>`;
             return;
         }
 
@@ -1091,7 +1097,7 @@ async function loadSimilarEvents(activityID) {
         });
     } catch (err) {
         console.error("Failed to load similar events:", err);
-        container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Unable to load recommendations.</p>`;
+        container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center" data-i18n="explore.no_similar_activities">${t('explore.no_similar_activities', 'No similar activities currently open for registration.')}</p>`;
     }
 }
 

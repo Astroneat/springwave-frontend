@@ -10,7 +10,22 @@
 </head>
 <body class="bg-background text-on-surface font-body-md antialiased min-h-screen">
 
-  <div id="navbar-container"></div>
+  <nav class="fixed top-0 left-0 right-0 w-full z-50 figma-navbar-container" id="navbar">
+    <div class="figma-navbar-inner spring-ease">
+      <!-- BRAND LOGO -->
+      <a href="./index.html" class="figma-navbar-brand">
+        <span class="brand-spring">Spring</span><span class="brand-wave">Wave</span>
+      </a>
+
+      <!-- RIGHT ACTION: EXIT BUTTON -->
+      <div class="flex items-center gap-3">
+        <a href="./profile.html" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 hover:bg-white/35 text-white text-sm font-semibold backdrop-blur-md transition-all active:scale-95 shadow-sm" title="Exit Quiz">
+          <span class="material-symbols-outlined !text-[18px]">close</span>
+          <span data-i18n="quiz.exit_quiz">Exit</span>
+        </a>
+      </div>
+    </div>
+  </nav>
 
   <main class="quiz-page">
     <div class="quiz-container" id="quizContainer">

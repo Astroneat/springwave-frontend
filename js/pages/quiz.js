@@ -1,6 +1,5 @@
 import "../../src/style.css";
 import { isAuthenticated } from "../lib/session.js";
-import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { submitSurvey, getSurveyQuestions, getSurveyResult } from "../api/survey.js";
@@ -218,7 +217,6 @@ if (!isAuthenticated()) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadNavbar();
   await initChatbot();
   loadFooter();
   await loadQuestions();

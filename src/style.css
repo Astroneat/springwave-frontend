@@ -7538,7 +7538,7 @@ textarea {
 
 .quiz-page {
   @apply min-h-screen px-4 flex items-center justify-center;
-  padding-top: 80px;
+  padding-top: 100px;
   padding-bottom: 40px;
 }
 
@@ -11794,8 +11794,8 @@ textarea {
 /* Similar Activities */
 .similar-events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 240px));
+  gap: 14px;
 }
 
 .similar-event-card {
@@ -11806,19 +11806,22 @@ textarea {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   cursor: pointer;
+  width: 100%;
+  max-width: 250px;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .similar-event-card:hover {
   background: #ffffff;
   border-color: #cbd5e1;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .similar-event-thumb {
   width: 100%;
-  height: 100px;
+  height: 110px;
   background: #e2e8f0;
   overflow: hidden;
 }
@@ -11827,6 +11830,11 @@ textarea {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.similar-event-card:hover .similar-event-thumb img {
+  transform: scale(1.04);
 }
 
 .similar-thumb-fallback {
@@ -11850,9 +11858,10 @@ textarea {
   font-size: 13px;
   font-weight: 700;
   color: #0f172a;
-  line-height: 1.3;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -11864,6 +11873,9 @@ textarea {
   align-items: center;
   gap: 5px;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Comments Feed */
