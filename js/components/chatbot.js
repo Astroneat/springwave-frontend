@@ -450,11 +450,17 @@ function renderActionCardFromJSON(data) {
 function formatMessageContent(text) {
   if (!text) return "";
 
+  // Strip internal model reasoning tags (<thought>, <think>) and tool_call JSON blocks
+  let rawProcessed = text
+    .replace(/<(thought|think)>[\s\S]*?<\/(thought|think)>/gi, "")
+    .replace(/```json:tool_call\s*[\s\S]*?```/gi, "")
+    .trim();
+
   const cardsMap = {};
   let cardIndex = 0;
 
   // 0. Extract ```json:action ... ``` blocks BEFORE HTML escaping
-  let rawProcessed = text.replace(/```json:action\s*([\s\S]*?)\s*```/gi, (match, jsonString) => {
+  rawProcessed = rawProcessed.replace(/```json:action\s*([\s\S]*?)\s*```/gi, (match, jsonString) => {
     try {
       const decodedJson = jsonString.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
       const data = JSON.parse(decodedJson.trim());
