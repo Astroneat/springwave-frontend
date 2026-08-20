@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   checkAutoVerificationNotice();
   initPreviewHubTabs();
   initFAQAccordion();
+  initFinalCta();
 });
 
 function checkAutoVerificationNotice() {
@@ -264,4 +265,14 @@ function initFAQAccordion() {
       }
     });
   });
+}
+
+function initFinalCta() {
+  const btn = document.getElementById("finalCtaBtn");
+  if (!btn) return;
+  if (isAuthenticated()) {
+    btn.href = "/explore.html";
+  } else {
+    btn.href = "/login.html";
+  }
 }

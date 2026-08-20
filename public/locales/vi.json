@@ -161,6 +161,7 @@
     "cta_heading": "Xây dựng tương lai của bạn ngay hôm nay",
     "cta_desc": "Khám phá cơ hội, xây dựng kỹ năng và phát triển với sự hướng dẫn cá nhân hóa. Tham gia cùng hàng ngàn sinh viên.",
     "cta_join": "Tham gia SpringWave",
+    "cta_explore_now": "Khám phá ngay",
     "floating_card_ai": "Hội thảo AI",
     "floating_card_startup": "Kết nối khởi nghiệp",
     "floating_card_volunteer": "Chương trình tình nguyện",
@@ -316,7 +317,11 @@
     "report_activity": "Báo cáo hoạt động này",
     "comments": "Bình luận",
     "clear": "Xóa",
-    "close": "Đóng"
+    "close": "Đóng",
+    "leave_modal_title": "Hủy Đăng ký Sự kiện?",
+    "leave_modal_desc": "Bạn có chắc chắn muốn hủy đăng ký tham gia sự kiện này? Bạn sẽ mất vé giữ chỗ và một sinh viên khác có thể đăng ký vào vị trí này.",
+    "leave_modal_cancel": "Giữ Đăng ký",
+    "leave_modal_confirm": "Xác nhận Hủy"
   },
   "auth": {
     "show": "Hiện",

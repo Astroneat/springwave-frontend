@@ -161,6 +161,7 @@
     "cta_heading": "Start Building Your Future Today",
     "cta_desc": "Discover opportunities, build skills, and grow with personalized guidance. Join thousands of students already on SpringWave.",
     "cta_join": "Join SpringWave",
+    "cta_explore_now": "Explore Now",
     "floating_card_ai": "AI Workshop",
     "floating_card_startup": "Startup Networking",
     "floating_card_volunteer": "Volunteer Program",
@@ -316,7 +317,11 @@
     "report_activity": "Report this activity",
     "comments": "Comments",
     "clear": "Clear",
-    "close": "Close"
+    "close": "Close",
+    "leave_modal_title": "Leave Event?",
+    "leave_modal_desc": "Are you sure you want to leave this event? You will lose your registered ticket, and your slot may be taken by another student.",
+    "leave_modal_cancel": "Keep Registration",
+    "leave_modal_confirm": "Confirm Leave"
   },
   "auth": {
     "show": "Show",

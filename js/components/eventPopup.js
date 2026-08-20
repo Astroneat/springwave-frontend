@@ -770,6 +770,72 @@ function setFavourited() {
     });
 }
 
+function showLeaveEventConfirmModal(onConfirmCallback) {
+    let modal = document.getElementById("leaveEventConfirmModal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "leaveEventConfirmModal";
+        modal.className = "fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden";
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 transform transition-all duration-300 scale-95 opacity-0" id="leaveEventModalCard">
+            <div class="flex items-center gap-3 mb-4 text-red-500">
+                <span class="material-symbols-outlined text-3xl">warning</span>
+                <h3 class="text-lg font-bold text-slate-900">${t("explore.leave_modal_title") || "Leave Event?"}</h3>
+            </div>
+            <p class="text-sm text-slate-500 leading-relaxed mb-6">
+                ${t("explore.leave_modal_desc") || "Are you sure you want to leave this event? You will lose your registered ticket, and your slot may be taken by another student."}
+            </p>
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-full transition cursor-pointer" id="leaveModalCancel">
+                    ${t("explore.leave_modal_cancel") || "Keep Registration"}
+                </button>
+                <button type="button" class="px-4 py-2 text-xs font-bold text-white bg-red-500 hover:bg-red-600 rounded-full transition shadow-sm cursor-pointer" id="leaveModalConfirm">
+                    ${t("explore.leave_modal_confirm") || "Confirm Leave"}
+                </button>
+            </div>
+        </div>
+    `;
+
+    const modalCard = document.getElementById("leaveEventModalCard");
+    const cancelBtn = document.getElementById("leaveModalCancel");
+    const confirmBtn = document.getElementById("leaveModalConfirm");
+
+    const show = () => {
+        modal.classList.remove("hidden");
+        requestAnimationFrame(() => {
+            modalCard.classList.remove("scale-95", "opacity-0");
+            modalCard.classList.add("scale-100", "opacity-100");
+        });
+    };
+
+    const hide = () => {
+        modalCard.classList.remove("scale-100", "opacity-100");
+        modalCard.classList.add("scale-95", "opacity-0");
+        setTimeout(() => {
+            modal.classList.add("hidden");
+        }, 150);
+    };
+
+    cancelBtn.addEventListener("click", hide);
+    confirmBtn.addEventListener("click", () => {
+        hide();
+        onConfirmCallback();
+    });
+
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            hide();
+        }
+    };
+
+    show();
+}
+
 function initParticipateButton(activityID) {
     const btns = document.querySelectorAll(".participate");
     if (btns.length === 0) return;
@@ -808,87 +874,91 @@ function initParticipateButton(activityID) {
 
             const isActive = btn.classList.contains("active");
 
-            if (isActive) {
-                if (!confirm("Are you sure you want to leave this event?")) return;
-            }
+            const proceedAction = async () => {
+                lastClick = now;
 
-            lastClick = now;
-
-            // Get current count from DOM
-            const valEls = document.querySelectorAll(".participants-count-val");
-            let initialCount = 0;
-            if (valEls.length > 0 && valEls[0].dataset.count !== undefined) {
-                initialCount = parseInt(valEls[0].dataset.count, 10) || 0;
-            }
-            const newCount = isActive ? Math.max(0, initialCount - 1) : initialCount + 1;
-
-            // Helper to update participant count elements
-            const updateCountUI = (count) => {
-                valEls.forEach(el => {
-                    el.dataset.count = count;
-                    el.textContent = t("explore.registered_count", { n: count }, `${count} students`);
-                });
-            };
-
-            // Update participant counter optimistically
-            updateCountUI(newCount);
-
-            try {
-                // Update all buttons status
-                const allBtns = document.querySelectorAll(".participate");
-                allBtns.forEach(b => {
-                    if (isActive) {
-                        b.classList.remove("active");
-                        const span = b.querySelector("span");
-                        if (span) span.textContent = t("explore.participate") || "Register for Event";
-                    } else {
-                        b.classList.add("active");
-                        const span = b.querySelector("span");
-                        if (span) span.textContent = t("explore.participated") || "Joined ✓";
-                    }
-                });
-
-                if (isActive) {
-                    await unparticipateActivity(activityID);
-                    if (userParticipatedIds) userParticipatedIds.delete(String(activityID));
-                } else {
-                    await participateActivity(activityID);
-                    if (userParticipatedIds) userParticipatedIds.add(String(activityID));
+                // Get current count from DOM
+                const valEls = document.querySelectorAll(".participants-count-val");
+                let initialCount = 0;
+                if (valEls.length > 0 && valEls[0].dataset.count !== undefined) {
+                    initialCount = parseInt(valEls[0].dataset.count, 10) || 0;
                 }
+                const newCount = isActive ? Math.max(0, initialCount - 1) : initialCount + 1;
 
-                // Update cache
-                if (activityCache.has(activityID)) {
-                    const cached = activityCache.get(activityID);
-                    if (cached) {
-                        const myId = user?._id || user?.id;
+                // Helper to update participant count elements
+                const updateCountUI = (count) => {
+                    valEls.forEach(el => {
+                        el.dataset.count = count;
+                        el.textContent = t("explore.registered_count", { n: count }, `${count} students`);
+                    });
+                };
+
+                // Update participant counter optimistically
+                updateCountUI(newCount);
+
+                try {
+                    // Update all buttons status
+                    const allBtns = document.querySelectorAll(".participate");
+                    allBtns.forEach(b => {
                         if (isActive) {
-                            cached.participants = (cached.participants || []).filter(p => String(p._id || p) !== String(myId));
+                            b.classList.remove("active");
+                            const span = b.querySelector("span");
+                            if (span) span.textContent = t("explore.participate") || "Register for Event";
                         } else {
-                            if (!cached.participants) cached.participants = [];
-                            if (myId && !cached.participants.some(p => String(p._id || p) === String(myId))) {
-                                cached.participants.push(myId);
+                            b.classList.add("active");
+                            const span = b.querySelector("span");
+                            if (span) span.textContent = t("explore.participated") || "Joined ✓";
+                        }
+                    });
+
+                    if (isActive) {
+                        await unparticipateActivity(activityID);
+                        if (userParticipatedIds) userParticipatedIds.delete(String(activityID));
+                    } else {
+                        await participateActivity(activityID);
+                        if (userParticipatedIds) userParticipatedIds.add(String(activityID));
+                    }
+
+                    // Update cache
+                    if (activityCache.has(activityID)) {
+                        const cached = activityCache.get(activityID);
+                        if (cached) {
+                            const myId = user?._id || user?.id;
+                            if (isActive) {
+                                cached.participants = (cached.participants || []).filter(p => String(p._id || p) !== String(myId));
+                            } else {
+                                if (!cached.participants) cached.participants = [];
+                                if (myId && !cached.participants.some(p => String(p._id || p) === String(myId))) {
+                                    cached.participants.push(myId);
+                                }
                             }
                         }
                     }
+                } catch (err) {
+                    console.error("Participate error:", err);
+                    // Revert count on error
+                    updateCountUI(initialCount);
+                    // Revert button status on error
+                    const allBtns = document.querySelectorAll(".participate");
+                    allBtns.forEach(b => {
+                        if (isActive) {
+                            b.classList.add("active");
+                            const span = b.querySelector("span");
+                            if (span) span.textContent = t("explore.participated") || "Joined ✓";
+                        } else {
+                            b.classList.remove("active");
+                            const span = b.querySelector("span");
+                            if (span) span.textContent = t("explore.participate") || "Register for Event";
+                        }
+                    });
+                    alert(err.message || "Failed to participate");
                 }
-            } catch (err) {
-                console.error("Participate error:", err);
-                // Revert count on error
-                updateCountUI(initialCount);
-                // Revert button status on error
-                const allBtns = document.querySelectorAll(".participate");
-                allBtns.forEach(b => {
-                    if (isActive) {
-                        b.classList.add("active");
-                        const span = b.querySelector("span");
-                        if (span) span.textContent = t("explore.participated") || "Joined ✓";
-                    } else {
-                        b.classList.remove("active");
-                        const span = b.querySelector("span");
-                        if (span) span.textContent = t("explore.participate") || "Register for Event";
-                    }
-                });
-                alert(err.message || "Failed to participate");
+            };
+
+            if (isActive) {
+                showLeaveEventConfirmModal(proceedAction);
+            } else {
+                proceedAction();
             }
         });
     });
