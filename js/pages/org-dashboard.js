@@ -40,26 +40,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   const user = getUser();
 
-  await loadNavbar({ activeSection: "dashboard" });
-  await initChatbot();
-
+  // Initialize UI event handlers immediately & synchronously
   initSideNav();
   initOrgSelector();
-  await loadOrgs();
-  initSettingsForm();
   initCreateOrg();
-
-  // Nút mở profile của tổ chức
-  document.getElementById("view-profile-btn")?.addEventListener("click", () => {
-    if (currentOrgId) {
-      window.open(`/org-profile.html?orgId=${currentOrgId}`, "_blank");
-    }
-  });
-
-  if (isAdminUser()) {
-    const createBtn = document.getElementById("create-org-btn");
-    if (createBtn) createBtn.style.display = "none";
-  }
+  initSettingsForm();
   initAddManager();
   initQRScan();
   initAttendanceButtons();
@@ -72,6 +57,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   initCertBackgroundManager();
   initAddParticipantsModal();
   initEditExternalModal();
+
+  // Nút mở profile của tổ chức
+  document.getElementById("view-profile-btn")?.addEventListener("click", () => {
+    if (currentOrgId) {
+      window.open(`/org-profile.html?orgId=${currentOrgId}`, "_blank");
+    }
+  });
+
+  // Async data & component loading
+  await loadNavbar({ activeSection: "dashboard" });
+  await initChatbot();
+  await loadOrgs();
 });
 
 // ─── Org Loading ───
@@ -3775,12 +3772,21 @@ function initSettingsForm() {
 
 function initCreateOrg() {
   const overlay = document.getElementById("create-org-overlay");
-  document.getElementById("create-org-btn").addEventListener("click", () => {
-    document.getElementById("create-org-name").value = "";
+  const createBtn = document.getElementById("create-org-btn");
+  const nameInput = document.getElementById("create-org-name");
+  const backdrop = document.getElementById("create-org-backdrop");
+  const cancelBtn = document.getElementById("create-org-cancel");
+  const confirmBtn = document.getElementById("create-org-confirm");
+
+  if (!overlay || !createBtn) return;
+
+  function open() {
+    if (nameInput) nameInput.value = "";
     overlay.removeAttribute("hidden");
     overlay.classList.add("active");
     document.body.style.overflow = "hidden";
-  });
+    setTimeout(() => nameInput?.focus(), 50);
+  }
 
   function close() {
     overlay.classList.remove("active");
@@ -3788,14 +3794,34 @@ function initCreateOrg() {
     setTimeout(() => overlay.setAttribute("hidden", ""), 300);
   }
 
-  document.getElementById("create-org-backdrop").addEventListener("click", close);
-  document.getElementById("create-org-cancel").addEventListener("click", close);
-
-  document.getElementById("create-org-confirm").addEventListener("click", async () => {
-    const name = document.getElementById("create-org-name").value.trim();
-    if (!name) return alert("Enter an organization name");
+  function handleConfirm() {
+    const name = nameInput?.value?.trim();
+    if (!name) return alert("Please enter an organization name");
     close();
     window.location.href = `/register-host.html?orgName=${encodeURIComponent(name)}&createMode=true`;
+  }
+
+  createBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    open();
+  });
+
+  backdrop?.addEventListener("click", close);
+  cancelBtn?.addEventListener("click", close);
+  confirmBtn?.addEventListener("click", handleConfirm);
+
+  nameInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleConfirm();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("active")) {
+      close();
+    }
   });
 }
 

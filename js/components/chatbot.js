@@ -887,22 +887,31 @@ async function sendMessage() {
   // Tokens stream in real-time, giving instant feedback and avoiding the 45s socket
   // kill that hit the non-streaming path on long/multi-turn questions.
   const streamingData = { tokens: "", gotToken: false };
+  let renderScheduled = false;
+
+  const scheduleStreamRender = () => {
+    if (renderScheduled) return;
+    renderScheduled = true;
+    requestAnimationFrame(() => {
+      if (msgEl.classList.contains("typing")) {
+        msgEl.classList.remove("typing");
+        contentEl.innerHTML = "";
+      }
+      contentEl.innerHTML = formatMessageContent(streamingData.tokens);
+      const container = document.getElementById("chatbot-messages");
+      if (container) container.scrollTop = container.scrollHeight;
+      renderScheduled = false;
+    });
+  };
 
   sendChatMessageStream(text, conversationHistory, {
     onMessage(data) {
       if (data.type === "token" && data.text) {
         streamingData.tokens += data.text;
         streamingData.gotToken = true;
-        // First token → remove typing indicator, show live stream
-        if (msgEl.classList.contains("typing")) {
-          msgEl.classList.remove("typing");
-          contentEl.innerHTML = "";
-        }
-        contentEl.innerHTML = formatMessageContent(streamingData.tokens);
-        bindMessageClicks();
-        const container = document.getElementById("chatbot-messages");
-        if (container) container.scrollTop = container.scrollHeight;
+        scheduleStreamRender();
       } else if (data.type === "done" && data.reply) {
+        renderScheduled = false;
         msgEl.classList.remove("typing");
         // Use final reply from backend to ensure exact content (sanitized, no partial cuts)
         const finalReply = data.reply;
@@ -917,6 +926,7 @@ async function sendMessage() {
         const container = document.getElementById("chatbot-messages");
         if (container) container.scrollTop = container.scrollHeight;
       } else if (data.type === "error") {
+        renderScheduled = false;
         msgEl.classList.remove("typing");
         showError(data.message || "Đã xảy ra lỗi.", text);
       }
