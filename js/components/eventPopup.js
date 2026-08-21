@@ -12,7 +12,14 @@ import { getMyProfile } from "../api/profile.js";
 let userParticipatedIds = null;
 let userFavouriteIds = null;
 let prefetchPromise = null;
+let activeOnCloseCallback = null;
+let underlyingModalToRestore = null;
 const activityCache = new Map();
+
+if (typeof window !== "undefined") {
+    window.openEventPopup = openEventPopup;
+    window.closeEventPopup = closeEventPopup;
+}
 
 function escapeHtml(str) {
     if (typeof str !== 'string') return '';
@@ -102,11 +109,18 @@ function ensurePopupElements() {
     if (!overlay.dataset.bound) {
         overlay.addEventListener("click", (e) => {
             if (e.target === overlay || e.target.classList.contains("popup-backdrop")) {
+                e.stopPropagation();
                 closeEventPopup();
             }
         });
         document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") closeEventPopup();
+            if (e.key === "Escape") {
+                const ov = document.getElementById("popup-overlay");
+                if (ov && ov.classList.contains("active")) {
+                    e.stopImmediatePropagation();
+                    closeEventPopup();
+                }
+            }
         });
         overlay.dataset.bound = "true";
     }
@@ -118,6 +132,24 @@ export async function openEventPopup(activityID, options = {}) {
     if (!activityID) return;
     const { overlay, container } = ensurePopupElements();
 
+    activeOnCloseCallback = options.onClose || null;
+
+    // Detect and hide any currently active modal/popup (e.g. Favourites, Discussion, Profile)
+    const activeModals = Array.from(document.querySelectorAll(
+        ".popup-overlay.active:not(#popup-overlay), .forum-post-overlay.active:not(#popup-overlay), .modal.active:not(#popup-overlay), .edit-modal-overlay.active, #global-favourites-overlay.active, #discussionPopupOverlay.active, #profileModalOverlay.active, #post-modal-overlay.active, #swipe-modal:not(.hidden)"
+    ));
+
+    if (activeModals.length > 0) {
+        underlyingModalToRestore = activeModals[activeModals.length - 1];
+        underlyingModalToRestore.classList.remove("active");
+        underlyingModalToRestore.setAttribute("hidden", "true");
+        if (underlyingModalToRestore.id === "swipe-modal") {
+            underlyingModalToRestore.classList.add("hidden");
+        }
+    } else {
+        underlyingModalToRestore = null;
+    }
+
     const backText = options.backText || t("explore.back") || "Back";
 
     container.innerHTML = `
@@ -126,6 +158,7 @@ export async function openEventPopup(activityID, options = {}) {
             <p class="text-xs font-semibold text-slate-400 mt-3 animate-pulse">Loading event details...</p>
         </div>
     `;
+    overlay.style.zIndex = "12500";
     overlay.removeAttribute("hidden");
     overlay.classList.add("active");
     document.body.style.overflow = "hidden";
@@ -319,7 +352,36 @@ export function closeEventPopup() {
     if (!overlay || !container) return;
 
     overlay.classList.remove("active");
-    document.body.style.overflow = "";
+    overlay.style.zIndex = "";
+
+    // Restore any underlying modal that was paused
+    if (underlyingModalToRestore) {
+        const modal = underlyingModalToRestore;
+        underlyingModalToRestore = null;
+        modal.removeAttribute("hidden");
+        if (modal.id === "swipe-modal") {
+            modal.classList.remove("hidden");
+        }
+        void modal.offsetWidth;
+        modal.classList.add("active");
+        document.body.style.overflow = "hidden";
+    } else {
+        const hasOtherModal = !!document.querySelector(
+            ".popup-overlay.active:not(#popup-overlay), .forum-post-overlay.active:not(#popup-overlay), .modal.active:not(#popup-overlay), .edit-modal-overlay.active, #global-favourites-overlay.active, #discussionPopupOverlay:not([hidden]):not(.hidden), #profileModalOverlay:not([hidden]):not(.hidden), #post-modal-overlay.active, #swipe-modal:not(.hidden)"
+        );
+        if (!hasOtherModal) {
+            document.body.style.overflow = "";
+        } else {
+            document.body.style.overflow = "hidden";
+        }
+    }
+
+    if (typeof activeOnCloseCallback === "function") {
+        const cb = activeOnCloseCallback;
+        activeOnCloseCallback = null;
+        try { cb(); } catch (err) { console.error("Error in onClose callback:", err); }
+    }
+
     setTimeout(() => {
         container.innerHTML = "";
         overlay.setAttribute("hidden", "");

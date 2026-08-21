@@ -6,6 +6,7 @@ import { getMyCertificates } from "../api/certificates.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { formatDate } from "../lib/utils.js";
 import { API_BASE_URL } from "../config.js";
+import { openEventPopup } from "../components/eventPopup.js";
 
 let allTickets = [];
 let showPast = false;
@@ -134,7 +135,7 @@ function renderEvents() {
 
     return `
       <div class="group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${expired || isInactive(t) ? "opacity-80" : ""}">
-        <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden">
+        <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden cursor-pointer event-card-preview" data-event-id="${eventId}">
           <img src="${event.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" 
                alt="${eventTitle}" 
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -150,7 +151,7 @@ function renderEvents() {
               ${statusBadgeHTML(status)}
               ${expired ? '<span class="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 font-medium">Event ended</span>' : ''}
             </div>
-            <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2" title="${eventTitle}">${eventTitle}</h3>
+            <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2 cursor-pointer event-card-preview" data-event-id="${eventId}" title="${eventTitle}">${eventTitle}</h3>
             
             <div class="space-y-1.5 text-sm text-[#64748b] min-w-0">
               <div class="flex items-center gap-2 min-w-0">
@@ -202,6 +203,16 @@ function renderEvents() {
       </div>
     `;
   }).join("");
+
+  // Event preview clicks
+  document.querySelectorAll(".event-card-preview").forEach(el => {
+    el.addEventListener("click", () => {
+      const eventId = el.dataset.eventId;
+      if (!eventId) return;
+      const ticket = allTickets.find(tk => tk?.event && String(tk.event._id) === eventId);
+      openEventPopup(eventId, { activityData: ticket?.event || null });
+    });
+  });
 
   // Rate buttons
   document.querySelectorAll(".rate-event-btn").forEach(btn => {

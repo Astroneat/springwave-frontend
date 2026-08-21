@@ -10966,6 +10966,10 @@ textarea {
   transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+#popup-overlay {
+  z-index: 12500 !important;
+}
+
 .forum-post-overlay.active,
 .popup-overlay.active {
   opacity: 1;

@@ -3,6 +3,7 @@ import { isAuthenticated, getUser } from "../lib/session.js";
 import { getMyTickets } from "../api/user.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { formatDate } from "../lib/utils.js";
+import { openEventPopup } from "../components/eventPopup.js";
 
 let allTickets = [];
 let showExpired = false;
@@ -125,7 +126,7 @@ function renderTickets() {
       <div class="group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${isInactive(t) ? "opacity-75 bg-slate-50/50" : ""}">
         
         <!-- Event Thumbnail / Cover -->
-        <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden">
+        <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden cursor-pointer ticket-event-preview" data-event-id="${event._id || ''}">
           <img src="${event.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" 
                alt="${event.title || 'Event'}" 
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -142,7 +143,7 @@ function renderTickets() {
               ${statusBadgeHTML(status)}
               ${t.expiresAt ? `<span class="text-[11px] text-[#64748b] bg-slate-50 px-2 py-0.5 rounded border border-slate-100 font-medium">Expires: ${new Date(t.expiresAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" })}</span>` : ""}
             </div>
-            <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2" title="${event.title || 'Unknown Event'}">${event.title || "Unknown Event"}</h3>
+            <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2 cursor-pointer ticket-event-preview" data-event-id="${event._id || ''}" title="${event.title || 'Unknown Event'}">${event.title || "Unknown Event"}</h3>
             
             <div class="space-y-1.5 text-sm text-[#64748b] min-w-0">
               <div class="flex items-center gap-2 min-w-0">
@@ -202,6 +203,16 @@ function renderTickets() {
       </div>
     `;
   }).join("");
+
+  // Ticket event preview clicks
+  document.querySelectorAll(".ticket-event-preview").forEach(el => {
+    el.addEventListener("click", () => {
+      const eventId = el.dataset.eventId;
+      if (!eventId) return;
+      const ticket = allTickets.find(tk => tk?.event && String(tk.event._id) === eventId);
+      openEventPopup(eventId, { activityData: ticket?.event || null });
+    });
+  });
 }
 
 async function loadPage() {

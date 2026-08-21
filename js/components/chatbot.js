@@ -520,9 +520,9 @@ function formatMessageContent(text) {
     }
   );
 
-  // 3. Replace Markdown links with event ID: [label](/explore.html?id=xxx)
+  // 3. Replace Markdown links with event ID: [label](/explore.html?id=xxx) or [label](/explore.html?event=xxx)
   safe = safe.replace(/(?:👉\s*)?\[([^\]]+)\]\(([^)]+)\)\s*(?:[-─➔➜➔→>]*)/gi, (match, label, url) => {
-    const eventIdMatch = url.match(/[?&]id=([a-f0-9]{24})/i);
+    const eventIdMatch = url.match(/[?&](?:id|event)=([a-f0-9]{24})/i) || url.match(/\/events?\/([a-f0-9]{24})/i);
     if (eventIdMatch) {
       const eventId = eventIdMatch[1];
       let cleanLabel = label.replace(/^👉\s*/, '').replace(/\s*[-─➔➜➔→>]+$/, '').trim();
@@ -649,6 +649,18 @@ function bindMessageClicks() {
       if (card && card.dataset.eventId && !e.target.closest("button:not(.chat-event-btn-blue):not(.chat-event-btn-action):not(.action-btn-secondary):not(.ticket-row-view-btn)")) {
         openEventPopup(card.dataset.eventId);
         return;
+      }
+
+      // 4b. Any anchor link to an event
+      const eventLink = e.target.closest("a");
+      if (eventLink && eventLink.href) {
+        const match = eventLink.href.match(/[?&](?:id|event)=([a-f0-9]{24})/i) || eventLink.href.match(/\/events?\/([a-f0-9]{24})/i);
+        if (match) {
+          e.preventDefault();
+          e.stopPropagation();
+          openEventPopup(match[1]);
+          return;
+        }
       }
 
       // 5. Retry Button Click

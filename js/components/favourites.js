@@ -2,6 +2,7 @@ import { getFavourites } from "../api/user.js";
 import { t } from "../lib/i18n.js";
 import { formatDate, capitalize, getEventStatus } from "../lib/utils.js";
 import { isAuthenticated } from "../lib/session.js";
+import { openEventPopup } from "./eventPopup.js";
 
 let favouritesOverlay = null;
 
@@ -43,12 +44,13 @@ export async function showFavouritesGlobal() {
             }
         });
 
-        // Add event listeners to cards to navigate to explore page
+        // Add event listeners to cards to open event popup directly over current page
         const cards = popupContainer.querySelectorAll(".activity-card");
         activities.forEach((a, i) => {
             if (cards[i]) {
                 cards[i].addEventListener("click", () => {
-                    window.location.href = `/explore.html?event=${a.activityID}`;
+                    const eventId = a.activityID || a._id;
+                    openEventPopup(eventId, { activityData: a });
                 });
             }
         });

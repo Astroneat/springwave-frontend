@@ -401,7 +401,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!ref) return;
     const eventId = ref.dataset.eventId;
     if (eventId && typeof window.openEventPopup === "function") {
-      if (typeof hideDiscussionPopup === "function") hideDiscussionPopup();
       window.openEventPopup(eventId);
     }
   });
@@ -651,7 +650,6 @@ async function renderUpcomingEvents() {
     item.addEventListener("click", async () => {
       const id = item.dataset.eventId;
       if (id) {
-        hideDiscussionPopup();
         await window.openEventPopup?.(id);
       }
     });
@@ -684,7 +682,6 @@ async function renderAISuggestions() {
     item.addEventListener("click", async () => {
       const id = item.dataset.eventId;
       if (id) {
-        hideDiscussionPopup();
         await window.openEventPopup?.(id);
       }
     });

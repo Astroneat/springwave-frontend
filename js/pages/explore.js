@@ -53,7 +53,7 @@ let categoriesList = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
-    const eventId = params.get("event");
+    const eventId = params.get("event") || params.get("id");
 
     const eventPromise = eventId
         ? getActivityById(eventId).then(r => r.activity || r).catch(() => null)

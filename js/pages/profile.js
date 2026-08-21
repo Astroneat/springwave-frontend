@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadNavbar() {
-    await loadSharedNavbar({ onFavouritesClick: showFavPopup });
+    await loadSharedNavbar();
     initBasicScroll();
 }
 
