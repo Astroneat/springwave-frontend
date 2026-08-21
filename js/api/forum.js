@@ -114,17 +114,25 @@ export async function getComments(discussionId) {
     if (data?.comments && data.comments.length > 0) {
       const mapped = data.comments.map(c => {
         const cId = String(c._id || c.id);
-        const localMatch = stored.find(s => String(s.id || s._id) === cId);
+        const localMatch = stored.find(s => String(s.id || s._id) === cId || (s.content === c.content && String(s.userID) === String(c.userID)));
         const realTs = parseCommentTimestamp(c);
+        const parentId = c.replyToId
+          ? (typeof c.replyToId === "object" ? String(c.replyToId._id || c.replyToId.id || "") : String(c.replyToId))
+          : (localMatch && localMatch.replyToId ? String(localMatch.replyToId) : null);
         return {
           ...c,
           id: cId,
           _id: cId,
           date: realTs,
           createdAt: realTs,
-          replyToId: c.replyToId ? String(c.replyToId) : (localMatch && localMatch.replyToId ? String(localMatch.replyToId) : null),
+          replyToId: parentId,
           replyTo: c.replyTo || (localMatch ? localMatch.replyTo : null),
         };
+      });
+      stored.forEach(s => {
+        if (!mapped.find(m => String(m.id || m._id) === String(s.id || s._id))) {
+          mapped.push(s);
+        }
       });
       commentsCache[discussionId] = mapped;
       return mapped;
@@ -137,8 +145,11 @@ export async function getComments(discussionId) {
     if (evData?.comments && evData.comments.length > 0) {
       const mapped = evData.comments.map(c => {
         const cId = String(c._id || c.id);
-        const localMatch = stored.find(s => String(s.id || s._id) === cId);
+        const localMatch = stored.find(s => String(s.id || s._id) === cId || (s.content === c.content && String(s.userID) === String(c.userID)));
         const realTs = parseCommentTimestamp(c);
+        const parentId = c.replyToId
+          ? (typeof c.replyToId === "object" ? String(c.replyToId._id || c.replyToId.id || "") : String(c.replyToId))
+          : (localMatch && localMatch.replyToId ? String(localMatch.replyToId) : null);
         return {
           id: cId,
           _id: cId,
@@ -150,8 +161,8 @@ export async function getComments(discussionId) {
           content: c.content,
           date: realTs,
           createdAt: realTs,
-          likes: 0,
-          replyToId: c.replyToId ? String(c.replyToId) : (localMatch && localMatch.replyToId ? String(localMatch.replyToId) : null),
+          likes: c.likes || 0,
+          replyToId: parentId,
           replyTo: c.replyTo || (localMatch ? localMatch.replyTo : null),
         };
       });
@@ -444,34 +455,48 @@ export async function deleteDiscussionComment(discussionId, commentId) {
 }
 
 export async function addReply(discussionId, content, replyToId) {
+  const cachedList = commentsCache[discussionId] || [];
+  const storedList = getStoredComments(discussionId);
+  const parentComment = cachedList.find(c => String(c.id || c._id) === String(replyToId)) || storedList.find(c => String(c.id || c._id) === String(replyToId));
+  const fallbackReplyTo = parentComment ? {
+    userId: parentComment.userID || parentComment.userId,
+    userName: parentComment.userName || parentComment.author,
+  } : null;
+
   try {
     const data = await post(`/community/discussions/${discussionId}/comments`, { content, replyToId });
     if (data?.comment) {
-      storeComment(discussionId, data.comment);
-      return data.comment;
+      const commentToStore = {
+        ...data.comment,
+        replyToId: data.comment.replyToId ? String(data.comment.replyToId._id || data.comment.replyToId.id || data.comment.replyToId) : String(replyToId),
+        replyTo: data.comment.replyTo || fallbackReplyTo,
+      };
+      storeComment(discussionId, commentToStore);
+      return commentToStore;
     }
   } catch (err) {
     // If not found in discussions, try event comments endpoint
     if (err?.status === 404 || err?.message?.toLowerCase().includes("not found")) {
       try {
-        const evData = await post(`/events/${discussionId}/comments`, { content });
+        const evData = await post(`/events/${discussionId}/comments`, { content, replyToId });
         if (evData?.comment) {
           const user = getUser() || {};
-            const nowIso = evData.comment.createdAt || new Date().toISOString();
-            const mapped = {
-              id: String(evData.comment._id || Date.now()),
-              _id: String(evData.comment._id || Date.now()),
-              discussionId,
-              userID: evData.comment.userID || user._id,
-              author: evData.comment.userName || user.fullname || user.username || "You",
-              userName: evData.comment.userName || user.fullname || user.username || "You",
-              avatar: (evData.comment.userName || user.fullname || "U")[0].toUpperCase(),
-              content: evData.comment.content,
-              replyToId,
-              date: nowIso,
-              createdAt: nowIso,
-              likes: 0,
-            };
+          const nowIso = evData.comment.createdAt || new Date().toISOString();
+          const mapped = {
+            id: String(evData.comment._id || Date.now()),
+            _id: String(evData.comment._id || Date.now()),
+            discussionId,
+            userID: evData.comment.userID || user._id,
+            author: evData.comment.userName || user.fullname || user.username || "You",
+            userName: evData.comment.userName || user.fullname || user.username || "You",
+            avatar: (evData.comment.userName || user.fullname || "U")[0].toUpperCase(),
+            content: evData.comment.content,
+            replyToId: evData.comment.replyToId ? String(evData.comment.replyToId._id || evData.comment.replyToId.id || evData.comment.replyToId) : String(replyToId),
+            replyTo: evData.comment.replyTo || fallbackReplyTo,
+            date: nowIso,
+            createdAt: nowIso,
+            likes: 0,
+          };
           storeComment(discussionId, mapped);
           return mapped;
         }
@@ -489,7 +514,8 @@ export async function addReply(discussionId, content, replyToId) {
             userName: user.fullname || user.username || "You",
             avatar: (user.fullname || user.username || "U")[0].toUpperCase(),
             content,
-            replyToId,
+            replyToId: String(replyToId),
+            replyTo: fallbackReplyTo,
             date: nowIso,
             createdAt: nowIso,
             likes: 0,

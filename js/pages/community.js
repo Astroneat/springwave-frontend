@@ -1000,17 +1000,24 @@ async function openDiscussionDetail(id) {
 }
 
 function wireDiscussionEvents(id, container) {
-  container.querySelector("#discussion-back-btn")?.addEventListener("click", closeDiscussionDetail);
+  if (container._abortController) {
+    container._abortController.abort();
+  }
+  container._abortController = new AbortController();
+  const { signal } = container._abortController;
+  container.dataset.activeDiscussionId = String(id);
+
+  container.querySelector("#discussion-back-btn")?.addEventListener("click", closeDiscussionDetail, { signal });
 
   container.querySelector("#discussion-submit-btn")?.addEventListener("click", () => {
     submitDiscussionComment(id, container);
-  });
+  }, { signal });
   container.querySelector("#discussion-input")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       submitDiscussionComment(id, container);
     }
-  });
+  }, { signal });
   container.querySelector("#discussion-input")?.focus();
 
   container.querySelector("#cancel-reply-btn")?.addEventListener("click", () => {
@@ -1021,7 +1028,7 @@ function wireDiscussionEvents(id, container) {
     }
     const cancelBtn = container.querySelector("#cancel-reply-btn");
     if (cancelBtn) cancelBtn.style.display = "none";
-  });
+  }, { signal });
 
   container.querySelector("#discussion-delete-btn")?.addEventListener("click", async () => {
     if (!confirm("Are you sure you want to delete this discussion?")) return;
@@ -1032,7 +1039,7 @@ function wireDiscussionEvents(id, container) {
     } else {
       alert("Failed to delete discussion");
     }
-  });
+  }, { signal });
 
   container.querySelector("#discussion-share-btn")?.addEventListener("click", async () => {
     const url = `${window.location.origin}/community.html?discussion=${id}`;
@@ -1041,9 +1048,18 @@ function wireDiscussionEvents(id, container) {
     } else {
       try { await navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
     }
-  });
+  }, { signal });
+
+  container.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.classList.contains("forum-comment-inline-input")) {
+      e.preventDefault();
+      const inline = e.target.closest(".forum-comment-inline-reply");
+      inline?.querySelector(".forum-comment-inline-submit")?.click();
+    }
+  }, { signal });
 
   container.addEventListener("click", (e) => {
+    const currentDiscussionId = container.dataset.activeDiscussionId || id;
     const replyBtn = e.target.closest(".forum-comment-reply-btn");
     if (replyBtn) {
       e.stopPropagation();
@@ -1093,9 +1109,9 @@ function wireDiscussionEvents(id, container) {
       markActionPerformed('addComment');
 
       const currentDiscussions = window._currentDiscussions || [];
-      const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(id) || (d.relatedEvent && String(d.relatedEvent) === String(id)));
+      const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(currentDiscussionId) || (d.relatedEvent && String(d.relatedEvent) === String(currentDiscussionId)));
 
-      addReply(id, text, replyToId, discContext).then(newComment => {
+      addReply(currentDiscussionId, text, replyToId, discContext).then(newComment => {
         grantContribution("reply").then((res) => {
           if (res && res.newBadges && Array.isArray(res.newBadges)) {
             res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
@@ -1136,7 +1152,7 @@ function wireDiscussionEvents(id, container) {
           const current = parseInt(statsEl.textContent.replace(/[^0-9]/g, '')) || 0;
           statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
         }
-        updateFeedDiscussionReplyCount(id, (parseInt(countEl?.textContent) || 0) + 1);
+        updateFeedDiscussionReplyCount(currentDiscussionId, (parseInt(countEl?.textContent) || 0) + 1);
       }).catch(err => {
         console.error("Failed to post reply:", err);
         showToast(err?.message || "Failed to post reply. Please try again.", true);
@@ -1172,7 +1188,7 @@ function wireDiscussionEvents(id, container) {
       const wasLiked = likeBtn.classList.contains("liked");
       if (likeSpan) likeSpan.textContent = wasLiked ? currentLikes - 1 : currentLikes + 1;
       likeBtn.classList.toggle("liked", !wasLiked);
-      likeComment(id, commentId).then(result => {
+      likeComment(currentDiscussionId, commentId).then(result => {
         if (!result) {
           if (likeSpan) likeSpan.textContent = currentLikes;
           likeBtn.classList.toggle("liked", wasLiked);
@@ -1188,7 +1204,7 @@ function wireDiscussionEvents(id, container) {
       if (!commentId) return;
       if (!confirm("Delete this comment?")) return;
       const commentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${commentId}"]`);
-      deleteDiscussionComment(id, commentId).then(success => {
+      deleteDiscussionComment(currentDiscussionId, commentId).then(success => {
         if (success) {
           if (commentEl) commentEl.remove();
           const countEl = container.querySelector(".forum-comments-count");
@@ -1201,7 +1217,7 @@ function wireDiscussionEvents(id, container) {
             const current = parseInt(statsEl.textContent.replace(/[^0-9]/g, '')) || 0;
             statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${Math.max(0, current - 1)} replies`;
           }
-          updateFeedDiscussionReplyCount(id, Math.max(0, (parseInt(countEl?.textContent) || 0) - 1));
+          updateFeedDiscussionReplyCount(currentDiscussionId, Math.max(0, (parseInt(countEl?.textContent) || 0) - 1));
           const commentsContainer = document.getElementById("discussion-detail-comments");
           if (commentsContainer && commentsContainer.children.length === 0) {
             commentsContainer.innerHTML = buildEmptyState();
@@ -1217,14 +1233,15 @@ function wireDiscussionEvents(id, container) {
       if (input) input.focus();
       return;
     }
-  });
+  }, { signal });
 
   const sortEl = container.querySelector("#forum-comments-sort");
   if (sortEl && !sortEl._wired) {
     sortEl._wired = true;
     sortEl.addEventListener("change", async (e) => {
       const sortBy = e.target.value;
-      const allComments = await getComments(id);
+      const currentDiscussionId = container.dataset.activeDiscussionId || id;
+      const allComments = await getComments(currentDiscussionId);
       const sorted = sortComments(allComments, sortBy);
       const { roots, childMap } = groupComments(sorted);
       const commentsContainer = document.getElementById("discussion-detail-comments");
@@ -1242,6 +1259,11 @@ function closeDiscussionDetail() {
   const container = document.getElementById("discussionPopupContainer");
   if (!overlay || !container || overlay.hasAttribute("hidden")) return;
 
+  if (container._abortController) {
+    container._abortController.abort();
+    container._abortController = null;
+  }
+
   const chatbot = document.getElementById("chatbot-widget");
   if (chatbot) chatbot.style.display = "";
 
@@ -1258,6 +1280,11 @@ function hideDiscussionPopup() {
   const container = document.getElementById("discussionPopupContainer");
   if (!overlay || !container || overlay.hasAttribute("hidden")) return;
 
+  if (container._abortController) {
+    container._abortController.abort();
+    container._abortController = null;
+  }
+
   const chatbot = document.getElementById("chatbot-widget");
   if (chatbot) chatbot.style.display = "";
 
@@ -1266,6 +1293,7 @@ function hideDiscussionPopup() {
 }
 
 async function submitDiscussionComment(id, container) {
+  const currentDiscussionId = container.dataset.activeDiscussionId || id;
   const input = container.querySelector("#discussion-input");
   const text = sanitizeHtml(input.value.trim());
   if (!text) return;
@@ -1281,14 +1309,14 @@ async function submitDiscussionComment(id, container) {
 
   const replyToId = input.dataset.replyToId;
   const currentDiscussions = window._currentDiscussions || [];
-  const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(id) || (d.relatedEvent && String(d.relatedEvent) === String(id)));
+  const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(currentDiscussionId) || (d.relatedEvent && String(d.relatedEvent) === String(currentDiscussionId)));
 
   try {
     let newComment;
     if (replyToId) {
-      newComment = await addReply(id, text, replyToId, discContext);
+      newComment = await addReply(currentDiscussionId, text, replyToId, discContext);
     } else {
-      newComment = await addComment(id, text, discContext);
+      newComment = await addComment(currentDiscussionId, text, discContext);
     }
     grantContribution("reply").then((res) => {
       if (res && res.newBadges && Array.isArray(res.newBadges)) {
@@ -1340,7 +1368,7 @@ async function submitDiscussionComment(id, container) {
       if (statsEl) {
         statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
       }
-      updateFeedDiscussionReplyCount(id, current + 1);
+      updateFeedDiscussionReplyCount(currentDiscussionId, current + 1);
     }
   } catch (err) {
     console.error("Comment submission failed:", err);
@@ -1361,7 +1389,10 @@ function groupComments(comments) {
   });
 
   comments.forEach(c => {
-    const parentId = c.replyToId ? String(c.replyToId) : null;
+    const rawParentId = c.replyToId
+      ? (typeof c.replyToId === "object" ? (c.replyToId._id || c.replyToId.id || "") : c.replyToId)
+      : null;
+    const parentId = rawParentId ? String(rawParentId) : null;
     if (parentId && map[parentId]) {
       (childMap[parentId] = childMap[parentId] || []).push(c);
     } else {
