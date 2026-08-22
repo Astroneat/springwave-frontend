@@ -6,7 +6,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * Gửi tin nhắn chatbot trực tiếp tới backend (REST JSON fallback).
  */
 export async function sendChatMessage(message, history) {
-  return await post("/chatbot/chat", { message, history }, { priority: true, timeout: 60000 });
+  // 110s — khớp CHATBOT_PIPELINE_TIMEOUT_MS phía server (trước đây 60s khiến
+  // client abort sớm hơn mức server cho phép).
+  return await post("/chatbot/chat", { message, history }, { priority: true, timeout: 110000 });
 }
 
 /**

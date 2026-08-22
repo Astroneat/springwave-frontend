@@ -898,70 +898,102 @@ async function sendMessage() {
   // Use streaming endpoint — survives long generations past proxy/socket timeouts.
   // Tokens stream in real-time, giving instant feedback and avoiding the 45s socket
   // kill that hit the non-streaming path on long/multi-turn questions.
-  const streamingData = { tokens: "", gotToken: false };
-  let renderScheduled = false;
+  //
+  // Perf notes:
+  // - Renders are throttled (~8fps) instead of once per animation frame; the old
+  //   approach re-ran the full markdown/card regex suite over the entire growing
+  //   text every frame → O(n²) work and jank on long replies.
+  // - Input stays locked until the stream TRULY finishes (done/error), preventing
+  //   overlapping SSE requests racing on conversationHistory.
+  const streamingData = { tokens: "", gotToken: false, finished: false };
+  let renderTimer = null;
+  let lastRenderAt = 0;
+  const RENDER_INTERVAL_MS = 120;
 
-  const scheduleStreamRender = () => {
-    if (renderScheduled) return;
-    renderScheduled = true;
-    requestAnimationFrame(() => {
-      if (msgEl.classList.contains("typing")) {
-        msgEl.classList.remove("typing");
-        contentEl.innerHTML = "";
-      }
-      contentEl.innerHTML = formatMessageContent(streamingData.tokens);
-      const container = document.getElementById("chatbot-messages");
-      if (container) container.scrollTop = container.scrollHeight;
-      renderScheduled = false;
-    });
+  const doStreamRender = () => {
+    if (msgEl.classList.contains("typing")) {
+      msgEl.classList.remove("typing");
+      contentEl.innerHTML = "";
+    }
+    contentEl.innerHTML = formatMessageContent(streamingData.tokens);
+    const container = document.getElementById("chatbot-messages");
+    if (container) container.scrollTop = container.scrollHeight;
   };
 
-  sendChatMessageStream(text, conversationHistory, {
-    onMessage(data) {
-      if (data.type === "token" && data.text) {
-        streamingData.tokens += data.text;
-        streamingData.gotToken = true;
-        scheduleStreamRender();
-      } else if (data.type === "done" && data.reply) {
-        renderScheduled = false;
-        msgEl.classList.remove("typing");
-        // Use final reply from backend to ensure exact content (sanitized, no partial cuts)
-        const finalReply = data.reply;
-        contentEl.innerHTML = formatMessageContent(finalReply);
-        bindMessageClicks();
-        if (data.history && Array.isArray(data.history)) {
-          conversationHistory = data.history;
-        } else {
-          conversationHistory.push({ role: "assistant", content: finalReply });
-        }
-        saveHistoryToStorage();
-        const container = document.getElementById("chatbot-messages");
-        if (container) container.scrollTop = container.scrollHeight;
-      } else if (data.type === "error") {
-        renderScheduled = false;
-        msgEl.classList.remove("typing");
-        showError(data.message || "Đã xảy ra lỗi.", text);
-      }
-    },
-    onError(err) {
-      msgEl.classList.remove("typing");
-      const errMsg = String(err?.message || "").toLowerCase();
-      const errStatus = err?.status;
-      const isTimeout = errMsg.includes("abort") || errMsg.includes("timeout") || errStatus === "AbortError" || errStatus === 504;
-      let msg = isTimeout
-        ? "⏱️ Trợ lý AI đang phản hồi lâu hơn bình thường (timeout). Bạn có thể thử lại ngay hoặc gửi câu hỏi ngắn gọn hơn nhé."
-        : t("chatbot.error", {}, "Đã xảy ra lỗi khi kết nối tới Trợ lý AI. Vui lòng thử lại sau.");
-      showError(msg, text);
+  const stopStreamRender = () => {
+    streamingData.finished = true;
+    if (renderTimer !== null) {
+      clearTimeout(renderTimer);
+      renderTimer = null;
     }
-  }, { timeout: 120000 });
+  };
 
-  // Re-enable input after a short delay to let SSE done/error handlers fire.
-  setTimeout(() => {
+  const finishStreamingUI = () => {
+    stopStreamRender();
+    msgEl.classList.remove("typing");
+  };
+
+  const scheduleStreamRender = () => {
+    if (streamingData.finished || renderTimer !== null) return;
+    const wait = Math.max(0, RENDER_INTERVAL_MS - (performance.now() - lastRenderAt));
+    renderTimer = setTimeout(() => {
+      renderTimer = null;
+      if (streamingData.finished) return;
+      requestAnimationFrame(() => {
+        if (streamingData.finished) return;
+        lastRenderAt = performance.now();
+        doStreamRender();
+      });
+    }, wait);
+  };
+
+  try {
+    await sendChatMessageStream(text, conversationHistory, {
+      onMessage(data) {
+        if (data.type === "token" && data.text) {
+          streamingData.tokens += data.text;
+          streamingData.gotToken = true;
+          scheduleStreamRender();
+        } else if (data.type === "done" && data.reply) {
+          finishStreamingUI();
+          // Use final reply from backend to ensure exact content (sanitized, no partial cuts)
+          const finalReply = data.reply;
+          contentEl.innerHTML = formatMessageContent(finalReply);
+          bindMessageClicks();
+          if (data.history && Array.isArray(data.history)) {
+            conversationHistory = data.history;
+          } else {
+            conversationHistory.push({ role: "assistant", content: finalReply });
+          }
+          saveHistoryToStorage();
+          const container = document.getElementById("chatbot-messages");
+          if (container) container.scrollTop = container.scrollHeight;
+        } else if (data.type === "error") {
+          finishStreamingUI();
+          showError(data.message || "Đã xảy ra lỗi.", text);
+        }
+      },
+      onError(err) {
+        finishStreamingUI();
+        const errMsg = String(err?.message || "").toLowerCase();
+        const errStatus = err?.status;
+        const isTimeout = errMsg.includes("abort") || errMsg.includes("timeout") || errStatus === "AbortError" || errStatus === 504;
+        let msg = isTimeout
+          ? "⏱️ Trợ lý AI đang phản hồi lâu hơn bình thường (timeout). Bạn có thể thử lại ngay hoặc gửi câu hỏi ngắn gọn hơn nhé."
+          : t("chatbot.error", {}, "Đã xảy ra lỗi khi kết nối tới Trợ lý AI. Vui lòng thử lại sau.");
+        showError(msg, text);
+      }
+    }, { timeout: 120000 });
+  } catch (err) {
+    // postStream rethrows only when no onError handler consumed the failure
+    finishStreamingUI();
+  } finally {
+    // Unlock input ONLY when the stream lifecycle has actually ended
     isSending = false;
     if (sendBtn) sendBtn.disabled = false;
     input.disabled = false;
     input.focus();
-  }, 100);
+  }
 }
 
 /**
