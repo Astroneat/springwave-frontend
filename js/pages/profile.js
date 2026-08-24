@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initEditProfile();
     initChangePasswordModal();
     initChangeEmailModal();
+    initContributionInfo();
     
     // Expose for onclick handlers
     window.openReviewModal = openReviewModal;
@@ -503,6 +504,11 @@ function computeLocalBadges(user, c, favoritesCount = 0, participationsCount = 0
     }
   }
 
+  // Knowledge & Certificates Gamification
+  if (c.certificatesEarned >= 1) badges.push("certified_novice");
+  if (c.certificatesEarned >= 5) badges.push("certified_expert");
+  if (c.certificatesEarned >= 10) badges.push("certified_master");
+
   return badges;
 }
 
@@ -603,6 +609,11 @@ const ALL_BADGES = [
   { key: "the_sage",           label: "The Sage",            icon: "emoji_objects",  desc: "Reached Level 6 — \"You are the final boss of this community.\"", tier: "legendary" },
   { key: "one_man_show",       label: "One-Man Show",        icon: "theater_comedy", desc: "10x more replies than discussions started — \"Ever considered podcasting?\"", tier: "legendary" },
   { key: "quality_over_quantity", label: "Quality > Quantity", icon: "target",       desc: "Started ≤ 3 discussions yet each got 5+ likes — \"You barely speak, but when you do, people listen.\"", tier: "legendary" },
+
+  // ── Knowledge Category (Certificates) ──
+  { key: "certified_novice",    label: "Certified Novice",    icon: "card_membership", desc: "Earned 1 certificate — \"First milestone down. The path of wisdom opens.\"", tier: "explorer" },
+  { key: "certified_expert",    label: "Certified Expert",    icon: "workspace_premium", desc: "Earned 5 certificates — \"A certified scholar. Your knowledge base grows deeper.\"", tier: "contributor" },
+  { key: "certified_master",    label: "Certified Master",    icon: "military_tech",  desc: "Earned 10 certificates — \"Ultimate scholar status. Academic brilliance unlocked!\"", tier: "legendary" },
 ];
 
 function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
@@ -623,6 +634,11 @@ function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount 
     // Activity progress
     case "active_explorer": return { current: favoritesCount, target: 5 };
     case "event_goer": return { current: participationsCount, target: 1 };
+
+    // Knowledge progress
+    case "certified_novice": return { current: c.certificatesEarned || 0, target: 1 };
+    case "certified_expert": return { current: c.certificatesEarned || 0, target: 5 };
+    case "certified_master": return { current: c.certificatesEarned || 0, target: 10 };
     default: return null;
   }
 }
@@ -802,6 +818,7 @@ async function renderParticipatedEventsPanel() {
   const scoreTarget = document.getElementById("contribute-score-target");
   const statDiscussions = document.getElementById("stat-discussions");
   const statEvents = document.getElementById("stat-events");
+  const statCertificates = document.getElementById("stat-certificates");
 
   if (scoreVal) scoreVal.textContent = `${c.score || 0} pts`;
   if (levelEl) levelEl.textContent = `Lv.${level}`;
@@ -809,6 +826,7 @@ async function renderParticipatedEventsPanel() {
   if (scoreTarget) scoreTarget.textContent = nextLabel;
   if (statDiscussions) statDiscussions.textContent = c.discussionsStarted || 0;
   if (statEvents) statEvents.textContent = participationsCount || 0;
+  if (statCertificates) statCertificates.textContent = c.certificatesEarned || 0;
 
   // Badges rendering
   renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount);
@@ -822,6 +840,39 @@ async function renderParticipatedEventsPanel() {
   }
 }
 
+function getBadgeDetails(b) {
+  // Category mapping
+  let category = "Community";
+  const key = b.key;
+  if (key === "hello_world" || key === "talk_is_silver" || key === "so_it_begins") {
+    category = "Welcome";
+  } else if (key === "self_discovery") {
+    category = "Profile";
+  } else if (key === "active_explorer" || key === "event_goer" || key === "rising_host" || key === "grand_host") {
+    category = "Events";
+  } else if (key === "community_star" || key === "mentor" || key === "the_sage") {
+    category = "Milestone";
+  } else if (key === "certified_novice" || key === "certified_expert" || key === "certified_master") {
+    category = "Knowledge";
+  }
+
+  // Rarity mapping
+  let rarity = "Common";
+  let xp = "15 XP";
+  if (b.tier === "explorer") {
+    rarity = "Uncommon";
+    xp = "25 XP";
+  } else if (b.tier === "contributor") {
+    rarity = "Rare";
+    xp = "50 XP";
+  } else if (b.tier === "legendary") {
+    rarity = "Legendary";
+    xp = "100 XP";
+  }
+
+  return { category, rarity, xp };
+}
+
 function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount) {
   const grid = document.getElementById("badges-grid");
   if (!grid) return;
@@ -831,37 +882,57 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
       ${ALL_BADGES.map(b => {
         const earned = earnedKeys.has(b.key);
         const progress = getBadgeProgress(b.key, c, user, favoritesCount, participationsCount);
+        const { category, rarity, xp } = getBadgeDetails(b);
 
         let progressHtml = "";
         if (!earned && progress) {
           const pct = Math.min(100, Math.round((progress.current / progress.target) * 100));
-          const barColorMap = { newbie: "#0284c7", explorer: "#0d9488", contributor: "#7c3aed", legendary: "#d97706" };
-          const barColor = barColorMap[b.tier] || "#3b6fd4";
-          
           progressHtml = `
-            <div class="badge-progress-container" style="margin-top: 8px; width: 100%;">
-              <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 2px;">
+            <div class="badge-progress-container">
+              <div class="badge-progress-info">
                 <span>Progress</span>
-                <span>${progress.current}/${progress.target}</span>
+                <span>${progress.current} / ${progress.target}</span>
               </div>
-              <div style="height: 4px; background: #e2e8f0; border-radius: 99px; overflow: hidden;">
-                <div style="height: 100%; background: ${barColor}; border-radius: 99px; width: 100%; transform: scaleX(${pct / 100}); transform-origin: left; transition: transform 0.3s ease;"></div>
+              <div class="badge-progress-bar">
+                <div class="badge-progress-fill" style="transform: scaleX(${pct / 100});"></div>
               </div>
             </div>
           `;
         }
 
+        const footerHtml = (!earned && progress) 
+          ? progressHtml 
+          : `<div class="badge-meta">
+               <span>${category}</span>
+               <span class="badge-meta-dot">●</span>
+               <span>${xp}</span>
+             </div>`;
+
+        const statusHtml = `
+          <div class="badge-status-group">
+            <span class="badge-tier-pill">${rarity}</span>
+            <div class="badge-status ${earned ? "earned" : "locked"}">
+              <span class="material-symbols-outlined badge-status-icon">${earned ? "check" : "lock"}</span>
+              <span>${earned ? "Earned" : "Locked"}</span>
+            </div>
+          </div>
+        `;
+
         return `
           <div class="badge-card tier-${b.tier} ${earned ? "earned" : "locked"}">
-            <div class="badge-icon-wrap ${earned ? "earned" : "locked"}">
-              <span class="material-symbols-outlined badge-icon">${b.icon}</span>
+            <div class="badge-card-top">
+              <div class="badge-emblem ${earned ? "earned" : "locked"}">
+                <span class="material-symbols-outlined badge-icon">${b.icon}</span>
+              </div>
+              ${statusHtml}
             </div>
-            <div class="badge-info" style="flex: 1;">
-              <span class="badge-label">${b.label}</span>
-              <span class="badge-desc">${b.desc}</span>
-              ${progressHtml}
+            
+            <div class="badge-info">
+              <h4 class="badge-label">${b.label}</h4>
+              <p class="badge-desc">${b.desc}</p>
             </div>
-            ${earned ? '<span class="badge-check material-symbols-outlined">check_circle</span>' : '<span class="badge-lock material-symbols-outlined">lock</span>'}
+            
+            ${footerHtml}
           </div>
         `;
       }).join("")}
@@ -1305,4 +1376,21 @@ function initChangeEmailModal() {
     });
   }
 }
+
+function initContributionInfo() {
+  const infoBtn = document.getElementById("contrib-info-btn");
+  const closeBtn = document.getElementById("close-contrib-info-btn");
+  const popover = document.getElementById("contrib-info-popover");
+
+  if (!infoBtn || !popover) return;
+
+  infoBtn.addEventListener("click", () => {
+    popover.classList.toggle("hidden");
+  });
+
+  closeBtn?.addEventListener("click", () => {
+    popover.classList.add("hidden");
+  });
+}
+
 

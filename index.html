@@ -481,51 +481,107 @@
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <!-- Badge 1: Self-Discovery (Newbie, earned) -->
-                  <div class="badge-card tier-newbie earned !p-3 !rounded-xl !bg-white animate-fade-in">
-                    <div class="badge-icon-wrap earned !w-10 !h-10 !rounded-xl">
-                      <span class="material-symbols-outlined badge-icon !text-xl">psychology</span>
+                  <div class="badge-card tier-newbie earned animate-fade-in">
+                    <div class="badge-card-top">
+                      <div class="badge-emblem">
+                        <span class="material-symbols-outlined badge-icon">psychology</span>
+                      </div>
+                      <div class="badge-status-group">
+                        <span class="badge-tier-pill">Common</span>
+                        <div class="badge-status earned">
+                          <span class="material-symbols-outlined badge-status-icon">check</span>
+                          <span>Earned</span>
+                        </div>
+                      </div>
                     </div>
-                    <div class="badge-info ml-2">
-                      <span class="badge-label !text-xs">Self-Discovery</span>
-                      <span class="badge-desc !text-[9px] !leading-tight">Completed the quiz</span>
+                    <div class="badge-info">
+                      <h4 class="badge-label">Self-Discovery</h4>
+                      <p class="badge-desc">Completed the quiz</p>
                     </div>
-                    <span class="badge-check material-symbols-outlined !text-base ml-auto">check_circle</span>
+                    <div class="badge-meta">
+                      <span>Profile</span>
+                      <span class="badge-meta-dot">●</span>
+                      <span>15 XP</span>
+                    </div>
                   </div>
 
                   <!-- Badge 2: Event Goer (Explorer, earned) -->
-                  <div class="badge-card tier-explorer earned !p-3 !rounded-xl !bg-white animate-fade-in">
-                    <div class="badge-icon-wrap earned !w-10 !h-10 !rounded-xl">
-                      <span class="material-symbols-outlined badge-icon !text-xl">event_available</span>
+                  <div class="badge-card tier-explorer earned animate-fade-in">
+                    <div class="badge-card-top">
+                      <div class="badge-emblem">
+                        <span class="material-symbols-outlined badge-icon">event_available</span>
+                      </div>
+                      <div class="badge-status-group">
+                        <span class="badge-tier-pill">Uncommon</span>
+                        <div class="badge-status earned">
+                          <span class="material-symbols-outlined badge-status-icon">check</span>
+                          <span>Earned</span>
+                        </div>
+                      </div>
                     </div>
-                    <div class="badge-info ml-2">
-                      <span class="badge-label !text-xs">Event Goer</span>
-                      <span class="badge-desc !text-[9px] !leading-tight">Participated in 1 event</span>
+                    <div class="badge-info">
+                      <h4 class="badge-label">Event Goer</h4>
+                      <p class="badge-desc">Participated in 1 event</p>
                     </div>
-                    <span class="badge-check material-symbols-outlined !text-base ml-auto">check_circle</span>
+                    <div class="badge-meta">
+                      <span>Events</span>
+                      <span class="badge-meta-dot">●</span>
+                      <span>25 XP</span>
+                    </div>
                   </div>
 
                   <!-- Badge 3: Community Star (Legendary, earned) -->
-                  <div class="badge-card tier-legendary earned !p-3 !rounded-xl !bg-white animate-fade-in">
-                    <div class="badge-icon-wrap earned !w-10 !h-10 !rounded-xl">
-                      <span class="material-symbols-outlined badge-icon !text-xl">stars</span>
+                  <div class="badge-card tier-legendary earned animate-fade-in">
+                    <div class="badge-card-top">
+                      <div class="badge-emblem">
+                        <span class="material-symbols-outlined badge-icon">stars</span>
+                      </div>
+                      <div class="badge-status-group">
+                        <span class="badge-tier-pill">Legendary</span>
+                        <div class="badge-status earned">
+                          <span class="material-symbols-outlined badge-status-icon">check</span>
+                          <span>Earned</span>
+                        </div>
+                      </div>
                     </div>
-                    <div class="badge-info ml-2">
-                      <span class="badge-label !text-xs">Community Star</span>
-                      <span class="badge-desc !text-[9px] !leading-tight">Reached 100 score</span>
+                    <div class="badge-info">
+                      <h4 class="badge-label">Community Star</h4>
+                      <p class="badge-desc">Reached 100 score</p>
                     </div>
-                    <span class="badge-check material-symbols-outlined !text-base ml-auto">check_circle</span>
+                    <div class="badge-meta">
+                      <span>Milestone</span>
+                      <span class="badge-meta-dot">●</span>
+                      <span>100 XP</span>
+                    </div>
                   </div>
 
                   <!-- Badge 4: The Sage (Legendary, locked) -->
-                  <div class="badge-card locked !p-3 !rounded-xl animate-fade-in">
-                    <div class="badge-icon-wrap locked !w-10 !h-10 !rounded-xl">
-                      <span class="material-symbols-outlined badge-icon !text-xl">emoji_objects</span>
+                  <div class="badge-card tier-legendary locked animate-fade-in">
+                    <div class="badge-card-top">
+                      <div class="badge-emblem">
+                        <span class="material-symbols-outlined badge-icon">emoji_objects</span>
+                      </div>
+                      <div class="badge-status-group">
+                        <span class="badge-tier-pill">Legendary</span>
+                        <div class="badge-status locked">
+                          <span class="material-symbols-outlined badge-status-icon">lock</span>
+                          <span>Locked</span>
+                        </div>
+                      </div>
                     </div>
-                    <div class="badge-info ml-2">
-                      <span class="badge-label !text-xs">The Sage</span>
-                      <span class="badge-desc !text-[9px] !leading-tight">Reach Level 6</span>
+                    <div class="badge-info">
+                      <h4 class="badge-label">The Sage</h4>
+                      <p class="badge-desc">Reach Level 6</p>
                     </div>
-                    <span class="badge-lock material-symbols-outlined !text-sm ml-auto">lock</span>
+                    <div class="badge-progress-container">
+                      <div class="badge-progress-info">
+                        <span>Progress</span>
+                        <span>680 / 2000</span>
+                      </div>
+                      <div class="badge-progress-bar">
+                        <div class="badge-progress-fill" style="transform: scaleX(0.34);"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
