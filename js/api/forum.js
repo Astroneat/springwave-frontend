@@ -285,41 +285,50 @@ export async function getUpcomingEvents() {
   return [];
 }
 
-export async function getPopularDiscussions(currentDiscussions = []) {
-  try {
-    const data = await get("/community/sidebar");
-    if (data?.popular && data.popular.length > 0) return data.popular;
-  } catch {}
-
+export async function getPopularDiscussions(currentDiscussions = [], category = null) {
+  const cat = category || (typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("cat") || "all") : "all");
   const globalList = (typeof window !== "undefined" && window._currentDiscussions) || [];
-  const rawList = currentDiscussions.length > 0 
+  let rawList = (Array.isArray(currentDiscussions) && currentDiscussions.length > 0)
     ? currentDiscussions 
-    : (globalList.length > 0 ? globalList : (discussionsCache || []));
+    : (Array.isArray(globalList) && globalList.length > 0 ? globalList : []);
 
-  // Prioritize real user/event discussions over mock fallback data
-  let list = rawList.filter(d => !String(d.id || d._id).startsWith("mock-"));
-  if (list.length === 0) {
-    list = rawList.length > 0 ? rawList : DISCUSSIONS_FALLBACK;
+  // If in a specific category, filter rawList to that category
+  if (cat && cat !== "all" && cat !== "mine" && cat !== "saved") {
+    rawList = rawList.filter(d => d.category === cat || (cat === "event" && (d.category === "event" || d.relatedEvent || d._event)));
   }
 
-  const scored = list.map(d => {
-    const discId = String(d.id || d._id);
-    const stored = getStoredComments(discId);
-    const replyCount = Math.max(Number(d.replies) || 0, Number(d.replyCount) || 0, stored.length);
-    const viewCount = Number(d.views) || 0;
-    const score = replyCount * 3 + viewCount;
-    return {
-      id: discId,
-      _id: discId,
-      title: d.title || "Untitled Discussion",
-      replies: replyCount,
-      views: viewCount,
-      score,
-    };
-  });
+  // Prioritize real discussions from current category/view
+  let list = rawList.filter(d => !String(d.id || d._id).startsWith("mock-"));
+  if (list.length > 0) {
+    const scored = list.map(d => {
+      const discId = String(d.id || d._id);
+      const stored = getStoredComments(discId);
+      const replyCount = Math.max(Number(d.replies) || 0, Number(d.replyCount) || 0, stored.length);
+      const viewCount = Number(d.views) || 0;
+      const score = replyCount * 3 + viewCount;
+      return {
+        id: discId,
+        _id: discId,
+        title: d.title || "Untitled Discussion",
+        replies: replyCount,
+        views: viewCount,
+        score,
+      };
+    });
 
-  scored.sort((a, b) => b.score - a.score || b.replies - a.replies);
-  return scored.slice(0, 5);
+    scored.sort((a, b) => b.score - a.score || b.replies - a.replies);
+    return scored.slice(0, 5);
+  }
+
+  // Only fallback to global sidebar endpoint if viewing "All Discussions"
+  if (cat === "all") {
+    try {
+      const data = await get("/community/sidebar");
+      if (data?.popular && data.popular.length > 0) return data.popular;
+    } catch {}
+  }
+
+  return [];
 }
 
 export async function getAISuggestions() {

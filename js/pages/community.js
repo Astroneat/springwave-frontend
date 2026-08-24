@@ -244,6 +244,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const uniId = urlParams.get("uniId");
   const uniName = urlParams.get("uniName");
+  const topic = urlParams.get("topic");
 
   let discussions;
   if (category === "general") {
@@ -273,6 +274,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     const sectionSub = document.querySelector("#trending .forum-section-subtitle");
     if (sectionSub) {
       sectionSub.textContent = `Discussions from ${uniName || 'university'} community`;
+    }
+  } else if (category === "skills") {
+    const allSkillsDiscussions = await getDiscussionsByCategory("skills");
+    window._allSkillDiscussions = allSkillsDiscussions;
+    if (topic) {
+      const topicLower = topic.toLowerCase().trim();
+      discussions = allSkillsDiscussions.filter(d => {
+        const hasTag = Array.isArray(d.tags) && d.tags.some(t => t && t.toLowerCase().trim() === topicLower);
+        const hasSkill = d.skill && d.skill.toLowerCase().trim() === topicLower;
+        return hasTag || hasSkill;
+      });
+      const trendingHeader = document.querySelector("#trending .forum-section-header");
+      if (trendingHeader && !document.getElementById("forumSkillBackBtn")) {
+        const backLink = document.createElement("a");
+        backLink.id = "forumSkillBackBtn";
+        backLink.href = "./community.html?cat=skills";
+        backLink.className = "inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline mb-2 cursor-pointer";
+        backLink.innerHTML = `<span class="material-symbols-outlined text-sm">arrow_back</span> ${t("community.all_skills") || "All Skills"}`;
+        trendingHeader.parentNode.insertBefore(backLink, trendingHeader);
+      }
+      const sectionTitle = document.querySelector("#trending .forum-section-title");
+      if (sectionTitle) {
+        sectionTitle.textContent = `${topic} Discussions`;
+      }
+      const sectionSub = document.querySelector("#trending .forum-section-subtitle");
+      if (sectionSub) {
+        sectionSub.textContent = `Discussions and knowledge sharing about ${topic}`;
+      }
+    } else {
+      discussions = allSkillsDiscussions;
     }
   } else if (category === "all") {
     const [allDisc, eventDisc] = await Promise.all([
@@ -338,7 +369,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Aggregated Newsfeed: Show all public discussions across categories (general, event, skills, etc.)
     // Only exclude internal private university discussions
     discussions = discussions.filter(d => d.scope !== "community");
-  } else if (category === "skills" || category === "uni" || category === "event" || category === "general") {
+  } else if (category === "skills") {
+    discussions = discussions.filter(d => d.category === "skills");
+    if (topic) {
+      const topicLower = topic.toLowerCase().trim();
+      discussions = discussions.filter(d => {
+        const hasTag = Array.isArray(d.tags) && d.tags.some(t => t && t.toLowerCase().trim() === topicLower);
+        const hasSkill = d.skill && d.skill.toLowerCase().trim() === topicLower;
+        return hasTag || hasSkill;
+      });
+    }
+  } else if (category === "uni" || category === "event" || category === "general") {
     discussions = discussions.filter(d => d.category === category);
   }
 
@@ -379,7 +420,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }).catch(() => {}) : Promise.resolve(),
     (category === "skills") ? renderTopicGrid().catch(() => {}) : Promise.resolve(),
     (category === "org") ? renderOrgGrid().catch(() => {}) : Promise.resolve(),
-    loadSidebar(category).catch(() => {}),
     initChatbot().catch(() => {}),
     loadFooter().catch(() => {})
   ]).then(() => {
@@ -427,6 +467,12 @@ function setActiveCategory(category) {
 }
 
 function updatePageTitle(category) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const topic = urlParams.get("topic");
+  if (category === "skills" && topic) {
+    document.title = `${topic} Discussions - SpringWave`;
+    return;
+  }
   const config = CATEGORIES[category] || CATEGORIES.all;
   document.title = `${config.label()} - SpringWave`;
 }
@@ -443,6 +489,7 @@ function showSections(category) {
   const urlParams = new URLSearchParams(window.location.search);
   const uniId = urlParams.get("uniId");
   const uniName = urlParams.get("uniName");
+  const topic = urlParams.get("topic");
 
   // Keep conversation heading and list hidden by default while loading data
   if (trending) trending.style.display = "none";
@@ -465,7 +512,25 @@ function showSections(category) {
       if (statusBar) statusBar.style.display = "none";
       if (feedTabs) feedTabs.style.display = "none";
     }
-  } else if (category === "skills" || category === "org") {
+  } else if (category === "skills") {
+    if (statusBar) statusBar.style.display = "";
+    if (feedTabs) feedTabs.style.display = "";
+    if (trending) {
+      trending.style.display = "";
+      const title = trending.querySelector(".forum-section-title");
+      const sub = trending.querySelector(".forum-section-subtitle");
+      if (topic) {
+        if (title) title.textContent = `${topic} Discussions`;
+        if (sub) sub.textContent = `Discussions and knowledge sharing about ${topic}`;
+      } else {
+        if (title) title.textContent = config.sectionTitle;
+        if (sub) sub.textContent = config.sectionSubtitle;
+      }
+    }
+    if (careerTopics) {
+      careerTopics.style.display = topic ? "none" : "";
+    }
+  } else if (category === "org") {
     if (statusBar) statusBar.style.display = "none";
     if (feedTabs) feedTabs.style.display = "none";
   } else {
@@ -536,11 +601,9 @@ function initForumSidebarToggle() {
   }
 }
 
-/* =============================
-   SIDEBAR
-   ============================= */
+let _popularRenderSeq = 0;
 
-async function loadSidebar(category) {
+async function loadSidebar(category, discussionsList = null) {
   const container = document.getElementById("forumSidebarContainer");
   if (!container) return;
 
@@ -554,15 +617,20 @@ async function loadSidebar(category) {
     w.style.display = "";
   });
 
-  await Promise.allSettled([
-    renderPopularDiscussions(),
+  const list = discussionsList || window._currentDiscussions || [];
+  const promises = [
     renderUpcomingEvents(),
     renderAISuggestions()
-  ]);
+  ];
+  if (list.length > 0 || category === "all") {
+    promises.push(renderPopularDiscussions(list, category));
+  }
+  await Promise.allSettled(promises);
 }
 
 async function enrichDiscussionsReplies(discussions) {
   if (!Array.isArray(discussions) || discussions.length === 0) return;
+  const category = getCategoryFromURL();
   await Promise.allSettled(
     discussions.map(async (d) => {
       const discId = String(d.id || d._id);
@@ -589,14 +657,17 @@ async function enrichDiscussionsReplies(discussions) {
       }
     })
   );
-  renderPopularDiscussions(discussions).catch(() => {});
+  renderPopularDiscussions(discussions, category).catch(() => {});
 }
 
-async function renderPopularDiscussions(discussionsList = null) {
+async function renderPopularDiscussions(discussionsList = null, categoryParam = null) {
+  const seq = ++_popularRenderSeq;
   const container = document.getElementById("sidebarPopular");
   if (!container) return;
   const currentList = discussionsList || window._currentDiscussions || [];
-  const popular = await getPopularDiscussions(currentList);
+  const cat = categoryParam || getCategoryFromURL();
+  const popular = await getPopularDiscussions(currentList, cat);
+  if (seq !== _popularRenderSeq) return;
   if (!popular || popular.length === 0) {
     container.innerHTML = '<div class="forum-sidebar-empty" style="padding:12px;text-align:center;color:#94a3b8;font-size:13px;">No discussions yet</div>';
     return;
@@ -692,15 +763,32 @@ async function renderAISuggestions() {
    DISCUSSIONS
    ============================= */
 
-function renderDiscussions(discussions, category) {
+let currentDiscussionPage = 1;
+const DISCUSSIONS_PER_PAGE = 10;
+
+function renderTag(t) {
+  const norm = String(t || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const skillClasses = {
+    communication: "forum-tag-communication forum-tag-skill",
+    technical: "forum-tag-technical forum-tag-skill",
+    creativity: "forum-tag-creativity forum-tag-skill",
+    socialimpact: "forum-tag-social-impact forum-tag-skill",
+  };
+  const extraClass = skillClasses[norm] || "";
+  return `<span class="forum-tag ${extraClass}" data-tag="${t}">${t}</span>`;
+}
+
+function renderDiscussions(discussions, category, page = 1) {
   const container = document.getElementById("forumDiscussions");
   if (!container) return;
 
   const trending = document.getElementById("trending");
   const feedTabs = document.getElementById("forumFeedTabs");
   const statusBar = document.querySelector(".forum-status-bar");
+  const paginationContainer = document.getElementById("forumPagination");
   const urlParams = new URLSearchParams(window.location.search);
   const uniId = urlParams.get("uniId");
+  const topic = urlParams.get("topic");
 
   if (category === "uni") {
     if (uniId) {
@@ -708,7 +796,11 @@ function renderDiscussions(discussions, category) {
       if (feedTabs) feedTabs.style.display = "";
       if (statusBar) statusBar.style.display = "";
     }
-  } else if (category === "org" || category === "skills") {
+  } else if (category === "skills") {
+    if (trending) trending.style.display = "";
+    if (feedTabs) feedTabs.style.display = "";
+    if (statusBar) statusBar.style.display = "";
+  } else if (category === "org") {
     if (trending) trending.style.display = "none";
     if (feedTabs) feedTabs.style.display = "none";
     if (statusBar) statusBar.style.display = "none";
@@ -719,13 +811,19 @@ function renderDiscussions(discussions, category) {
   }
 
   if (discussions.length === 0) {
+    if (paginationContainer) {
+      paginationContainer.innerHTML = "";
+      paginationContainer.style.display = "none";
+    }
     const emptyMessages = {
       general:["chat", "No general discussions yet", "Start an open conversation, ask a question, or share something with the community!"],
       mine:   ["forum", "No discussions yet", "You haven't started any discussions yet. Click 'Start Discussion' to create one!"],
       saved:  ["bookmark", "No saved posts", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later."],
       uni:    ["account_balance", "No university discussions", "Join a university community above to see discussions from your campus."],
       event:  ["event", "No event discussions", "There are no event discussions yet. Be the first to start one!"],
-      skills: ["school", "No skill discussions", "There are no skill discussions yet. Be the first to start one!"],
+      skills: topic
+        ? ["school", `No ${topic} discussions yet`, `There are no discussions for ${topic} yet. Be the first to start one!`]
+        : ["school", "No skill discussions", "There are no skill discussions yet. Be the first to start one!"],
     };
     const msg = emptyMessages[category] || ["forum", "No discussions yet", "Be the first to start a discussion in this category."];
     container.innerHTML = `
@@ -738,57 +836,88 @@ function renderDiscussions(discussions, category) {
     return;
   }
 
-  container.innerHTML = discussions
-    .map(
-      (d) => {
-        const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
-        const saved = isSaved(d.id);
-        return `
-    <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
-      <div class="forum-discussion-card-header">
-        <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
-          ${renderAvatar(d.avatar, d.author)}
-        </div>
-        <div class="forum-discussion-author-info">
-          <span class="forum-discussion-author-name">${d.author}</span>
-          <span class="forum-discussion-author-uni">${d.university}</span>
-        </div>
-        <span class="forum-discussion-time">${d.lastActivity}</span>
-      </div>
-      <h3 class="forum-discussion-title">${d.title}</h3>
-      <p class="forum-discussion-preview">${d.preview}</p>
-      ${eventRef}
-      <div class="forum-discussion-meta">
-        <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
-        <div class="forum-discussion-tags">
-          ${(Array.isArray(d.tags) ? d.tags : []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
-        </div>
-      </div>
+  window._allCurrentDiscussions = discussions;
+  const totalPages = Math.ceil(discussions.length / DISCUSSIONS_PER_PAGE) || 1;
+  currentDiscussionPage = Math.max(1, Math.min(page, totalPages));
 
-      <div class="forum-discussion-footer">
-        <div class="forum-discussion-stats">
-          <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id || d._id}">
-            <span class="material-symbols-outlined text-sm">chat_bubble</span>
-            ${Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0)} replies
-          </button>
-        </div>
-        <div class="forum-discussion-actions">
-          <button class="forum-discussion-action-btn" title="Save">
-            <span class="material-symbols-outlined text-sm${saved ? ' bookmarked' : ''}">${saved ? 'bookmark' : 'bookmark_border'}</span>
-          </button>
-          <button class="forum-discussion-action-btn" title="Share">
-            <span class="material-symbols-outlined text-sm">share</span>
-          </button>
-        </div>
-      </div>
-      </div>
-    `
-    })
+  const startIndex = (currentDiscussionPage - 1) * DISCUSSIONS_PER_PAGE;
+  const pagedDiscussions = discussions.slice(startIndex, startIndex + DISCUSSIONS_PER_PAGE);
+
+  container.innerHTML = pagedDiscussions
+    .map((d) => buildDiscussionCardHTML(d))
     .join("");
+
+  renderDiscussionPagination(discussions.length, totalPages, category);
+}
+
+function renderDiscussionPagination(totalItems, totalPages, category) {
+  const container = document.getElementById("forumPagination");
+  if (!container) return;
+
+  if (totalPages <= 1) {
+    container.innerHTML = "";
+    container.style.display = "none";
+    return;
+  }
+
+  container.style.display = "flex";
+  let html = "";
+
+  // Prev Button
+  html += `
+    <button class="pagination-btn nav-btn" ${currentDiscussionPage === 1 ? 'disabled' : ''} data-page="${currentDiscussionPage - 1}">
+      <span class="material-symbols-outlined text-sm">chevron_left</span>
+    </button>
+  `;
+
+  // Page Numbers
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= currentDiscussionPage - 2 && i <= currentDiscussionPage + 2)
+    ) {
+      html += `
+        <button class="pagination-btn num-btn ${i === currentDiscussionPage ? 'active' : ''}" data-page="${i}">
+          ${i}
+        </button>
+      `;
+    } else if (
+      i === currentDiscussionPage - 3 ||
+      i === currentDiscussionPage + 3
+    ) {
+      html += `<span class="pagination-ellipsis">...</span>`;
+    }
+  }
+
+  // Next Button
+  html += `
+    <button class="pagination-btn nav-btn" ${currentDiscussionPage === totalPages ? 'disabled' : ''} data-page="${currentDiscussionPage + 1}">
+      <span class="material-symbols-outlined text-sm">chevron_right</span>
+    </button>
+  `;
+
+  container.innerHTML = html;
+
+  container.querySelectorAll(".pagination-btn:not([disabled])").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const p = parseInt(btn.dataset.page, 10);
+      if (!isNaN(p) && p !== currentDiscussionPage) {
+        const target = document.getElementById("forumFeedTabs") || document.getElementById("trending");
+        if (target) {
+          const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+          const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
+        renderDiscussions(window._allCurrentDiscussions || window._currentDiscussions || [], category, p);
+      }
+    });
+  });
 }
 
 function buildDiscussionCardHTML(d) {
   const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+  const saved = isSaved(d.id || d._id);
   return `
       <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
       <div class="forum-discussion-card-header">
@@ -807,7 +936,7 @@ function buildDiscussionCardHTML(d) {
       <div class="forum-discussion-meta">
         <span class="forum-category-badge forum-category-${d.category || "general"}">${capitalize(d.category || "general")}</span>
         <div class="forum-discussion-tags">
-          ${(Array.isArray(d.tags) ? d.tags : []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
+          ${(Array.isArray(d.tags) ? d.tags : []).map((t) => renderTag(t)).join("")}
         </div>
       </div>
 
@@ -824,7 +953,7 @@ function buildDiscussionCardHTML(d) {
         </div>
         <div class="forum-discussion-actions">
           <button class="forum-discussion-action-btn" title="Save">
-            <span class="material-symbols-outlined text-sm">bookmark_border</span>
+            <span class="material-symbols-outlined text-sm${saved ? ' bookmarked' : ''}">${saved ? 'bookmark' : 'bookmark_border'}</span>
           </button>
           <button class="forum-discussion-action-btn" title="Share">
             <span class="material-symbols-outlined text-sm">share</span>
@@ -889,6 +1018,18 @@ function initDiscussionDetail() {
     const card = e.target.closest(".forum-discussion-card");
     if (!card) return;
     if (e.target.closest(".forum-event-ref, .forum-event-ref-link")) return;
+
+    const tagEl = e.target.closest(".forum-tag");
+    if (tagEl) {
+      e.stopPropagation();
+      const tagName = tagEl.dataset.tag || tagEl.textContent.trim();
+      const skills = ["Communication", "Technical", "Creativity", "Social Impact"];
+      const matchedSkill = skills.find(s => s.toLowerCase() === tagName.toLowerCase());
+      if (matchedSkill) {
+        window.location.href = `./community.html?cat=skills&topic=${encodeURIComponent(matchedSkill)}`;
+        return;
+      }
+    }
 
     const actionBtn = e.target.closest(".forum-discussion-action-btn");
     if (actionBtn) {
@@ -1776,8 +1917,10 @@ async function renderTopicGrid() {
   const topics = await getSkillTopics();
   const careerTopics = document.getElementById("careerTopics");
   const category = getCategoryFromURL();
+  const topic = new URLSearchParams(window.location.search).get("topic");
+
   if (careerTopics && category === "skills") {
-    careerTopics.style.display = "";
+    careerTopics.style.display = topic ? "none" : "";
   }
   if (!topics || topics.length === 0) {
     container.innerHTML = `
@@ -1789,6 +1932,22 @@ async function renderTopicGrid() {
     `;
     return;
   }
+
+  // Enrich discussion count dynamically from current discussions if available
+  const skillDiscussionsList = window._allSkillDiscussions || window._currentDiscussions || [];
+  if (Array.isArray(skillDiscussionsList) && skillDiscussionsList.length > 0) {
+    topics.forEach(t => {
+      const tLower = t.name.toLowerCase();
+      const count = skillDiscussionsList.filter(d => 
+        (Array.isArray(d.tags) && d.tags.some(tag => tag && tag.toLowerCase().trim() === tLower)) ||
+        (d.skill && d.skill.toLowerCase().trim() === tLower)
+      ).length;
+      if (count > 0) {
+        t.discussionCount = count;
+      }
+    });
+  }
+
   container.innerHTML = topics
     .map(
       (t) => `
@@ -1808,9 +1967,9 @@ async function renderTopicGrid() {
 
   container.querySelectorAll(".forum-topic-card").forEach((card) => {
     card.addEventListener("click", async () => {
-      const topic = card.dataset.topic;
-      if (!topic) return;
-      window.location.href = `./community.html?cat=skills&topic=${encodeURIComponent(topic)}`;
+      const topicName = card.dataset.topic;
+      if (!topicName) return;
+      window.location.href = `./community.html?cat=skills&topic=${encodeURIComponent(topicName)}`;
     });
   });
 }
@@ -2230,8 +2389,22 @@ function initPostModal() {
       }
     }
 
-    let cat = categorySelect?.value || "general";
-    if (config?.eventTitle) {
+    let cat = config?.category || categorySelect?.value || "general";
+    if (cat === "skills" || config?.skill) {
+      cat = "skills";
+      if (categorySelect) categorySelect.value = "skills";
+      updateCategoryUI("skills");
+      const currentSkill = config?.skill || new URLSearchParams(window.location.search).get("topic");
+      if (currentSkill) {
+        selectedSkill = currentSkill;
+        if (postSkillPills) {
+          postSkillPills.querySelectorAll(".forum-post-pill").forEach(pill => {
+            const isMatch = pill.dataset.skill?.toLowerCase() === currentSkill.toLowerCase();
+            pill.classList.toggle("selected", isMatch);
+          });
+        }
+      }
+    } else if (config?.eventTitle) {
       cat = "event";
       if (categorySelect) categorySelect.value = "event";
       updateCategoryUI(cat, () => {
@@ -2267,7 +2440,11 @@ function initPostModal() {
   }
 
   openBtns.forEach((btn) => {
-    if (btn) btn.addEventListener("click", open);
+    if (btn) btn.addEventListener("click", () => {
+      const cat = getCategoryFromURL();
+      const topic = new URLSearchParams(window.location.search).get("topic");
+      open({ category: cat === "skills" ? "skills" : (cat === "event" ? "event" : "general"), skill: topic });
+    });
   });
   if (closeBtn) closeBtn.addEventListener("click", close);
   if (cancelBtn) cancelBtn.addEventListener("click", close);
@@ -2304,7 +2481,11 @@ function initPostModal() {
 
         let relatedEvent = undefined;
         if (category === "event" && selectedEventId) relatedEvent = selectedEventId;
-        if (category === "skills" && selectedSkill) tags.push(selectedSkill);
+        if (category === "skills" && selectedSkill) {
+          if (!tags.some(t => t.toLowerCase() === selectedSkill.toLowerCase())) {
+            tags.unshift(selectedSkill);
+          }
+        }
 
         const scopeEl = document.querySelector('input[name="scope"]:checked');
         const scope = scopeEl?.value === "community" ? "community" : "general";
@@ -2372,16 +2553,22 @@ function initPostModal() {
         selectedEventId = null;
         selectedSkill = "";
 
-        const container = document.getElementById("forumDiscussions");
-        const empty = container?.querySelector(".forum-empty");
-        const cardHTML = buildDiscussionCardHTML(result);
-        if (empty) {
-          container.innerHTML = cardHTML;
-        } else {
-          container.insertAdjacentHTML("afterbegin", cardHTML);
+        const currentCat = getCategoryFromURL();
+        const currentTopic = new URLSearchParams(window.location.search).get("topic");
+        let shouldShowInFeed = true;
+        if (currentCat === "skills" && currentTopic) {
+          shouldShowInFeed = tags.some(t => t.toLowerCase() === currentTopic.toLowerCase());
         }
+
         if (Array.isArray(window._currentDiscussions)) {
           window._currentDiscussions.unshift(result);
+        }
+        if (Array.isArray(window._allSkillDiscussions) && category === "skills") {
+          window._allSkillDiscussions.unshift(result);
+        }
+
+        if (shouldShowInFeed && Array.isArray(window._currentDiscussions)) {
+          renderDiscussions(window._currentDiscussions, currentCat, 1);
         }
 
         const discId = result._id || result.id;

@@ -10838,6 +10838,37 @@ textarea {
   font-family: "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
   font-size: 0.78rem;
+  transition: all 0.2s ease;
+}
+
+.forum-tag-skill {
+  cursor: pointer;
+}
+.forum-tag-skill:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.95);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.forum-tag-communication {
+  background: rgba(59, 130, 246, 0.12) !important;
+  color: #2563eb !important;
+}
+
+.forum-tag-technical {
+  background: rgba(139, 92, 246, 0.12) !important;
+  color: #7c3aed !important;
+}
+
+.forum-tag-creativity {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #d97706 !important;
+}
+
+.forum-tag-social-impact,
+.forum-tag-socialimpact {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #059669 !important;
 }
 
 /* Left sidebar glassmorphism menu */
