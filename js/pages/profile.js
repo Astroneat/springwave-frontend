@@ -9,6 +9,7 @@ import {
 } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
 import { getMyRoadmaps } from "../api/roadmap.js";
+import { getMyOrganizations, getAllOrganizations, getOrgActivities } from "../api/organizations.js";
 import { CDN_DOMAIN } from "../config.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
@@ -807,6 +808,24 @@ async function renderParticipatedEventsPanel() {
     }, 800);
   }
 
+  const isHost = user && user.role === "host";
+  const isAdmin = user && user.role === "admin";
+  const showHosted = isHost || isAdmin;
+  let hostedEventsCount = 0;
+  if (showHosted) {
+    try {
+      const orgData = isAdmin ? await getAllOrganizations() : await getMyOrganizations();
+      const orgs = orgData.organizations || [];
+      for (const org of orgs) {
+        const actData = await getOrgActivities(org._id);
+        const events = actData.events || [];
+        hostedEventsCount += events.length;
+      }
+    } catch (err) {
+      console.warn("Failed to fetch hosted events count:", err);
+    }
+  }
+
   const { level, current, next, progress } = calcContribLevel(c.score);
   const pct = Math.round(progress * 100);
   const nextLabel = next !== null ? `${current} / ${next} pts` : `${c.score} pts (Max)`;
@@ -819,6 +838,9 @@ async function renderParticipatedEventsPanel() {
   const statDiscussions = document.getElementById("stat-discussions");
   const statEvents = document.getElementById("stat-events");
   const statCertificates = document.getElementById("stat-certificates");
+  const statHosted = document.getElementById("stat-hosted");
+  const statHostedCard = document.getElementById("stat-hosted-card");
+  const statsContainer = document.getElementById("stats-grid-container");
 
   if (scoreVal) scoreVal.textContent = `${c.score || 0} pts`;
   if (levelEl) levelEl.textContent = `Lv.${level}`;
@@ -827,6 +849,13 @@ async function renderParticipatedEventsPanel() {
   if (statDiscussions) statDiscussions.textContent = c.discussionsStarted || 0;
   if (statEvents) statEvents.textContent = participationsCount || 0;
   if (statCertificates) statCertificates.textContent = c.certificatesEarned || 0;
+
+  if (showHosted && statsContainer && statHostedCard) {
+    statHostedCard.classList.remove("hidden");
+    statsContainer.classList.remove("sm:grid-cols-3");
+    statsContainer.classList.add("sm:grid-cols-4");
+    if (statHosted) statHosted.textContent = hostedEventsCount;
+  }
 
   // Badges rendering
   renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount);
