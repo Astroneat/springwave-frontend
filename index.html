@@ -281,7 +281,7 @@
           </button>
           <button class="preview-tab-btn" data-tab="preview-dashboard">
             <span class="material-symbols-outlined text-base">dashboard</span>
-            <span data-i18n="index.tab_dashboard">Growth Dashboard</span>
+            <span data-i18n="index.tab_dashboard">Gamified Dashboard</span>
           </button>
         </div>
       </div>
@@ -428,62 +428,62 @@
 
         <!-- Tab 3: Growth Dashboard -->
         <div class="preview-tab-panel" id="preview-dashboard">
-          <div class="grid md:grid-cols-2 gap-8 items-center bg-white p-8 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div class="grid md:grid-cols-[1fr_1.5fr] gap-8 items-start bg-white p-8 rounded-2xl border border-slate-200/80 shadow-sm">
             <div>
-              <h3 class="text-xl font-bold text-slate-900 mb-4" data-i18n="index.dashboard_preview_title">Gamified Growth Dashboard</h3>
+              <h3 class="text-xl font-bold text-slate-900 mb-4" data-i18n="index.dashboard_preview_title">Gamified Dashboard</h3>
               <p class="text-xs text-slate-500 leading-relaxed mb-6" data-i18n="index.dashboard_preview_desc">Track contribution levels, milestones, and unlock 16 badges representing your community engagement. Receive matching recommendations as you participate.</p>
               
               <!-- Community Contribution widget looking like profile.html -->
-              <div class="profile-card !shadow-none !border !border-slate-200/60 !bg-slate-50/50 !p-6 !rounded-3xl">
-                <h2 class="text-lg font-bold text-gray-800 mb-4" data-i18n="profile.community_contribution">Community Contribution</h2>
+              <div class="profile-card !shadow-none !border !border-slate-200/60 !bg-slate-50/50 !p-5 !rounded-3xl">
+                <h2 class="text-lg font-bold text-gray-800 mb-3" data-i18n="profile.community_contribution">Community Contribution</h2>
                 
-                <div class="mb-4">
-                  <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center gap-3">
-                      <div class="w-8 h-8 rounded-xl bg-[#f0f4ff] flex items-center justify-center text-[#1755ba]">
-                        <i class="fa-solid fa-users text-xs"></i>
+                <div class="mb-3">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <div class="flex items-center gap-2">
+                      <div class="w-7 h-7 rounded-xl bg-[#f0f4ff] flex items-center justify-center text-[#1755ba]">
+                        <i class="fa-solid fa-users text-[10px]"></i>
                       </div>
                       <span class="font-semibold text-gray-800 text-sm" data-i18n="profile.score">Contribution Score</span>
                     </div>
-                    <span class="text-xs font-bold text-[#1755ba] bg-[#f0f4ff] px-2.5 py-0.5 rounded-full">Lv.4</span>
+                    <span class="text-[10px] font-bold text-[#1755ba] bg-[#f0f4ff] px-2 py-0.5 rounded-full">Lv.4</span>
                   </div>
                   
-                  <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden mb-1.5">
+                  <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden mb-1">
                     <div class="h-full bg-gradient-to-r from-blue-500 to-[#1755ba] rounded-full" style="width: 75%"></div>
                   </div>
                   
-                  <div class="flex justify-between text-[11px] text-gray-500 font-medium">
+                  <div class="flex justify-between text-[10px] text-gray-500 font-medium">
                     <span>750 pts</span>
                     <span>750 / 1000 pts</span>
                   </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="bg-white rounded-2xl p-4 flex flex-col items-center text-center transition-transform hover:scale-[1.02] border border-slate-100">
-                    <i class="fa-regular fa-comments text-[#1755ba] text-lg mb-1.5"></i>
-                    <span class="text-xl font-bold text-gray-900 mb-0.5">12</span>
-                    <span class="text-[10px] text-gray-500 font-medium" data-i18n="profile.discussions">Discussions</span>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="bg-white rounded-xl p-3 flex flex-col items-center text-center transition-transform hover:scale-[1.02] border border-slate-100">
+                    <i class="fa-regular fa-comments text-[#1755ba] text-base mb-1"></i>
+                    <span class="text-lg font-bold text-gray-900 mb-0.5">12</span>
+                    <span class="text-[9px] text-gray-500 font-medium" data-i18n="profile.discussions">Discussions</span>
                   </div>
-                  <div class="bg-white rounded-2xl p-4 flex flex-col items-center text-center transition-transform hover:scale-[1.02] border border-slate-100">
-                    <i class="fa-regular fa-calendar-check text-[#1755ba] text-lg mb-1.5"></i>
-                    <span class="text-xl font-bold text-gray-900 mb-0.5">5</span>
-                    <span class="text-[10px] text-gray-500 font-medium">Events Attended</span>
+                  <div class="bg-white rounded-xl p-3 flex flex-col items-center text-center transition-transform hover:scale-[1.02] border border-slate-100">
+                    <i class="fa-regular fa-calendar-check text-[#1755ba] text-base mb-1"></i>
+                    <span class="text-lg font-bold text-gray-900 mb-0.5">5</span>
+                    <span class="text-[9px] text-gray-500 font-medium">Events Attended</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div class="flex justify-center w-full">
+            <div class="w-full">
               <!-- Badges Grid looking like profile.html badges -->
-              <div class="profile-card !shadow-none !border !border-slate-200/60 !bg-slate-50/50 !p-6 !rounded-3xl w-full">
+              <div class="profile-card !shadow-none !border !border-slate-200/60 !bg-slate-50/50 !p-5 !rounded-3xl w-full">
                 <h2 class="text-lg font-bold text-gray-800 mb-1" data-i18n="profile.badges">Badges</h2>
-                <p class="text-[11px] text-slate-500 mb-4" data-i18n="profile.badges_desc">Complete actions across the community to earn badges. Each badge has its own personality — collect them all.</p>
+                <p class="text-[11px] text-slate-500 mb-3" data-i18n="profile.badges_desc">Complete actions across the community to earn badges. Each badge has its own personality — collect them all.</p>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-2.5">
                   <!-- Badge 1: Self-Discovery (Newbie, earned) -->
                   <div class="badge-card tier-newbie earned animate-fade-in">
                     <div class="badge-card-top">
-                      <div class="badge-emblem">
+                      <div class="badge-emblem earned">
                         <span class="material-symbols-outlined badge-icon">psychology</span>
                       </div>
                       <div class="badge-status-group">
@@ -496,7 +496,7 @@
                     </div>
                     <div class="badge-info">
                       <h4 class="badge-label">Self-Discovery</h4>
-                      <p class="badge-desc">Completed the quiz</p>
+                      <p class="badge-desc">Completed the personality quiz</p>
                     </div>
                     <div class="badge-meta">
                       <span>Profile</span>
@@ -508,7 +508,7 @@
                   <!-- Badge 2: Event Goer (Explorer, earned) -->
                   <div class="badge-card tier-explorer earned animate-fade-in">
                     <div class="badge-card-top">
-                      <div class="badge-emblem">
+                      <div class="badge-emblem earned">
                         <span class="material-symbols-outlined badge-icon">event_available</span>
                       </div>
                       <div class="badge-status-group">
@@ -530,14 +530,14 @@
                     </div>
                   </div>
 
-                  <!-- Badge 3: Community Star (Legendary, earned) -->
-                  <div class="badge-card tier-legendary earned animate-fade-in">
+                  <!-- Badge 3: Conversation Starter (Contributor, earned) -->
+                  <div class="badge-card tier-contributor earned animate-fade-in">
                     <div class="badge-card-top">
-                      <div class="badge-emblem">
-                        <span class="material-symbols-outlined badge-icon">stars</span>
+                      <div class="badge-emblem earned">
+                        <span class="material-symbols-outlined badge-icon">chat</span>
                       </div>
                       <div class="badge-status-group">
-                        <span class="badge-tier-pill">Legendary</span>
+                        <span class="badge-tier-pill">Rare</span>
                         <div class="badge-status earned">
                           <span class="material-symbols-outlined badge-status-icon">check</span>
                           <span>Earned</span>
@@ -545,20 +545,20 @@
                       </div>
                     </div>
                     <div class="badge-info">
-                      <h4 class="badge-label">Community Star</h4>
-                      <p class="badge-desc">Reached 100 score</p>
+                      <h4 class="badge-label">Conversation Starter</h4>
+                      <p class="badge-desc">Started 5 discussions</p>
                     </div>
                     <div class="badge-meta">
-                      <span>Milestone</span>
+                      <span>Community</span>
                       <span class="badge-meta-dot">●</span>
-                      <span>100 XP</span>
+                      <span>50 XP</span>
                     </div>
                   </div>
 
                   <!-- Badge 4: The Sage (Legendary, locked) -->
                   <div class="badge-card tier-legendary locked animate-fade-in">
                     <div class="badge-card-top">
-                      <div class="badge-emblem">
+                      <div class="badge-emblem locked">
                         <span class="material-symbols-outlined badge-icon">emoji_objects</span>
                       </div>
                       <div class="badge-status-group">
