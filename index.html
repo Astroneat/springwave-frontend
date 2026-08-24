@@ -431,83 +431,101 @@
           <div class="grid md:grid-cols-2 gap-8 items-center bg-white p-8 rounded-2xl border border-slate-200/80 shadow-sm">
             <div>
               <h3 class="text-xl font-bold text-slate-900 mb-4" data-i18n="index.dashboard_preview_title">Gamified Growth Dashboard</h3>
-              <p class="text-xs text-slate-500 leading-relaxed mb-4" data-i18n="index.dashboard_preview_desc">Track contribution levels, milestones, and unlock 16 badges representing your community engagement. Receive matching recommendations as you participate.</p>
+              <p class="text-xs text-slate-500 leading-relaxed mb-6" data-i18n="index.dashboard_preview_desc">Track contribution levels, milestones, and unlock 16 badges representing your community engagement. Receive matching recommendations as you participate.</p>
               
-              <!-- Skill Visualization Chart -->
-              <div class="growth-skill-chart">
-                <div class="growth-skill-row">
-                  <div class="growth-skill-header">
-                    <span data-i18n="index.skill_comm">Communication</span>
-                    <span>86%</span>
+              <!-- Community Contribution widget looking like profile.html -->
+              <div class="profile-card !shadow-none !border !border-slate-200/60 !bg-slate-50/50 !p-6 !rounded-3xl">
+                <h2 class="text-lg font-bold text-gray-800 mb-4" data-i18n="profile.community_contribution">Community Contribution</h2>
+                
+                <div class="mb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-xl bg-[#f0f4ff] flex items-center justify-center text-[#1755ba]">
+                        <i class="fa-solid fa-users text-xs"></i>
+                      </div>
+                      <span class="font-semibold text-gray-800 text-sm" data-i18n="profile.score">Contribution Score</span>
+                    </div>
+                    <span class="text-xs font-bold text-[#1755ba] bg-[#f0f4ff] px-2.5 py-0.5 rounded-full">Lv.4</span>
                   </div>
-                  <div class="growth-skill-bar-track">
-                    <div class="growth-skill-bar-fill" style="width: 86%; background: var(--sw-coral);"></div>
+                  
+                  <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden mb-1.5">
+                    <div class="h-full bg-gradient-to-r from-blue-500 to-[#1755ba] rounded-full" style="width: 75%"></div>
                   </div>
-                </div>
-                <div class="growth-skill-row">
-                  <div class="growth-skill-header">
-                    <span data-i18n="index.skill_tech">Technical</span>
-                    <span>72%</span>
-                  </div>
-                  <div class="growth-skill-bar-track">
-                    <div class="growth-skill-bar-fill" style="width: 72%; background: var(--sw-cyan);"></div>
-                  </div>
-                </div>
-                <div class="growth-skill-row">
-                  <div class="growth-skill-header">
-                    <span data-i18n="index.skill_creat">Creativity</span>
-                    <span>94%</span>
-                  </div>
-                  <div class="growth-skill-bar-track">
-                    <div class="growth-skill-bar-fill" style="width: 94%; background: var(--sw-purple);"></div>
+                  
+                  <div class="flex justify-between text-[11px] text-gray-500 font-medium">
+                    <span>750 pts</span>
+                    <span>750 / 1000 pts</span>
                   </div>
                 </div>
-                <div class="growth-skill-row">
-                  <div class="growth-skill-header">
-                    <span data-i18n="index.skill_social">Social Impact</span>
-                    <span>81%</span>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="bg-white rounded-2xl p-4 flex flex-col items-center text-center transition-transform hover:scale-[1.02] border border-slate-100">
+                    <i class="fa-regular fa-comments text-[#1755ba] text-lg mb-1.5"></i>
+                    <span class="text-xl font-bold text-gray-900 mb-0.5">12</span>
+                    <span class="text-[10px] text-gray-500 font-medium" data-i18n="profile.discussions">Discussions</span>
                   </div>
-                  <div class="growth-skill-bar-track">
-                    <div class="growth-skill-bar-fill" style="width: 81%; background: var(--sw-yellow);"></div>
+                  <div class="bg-white rounded-2xl p-4 flex flex-col items-center text-center transition-transform hover:scale-[1.02] border border-slate-100">
+                    <i class="fa-regular fa-calendar-check text-[#1755ba] text-lg mb-1.5"></i>
+                    <span class="text-xl font-bold text-gray-900 mb-0.5">5</span>
+                    <span class="text-[10px] text-gray-500 font-medium">Events Attended</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div class="flex justify-center">
-              <div class="hero-mockup-card w-full max-w-sm" style="box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
-                <div class="mockup-header">
-                  <div class="mockup-header-left">
-                    <span class="mockup-logo">SW</span>
-                    <div>
-                      <h4 class="font-bold text-slate-800">SpringWave</h4>
-                      <p class="mockup-status" data-i18n="index.mockup_companion">Growth Assistant</p>
+            <div class="flex justify-center w-full">
+              <!-- Badges Grid looking like profile.html badges -->
+              <div class="profile-card !shadow-none !border !border-slate-200/60 !bg-slate-50/50 !p-6 !rounded-3xl w-full">
+                <h2 class="text-lg font-bold text-gray-800 mb-1" data-i18n="profile.badges">Badges</h2>
+                <p class="text-[11px] text-slate-500 mb-4" data-i18n="profile.badges_desc">Complete actions across the community to earn badges. Each badge has its own personality — collect them all.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <!-- Badge 1: Self-Discovery (Newbie, earned) -->
+                  <div class="badge-card tier-newbie earned !p-3 !rounded-xl !bg-white animate-fade-in">
+                    <div class="badge-icon-wrap earned !w-10 !h-10 !rounded-xl">
+                      <span class="material-symbols-outlined badge-icon !text-xl">psychology</span>
                     </div>
-                  </div>
-                  <div class="mockup-badge" data-i18n="index.mockup_level_4">Level 4</div>
-                </div>
-                <div class="mockup-section">
-                  <div class="mockup-section-header">
-                    <span data-i18n="index.mockup_milestone">Growth Milestone</span>
-                    <span>750 / 1000 XP</span>
-                  </div>
-                  <div class="mockup-progress-bar">
-                    <div class="mockup-progress-fill" style="width: 75%;"></div>
-                  </div>
-                </div>
-                <div class="mockup-section">
-                  <p class="mockup-subheading" data-i18n="index.mockup_recommended">Recommended for You</p>
-                  <div class="mockup-list">
-                    <div class="mockup-item">
-                      <div class="mockup-item-left">
-                        <span class="material-symbols-outlined mockup-item-icon" style="color: var(--sw-cyan);">code</span>
-                        <div>
-                          <h5 class="font-bold text-slate-800" data-i18n="index.mockup_event_title">AI Hackathon</h5>
-                          <p class="text-[10px] text-slate-500" data-i18n="index.mockup_event_category">Software Engineering</p>
-                        </div>
-                      </div>
-                      <span class="mockup-tag" data-i18n="index.mockup_match_percent">98% Match</span>
+                    <div class="badge-info ml-2">
+                      <span class="badge-label !text-xs">Self-Discovery</span>
+                      <span class="badge-desc !text-[9px] !leading-tight">Completed the quiz</span>
                     </div>
+                    <span class="badge-check material-symbols-outlined !text-base ml-auto">check_circle</span>
+                  </div>
+
+                  <!-- Badge 2: Event Goer (Explorer, earned) -->
+                  <div class="badge-card tier-explorer earned !p-3 !rounded-xl !bg-white animate-fade-in">
+                    <div class="badge-icon-wrap earned !w-10 !h-10 !rounded-xl">
+                      <span class="material-symbols-outlined badge-icon !text-xl">event_available</span>
+                    </div>
+                    <div class="badge-info ml-2">
+                      <span class="badge-label !text-xs">Event Goer</span>
+                      <span class="badge-desc !text-[9px] !leading-tight">Participated in 1 event</span>
+                    </div>
+                    <span class="badge-check material-symbols-outlined !text-base ml-auto">check_circle</span>
+                  </div>
+
+                  <!-- Badge 3: Community Star (Legendary, earned) -->
+                  <div class="badge-card tier-legendary earned !p-3 !rounded-xl !bg-white animate-fade-in">
+                    <div class="badge-icon-wrap earned !w-10 !h-10 !rounded-xl">
+                      <span class="material-symbols-outlined badge-icon !text-xl">stars</span>
+                    </div>
+                    <div class="badge-info ml-2">
+                      <span class="badge-label !text-xs">Community Star</span>
+                      <span class="badge-desc !text-[9px] !leading-tight">Reached 100 score</span>
+                    </div>
+                    <span class="badge-check material-symbols-outlined !text-base ml-auto">check_circle</span>
+                  </div>
+
+                  <!-- Badge 4: The Sage (Legendary, locked) -->
+                  <div class="badge-card locked !p-3 !rounded-xl animate-fade-in">
+                    <div class="badge-icon-wrap locked !w-10 !h-10 !rounded-xl">
+                      <span class="material-symbols-outlined badge-icon !text-xl">emoji_objects</span>
+                    </div>
+                    <div class="badge-info ml-2">
+                      <span class="badge-label !text-xs">The Sage</span>
+                      <span class="badge-desc !text-[9px] !leading-tight">Reach Level 6</span>
+                    </div>
+                    <span class="badge-lock material-symbols-outlined !text-sm ml-auto">lock</span>
                   </div>
                 </div>
               </div>

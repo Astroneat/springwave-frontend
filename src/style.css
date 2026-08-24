@@ -5776,94 +5776,131 @@ textarea {
 
 .badge-card {
   @apply flex items-center gap-4 p-5 rounded-2xl transition-all duration-300 relative overflow-hidden;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(15, 23, 42, 0.05);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .badge-card:hover {
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-4px) scale(1.025);
   background: #ffffff;
-  box-shadow: 0 12px 30px var(--tier-glow, rgba(15, 23, 42, 0.04));
-  border-color: var(--tier-border, rgba(15, 23, 42, 0.1));
-}
-
-/* Newbie Tier - Sky Blue */
-.badge-card.tier-newbie.earned {
-  background: linear-gradient(
-    135deg,
-    rgba(240, 249, 255, 0.8) 0%,
-    rgba(224, 242, 254, 0.8) 100%
-  );
-  border-color: rgba(56, 189, 248, 0.25);
-  --tier-glow: rgba(56, 189, 248, 0.15);
-  --tier-border: rgba(56, 189, 248, 0.4);
-}
-.badge-card.tier-newbie .badge-icon-wrap.earned {
-  background: rgba(14, 165, 233, 0.1);
-  color: #0284c7;
-}
-
-/* Explorer Tier - Emerald Teal */
-.badge-card.tier-explorer.earned {
-  background: linear-gradient(
-    135deg,
-    rgba(240, 253, 250, 0.8) 0%,
-    rgba(204, 251, 241, 0.8) 100%
-  );
-  border-color: rgba(45, 212, 191, 0.25);
-  --tier-glow: rgba(45, 212, 191, 0.15);
-  --tier-border: rgba(45, 212, 191, 0.4);
-}
-.badge-card.tier-explorer .badge-icon-wrap.earned {
-  background: rgba(13, 148, 136, 0.1);
-  color: #0d9488;
-}
-
-/* Contributor Tier - Purple/Violet */
-.badge-card.tier-contributor.earned {
-  background: linear-gradient(
-    135deg,
-    rgba(250, 245, 255, 0.8) 0%,
-    rgba(243, 232, 255, 0.8) 100%
-  );
-  border-color: rgba(192, 132, 252, 0.25);
-  --tier-glow: rgba(192, 132, 252, 0.15);
-  --tier-border: rgba(192, 132, 252, 0.4);
-}
-.badge-card.tier-contributor .badge-icon-wrap.earned {
-  background: rgba(124, 58, 237, 0.1);
-  color: #7c3aed;
-}
-
-/* Legendary Tier - Golden Amber */
-.badge-card.tier-legendary.earned {
-  background: linear-gradient(
-    135deg,
-    rgba(254, 253, 237, 0.8) 0%,
-    rgba(254, 243, 199, 0.8) 100%
-  );
-  border-color: rgba(251, 191, 36, 0.25);
-  --tier-glow: rgba(251, 191, 36, 0.2);
-  --tier-border: rgba(251, 191, 36, 0.5);
-}
-.badge-card.tier-legendary .badge-icon-wrap.earned {
-  background: rgba(217, 119, 6, 0.1);
-  color: #b45309;
-}
-
-.badge-card.locked {
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px dashed rgba(15, 23, 42, 0.08);
+  box-shadow: 0 16px 36px var(--tier-glow, rgba(15, 23, 42, 0.08));
+  border-color: var(--tier-border, rgba(15, 23, 42, 0.15));
 }
 
 .badge-icon-wrap {
   @apply w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-300;
 }
 
+.badge-icon-wrap.earned {
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
 .badge-card:hover .badge-icon-wrap.earned {
-  transform: scale(1.1) rotate(6deg);
+  transform: scale(1.15) rotate(8deg);
+}
+
+/* Newbie Tier - Sky Blue */
+.badge-card.tier-newbie.earned {
+  background: linear-gradient(
+    135deg,
+    #f0f9ff 0%,
+    #e0f2fe 100%
+  );
+  border-color: rgba(56, 189, 248, 0.35);
+  --tier-glow: rgba(56, 189, 248, 0.22);
+  --tier-border: rgba(56, 189, 248, 0.5);
+}
+.badge-card.tier-newbie .badge-icon-wrap.earned {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: #ffffff;
+}
+
+/* Explorer Tier - Emerald Teal */
+.badge-card.tier-explorer.earned {
+  background: linear-gradient(
+    135deg,
+    #f0fdf4 0%,
+    #ccfbf1 100%
+  );
+  border-color: rgba(45, 212, 191, 0.35);
+  --tier-glow: rgba(45, 212, 191, 0.22);
+  --tier-border: rgba(45, 212, 191, 0.5);
+}
+.badge-card.tier-explorer .badge-icon-wrap.earned {
+  background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%);
+  color: #ffffff;
+}
+
+/* Contributor Tier - Purple/Violet */
+.badge-card.tier-contributor.earned {
+  background: linear-gradient(
+    135deg,
+    #faf5ff 0%,
+    #f3e8ff 100%
+  );
+  border-color: rgba(192, 132, 252, 0.35);
+  --tier-glow: rgba(192, 132, 252, 0.22);
+  --tier-border: rgba(192, 132, 252, 0.5);
+}
+.badge-card.tier-contributor .badge-icon-wrap.earned {
+  background: linear-gradient(135deg, #c084fc 0%, #7c3aed 100%);
+  color: #ffffff;
+}
+
+/* Legendary Tier - Golden Amber */
+.badge-card.tier-legendary.earned {
+  background: linear-gradient(
+    135deg,
+    #fffbeb 0%,
+    #fef3c7 100%
+  );
+  border-color: rgba(251, 191, 36, 0.35);
+  --tier-glow: rgba(251, 191, 36, 0.25);
+  --tier-border: rgba(251, 191, 36, 0.6);
+}
+.badge-card.tier-legendary .badge-icon-wrap.earned {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  color: #ffffff;
+}
+
+/* Premium shine effect for Legendary */
+.badge-card.tier-legendary.earned::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  pointer-events: none;
+  transition: all 0.6s ease;
+}
+
+.badge-card.tier-legendary.earned:hover::after {
+  left: 150%;
+  transition: all 1.0s ease-in-out;
+}
+
+.badge-card.locked {
+  background: rgba(248, 250, 252, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px dashed rgba(148, 163, 184, 0.25);
+  transition: all 0.3s ease;
+}
+
+.badge-card.locked:hover {
+  transform: translateY(-2px);
+  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
 .badge-icon-wrap.locked {
