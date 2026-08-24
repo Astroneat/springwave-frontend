@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initEditProfile();
     initChangePasswordModal();
     initChangeEmailModal();
+    initContributionInfo();
     
     // Expose for onclick handlers
     window.openReviewModal = openReviewModal;
@@ -503,6 +504,11 @@ function computeLocalBadges(user, c, favoritesCount = 0, participationsCount = 0
     }
   }
 
+  // Knowledge & Certificates Gamification
+  if (c.certificatesEarned >= 1) badges.push("certified_novice");
+  if (c.certificatesEarned >= 5) badges.push("certified_expert");
+  if (c.certificatesEarned >= 10) badges.push("certified_master");
+
   return badges;
 }
 
@@ -603,6 +609,11 @@ const ALL_BADGES = [
   { key: "the_sage",           label: "The Sage",            icon: "emoji_objects",  desc: "Reached Level 6 — \"You are the final boss of this community.\"", tier: "legendary" },
   { key: "one_man_show",       label: "One-Man Show",        icon: "theater_comedy", desc: "10x more replies than discussions started — \"Ever considered podcasting?\"", tier: "legendary" },
   { key: "quality_over_quantity", label: "Quality > Quantity", icon: "target",       desc: "Started ≤ 3 discussions yet each got 5+ likes — \"You barely speak, but when you do, people listen.\"", tier: "legendary" },
+
+  // ── Knowledge Category (Certificates) ──
+  { key: "certified_novice",    label: "Certified Novice",    icon: "card_membership", desc: "Earned 1 certificate — \"First milestone down. The path of wisdom opens.\"", tier: "explorer" },
+  { key: "certified_expert",    label: "Certified Expert",    icon: "workspace_premium", desc: "Earned 5 certificates — \"A certified scholar. Your knowledge base grows deeper.\"", tier: "contributor" },
+  { key: "certified_master",    label: "Certified Master",    icon: "military_tech",  desc: "Earned 10 certificates — \"Ultimate scholar status. Academic brilliance unlocked!\"", tier: "legendary" },
 ];
 
 function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
@@ -623,6 +634,11 @@ function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount 
     // Activity progress
     case "active_explorer": return { current: favoritesCount, target: 5 };
     case "event_goer": return { current: participationsCount, target: 1 };
+
+    // Knowledge progress
+    case "certified_novice": return { current: c.certificatesEarned || 0, target: 1 };
+    case "certified_expert": return { current: c.certificatesEarned || 0, target: 5 };
+    case "certified_master": return { current: c.certificatesEarned || 0, target: 10 };
     default: return null;
   }
 }
@@ -802,6 +818,7 @@ async function renderParticipatedEventsPanel() {
   const scoreTarget = document.getElementById("contribute-score-target");
   const statDiscussions = document.getElementById("stat-discussions");
   const statEvents = document.getElementById("stat-events");
+  const statCertificates = document.getElementById("stat-certificates");
 
   if (scoreVal) scoreVal.textContent = `${c.score || 0} pts`;
   if (levelEl) levelEl.textContent = `Lv.${level}`;
@@ -809,6 +826,7 @@ async function renderParticipatedEventsPanel() {
   if (scoreTarget) scoreTarget.textContent = nextLabel;
   if (statDiscussions) statDiscussions.textContent = c.discussionsStarted || 0;
   if (statEvents) statEvents.textContent = participationsCount || 0;
+  if (statCertificates) statCertificates.textContent = c.certificatesEarned || 0;
 
   // Badges rendering
   renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount);
@@ -834,6 +852,8 @@ function getBadgeDetails(b) {
     category = "Events";
   } else if (key === "community_star" || key === "mentor" || key === "the_sage") {
     category = "Milestone";
+  } else if (key === "certified_novice" || key === "certified_expert" || key === "certified_master") {
+    category = "Knowledge";
   }
 
   // Rarity mapping
@@ -1356,4 +1376,21 @@ function initChangeEmailModal() {
     });
   }
 }
+
+function initContributionInfo() {
+  const infoBtn = document.getElementById("contrib-info-btn");
+  const closeBtn = document.getElementById("close-contrib-info-btn");
+  const popover = document.getElementById("contrib-info-popover");
+
+  if (!infoBtn || !popover) return;
+
+  infoBtn.addEventListener("click", () => {
+    popover.classList.toggle("hidden");
+  });
+
+  closeBtn?.addEventListener("click", () => {
+    popover.classList.add("hidden");
+  });
+}
+
 
