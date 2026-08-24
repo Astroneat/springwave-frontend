@@ -5778,9 +5778,9 @@ textarea {
 .badge-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  border-radius: 20px;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 16px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01), 0 1px 2px rgba(0, 0, 0, 0.02);
@@ -5849,8 +5849,8 @@ textarea {
 
 /* Badge Emblem (The visual medal) */
 .badge-emblem {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -5872,7 +5872,7 @@ textarea {
 }
 
 .badge-emblem .badge-icon {
-  font-size: 26px;
+  font-size: 21px;
   color: var(--badge-accent);
   transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -5935,12 +5935,12 @@ textarea {
 .badge-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
 }
 
 .badge-label {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.01em;
@@ -5951,7 +5951,7 @@ textarea {
 }
 
 .badge-desc {
-  font-size: 12px;
+  font-size: 14px;
   color: #64748b;
   line-height: 1.5;
 }
@@ -5967,7 +5967,7 @@ textarea {
   gap: 4px;
   padding: 4px 10px;
   border-radius: 99px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -5982,7 +5982,7 @@ textarea {
 }
 
 .badge-status-icon {
-  font-size: 12px !important;
+  font-size: 13px !important;
 }
 
 /* Status groups and tier pill (next to lock status) */
@@ -5993,9 +5993,9 @@ textarea {
 }
 
 .badge-tier-pill {
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 99px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: capitalize;
   border: 1px solid var(--badge-accent-border);
@@ -6005,7 +6005,7 @@ textarea {
 
 /* Metadata Footers */
 .badge-meta {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: #94a3b8;
   display: flex;
