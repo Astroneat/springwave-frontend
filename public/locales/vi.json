@@ -930,34 +930,149 @@
     "description": "Mô tả",
     "hosted_by": "Tổ chức bởi"
   },
-  "about": {
+"about": {
     "title": "Về chúng tôi — SpringWave",
     "hero_label": "Về chúng tôi",
     "hero_title": "Chúng tôi là SpringWave",
-    "hero_desc": "Được xây dựng bởi sinh viên, dành cho sinh viên — nền tảng giúp bạn khám phá cơ hội, kết nối cộng đồng và phát triển vượt ra ngoài giảng đường.",
-    "why_title": "Tại sao có SpringWave?",
-    "why_desc": "Sinh viên thường bỏ lỡ cơ hội vì thông tin về workshop, cuộc thi, hoạt động ngoại khóa bị phân tán trên hàng chục fanpage, nhóm Facebook và website khác nhau. Chúng tôi xây dựng SpringWave để thay đổi điều đó.",
-    "why_goal": "Một nền tảng tập trung, nơi sinh viên có thể khám phá các hoạt động học thuật và ngoại khóa phù hợp với sở thích, năng lực và định hướng phát triển của bản thân.",
-    "believe_title": "Điều chúng tôi tin tưởng",
-    "believe_1": "Mỗi sinh viên đều có tiềm năng riêng cần được khám phá.",
-    "believe_2": "Cơ hội phát triển không nên bị giới hạn bởi việc thiếu thông tin.",
-    "believe_3": "AI có thể trở thành người đồng hành giúp sinh viên đưa ra lựa chọn tốt hơn.",
-    "believe_4": "Công nghệ nên phục vụ con người và cộng đồng trước tiên.",
+    "hero_desc": "Được xây dựng bởi sinh viên, dành cho sinh viên — một nền tảng giúp bạn khám phá cơ hội, kết nối cộng đồng và phát triển vượt ra khỏi lớp học.",
+    "why_title": "Tại sao SpringWave?",
+    "why_desc": "Sinh viên thường bỏ lỡ cơ hội vì thông tin về các hội thảo, cuộc thi, hoạt động ngoại khóa và chương trình học thuật bị phân tán trên hàng chục fanpage, nhóm Facebook và trang web. Chúng tôi xây dựng SpringWave để thay đổi điều đó.",
+    "why_goal": "Một nền tảng trung tâm nơi sinh viên có thể khám phá các hoạt động học thuật và ngoại khóa phù hợp với sở thích, năng lực và hướng phát triển cá nhân.",
+    "believe_title": "Chúng tôi tin rằng",
+    "believe_1": "Mỗi sinh viên đều có tiềm năng độc đáo đang chờ được khám phá.",
+    "believe_2": "Cơ hội không bao giờ bị giới hạn bởi thiếu thông tin.",
+    "believe_3": "AI có thể là người bạn đồng hành giúp sinh viên đưa ra quyết định tốt hơn.",
+    "believe_4": "Công nghệ nên phục vụ con người và cộng đồng trước hết.",
     "team_title": "Gặp gỡ đội ngũ",
     "team_desc": "SpringWave được phát triển bởi RAH — Really Awesome Human.",
-    "team_subtitle": "Chúng tôi là những sinh viên năm nhất với niềm đam mê công nghệ, AI và xây dựng sản phẩm thực tế.",
+    "team_subtitle": "Chúng tôi là sinh viên năm nhất với niềm đam mê công nghệ, AI và xây dựng sản phẩm thực tế.",
     "member_1": "Nguyễn Viết Thành Đạt",
-    "member_1_role": "Team Leader & Fullstack Developer",
+    "member_1_role": "Trưởng nhóm & Fullstack Developer",
     "member_2": "Nguyễn Đức Tài",
     "member_2_role": "Fullstack Developer",
     "member_3": "Lê Đăng Anh Tuấn",
     "member_3_role": "Fullstack Developer",
     "member_4": "Nguyễn Tiến Trường",
     "member_4_role": "UI/UX Designer",
-    "journey": "SpringWave không chỉ là một dự án học tập — mà là bước khởi đầu cho hành trình tạo ra những giải pháp công nghệ có giá trị cho cộng đồng sinh viên Việt Nam.",
+    "journey": "SpringWave không chỉ là một dự án trường học — đó là khởi đầu của hành trình tạo ra giải pháp công nghệ mang lại giá trị thực cho cộng đồng sinh viên Việt Nam.",
     "cta_title": "Sẵn sàng bắt đầu hành trình?",
-    "cta_desc": "Tham gia SpringWave ngay hôm nay để khám phá những cơ hội phù hợp với bạn.",
+    "cta_desc": "Tham gia SpringWave hôm nay và khám phá những cơ hội phù hợp với chính bạn.",
     "cta_btn": "Bắt đầu ngay"
+  },
+  "badges": {
+    "categories": {
+      "welcome": "Chào mừng",
+      "profile": "Hồ sơ",
+      "events": "Sự kiện",
+      "community": "Cộng đồng",
+      "milestone": "Cột mốc",
+      "knowledge": "Kiến thức"
+    },
+    "rarity": {
+      "common": "Phổ biến",
+      "uncommon": "Ít phổ biến",
+      "rare": "Hiếm",
+      "legendary": "Huyền thoại"
+    },
+    "status": {
+      "earned": "Đã đạt",
+      "locked": "Đã khóa",
+      "progress": "Tiến độ"
+    },
+    "list": {
+      "hello_world": {
+        "label": "Hello World",
+        "desc": "Đã tạo tài khoản — \"Bạn đã tồn tại. Đó là bước đầu tiên.\""
+      },
+      "talk_is_silver": {
+        "label": "Nói là Bạc",
+        "desc": "Đã viết phản hồi đầu tiên — \"Bạn đã nói lên điều gì đó. Internet tự hào về bạn.\""
+      },
+      "so_it_begins": {
+        "label": "Vậy Là Bắt Đầu",
+        "desc": "Đã bắt đầu thảo luận đầu tiên — \"Một chủ đề nữa gia nhập hư vô vô tận.\""
+      },
+      "self_discovery": {
+        "label": "Tự Khám Phá",
+        "desc": "Hoàn thành trắc nghiệm tính cách — \"Bạn nhìn chăm chăm vào bài trắc nghiệm, và nó nhìn lại bạn.\""
+      },
+      "active_explorer": {
+        "label": "Nhà Khám Phá Tích Cực",
+        "desc": "Đã yêu thích 5 hoạt động — \"Luôn săn đón sự kiện sinh viên lớn tiếp theo.\""
+      },
+      "event_goer": {
+        "label": "Người Tham Gia Sự Kiện",
+        "desc": "Đã tham gia 1 hoạt động — \"Đã đến được sự kiện. Tương tác thực tế đã mở khóa!\""
+      },
+      "rising_host": {
+        "label": "Người Tổ Chức Mới Nổi",
+        "desc": "Đã tổ chức hoạt động đầu tiên — \"Chào đón sinh viên, sắp xếp lịch trình.\""
+      },
+      "grand_host": {
+        "label": "Người Tổ Chức Vĩ Đại",
+        "desc": "Đã tổ chức 5 hoạt động — \"Trụ cột của đời sống sinh viên. Bạn xây dựng cộng đồng.\""
+      },
+      "conversation_starter": {
+        "label": "Người Khơi Gợi Cuộc Trò Chuyện",
+        "desc": "Đã bắt đầu 5 thảo luận — \"Bạn cơ bản là một MC talk show rồi.\""
+      },
+      "helper": {
+        "label": "Người Giúp Đỡ",
+        "desc": "Đã viết 10 phản hồi — \"Bàn phím của bạn nên được đăng ký là tổ chức từ thiện.\""
+      },
+      "chatterbox": {
+        "label": "Người Hay Nói",
+        "desc": "Đã viết 50 phản hồi — \"Bạn có bao giờ ngủ không? Có bao giờ ngừng gõ phím không?\""
+      },
+      "respected": {
+        "label": "Được Tôn Trọng",
+        "desc": "Đã nhận 20 lượt thích — \"Mọi người công nhận sự tồn tại của bạn. Ít nhất là về mặt kỹ thuật số.\""
+      },
+      "the_oracle": {
+        "label": "Người Đưa Lời Tiên Tri",
+        "desc": "Đã nhận 50 lượt thích — \"Bạn không đưa ra lời khuyên. Bạn ban phát lời tiên tri.\""
+      },
+      "trendsetter": {
+        "label": "Người Tạo Xu Hướng",
+        "desc": "Đã bắt đầu 20 thảo luận — \"Bạn không theo xu hướng. Bạn tạo ra chúng.\""
+      },
+      "community_star": {
+        "label": "Ngôi Sao Cộng Đồng",
+        "desc": "Đạt 100 điểm đóng góp — \"Bạn cơ bản là nhân vật chính rồi.\""
+      },
+      "keyboard_warrior": {
+        "label": "Chiến Binh Bàn Phím",
+        "desc": "Đã viết 100 phản hồi — \"Bàn phím của bạn đã thấy nhiều điều. Những điều khủng khiếp, tuyệt vời.\""
+      },
+      "mentor": {
+        "label": "Người Hướng Dẫn",
+        "desc": "Đạt Cấp độ 5 — \"Bạn đã thăng hoa. Hãy dùng sức mạnh khôn ngoan.\""
+      },
+      "the_sage": {
+        "label": "Người Khôn Ngoan",
+        "desc": "Đạt Cấp độ 6 — \"Bạn là boss cuối của cộng đồng này.\""
+      },
+      "one_man_show": {
+        "label": "Buổi Diễn Một Mình",
+        "desc": "Phản hồi gấp 10 lần thảo luận đã bắt đầu — \"Đã bao giờ nghĩ đến podcasting?\""
+      },
+      "quality_over_quantity": {
+        "label": "Chất Lượng > Số Lượng",
+        "desc": "Bắt đầu ≤ 3 thảo luận mà mỗi cái đạt 5+ lượt thích — \"Bạn nói ít, nhưng khi nói thì mọi người nghe.\""
+      },
+      "certified_novice": {
+        "label": "Chứng Chỉ Tân Binh",
+        "desc": "Đã đạt 1 chứng chỉ — \"Cột mốc đầu tiên. Con đường tri thức mở ra.\""
+      },
+      "certified_expert": {
+        "label": "Chứng Chỉ Chuyên Gia",
+        "desc": "Đã đạt 5 chứng chỉ — \"Một học giả đã được chứng nhận. Cơ sở tri thức của bạn sâu hơn.\""
+      },
+      "certified_master": {
+        "label": "Chứng Chỉ Đại Sư",
+        "desc": "Đã đạt 10 chứng chỉ — \"Trạng thái học giả tối thượng. Sáng tạo học thuật đã mở khóa!\""
+      }
+    }
   },
   "roadmap": {
     "title": "Lộ trình - SpringWave",
