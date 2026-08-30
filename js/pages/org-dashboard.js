@@ -1538,7 +1538,7 @@ async function loadParticipants(eventId) {
     const combinedMap = new Map();
 
     records.forEach(r => {
-      const isExt = r.isExternal === true || Boolean(r.externalParticipant) || r.user?.isExternal === true || r.checkinMethod === 'excel_import' || r.checkinMethod === 'manual';
+      const isExt = r.isExternal === true || Boolean(r.externalParticipant) || r.user?.isExternal === true || (!r.user && Boolean(r.externalParticipant));
       if (isExt) {
         const extId = r._id;
         combinedMap.set(`ext_${extId}`, {
@@ -1580,7 +1580,19 @@ async function loadParticipants(eventId) {
     if (Array.isArray(eventParticipants)) {
       for (const p of eventParticipants) {
         const uid = typeof p === 'object' && p._id ? String(p._id) : String(p);
-        if (!combinedMap.has(`user_${uid}`)) {
+        if (combinedMap.has(`user_${uid}`)) {
+          // Enrich missing user details from populated event.participants
+          const existing = combinedMap.get(`user_${uid}`);
+          if (typeof p === 'object' && p._id) {
+            if (!existing.avatar && p.avatar) existing.avatar = p.avatar;
+            if ((!existing.fullname || existing.fullname === 'Unknown') && p.fullname) existing.fullname = p.fullname;
+            if (!existing.studentId && (p.studentId || p.username)) existing.studentId = p.studentId || p.username;
+            if (!existing.email && p.email) existing.email = p.email;
+            if (!existing.school && p.school) existing.school = p.school;
+            if (!existing.class && p.class) existing.class = p.class;
+            if (!existing.major && p.major) existing.major = p.major;
+          }
+        } else {
           if (typeof p === 'object' && p._id) {
             combinedMap.set(`user_${uid}`, {
               _id: p._id,
