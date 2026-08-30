@@ -41,10 +41,6 @@
               <span class="material-symbols-outlined forum-category-icon">event</span>
               Event Discussions
             </a>
-            <a class="forum-category-item" href="./community.html?cat=skills" data-i18n="community.skill_development">
-              <span class="material-symbols-outlined forum-category-icon">school</span>
-              Skill Development
-            </a>
             <a class="forum-category-item" href="./community.html?cat=uni" data-i18n="community.uni_communities">
               <span class="material-symbols-outlined forum-category-icon">account_balance</span>
               University Communities
@@ -146,18 +142,6 @@
           <!-- populated by JS -->
         </div>
       </div>
-
-      <div class="forum-section" id="careerTopics" style="display: none;">
-        <div class="forum-section-header">
-          <div class="forum-section-title-group">
-            <h2 class="forum-section-title" data-i18n="community.skills_heading">Skills Discussions</h2>
-            <p class="forum-section-subtitle" data-i18n="community.skills_sub">Explore topics by skill area and interest</p>
-          </div>
-        </div>
-        <div class="forum-topic-grid" id="forumTopicGrid">
-          <!-- populated by JS -->
-        </div>
-      </div>
     </main>
 
     <!-- RIGHT SIDEBAR -->
@@ -235,7 +219,6 @@
           <select id="postCategory" style="display:none;">
             <option value="general" data-i18n="community.general">General</option>
             <option value="event" data-i18n="community.event_discussions">Event Discussion</option>
-            <option value="skills" data-i18n="community.skill_development">Skill Development</option>
           </select>
           <div class="forum-category-selector-pills" id="postCategoryPills">
             <button type="button" class="category-select-pill active" data-category="general">
@@ -245,10 +228,6 @@
             <button type="button" class="category-select-pill" data-category="event">
               <span class="material-symbols-outlined">event</span>
               <span data-i18n="community.event_discussions">Event Discussion</span>
-            </button>
-            <button type="button" class="category-select-pill" data-category="skills">
-              <span class="material-symbols-outlined">school</span>
-              <span data-i18n="community.skill_development">Skill Development</span>
             </button>
           </div>
         </div>
@@ -281,24 +260,6 @@
           </div>
           <div id="postEventCards" class="forum-post-event-cards">
             <div class="forum-post-loading-events" data-i18n="community.loading_events">Loading events...</div>
-          </div>
-          <div id="postSkillPills" class="forum-post-skill-pills" style="display:none;">
-            <label class="forum-post-pill" data-skill="Communication">
-              <span class="forum-post-pill-icon" style="background:#3B82F6;">forum</span>
-              Communication
-            </label>
-            <label class="forum-post-pill" data-skill="Technical">
-              <span class="forum-post-pill-icon" style="background:#8B5CF6;">code</span>
-              Technical
-            </label>
-            <label class="forum-post-pill" data-skill="Creativity">
-              <span class="forum-post-pill-icon" style="background:#F59E0B;">palette</span>
-              Creativity
-            </label>
-            <label class="forum-post-pill" data-skill="Social Impact">
-              <span class="forum-post-pill-icon" style="background:#10B981;">volunteer_activism</span>
-              Social Impact
-            </label>
           </div>
         </div>
       </div>

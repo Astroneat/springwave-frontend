@@ -7,7 +7,6 @@ import { TURNSTILE_SITE_KEY } from "../config.js";
 import {
   getTrendingDiscussions,
   getUniversityCommunities,
-  getSkillTopics,
   getUpcomingEvents,
   getPopularDiscussions,
   getAISuggestions,
@@ -54,7 +53,6 @@ const CATEGORIES = {
   all:     { label: () => t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
   general: { label: () => t("community.general_chat") || "General Chat", sectionTitle: "General Chat",   sectionSubtitle: "Open discussions, questions, and casual conversations" },
   event:   { label: () => t("community.event_discussions"),      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
-  skills:  { label: () => t("community.skill_development"),      sectionTitle: "Skill Discussions",        sectionSubtitle: "Explore topics by skill area and interest" },
   uni:     { label: () => t("community.uni_communities"),        sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
   org:     { label: () => t("community.org_communities"),        sectionTitle: "Organizations",            sectionSubtitle: "Discover clubs, teams, and organizations. Follow to stay updated on their events." },
   mine:    { label: () => t("community.my_discussions"),         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
@@ -335,10 +333,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Category filtering
   if (category === "all") {
-    // Aggregated Newsfeed: Show all public discussions across categories (general, event, skills, etc.)
+    // Aggregated Newsfeed: Show all public discussions across categories (general, event, etc.)
     // Only exclude internal private university discussions
     discussions = discussions.filter(d => d.scope !== "community");
-  } else if (category === "skills" || category === "uni" || category === "event" || category === "general") {
+  } else if (category === "uni" || category === "event" || category === "general") {
     discussions = discussions.filter(d => d.category === category);
   }
 
@@ -377,7 +375,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       initUniDialog();
     }).catch(() => {}) : Promise.resolve(),
-    (category === "skills") ? renderTopicGrid().catch(() => {}) : Promise.resolve(),
     (category === "org") ? renderOrgGrid().catch(() => {}) : Promise.resolve(),
     loadSidebar(category).catch(() => {}),
     initChatbot().catch(() => {}),
@@ -434,7 +431,6 @@ function updatePageTitle(category) {
 function showSections(category) {
   const trending = document.getElementById("trending");
   const universities = document.getElementById("universities");
-  const careerTopics = document.getElementById("careerTopics");
   const orgSection = document.getElementById("organizations-section");
   const statusBar = document.querySelector(".forum-status-bar");
   const feedTabs = document.getElementById("forumFeedTabs");
@@ -447,7 +443,6 @@ function showSections(category) {
   // Keep conversation heading and list hidden by default while loading data
   if (trending) trending.style.display = "none";
   if (universities) universities.style.display = "none";
-  if (careerTopics) careerTopics.style.display = "none";
   if (orgSection) orgSection.style.display = "none";
 
   if (category === "uni") {
@@ -465,7 +460,7 @@ function showSections(category) {
       if (statusBar) statusBar.style.display = "none";
       if (feedTabs) feedTabs.style.display = "none";
     }
-  } else if (category === "skills" || category === "org") {
+  } else if (category === "org") {
     if (statusBar) statusBar.style.display = "none";
     if (feedTabs) feedTabs.style.display = "none";
   } else {
@@ -708,7 +703,7 @@ function renderDiscussions(discussions, category) {
       if (feedTabs) feedTabs.style.display = "";
       if (statusBar) statusBar.style.display = "";
     }
-  } else if (category === "org" || category === "skills") {
+  } else if (category === "org") {
     if (trending) trending.style.display = "none";
     if (feedTabs) feedTabs.style.display = "none";
     if (statusBar) statusBar.style.display = "none";
@@ -725,7 +720,6 @@ function renderDiscussions(discussions, category) {
       saved:  ["bookmark", "No saved posts", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later."],
       uni:    ["account_balance", "No university discussions", "Join a university community above to see discussions from your campus."],
       event:  ["event", "No event discussions", "There are no event discussions yet. Be the first to start one!"],
-      skills: ["school", "No skill discussions", "There are no skill discussions yet. Be the first to start one!"],
     };
     const msg = emptyMessages[category] || ["forum", "No discussions yet", "Be the first to start a discussion in this category."];
     container.innerHTML = `
@@ -1768,53 +1762,6 @@ async function renderUniGrid() {
 
 /* =============================
    TOPIC GRID
-   ============================= */
-
-async function renderTopicGrid() {
-  const container = document.getElementById("forumTopicGrid");
-  if (!container) return;
-  const topics = await getSkillTopics();
-  const careerTopics = document.getElementById("careerTopics");
-  const category = getCategoryFromURL();
-  if (careerTopics && category === "skills") {
-    careerTopics.style.display = "";
-  }
-  if (!topics || topics.length === 0) {
-    container.innerHTML = `
-      <div class="forum-empty" style="grid-column:1/-1;">
-        <span class="material-symbols-outlined forum-empty-icon">school</span>
-        <p class="forum-empty-title">No skill topics yet</p>
-        <p class="forum-empty-desc">Skill discussion topics are being curated. Stay tuned!</p>
-      </div>
-    `;
-    return;
-  }
-  container.innerHTML = topics
-    .map(
-      (t) => `
-    <div class="forum-topic-card" data-topic="${t.name}" style="cursor:pointer;">
-      <div class="forum-topic-icon" style="background: ${t.color}15; color: ${t.color};">
-        <span class="material-symbols-outlined text-2xl">${t.icon}</span>
-      </div>
-      <div class="forum-topic-info">
-        <h3 class="forum-topic-name">${t.name}</h3>
-        <p class="forum-topic-desc">${t.description}</p>
-        <span class="forum-topic-count">${t.discussionCount} discussions</span>
-      </div>
-    </div>
-  `
-    )
-    .join("");
-
-  container.querySelectorAll(".forum-topic-card").forEach((card) => {
-    card.addEventListener("click", async () => {
-      const topic = card.dataset.topic;
-      if (!topic) return;
-      window.location.href = `./community.html?cat=skills&topic=${encodeURIComponent(topic)}`;
-    });
-  });
-}
-
 /* =============================
    UNIVERSITY DIALOG
    ============================= */
@@ -2026,12 +1973,10 @@ function initPostModal() {
   const categorySelect = document.getElementById("postCategory");
   const postEventCards = document.getElementById("postEventCards");
   const postEventLabel = document.getElementById("postEventLabel");
-  const postSkillPills = document.getElementById("postSkillPills");
   const postScopeField = document.getElementById("postScopeField");
 
   let selectedEventId = null;
   let _selectedEventData = null;
-  let selectedSkill = "";
   let closeTimer = null;
   let _allEvents = [];
   let _eventSearchTimeout = null;
@@ -2108,7 +2053,6 @@ function initPostModal() {
 
   function updateCategoryUI(category, callback) {
     const isEvent = category === "event";
-    const isSkills = category === "skills";
 
     const categoryPills = document.getElementById("postCategoryPills");
     if (categoryPills) {
@@ -2119,17 +2063,15 @@ function initPostModal() {
 
     if (postEventCards) postEventCards.style.display = isEvent ? "" : "none";
     if (postEventLabel) {
-      postEventLabel.style.display = (isEvent || isSkills) ? "" : "none";
-      postEventLabel.textContent = isSkills ? "Related Skills" : "Related Event (optional)";
+      postEventLabel.style.display = isEvent ? "" : "none";
+      postEventLabel.textContent = "Related Event (optional)";
     }
-    if (postSkillPills) postSkillPills.style.display = isSkills ? "" : "none";
     if (postEventSearch) postEventSearch.style.display = isEvent ? "" : "none";
 
     if (isEvent) {
       if (eventSearchInput) eventSearchInput.value = "";
       loadEventCards().then(() => callback?.());
     }
-    if (isSkills) selectedSkill = "";
   }
 
   if (categorySelect) {
@@ -2142,16 +2084,6 @@ function initPostModal() {
       pill.addEventListener("click", () => {
         categorySelect.value = pill.dataset.category;
         categorySelect.dispatchEvent(new Event("change"));
-      });
-    });
-  }
-
-  if (postSkillPills) {
-    postSkillPills.querySelectorAll(".forum-post-pill").forEach(pill => {
-      pill.addEventListener("click", () => {
-        postSkillPills.querySelectorAll(".forum-post-pill").forEach(p => p.classList.remove("selected"));
-        pill.classList.add("selected");
-        selectedSkill = pill.dataset.skill;
       });
     });
   }
@@ -2207,7 +2139,6 @@ function initPostModal() {
     }
     selectedEventId = null;
     _selectedEventData = null;
-    selectedSkill = "";
     checkScope();
     checkPostIdentity();
     overlay.style.display = "flex";
@@ -2304,7 +2235,6 @@ function initPostModal() {
 
         let relatedEvent = undefined;
         if (category === "event" && selectedEventId) relatedEvent = selectedEventId;
-        if (category === "skills" && selectedSkill) tags.push(selectedSkill);
 
         const scopeEl = document.querySelector('input[name="scope"]:checked');
         const scope = scopeEl?.value === "community" ? "community" : "general";
@@ -2370,7 +2300,6 @@ function initPostModal() {
         document.getElementById("postContent").value = "";
         document.getElementById("postTags").value = "";
         selectedEventId = null;
-        selectedSkill = "";
 
         const container = document.getElementById("forumDiscussions");
         const empty = container?.querySelector(".forum-empty");
