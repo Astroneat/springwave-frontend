@@ -9959,39 +9959,56 @@ textarea {
   flex: 1 1 auto;
   min-width: 0;
   max-width: 786px; /* Cap, not a fixed width — flexes down on smaller screens */
+  transition:
+    opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .figma-navbar-search {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%) translateY(40px);
-  z-index: 1;
-  background: rgba(
-    255,
-    255,
-    255,
-    0.12
-  ); /* Matching navbar pill glassmorphism */
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  transform: translateX(-50%) translateY(30px);
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   height: 48px;
   border-radius: 110px;
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  gap: 12px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
-  width: 943px; /* Increased by 20% to match expanded search bar */
+  padding: 0 16px;
+  gap: 10px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+  width: calc(100% - 460px);
+  max-width: 680px;
+  min-width: 0;
+  box-sizing: border-box;
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
   transition:
-    opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1),
-    transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    max-width 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.figma-navbar-search:focus-within {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(255, 255, 255, 0.22), 0 8px 24px rgba(28, 39, 76, 0.15);
 }
 
 .figma-navbar-search .search-icon {
-  font-size: 24px;
-  color: #ffffff;
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .figma-navbar-search .explore-search-input {
@@ -10000,18 +10017,52 @@ textarea {
   outline: none;
   font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 0.98rem;
   color: #ffffff;
   width: 100%;
+  min-width: 0;
+  padding: 0;
+  line-height: 1.4;
 }
 
 .figma-navbar-search .explore-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.figma-navbar-search .navbar-search-clear-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #ffffff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.figma-navbar-search .navbar-search-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(1.1);
+}
+
+.figma-navbar-search .navbar-search-clear-btn .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.figma-navbar-search.has-value .navbar-search-clear-btn {
+  display: flex;
 }
 
 /* State when search bar is merged into navbar */
 #navbar.merged #navLinks {
-  transform: translateY(-40px);
+  transform: translateY(-30px);
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
@@ -10022,6 +10073,44 @@ textarea {
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
+}
+
+#navbar.collapsed .figma-navbar-search {
+  height: 42px;
+}
+
+@media (max-width: 1280px) {
+  .figma-navbar-search {
+    width: calc(100% - 380px);
+    max-width: 580px;
+    padding: 0 14px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .figma-navbar-search {
+    width: calc(100% - 320px);
+    max-width: 480px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .figma-navbar-search .explore-search-input {
+    font-size: 0.92rem;
+  }
+  .figma-navbar-search .search-icon {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 860px) {
+  .figma-navbar-search {
+    width: calc(100% - 280px);
+    max-width: 380px;
+    padding: 0 10px;
+  }
+  .figma-navbar-search .explore-search-input {
+    font-size: 0.88rem;
+  }
 }
 
 .nav-indicator-pill {

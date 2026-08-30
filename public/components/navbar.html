@@ -2,7 +2,7 @@
   <div class="figma-navbar-inner spring-ease">
     
     <!-- BRAND LOGO -->
-    <a href="./index.html" class="figma-navbar-brand">
+    <a href="./index.html" class="figma-navbar-brand flex-shrink-0">
       <span class="brand-spring">Spring</span><span class="brand-wave">Wave</span>
     </a>
 
@@ -17,11 +17,14 @@
     <!-- NAVBAR SEARCH BAR (SHOWN ON EXPLORE PAGE MERGE SCROLL ONLY) -->
     <div class="figma-navbar-search hidden md:flex" id="navbarSearchContainer">
       <span class="material-symbols-outlined search-icon">search</span>
-      <input type="text" id="search-navbar" placeholder="Search activities, workshops, seminars..." data-i18n-placeholder="explore.search_placeholder" class="explore-search-input" />
+      <input type="text" id="search-navbar" placeholder="Search activities, workshops, seminars..." data-i18n-placeholder="explore.search_placeholder" class="explore-search-input" autocomplete="off" />
+      <button type="button" id="search-navbar-clear" class="navbar-search-clear-btn" aria-label="Clear search" title="Clear">
+        <span class="material-symbols-outlined">close</span>
+      </button>
     </div>
 
     <!-- RIGHT ACTION BUTTONS -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
       <!-- LANG SWITCHER -->
       <button class="lang-switcher-btn bg-white/40 hover:bg-white/70 border border-white/20 px-3.5 py-1.5 rounded-full hidden md:flex items-center gap-1.5 transition cursor-pointer" id="langSwitcher" title="Switch language">
         <span class="material-symbols-outlined text-[#1c274c] text-lg">language</span>

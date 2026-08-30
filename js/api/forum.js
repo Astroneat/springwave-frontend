@@ -1,6 +1,6 @@
 import { get, post, put, del } from "./client.js";
 import { getToken, getUser } from "../lib/session.js";
-import { formatDate } from "../lib/utils.js";
+import { formatDate, getEventStatus } from "../lib/utils.js";
 
 const DISCUSSIONS_FALLBACK = [];
 const COMMENTS_FALLBACK = [];
@@ -337,7 +337,8 @@ export async function getAISuggestions() {
     if (!token) return [];
     const { getRecommendations } = await import("./recommendations.js");
     const data = await getRecommendations();
-    const recs = data?.recommendations || [];
+    const rawRecs = data?.recommendations || data?.events || [];
+    const recs = rawRecs.filter(r => getEventStatus(r) === 'registration_open');
     return recs.slice(0, 3).map(r => ({
       id: r._id || r.activityID,
       title: r.title || "Recommended activity",

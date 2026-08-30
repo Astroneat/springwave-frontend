@@ -7,11 +7,14 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root {
             --host-primary: #1755ba;
@@ -84,7 +87,7 @@
         .tab-btn.active {
             background: var(--host-primary);
             color: #ffffff;
-            box-shadow: 0 2px 8px rgba(23, 85, 186, 0.25);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.08);
         }
 
         .tab-btn:not(.active) {
@@ -104,7 +107,7 @@
         .analytics-scope-btn.active {
             background: var(--host-primary);
             color: #ffffff;
-            box-shadow: 0 2px 8px rgba(23, 85, 186, 0.25);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.08);
         }
 
         .analytics-scope-btn:not(.active) {
@@ -457,6 +460,9 @@
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-wrap w-full lg:w-auto">
                     <button id="open-add-participants-btn" class="py-2.5 px-4 rounded-xl bg-primary text-white text-xs font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs shrink-0">
                         <i class="fa-solid fa-user-plus text-xs"></i> <span>Add Participants</span>
+                    </button>
+                    <button id="pdf-export-btn" class="py-2.5 px-4 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-emerald-700 active:scale-95 shadow-xs shrink-0" disabled>
+                        <i class="fa-solid fa-file-pdf text-xs"></i> <span data-i18n="org_dashboard.pdf_export">Export PDF</span>
                     </button>
                     <div class="relative flex-1 sm:flex-initial">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -897,7 +903,7 @@
             <div id="analytics-content">
                 <!-- KPI Grid (2x2 on Mobile) -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-                    <div class="spring-card p-4 sm:p-5">
+                    <div class="spring-card p-4 sm:p-5" id="analytics-kpi-total-events">
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Events</p>
                         <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1" id="analytics-stat-events">0</p>
                     </div>
@@ -1263,6 +1269,140 @@
                     <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold text-xs spring-ease hover:bg-slate-50 active:scale-95 cursor-pointer" id="add-participants-cancel-btn">Cancel</button>
                     <button type="button" class="px-5 py-2 rounded-xl border-none bg-primary text-white font-bold text-xs spring-ease hover:bg-primary/90 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs" id="save-participants-batch-btn">
                         <i class="fa-solid fa-floppy-disk text-xs"></i> <span>Save Participants</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Participants PDF Modal -->
+    <div class="popup-overlay p-2 sm:p-4 flex items-center justify-center" hidden id="pdf-export-overlay" role="dialog" aria-modal="true" aria-labelledby="pdf-export-title">
+        <div class="popup-backdrop" id="pdf-export-backdrop"></div>
+        <div class="popup-container !max-w-[880px] w-[calc(100vw-16px)] sm:w-full !p-0 overflow-hidden shadow-2xl rounded-2xl sm:rounded-3xl bg-white border border-slate-200 flex flex-col max-h-[92dvh]">
+            <!-- Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base sm:text-lg shrink-0">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h3 id="pdf-export-title" class="text-sm sm:text-base font-bold text-slate-900" data-i18n="org_dashboard.pdf_export_title">Xuất danh sách tham gia PDF</h3>
+                        <p class="text-[10px] sm:text-xs text-slate-500">
+                            <span id="pdf-modal-event-name" class="font-semibold text-slate-700">Tên sự kiện</span> • 
+                            <span id="pdf-modal-participant-count" class="font-medium text-emerald-600">0 người tham gia</span>
+                        </p>
+                    </div>
+                </div>
+                <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 border-none bg-transparent cursor-pointer transition-colors" type="button" aria-label="Close" id="pdf-export-close-btn">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Column Customization Bar -->
+            <div class="px-4 sm:px-6 py-3 bg-slate-50/80 border-b border-slate-100 shrink-0 space-y-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-table-columns text-slate-400 text-xs"></i>
+                        <span data-i18n="org_dashboard.pdf_columns_label">Cột hiển thị trong PDF</span>
+                    </label>
+                    <span class="text-[11px] text-slate-400 italic" data-i18n="org_dashboard.pdf_columns_hint">Mặc định có cột Ghi chú. Có thể thêm/xóa cột tùy ý.</span>
+                </div>
+
+                <!-- Active Column Chips -->
+                <div id="pdf-column-chips-container" class="flex flex-wrap items-center gap-1.5 min-h-[30px]">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <!-- Add New Column Form & Suggestions -->
+                <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-200/60">
+                    <div class="flex items-center gap-1.5 flex-1 min-w-[200px] max-w-sm">
+                        <input type="text" id="pdf-new-column-input" placeholder="Nhập tên cột mới (vd: Chữ ký, SĐT)..." class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs w-full outline-none focus:border-primary transition-all shadow-2xs font-medium text-slate-800" maxlength="30" />
+                        <button type="button" id="pdf-add-column-btn" class="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-bold shrink-0 hover:bg-primary/90 active:scale-95 transition-all shadow-2xs flex items-center gap-1 cursor-pointer border-none">
+                            <i class="fa-solid fa-plus text-[10px]"></i> <span data-i18n="org_dashboard.pdf_add_col">Thêm cột</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick suggestions -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase" data-i18n="org_dashboard.pdf_suggestions">Gợi ý:</span>
+                        <button type="button" class="pdf-col-preset-btn px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-800 active:scale-95 text-[11px] font-medium transition-all border border-sky-200/60 cursor-pointer" data-col="Số điện thoại" data-key="phoneNo" data-w="38"><i class="fa-solid fa-phone text-[9px] mr-1"></i>+ SĐT (DB)</button>
+                        <button type="button" class="pdf-col-preset-btn px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-800 active:scale-95 text-[11px] font-medium transition-all border border-sky-200/60 cursor-pointer" data-col="Trường" data-key="school" data-w="50"><i class="fa-solid fa-graduation-cap text-[9px] mr-1"></i>+ Trường (DB)</button>
+                        <button type="button" class="pdf-col-preset-btn px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-800 active:scale-95 text-[11px] font-medium transition-all border border-sky-200/60 cursor-pointer" data-col="Lớp" data-key="class" data-w="28"><i class="fa-solid fa-chalkboard-user text-[9px] mr-1"></i>+ Lớp (DB)</button>
+                        <button type="button" class="pdf-col-preset-btn px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-800 active:scale-95 text-[11px] font-medium transition-all border border-sky-200/60 cursor-pointer" data-col="Trạng thái" data-key="status" data-w="32"><i class="fa-solid fa-user-check text-[9px] mr-1"></i>+ Trạng thái (DB)</button>
+                        <button type="button" class="pdf-col-preset-btn px-2.5 py-1 rounded-lg bg-slate-200/70 hover:bg-slate-200 active:scale-95 text-[11px] font-medium text-slate-700 transition-all border-none cursor-pointer" data-col="Chữ ký" data-key="custom" data-w="40">+ Chữ ký</button>
+                        <button type="button" class="pdf-col-preset-btn px-2.5 py-1 rounded-lg bg-slate-200/70 hover:bg-slate-200 active:scale-95 text-[11px] font-medium text-slate-700 transition-all border-none cursor-pointer" data-col="Điểm danh" data-key="custom" data-w="30">+ Điểm danh</button>
+                        <button type="button" class="pdf-col-preset-btn px-2.5 py-1 rounded-lg bg-slate-200/70 hover:bg-slate-200 active:scale-95 text-[11px] font-medium text-slate-700 transition-all border-none cursor-pointer" data-col="Nhận quà" data-key="custom" data-w="30">+ Nhận quà</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area / Document Live Preview -->
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-100/70">
+                <div id="pdf-printable-doc" class="bg-white rounded-xl shadow-md border border-slate-200 p-6 sm:p-8 max-w-[800px] mx-auto text-slate-900 font-sans text-xs">
+                    <!-- Document Header -->
+                    <div class="border-b-2 border-primary/20 pb-4 mb-4">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <span class="inline-flex items-center tracking-tight select-none leading-none" style="font-family: 'Aleo', 'Plus Jakarta Sans', serif; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.03em;">
+                                        <span class="text-primary font-extrabold">Spring</span><span class="text-sky-500 font-extrabold">Wave</span>
+                                    </span>
+                                    <span class="text-slate-300">•</span>
+                                    <span id="pdf-doc-org-name" class="text-slate-600 font-semibold text-xs truncate max-w-[280px]">—</span>
+                                </div>
+                                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 uppercase tracking-tight" id="pdf-doc-title" data-i18n="org_dashboard.pdf_doc_title">DANH SÁCH NGƯỜI THAM GIA</h2>
+                            </div>
+                            <div class="text-right text-[11px] text-slate-400 font-mono">
+                                <div><span data-i18n="org_dashboard.pdf_doc_date">Ngày xuất:</span> <span id="pdf-doc-date">--/--/----</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Event details summary grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2.5 mt-3 pt-3 border-t border-slate-100 text-[11px]">
+                            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 md:col-span-4">
+                                <span class="text-slate-400 block text-[10px] uppercase font-bold" data-i18n="org_dashboard.pdf_event_name">Sự kiện</span>
+                                <span id="pdf-doc-event-title" class="font-bold text-slate-800 break-words leading-relaxed">—</span>
+                            </div>
+                            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 md:col-span-3">
+                                <span class="text-slate-400 block text-[10px] uppercase font-bold" data-i18n="org_dashboard.pdf_held_date">Thời gian</span>
+                                <span id="pdf-doc-held-date" class="font-semibold text-slate-700 break-words">—</span>
+                            </div>
+                            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 md:col-span-3">
+                                <span class="text-slate-400 block text-[10px] uppercase font-bold" data-i18n="org_dashboard.pdf_location">Địa điểm</span>
+                                <span id="pdf-doc-location" class="font-semibold text-slate-700 break-words leading-relaxed">—</span>
+                            </div>
+                            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 md:col-span-2">
+                                <span class="text-slate-400 block text-[10px] uppercase font-bold" data-i18n="org_dashboard.pdf_num_participants">Số lượng</span>
+                                <span id="pdf-doc-count" class="font-bold text-emerald-600">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Preview Container -->
+                    <div class="overflow-x-auto rounded-lg border border-slate-200 shadow-2xs">
+                        <table id="pdf-preview-table" class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-800 text-white font-bold">
+                                <tr id="pdf-table-header-row"></tr>
+                            </thead>
+                            <tbody id="pdf-table-body" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Document Footer -->
+                    <div class="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
+                        <div>Hệ thống SpringWave Platform • <span class="font-mono text-slate-500">springwave.io</span></div>
+                        <div class="font-semibold text-slate-500">Ban Tổ Chức</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-3.5 sm:p-4 px-4 sm:px-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
+                <span class="text-xs text-slate-500 font-medium" id="pdf-footer-info">0 người tham gia • 4 cột</span>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold text-xs spring-ease hover:bg-slate-50 active:scale-95 cursor-pointer" id="pdf-export-cancel-btn">Hủy</button>
+                    <button type="button" class="px-5 py-2 rounded-xl border-none bg-emerald-600 text-white font-bold text-xs spring-ease hover:bg-emerald-700 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs" id="pdf-download-action-btn">
+                        <i class="fa-solid fa-download text-xs"></i> <span data-i18n="org_dashboard.pdf_download_btn">Tải xuống PDF</span>
                     </button>
                 </div>
             </div>

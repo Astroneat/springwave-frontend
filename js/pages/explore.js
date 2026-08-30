@@ -227,8 +227,12 @@ async function loadRecommendations() {
 
     try {
         const data = await getRecommendations();
-        const recommended = data?.events || data?.recommendations || [];
-        if (recommended.length === 0) return;
+        const rawRecommended = data?.events || data?.recommendations || [];
+        const recommended = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
+        if (recommended.length === 0) {
+            section.style.display = "none";
+            return;
+        }
 
         section.style.display = "block";
         container.innerHTML = recommended.slice(0, 6).map(a => {
@@ -431,6 +435,27 @@ function initSearchButton() {
         }
     });
 
+    // Sync clear button visibility on navbar search
+    const navbarClearBtn = document.getElementById("search-navbar-clear");
+    const navbarSearchContainer = document.getElementById("navbarSearchContainer");
+    const updateNavbarSearchState = () => {
+        const hasVal = Boolean(navbarInput?.value?.trim());
+        navbarSearchContainer?.classList.toggle("has-value", hasVal);
+    };
+
+    if (navbarClearBtn && navbarInput) {
+        navbarClearBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navbarInput.value = "";
+            if (searchPref) searchPref.value = "";
+            updateNavbarSearchState();
+            navbarInput.focus();
+            clearTimeout(debounceTimeout);
+            performSearch();
+        });
+    }
+
     // Typing in either preferences or navbar search inputs triggers search with debounce
     const inputs = [searchPref, navbarInput].filter(Boolean);
     inputs.forEach(input => {
@@ -438,6 +463,7 @@ function initSearchButton() {
             const val = e.target.value;
             if (searchPref && searchPref !== e.target && searchPref.value !== val) searchPref.value = val;
             if (navbarInput && navbarInput !== e.target && navbarInput.value !== val) navbarInput.value = val;
+            updateNavbarSearchState();
 
             clearTimeout(debounceTimeout);
             debounceTimeout = setTimeout(performSearch, 350);
@@ -450,6 +476,8 @@ function initSearchButton() {
             }
         });
     });
+
+    updateNavbarSearchState();
 }
 
 async function loadCards() {
@@ -791,7 +819,10 @@ function initSidebar() {
         const navbarInput = document.getElementById("search-navbar");
         const locInput = document.getElementById("search-location");
         if (searchInput) searchInput.value = "";
-        if (navbarInput) navbarInput.value = "";
+        if (navbarInput) {
+            navbarInput.value = "";
+            document.getElementById("navbarSearchContainer")?.classList.remove("has-value");
+        }
         if (locInput) locInput.value = "";
         if (typeof window.__resetSearchDates === "function") {
             window.__resetSearchDates();
