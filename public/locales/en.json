@@ -262,7 +262,8 @@
     "link_profile": "My Profile",
     "link_home": "Home",
     "copyright": "© 2026 SpringWave. All rights reserved.",
-    "made_by": "Made for students, by students."
+    "made_by": "Made for students, by students.",
+    "link_skills": "Skills & Roadmaps"
   },
   "explore": {
     "title": "Explore Activities - SpringWave",
@@ -390,7 +391,20 @@
     "or": "OR",
     "enter_password": "Enter password",
     "signin_google": "Sign in with Google",
-    "signin_microsoft": "Sign in with Microsoft"
+    "signin_microsoft": "Sign in with Microsoft",
+    "please_wait_throttle": "Please wait {remaining} seconds before trying again.",
+    "logging_in": "Logging in...",
+    "complete_captcha": "Please complete the captcha.",
+    "login_success": "Logged in successfully! Redirecting...",
+    "invalid_credentials": "Invalid credentials",
+    "signing_in_google": "Signing in with Google...",
+    "signing_in_microsoft": "Signing in with Microsoft...",
+    "email_not_verified": "Email Not Verified",
+    "check_email_desc": "Please check your email ({email}) and click the verification link.",
+    "resend_verification": "Resend Verification Email",
+    "verification_sent": "Verification email sent!",
+    "resend_failed": "Failed to resend.",
+    "network_error": "Network error. Try again."
   },
   "register": {
     "title": "SpringWave - Register",
@@ -423,7 +437,18 @@
     "register_btn": "REGISTER",
     "has_account": "Already have an account?",
     "login_now": "Login now",
-    "student_id": "Student ID Code (Optional)"
+    "student_id": "Student ID Code (Optional)",
+    "please_wait_throttle": "Please wait {remaining} seconds before trying again.",
+    "complete_captcha": "Please complete the captcha.",
+    "passwords_mismatch": "Passwords do not match.",
+    "creating_account": "Creating your account...",
+    "register_success": "Registration successful! Redirecting...",
+    "select_school_placeholder": "-- Select your school --",
+    "check_email_title": "Check Your Email",
+    "sent_link_to": "We sent a verification link to:",
+    "click_link_desc": "Click the link in the email to verify your account, then log in.",
+    "go_to_login": "Go to Login",
+    "min_password_length": "Password must be at least 8 characters."
   },
   "community": {
     "title": "Community - SpringWave",
@@ -980,7 +1005,12 @@
     "phone": "Phone Number",
     "submit_btn": "COMPLETE PROFILE",
     "subtitle": "Fill in your details to complete your account setup.",
-    "student_id": "Student ID Code (Optional)"
+    "student_id": "Student ID Code (Optional)",
+    "please_wait_throttle": "Please wait {remaining} seconds.",
+    "fill_required_fields": "Please fill in all required fields.",
+    "saving": "Saving...",
+    "profile_completed": "Profile completed! Redirecting...",
+    "verified_email_badge": "(verified email)"
   },
   "verification": {
     "schoolEmailVerified": "Your school email has been verified automatically! You can now participate in events.",

@@ -43,11 +43,20 @@
         <!-- Form panel -->
         <main class="auth-form-panel">
             <div class="auth-form-wrap">
-                <a href="index.html" class="auth-mobile-brand">SpringWave</a>
-
-                <a href="index.html" class="auth-back-link">
-                    <span data-i18n="register.home">Back to home</span>
-                </a>
+                <!-- Top bar with Back button & Language Switcher -->
+                <div class="auth-top-bar">
+                    <div class="flex items-center gap-2">
+                        <a href="index.html" class="auth-mobile-brand">SpringWave</a>
+                        <a href="index.html" class="auth-back-link">
+                            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                            <span data-i18n="register.home">Back to home</span>
+                        </a>
+                    </div>
+                    <button type="button" class="auth-lang-btn" id="authLangToggleBtn" title="Switch language" data-i18n-title="quiz.switch_lang">
+                        <span class="material-symbols-outlined text-[18px]">language</span>
+                        <span class="auth-lang-code" id="authLangText">EN</span>
+                    </button>
+                </div>
 
                 <h1 class="auth-title" data-i18n="register.heading">Create your account</h1>
                 <p class="auth-subtitle" data-i18n="register.subtitle">Join SpringWave — it only takes a minute.</p>

@@ -262,7 +262,8 @@
     "link_profile": "Hồ sơ của tôi",
     "link_home": "Trang chủ",
     "copyright": "© 2026 SpringWave. Bảo lưu mọi quyền.",
-    "made_by": "Xây dựng vì sinh viên, bởi sinh viên."
+    "made_by": "Xây dựng vì sinh viên, bởi sinh viên.",
+    "link_skills": "Kỹ năng & Lộ trình"
   },
   "explore": {
     "title": "Khám phá hoạt động - SpringWave",
@@ -390,7 +391,20 @@
     "or": "HOẶC",
     "enter_password": "Nhập mật khẩu",
     "signin_google": "Đăng nhập bằng Google",
-    "signin_microsoft": "Đăng nhập bằng Microsoft"
+    "signin_microsoft": "Đăng nhập bằng Microsoft",
+    "please_wait_throttle": "Vui lòng đợi {remaining} giây trước khi thử lại.",
+    "logging_in": "Đang đăng nhập...",
+    "complete_captcha": "Vui lòng hoàn thành mã xác thực captcha.",
+    "login_success": "Đăng nhập thành công! Đang chuyển hướng...",
+    "invalid_credentials": "Thông tin đăng nhập không hợp lệ",
+    "signing_in_google": "Đang đăng nhập bằng Google...",
+    "signing_in_microsoft": "Đang đăng nhập bằng Microsoft...",
+    "email_not_verified": "Email chưa được xác thực",
+    "check_email_desc": "Vui lòng kiểm tra email ({email}) và nhấn vào liên kết xác thực.",
+    "resend_verification": "Gửi lại Email xác thực",
+    "verification_sent": "Đã gửi lại email xác thực!",
+    "resend_failed": "Không thể gửi lại email.",
+    "network_error": "Lỗi kết nối. Vui lòng thử lại."
   },
   "register": {
     "title": "SpringWave - Đăng ký",
@@ -423,7 +437,18 @@
     "register_btn": "ĐĂNG KÝ",
     "has_account": "Đã có tài khoản?",
     "login_now": "Đăng nhập ngay",
-    "student_id": "Mã số sinh viên (Không bắt buộc)"
+    "student_id": "Mã số sinh viên (Không bắt buộc)",
+    "please_wait_throttle": "Vui lòng đợi {remaining} giây trước khi thử lại.",
+    "complete_captcha": "Vui lòng hoàn thành mã xác thực captcha.",
+    "passwords_mismatch": "Mật khẩu xác nhận không khớp.",
+    "creating_account": "Đang tạo tài khoản...",
+    "register_success": "Đăng ký thành công! Đang chuyển hướng...",
+    "select_school_placeholder": "-- Chọn trường của bạn --",
+    "check_email_title": "Kiểm tra Email của bạn",
+    "sent_link_to": "Chúng tôi đã gửi liên kết xác thực đến:",
+    "click_link_desc": "Nhấn vào liên kết trong email để xác thực tài khoản của bạn, sau đó đăng nhập.",
+    "go_to_login": "Đi đến Đăng nhập",
+    "min_password_length": "Mật khẩu phải có ít nhất 8 ký tự."
   },
   "community": {
     "title": "Cộng đồng - SpringWave",
@@ -980,7 +1005,12 @@
     "phone": "Số điện thoại",
     "submit_btn": "HOÀN THIỆN HỒ SƠ",
     "subtitle": "Điền thông tin của bạn để hoàn tất thiết lập tài khoản.",
-    "student_id": "Mã số sinh viên (Không bắt buộc)"
+    "student_id": "Mã số sinh viên (Không bắt buộc)",
+    "please_wait_throttle": "Vui lòng đợi {remaining} giây.",
+    "fill_required_fields": "Vui lòng điền đầy đủ các thông tin bắt buộc.",
+    "saving": "Đang lưu...",
+    "profile_completed": "Đã hoàn thiện hồ sơ! Đang chuyển hướng...",
+    "verified_email_badge": "(email đã xác thực)"
   },
   "verification": {
     "schoolEmailVerified": "Email trường của bạn đã được xác nhận tự động! Bạn hiện có thể tham gia vào các sự kiện.",

@@ -15162,24 +15162,53 @@ a.popup-host-row:hover .popup-host-avatar {
   @apply w-full max-w-[420px];
 }
 
+.auth-top-bar {
+  @apply flex items-center justify-between w-full mb-8;
+}
+
 .auth-mobile-brand {
-  @apply flex lg:hidden items-center gap-2 font-bold text-lg mb-8;
+  @apply flex lg:hidden items-center gap-2 font-bold text-lg;
   color: var(--brand);
   font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
 }
 
 .auth-back-link {
-  @apply hidden lg:inline-flex items-center gap-1.5 text-sm font-semibold mb-8 border border-gray-300 rounded-lg px-3 py-1.5;
+  @apply inline-flex items-center gap-1.5 text-sm font-semibold border border-gray-300 rounded-lg px-3 py-1.5;
   color: var(--color-text-secondary);
   font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
   border-color: color-mix(in srgb, var(--color-text-secondary) 25%, transparent);
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .auth-back-link:hover {
   color: var(--brand);
   border-color: var(--brand);
+  background-color: rgba(23, 85, 186, 0.04);
   transform: translateX(-2px);
+}
+
+.auth-lang-btn {
+  @apply inline-flex items-center gap-1.5 text-sm font-semibold rounded-lg px-3 py-1.5 border border-gray-300 cursor-pointer select-none;
+  color: var(--color-text-secondary);
+  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  border-color: color-mix(in srgb, var(--color-text-secondary) 25%, transparent);
+  background: transparent;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.auth-lang-btn:hover {
+  color: var(--brand);
+  border-color: var(--brand);
+  background-color: rgba(23, 85, 186, 0.04);
+  transform: translateY(-1px);
+}
+
+.auth-lang-btn:active {
+  transform: scale(0.96);
+}
+
+.auth-lang-code {
+  @apply text-xs font-extrabold tracking-wider uppercase;
 }
 
 .auth-title {

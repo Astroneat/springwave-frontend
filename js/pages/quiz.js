@@ -242,11 +242,14 @@ function openExitModal(targetUrl) {
     return;
   }
   const content = modal.querySelector(".bg-white");
-  modal.classList.remove("opacity-0", "pointer-events-none");
-  if (content) {
-    content.classList.remove("scale-95");
-    content.classList.add("scale-100");
-  }
+  modal.hidden = false;
+  requestAnimationFrame(() => {
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    if (content) {
+      content.classList.remove("scale-95");
+      content.classList.add("scale-100");
+    }
+  });
 }
 
 function closeExitModal() {
@@ -258,6 +261,11 @@ function closeExitModal() {
     content.classList.remove("scale-100");
     content.classList.add("scale-95");
   }
+  setTimeout(() => {
+    if (modal.classList.contains("opacity-0")) {
+      modal.hidden = true;
+    }
+  }, 300);
   pendingExitUrl = null;
 }
 
