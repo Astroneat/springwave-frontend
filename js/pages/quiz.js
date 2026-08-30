@@ -3,8 +3,7 @@ import { isAuthenticated } from "../lib/session.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { submitSurvey, getSurveyQuestions, getSurveyResult } from "../api/survey.js";
-import { generateProfile } from "../api/profile.js";
-import { t } from "../lib/i18n.js";
+import { initI18n, getLang, setLang, t, applyTranslation } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 
 const HARDCODED_QUESTIONS = [
@@ -209,6 +208,9 @@ const PERSONA_CONFIGS = {
 
 let currentQuestion = 0;
 let answers = [];
+let lastResultData = null;
+
+let pendingExitUrl = null;
 
 if (!isAuthenticated()) {
   window.location.replace("/login.html");
@@ -217,12 +219,127 @@ if (!isAuthenticated()) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await initI18n();
+  initLanguageSwitcher();
+  initExitInterceptors();
   await initChatbot();
   loadFooter();
   await loadQuestions();
   await checkExistingResult();
   initQuiz();
 });
+
+function isQuizInProgress() {
+  const qScreen = document.getElementById("quizQuestion");
+  return qScreen && !qScreen.classList.contains("hidden");
+}
+
+function openExitModal(targetUrl) {
+  pendingExitUrl = targetUrl;
+  const modal = document.getElementById("quizExitModal");
+  if (!modal) {
+    window.location.href = targetUrl;
+    return;
+  }
+  const content = modal.querySelector(".bg-white");
+  modal.classList.remove("opacity-0", "pointer-events-none");
+  if (content) {
+    content.classList.remove("scale-95");
+    content.classList.add("scale-100");
+  }
+}
+
+function closeExitModal() {
+  const modal = document.getElementById("quizExitModal");
+  if (!modal) return;
+  const content = modal.querySelector(".bg-white");
+  modal.classList.add("opacity-0", "pointer-events-none");
+  if (content) {
+    content.classList.remove("scale-100");
+    content.classList.add("scale-95");
+  }
+  pendingExitUrl = null;
+}
+
+function initExitInterceptors() {
+  const brandLink = document.getElementById("quizBrandLink");
+  const exitBtn = document.getElementById("quizExitBtn");
+  const cancelBtn = document.getElementById("quizExitCancelBtn");
+  const confirmBtn = document.getElementById("quizExitConfirmBtn");
+  const modal = document.getElementById("quizExitModal");
+
+  brandLink?.addEventListener("click", (e) => {
+    if (isQuizInProgress()) {
+      e.preventDefault();
+      openExitModal("./index.html");
+    }
+  });
+
+  exitBtn?.addEventListener("click", (e) => {
+    if (isQuizInProgress()) {
+      e.preventDefault();
+      openExitModal("./profile.html");
+    }
+  });
+
+  cancelBtn?.addEventListener("click", closeExitModal);
+
+  confirmBtn?.addEventListener("click", () => {
+    const url = pendingExitUrl || "./profile.html";
+    window.location.href = url;
+  });
+
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeExitModal();
+    }
+  });
+
+  window.addEventListener("beforeunload", (e) => {
+    if (isQuizInProgress()) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
+}
+
+function initLanguageSwitcher() {
+  const btn = document.getElementById("quizLangToggleBtn");
+  const text = document.getElementById("quizLangText");
+  if (text) text.textContent = getLang().toUpperCase();
+
+  btn?.addEventListener("click", async () => {
+    const nextLang = getLang() === "en" ? "vi" : "en";
+    await setLang(nextLang);
+    if (text) text.textContent = nextLang.toUpperCase();
+  });
+
+  window.addEventListener("language-changed", (e) => {
+    const lang = (e.detail?.lang || getLang()).toUpperCase();
+    if (text) text.textContent = lang;
+
+    // Update start screen button
+    const startBtn = document.getElementById("quizStartBtn");
+    if (startBtn) {
+      const isRetake = startBtn.dataset.isRetake === "true";
+      startBtn.innerHTML = isRetake
+        ? `<span class="material-symbols-outlined">refresh</span> <span data-i18n="quiz.retake_btn">${t("quiz.retake_btn")}</span>`
+        : `<span class="material-symbols-outlined">play_arrow</span> <span data-i18n="quiz.start_btn">${t("quiz.start_btn")}</span>`;
+    }
+
+    // Re-render question if question screen is active
+    const qScreen = document.getElementById("quizQuestion");
+    if (qScreen && !qScreen.classList.contains("hidden")) {
+      renderQuestion();
+    }
+
+    // Re-render results if result screen is active
+    const rScreen = document.getElementById("quizResult");
+    if (rScreen && !rScreen.classList.contains("hidden") && lastResultData) {
+      renderResults(lastResultData.personaKey, lastResultData.clientEval);
+    }
+  });
+}
 
 async function checkExistingResult() {
   if (!isAuthenticated()) return;
@@ -232,7 +349,8 @@ async function checkExistingResult() {
   try {
     const data = await getSurveyResult();
     if (data?.scores || data?.personaKey) {
-      startBtn.innerHTML = `<span class="material-symbols-outlined">refresh</span> ${t("quiz.retake_btn")}`;
+      startBtn.dataset.isRetake = "true";
+      startBtn.innerHTML = `<span class="material-symbols-outlined">refresh</span> <span data-i18n="quiz.retake_btn">${t("quiz.retake_btn")}</span>`;
     }
   } catch {
     // No existing result
@@ -263,7 +381,10 @@ async function loadQuestions() {
 async function loadFooter() {
   const html = await fetchContent("./components/footer.html");
   const container = document.getElementById("footer-container");
-  if (container) container.innerHTML = html;
+  if (container) {
+    container.innerHTML = html;
+    applyTranslation(container);
+  }
 }
 
 function initQuiz() {
@@ -281,6 +402,7 @@ function showScreen(id) {
 function startQuiz() {
   currentQuestion = 0;
   answers = new Array(QUESTIONS.length).fill(null).map(() => []);
+  lastResultData = null;
   showScreen("quizQuestion");
   renderQuestion();
 }
@@ -304,23 +426,31 @@ function getCategoryColor(categoryKey) {
 function renderQuestion() {
   const q = QUESTIONS[currentQuestion];
   const qKey = `q${q.id}`;
-  const translatedQuestion = t(`quiz.${qKey}.question`);
+  const rawTranslatedQ = t(`quiz.${qKey}.question`);
+  const translatedQuestion = (rawTranslatedQ && rawTranslatedQ !== `quiz.${qKey}.question`) ? rawTranslatedQ : q.question;
   const color = getCategoryColor(q.categoryKey);
 
-  document.getElementById("questionNumber").textContent = `${t("quiz.question")} ${currentQuestion + 1} / ${QUESTIONS.length}`;
+  const numEl = document.getElementById("questionNumber");
+  if (numEl) {
+    numEl.textContent = `${t("quiz.question")} ${currentQuestion + 1} / ${QUESTIONS.length}`;
+  }
   
   const categoryEl = document.getElementById("questionCategory");
   const transCategory = t("quiz.categories." + q.categoryKey, {}, q.category);
-  categoryEl.style.background = color + "15";
-  categoryEl.style.color = color;
-  categoryEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${q.icon || "help"}</span> ${transCategory}`;
+  if (categoryEl) {
+    categoryEl.style.background = color + "15";
+    categoryEl.style.color = color;
+    categoryEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">${q.icon || "help"}</span> ${transCategory}`;
+  }
 
   const title = document.getElementById("questionTitle");
-  title.textContent = translatedQuestion !== `quiz.${qKey}.question` ? translatedQuestion : q.question;
-  title.style.background = `linear-gradient(135deg, #1e293b, #334155)`;
-  title.style.webkitBackgroundClip = "text";
-  title.style.webkitTextFillColor = "transparent";
-  title.style.backgroundClip = "text";
+  if (title) {
+    title.textContent = translatedQuestion;
+    title.style.background = `linear-gradient(135deg, #1e293b, #334155)`;
+    title.style.webkitBackgroundClip = "text";
+    title.style.webkitTextFillColor = "transparent";
+    title.style.backgroundClip = "text";
+  }
 
   const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
   const bar = document.getElementById("quizProgressBar");
@@ -328,15 +458,19 @@ function renderQuestion() {
     bar.style.width = `${progress}%`;
     bar.setAttribute("aria-valuenow", currentQuestion + 1);
   }
-  document.getElementById("quizProgressText").textContent = `${currentQuestion + 1} / ${QUESTIONS.length}`;
+  const progText = document.getElementById("quizProgressText");
+  if (progText) {
+    progText.textContent = `${currentQuestion + 1} / ${QUESTIONS.length}`;
+  }
 
   const container = document.getElementById("quizAnswers");
+  if (!container) return;
   container.innerHTML = "";
   const selected = answers[currentQuestion] || [];
   
   const hintDiv = document.createElement("div");
   hintDiv.style.cssText = "font-size:12px;color:#64748b;margin-bottom:12px;font-weight:500;display:flex;align-items:center;gap:4px;";
-  hintDiv.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">checklist</span> ${t("quiz.multi_select") || "Select all that apply"}`;
+  hintDiv.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">checklist</span> ${t("quiz.multi_select", "Select all that apply")}`;
   container.appendChild(hintDiv);
 
   const translatedAnswers = t(`quiz.${qKey}.answers`);
@@ -373,7 +507,10 @@ function selectAnswer(index) {
   }
   answers[currentQuestion] = current;
   renderQuestion();
-  document.getElementById("quizNextBtn").disabled = current.length === 0;
+  const nextBtn = document.getElementById("quizNextBtn");
+  if (nextBtn) {
+    nextBtn.disabled = current.length === 0;
+  }
 }
 
 function nextQuestion() {
@@ -396,6 +533,7 @@ function prevQuestion() {
 function updateNavButtons() {
   const prevBtn = document.getElementById("quizPrevBtn");
   const nextBtn = document.getElementById("quizNextBtn");
+  if (!prevBtn || !nextBtn) return;
 
   prevBtn.classList.toggle("hidden", currentQuestion === 0);
 
@@ -450,15 +588,18 @@ function evaluatePersonaClientSide(userAnswers) {
 async function finishQuiz() {
   showScreen("quizResult");
   const resultContainer = document.getElementById("quizResult");
-  resultContainer.innerHTML = `
-    <div class="quiz-loading-result">
-      <div class="quiz-spinner"></div>
-      <p style="font-size:14px;color:#475569;font-weight:600;">${t("quiz.analyzing")}</p>
-    </div>
-  `;
+  if (resultContainer) {
+    resultContainer.innerHTML = `
+      <div class="quiz-loading-result">
+        <div class="quiz-spinner"></div>
+        <p style="font-size:14px;color:#475569;font-weight:600;">${t("quiz.analyzing")}</p>
+      </div>
+    `;
+  }
 
   const clientEval = evaluatePersonaClientSide(answers);
   const personaKey = clientEval.personaKey;
+  lastResultData = { personaKey, clientEval };
 
   const answerData = answers.map((selectedIndices, qIndex) => ({
     questionIndex: qIndex,
@@ -472,6 +613,7 @@ async function finishQuiz() {
       try {
         await submitSurvey(answerData);
         try {
+          const { generateProfile } = await import("../api/profile.js");
           await generateProfile(answerData);
         } catch (profileErr) {
           console.warn("Profile generation failed:", profileErr);
@@ -489,6 +631,7 @@ async function finishQuiz() {
 }
 
 function renderResults(personaKey, clientEval) {
+  lastResultData = { personaKey, clientEval };
   const config = PERSONA_CONFIGS[personaKey] || PERSONA_CONFIGS.dynamic_explorer;
   const personaI18n = t(`quiz.personas.${personaKey}`) || {};
   const personaTitle = personaI18n.title || personaKey;
@@ -496,9 +639,15 @@ function renderResults(personaKey, clientEval) {
   const strengths = Array.isArray(personaI18n.strengths) ? personaI18n.strengths : [];
   const advice = personaI18n.advice || "";
 
-  const types = config.types || ["Workshop", "Seminar", "Networking"];
+  // Normalize activity types using t("quiz.types.<key>")
+  const rawTypes = config.types || ["workshop", "seminar", "networking"];
+  const types = rawTypes.map(typeStr => {
+    const key = typeStr.toLowerCase().replace(/[\s-]+/g, "_");
+    return t(`quiz.types.${key}`, {}, typeStr);
+  });
 
   const resultContainer = document.getElementById("quizResult");
+  if (!resultContainer) return;
   resultContainer.innerHTML = `
     <!-- Persona Hero Card -->
     <div class="quiz-persona-card">
@@ -594,6 +743,7 @@ function renderResults(personaKey, clientEval) {
   document.getElementById("quizRetakeBtn")?.addEventListener("click", () => {
     currentQuestion = 0;
     answers = [];
+    lastResultData = null;
     showScreen("quizStart");
   });
 }
