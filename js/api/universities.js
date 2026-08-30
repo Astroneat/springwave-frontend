@@ -117,6 +117,46 @@ export async function populateUniversitySelect(selectElOrId, selectedValue = '')
   }
 }
 
+/**
+ * Populate a <select> element with university options using MongoDB ObjectIds for Organization registration/settings.
+ * Option 1 is empty value ("") for "Tự do / Không thuộc trường nào".
+ * @param {HTMLSelectElement|string} selectElOrId
+ * @param {string} [selectedValue] - Pre-select by ID or name
+ * @param {string} [defaultOptionText] - Custom label for the free/unaffiliated option
+ */
+export async function populateOrgUniversitySelect(selectElOrId, selectedValue = '', defaultOptionText = 'Tự do / Không thuộc trường nào (Independent)') {
+  const selectEl = typeof selectElOrId === 'string' ? document.getElementById(selectElOrId) : selectElOrId;
+  if (!selectEl) return;
+
+  const universities = await getUniversities();
+
+  selectEl.innerHTML = `<option value="">${defaultOptionText}</option>`;
+
+  universities.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u._id;
+    opt.textContent = u.shortName ? `${u.name} (${u.shortName})` : u.name;
+    if (
+      selectedValue &&
+      (String(u._id) === String(selectedValue) ||
+       u.name === selectedValue ||
+       u.shortName === selectedValue)
+    ) {
+      opt.selected = true;
+    }
+    selectEl.appendChild(opt);
+  });
+
+  if (selectedValue) {
+    const matched = Array.from(selectEl.options).find(
+      opt => opt.value === String(selectedValue)
+    );
+    if (matched) {
+      selectEl.value = matched.value;
+    }
+  }
+}
+
 /* ==========================================================================
    ADMIN API METHODS
    ========================================================================== */

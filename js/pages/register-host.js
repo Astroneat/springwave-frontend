@@ -5,6 +5,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { uploadFormData } from "../api/client.js";
 import { getMyHostStatus } from "../api/host.js";
+import { populateOrgUniversitySelect } from "../api/universities.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 
 let turnstileWidgetId = null;
@@ -74,6 +75,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (orgNameParam) {
         const orgInput = document.getElementById("orgName");
         if (orgInput) orgInput.value = orgNameParam;
+    }
+
+    try {
+        await populateOrgUniversitySelect("orgUniversity");
+    } catch (e) {
+        console.error("Failed to populate university select:", e);
     }
 
     const form = document.querySelector('form');

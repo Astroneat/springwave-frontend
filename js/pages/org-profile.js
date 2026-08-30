@@ -220,6 +220,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("org-name").textContent = org.name || "Unknown Organization";
   document.getElementById("org-bio").textContent = org.description || "No description provided.";
 
+  // --- University Badge ---
+  const uniBadge = document.getElementById("org-university-badge");
+  const uniNameEl = document.getElementById("org-university-name");
+  if (uniBadge && uniNameEl) {
+    if (org.university) {
+      const uName = org.university.shortName
+        ? `${org.university.name} (${org.university.shortName})`
+        : (org.university.name || org.university);
+      uniNameEl.textContent = uName;
+      if (org.university.color) {
+        uniBadge.style.color = org.university.color;
+        uniBadge.style.borderColor = `${org.university.color}40`;
+        uniBadge.style.backgroundColor = `${org.university.color}15`;
+      }
+      uniBadge.classList.remove("hidden");
+    } else {
+      uniNameEl.textContent = "Tổ chức độc lập / Tự do";
+      uniBadge.className = "inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200";
+      uniBadge.classList.remove("hidden");
+    }
+  }
+
   // --- Avatar / cover ---
   const avatarImg = document.getElementById("org-avatar");
   const coverImg = document.getElementById("org-cover");

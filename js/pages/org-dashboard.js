@@ -11,6 +11,7 @@ import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, init
 import { getEventCertificates, issueCertificates, revokeCertificate, restoreCertificate } from "../api/certificates.js";
 import { getHostReviews, updateActivity } from "../api/activities.js";
 import { getOrgAnalytics, getEventAnalytics, downloadOrgExcelReport, downloadEventExcelReport } from "../api/analytics.js";
+import { populateOrgUniversitySelect } from "../api/universities.js";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 
@@ -4573,6 +4574,11 @@ function loadSettings(org) {
   document.getElementById("settings-instagram").value = org.socialLinks?.instagram || "";
   document.getElementById("settings-twitter").value = org.socialLinks?.twitter || "";
   
+  const universityVal = org.university?._id || org.university || "";
+  populateOrgUniversitySelect("settings-university", universityVal).catch(e =>
+    console.error("Failed to populate settings university:", e)
+  );
+
   const avatarPreview = document.getElementById("settings-avatar-preview");
   if (avatarPreview) {
     avatarPreview.src = org.avatar || "/assets/images/default-org-avatar.png";
@@ -4628,8 +4634,10 @@ function initSettingsForm() {
   document.getElementById("org-settings-form").addEventListener("submit", async e => {
     e.preventDefault();
     if (!currentOrgId) return;
+    const uniInput = document.getElementById("settings-university");
     const data = {
       name: document.getElementById("settings-name").value.trim(),
+      university: uniInput ? (uniInput.value || null) : null,
       description: document.getElementById("settings-desc").value.trim(),
       contactInfo: {
         phoneNo: document.getElementById("settings-phone").value.trim(),

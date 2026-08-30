@@ -108,6 +108,12 @@ function renderTable(registrations) {
 
     const submittedBy = reg.submittedBy || {};
     const submittedDate = formatDate(reg.createdAt);
+    const universityName = reg.university?.shortName
+      ? `${reg.university.name} (${reg.university.shortName})`
+      : (reg.university?.name || null);
+    const universityTag = universityName
+      ? `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-md mt-1 max-w-[220px] truncate"><i class="fa-solid fa-graduation-cap text-[10px] shrink-0"></i> <span class="truncate">${universityName}</span></span>`
+      : `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md mt-1"><i class="fa-solid fa-globe text-[10px] shrink-0"></i> Tự do</span>`;
 
     return `
       <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] transition-colors cursor-pointer" data-id="${reg._id}">
@@ -119,6 +125,7 @@ function renderTable(registrations) {
             <div class="min-w-0">
               <p class="font-semibold text-[#191b22] truncate max-w-[200px]">${reg.orgName}</p>
               <p class="text-[12px] text-[#64748b] mt-0.5">${submittedBy.fullname || "—"}</p>
+              <div>${universityTag}</div>
             </div>
           </div>
         </td>
@@ -281,6 +288,7 @@ function buildDetailHTML(reg) {
         <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">Organization Info</h3>
         <div class="bg-[#f8f9fc] rounded-2xl p-5 space-y-3">
           <div class="flex justify-between"><span class="text-[#64748b]">Name</span><span class="font-semibold text-right">${reg.orgName}</span></div>
+          <div class="flex justify-between items-center"><span class="text-[#64748b]">University</span><span class="font-semibold text-right ${reg.university ? 'text-primary' : 'text-slate-600'}">${reg.university ? (reg.university.shortName ? `${reg.university.name} (${reg.university.shortName})` : (reg.university.name || reg.university)) : 'Tự do / Không thuộc trường nào'}</span></div>
           <div class="flex justify-between"><span class="text-[#64748b]">Representative</span><span class="font-semibold text-right">${reg.representativeName}</span></div>
           <div class="flex justify-between"><span class="text-[#64748b]">Phone</span><span class="font-semibold text-right">${reg.phoneNo}</span></div>
           <div class="flex justify-between"><span class="text-[#64748b]">Status</span><span class="text-right">${reg.status === "pending" ? '<span class="badge-pending">Pending</span>' : reg.status === "approved" ? '<span class="badge-approved">Approved</span>' : '<span class="badge-rejected">Rejected</span>'}</span></div>
