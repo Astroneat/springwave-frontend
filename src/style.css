@@ -1730,18 +1730,13 @@ textarea {
 .popup-backdrop {
   @apply absolute inset-0;
   background: rgba(10, 15, 30, 0);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  transition:
-    background 0.45s ease,
-    backdrop-filter 0.45s ease,
-    -webkit-backdrop-filter 0.45s ease;
+  transition: background 0.3s ease;
 }
 
 .popup-overlay.active .popup-backdrop {
-  background: rgba(10, 15, 30, 0.35);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(10, 15, 30, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 /* =========================
@@ -1751,13 +1746,11 @@ textarea {
 .popup-container {
   @apply relative max-h-[90vh] p-[20px] overflow-y-auto rounded-[20px] bg-white opacity-0;
   width: min(1200px, 95vw);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
   transform: translateY(40px) scale(0.96);
   transition:
-    opacity 0.35s ease,
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.3s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .popup-overlay.active .popup-container {
@@ -8859,11 +8852,6 @@ textarea {
     justify-content: center;
   }
 
-  .discussion-detail-comments {
-    max-height: 50vh;
-    overflow-y: auto;
-  }
-
   .forum-comments-header {
     flex-direction: column;
     align-items: flex-start;
@@ -11431,12 +11419,17 @@ textarea {
 
 /* Custom Thread Detail Modal Layout to accommodate floating input */
 .popup-container.discussion-detail-modal-container {
-  max-width: 1080px; /* Increased by 20% from 900px */
+  max-width: 1080px;
   width: 90%;
   height: 85vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden !important; /* Prevent double scrollbar with outer container */
+  overflow: hidden !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #ffffff !important;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2) !important;
+  contain: layout size style;
 }
 
 .discussion-detail {
@@ -11445,19 +11438,26 @@ textarea {
   flex-direction: column;
   padding: 0 !important;
   position: relative;
+  overflow: hidden;
 }
 
 .discussion-detail .top-bar {
   padding: 16px 24px;
   border-bottom: 1px solid rgba(28, 39, 76, 0.05);
   flex-shrink: 0;
+  background: #ffffff;
+  z-index: 5;
 }
 
 /* Scrollable message content area */
 .discussion-detail-scroll-area {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 24px 86px 24px; /* leaves space for absolute floating reply input */
+  padding: 20px 24px;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto;
+  contain: content;
 }
 
 /* Thread card style */
@@ -11466,40 +11466,8 @@ textarea {
   border: 1px solid rgba(28, 39, 76, 0.06);
   border-radius: 20px;
   padding: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   box-shadow: none;
-}
-
-/* Floating Comment input footer */
-.discussion-detail-form {
-  position: absolute !important;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #ffffff;
-  border-top: 1px solid rgba(28, 39, 76, 0.08);
-  padding: 16px 24px !important;
-  display: flex;
-  gap: 12px;
-  z-index: 10;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.05);
-}
-
-.forum-comment-input {
-  flex: 1;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  border-radius: 12px !important;
-  padding: 0 16px !important;
-  height: 44px !important;
-  outline: none;
-  font-family: "Plus Jakarta Sans", sans-serif;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.forum-comment-input:focus {
-  border-color: #23499b !important;
-  box-shadow: 0 0 0 3px rgba(35, 73, 155, 0.15);
 }
 
 /* Custom scrollbar for thread modal */

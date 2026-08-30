@@ -935,59 +935,78 @@ async function openDiscussionDetail(id) {
   overlay.removeAttribute("hidden");
   overlay.classList.add("active");
   document.body.style.overflow = "hidden";
-  container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
 
-  const currentDiscussions = window._currentDiscussions || [];
-  const allDiscussions = await getDiscussionsByCategory("all");
-  const eventDisc = (discussionsCache || []);
-  const discussion = [...currentDiscussions, ...allDiscussions, ...eventDisc].find((d) => String(d.id || d._id) === String(id));
+  // 1. FAST LOCAL LOOKUP: Instant 0ms memory lookup
+  const localList = [
+    ...(window._currentDiscussions || []),
+    ...(discussionsCache || [])
+  ];
+  let discussion = localList.find((d) => String(d.id || d._id) === String(id));
+
+  // If not found in memory (e.g. direct link / refresh), fetch asynchronously
+  if (!discussion) {
+    container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    try {
+      const allDiscussions = await getDiscussionsByCategory("all");
+      discussion = (allDiscussions || []).find((d) => String(d.id || d._id) === String(id));
+    } catch {}
+  }
+
   if (!discussion) {
     container.innerHTML = `<div class="popup-loading text-slate-500">Discussion not found</div>`;
     return;
   }
 
-  if (discussion.relatedEvent && !discussion._event) {
-    try {
-      const data = await getActivityById(discussion.relatedEvent);
-      const ev = data?.activity || data;
-      if (ev) {
-        discussion._event = { title: ev.title, date: ev.heldDate || ev.date, attendees: ev.participants || ev.attendees || 0 };
-      }
-    } catch {
-      try {
-        const event = await getEventById(discussion.relatedEvent);
-        if (event) {
-          discussion._event = { title: event.title, date: event.date, attendees: event.attendees || 0 };
-        }
-      } catch {}
-    }
-  }
-
-  container.innerHTML = buildDiscussionDetailHTML(discussion, []);
-  const commentsContainer = document.getElementById("discussion-detail-comments");
-  if (commentsContainer) {
-    commentsContainer.innerHTML = buildCommentSkeleton(4);
-  }
-
-  const comments = await getComments(id);
-  if (commentsContainer) {
-    const { roots, childMap } = groupComments(comments);
-    commentsContainer.innerHTML = comments.length === 0
-      ? buildEmptyState()
-      : roots.map(c => renderCommentTree(c, childMap, getUser())).join("");
-  }
-
-  const countEl = container.querySelector(".forum-comments-count");
-  if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
-
-  const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
-  if (statsEl) {
-    statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${comments.length} replies`;
-  }
-  updateFeedDiscussionReplyCount(id, comments.length);
-
+  // 2. INSTANT ZERO-LAG RENDER: Render shell immediately with skeletons
+  container.innerHTML = buildDiscussionDetailHTML(discussion, null);
   requestAnimationFrame(() => { container.scrollTop = 0; });
   wireDiscussionEvents(id, container);
+
+  // 3. PARALLEL BACKGROUND DATA FETCHING: Comments and Event fetched simultaneously
+  const fetchEventTask = (async () => {
+    if (discussion.relatedEvent && !discussion._event) {
+      try {
+        const data = await getActivityById(discussion.relatedEvent);
+        const ev = data?.activity || data;
+        if (ev) {
+          discussion._event = { title: ev.title, date: ev.heldDate || ev.date, attendees: ev.participants || ev.attendees || 0 };
+        }
+      } catch {
+        try {
+          const event = await getEventById(discussion.relatedEvent);
+          if (event) {
+            discussion._event = { title: event.title, date: event.date, attendees: event.attendees || 0 };
+          }
+        } catch {}
+      }
+      const eventWrap = container.querySelector("#discussion-event-ref-wrap");
+      if (eventWrap && discussion._event) {
+        eventWrap.innerHTML = renderEventRef(discussion.relatedEvent, discussion._event);
+      }
+    }
+  })();
+
+  const fetchCommentsTask = (async () => {
+    const comments = await getComments(id);
+    const commentsContainer = container.querySelector("#discussion-detail-comments");
+    if (commentsContainer) {
+      const { roots, childMap } = groupComments(comments);
+      commentsContainer.innerHTML = comments.length === 0
+        ? buildEmptyState()
+        : roots.map(c => renderCommentTree(c, childMap, getUser())).join("");
+    }
+
+    const countEl = container.querySelector(".forum-comments-count");
+    if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
+
+    const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
+    if (statsEl) {
+      statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${comments.length} replies`;
+    }
+    updateFeedDiscussionReplyCount(id, comments.length);
+  })();
+
+  await Promise.allSettled([fetchEventTask, fetchCommentsTask]);
 }
 
 async function postCommentOrReply({ discussionId, text, replyToId, container, inputEl, submitBtn, inlineBox }) {
@@ -1524,6 +1543,13 @@ function buildDiscussionDetailHTML(d, comments) {
       ${isOwner || isAdmin ? `<button class="delete-btn" id="discussion-delete-btn"><span class="material-symbols-outlined text-base">delete</span> Delete</button>` : ""}
     </div>
   `;
+  const commentsCount = comments ? comments.length : (Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0));
+  const commentsContent = comments === null
+    ? buildCommentSkeleton(3)
+    : (comments.length === 0
+        ? buildEmptyState()
+        : (() => { const { roots, childMap } = groupComments(comments); return roots.map(c => renderCommentTree(c, childMap, user)).join(""); })());
+
   return `
     <div class="container discussion-detail">
       <div class="top-bar">
@@ -1542,11 +1568,11 @@ function buildDiscussionDetailHTML(d, comments) {
               <span class="forum-discussion-author-name">${d.author}</span>
               <span class="forum-discussion-author-uni">${d.university || "SpringWave"}</span>
             </div>
-            <span class="forum-discussion-time">${d.lastActivity}</span>
+            <span class="forum-discussion-time">${d.lastActivity || timeAgo(d.createdAt || d.date)}</span>
           </div>
           <h3 class="forum-discussion-title">${d.title}</h3>
-          <p class="forum-discussion-preview">${d.preview}</p>
-          ${eventRef}
+          <p class="forum-discussion-preview">${d.preview || d.content || ""}</p>
+          <div id="discussion-event-ref-wrap">${eventRef}</div>
           <div class="forum-discussion-meta">
             <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
             <div class="forum-discussion-tags">
@@ -1556,13 +1582,13 @@ function buildDiscussionDetailHTML(d, comments) {
           <div class="forum-discussion-stats">
             <span class="forum-discussion-stat">
               <span class="material-symbols-outlined text-sm">chat_bubble</span>
-              ${comments ? comments.length : (Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0))} replies
+              ${commentsCount} replies
             </span>
           </div>
         </div>
         
         <div class="forum-comments-header">
-          <span class="forum-comments-count">${comments.length} comment${comments.length !== 1 ? "s" : ""}</span>
+          <span class="forum-comments-count">${commentsCount} comment${commentsCount !== 1 ? "s" : ""}</span>
           <select class="forum-comments-sort" id="forum-comments-sort">
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
@@ -1571,9 +1597,7 @@ function buildDiscussionDetailHTML(d, comments) {
         </div>
         
         <div class="discussion-detail-comments" id="discussion-detail-comments">
-          ${comments.length === 0
-            ? buildEmptyState()
-            : (() => { const { roots, childMap } = groupComments(comments); return roots.map(c => renderCommentTree(c, childMap, user)).join(""); })()}
+          ${commentsContent}
         </div>
       </div>
       
