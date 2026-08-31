@@ -13,6 +13,7 @@ import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml, escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
+import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 
 let allActivities = [];
 let masterActivitiesList = [];
@@ -913,7 +914,15 @@ function initCardClickHandlers() {
             favLocks.add(id);
             try {
                 if (active) await removeFavourite(id);
-                else await addFavourite(id);
+                else {
+                    await addFavourite(id);
+                    if (cachedFavIds && cachedFavIds.size >= 5 && !localStorage.getItem("springwave_has_earned_explorer")) {
+                        localStorage.setItem("springwave_has_earned_explorer", "true");
+                        setTimeout(() => {
+                            triggerBadgeCelebration("active_explorer");
+                        }, 500);
+                    }
+                }
             } catch (err) {
                 star.classList.toggle("active");
                 if (cachedFavIds) {

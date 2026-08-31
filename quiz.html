@@ -13,13 +13,17 @@
   <nav class="fixed top-0 left-0 right-0 w-full z-50 figma-navbar-container" id="navbar">
     <div class="figma-navbar-inner spring-ease">
       <!-- BRAND LOGO -->
-      <a href="./index.html" class="figma-navbar-brand">
+      <a href="./index.html" class="figma-navbar-brand" id="quizBrandLink">
         <span class="brand-spring">Spring</span><span class="brand-wave">Wave</span>
       </a>
 
-      <!-- RIGHT ACTION: EXIT BUTTON -->
-      <div class="flex items-center gap-3">
-        <a href="./profile.html" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 hover:bg-white/35 text-white text-sm font-semibold backdrop-blur-md transition-all active:scale-95 shadow-sm" title="Exit Quiz">
+      <!-- RIGHT ACTION: LANGUAGE SWITCHER & EXIT BUTTON -->
+      <div class="flex items-center gap-2.5">
+        <button type="button" class="lang-switcher-btn bg-white/40 hover:bg-white/70 border border-white/20 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-sm" id="quizLangToggleBtn" title="Switch language" data-i18n-title="quiz.switch_lang">
+          <span class="material-symbols-outlined text-[#1c274c] text-lg">language</span>
+          <span class="lang-label text-xs font-extrabold text-[#1c274c]" id="quizLangText">EN</span>
+        </button>
+        <a href="./profile.html" id="quizExitBtn" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 hover:bg-white/35 text-white text-sm font-semibold backdrop-blur-md transition-all active:scale-95 shadow-sm cursor-pointer" title="Exit Quiz" data-i18n-title="quiz.exit_quiz">
           <span class="material-symbols-outlined !text-[18px]">close</span>
           <span data-i18n="quiz.exit_quiz">Exit</span>
         </a>
@@ -85,8 +89,8 @@
         <div class="quiz-result-icon">
           <span class="material-symbols-outlined">auto_awesome</span>
         </div>
-        <h1 class="quiz-result-title">Your Personality Profile</h1>
-        <p class="quiz-result-desc">Based on your responses, here's how you score across four key areas.</p>
+        <h1 class="quiz-result-title" data-i18n="quiz.result_title">Your Personality Profile</h1>
+        <p class="quiz-result-desc" data-i18n="quiz.result_desc">Based on your responses, here's how you score across four key areas.</p>
 
         <div class="quiz-scores" id="quizScores"></div>
 
@@ -106,8 +110,25 @@
     </div>
   </main>
 
-  <div id="footer-container"></div>
-  <div id="chatbot-container"></div>
+  <!-- EXIT CONFIRMATION MODAL -->
+  <div id="quizExitModal" hidden class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="quizExitModalTitle">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl scale-95 transition-transform duration-300 text-center relative border border-slate-100">
+      <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-200/60 shadow-inner">
+        <span class="material-symbols-outlined text-3xl">warning</span>
+      </div>
+      <h3 id="quizExitModalTitle" class="text-xl font-bold text-slate-900 mb-2 font-headline-md" data-i18n="quiz.exit_modal_title">Exit AI Quiz?</h3>
+      <p class="text-sm text-slate-500 leading-relaxed mb-6" data-i18n="quiz.exit_modal_desc">Are you sure you want to stop the quiz? Your current progress will not be saved.</p>
+      
+      <div class="flex items-center gap-3">
+        <button type="button" id="quizExitCancelBtn" class="flex-1 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-all cursor-pointer active:scale-95" data-i18n="quiz.exit_modal_cancel">
+          Continue Quiz
+        </button>
+        <button type="button" id="quizExitConfirmBtn" class="flex-1 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold shadow-md shadow-red-500/20 transition-all cursor-pointer active:scale-95" data-i18n="quiz.exit_modal_confirm">
+          Exit Quiz
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="js/pages/quiz.js"></script>
 </body>

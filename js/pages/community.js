@@ -48,6 +48,7 @@ import { getCurrentUser } from "../api/auth.js";
 import { addBadgeNotification } from "../lib/notifications.js";
 import { getPublicOrganizations, toggleFollowOrganization, getOrganizationPublicEvents, getMyOrganizations } from "../api/organizations.js";
 import { CDN_DOMAIN } from "../config.js";
+import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 
 const CATEGORIES = {
   all:     { label: () => t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
@@ -992,59 +993,211 @@ async function openDiscussionDetail(id) {
   overlay.removeAttribute("hidden");
   overlay.classList.add("active");
   document.body.style.overflow = "hidden";
-  container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
 
-  const currentDiscussions = window._currentDiscussions || [];
-  const allDiscussions = await getDiscussionsByCategory("all");
-  const eventDisc = (discussionsCache || []);
-  const discussion = [...currentDiscussions, ...allDiscussions, ...eventDisc].find((d) => String(d.id || d._id) === String(id));
+  // 1. FAST LOCAL LOOKUP: Instant 0ms memory lookup
+  const localList = [
+    ...(window._currentDiscussions || []),
+    ...(discussionsCache || [])
+  ];
+  let discussion = localList.find((d) => String(d.id || d._id) === String(id));
+
+  // If not found in memory (e.g. direct link / refresh), fetch asynchronously
+  if (!discussion) {
+    container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
+    try {
+      const allDiscussions = await getDiscussionsByCategory("all");
+      discussion = (allDiscussions || []).find((d) => String(d.id || d._id) === String(id));
+    } catch {}
+  }
+
   if (!discussion) {
     container.innerHTML = `<div class="popup-loading text-slate-500">Discussion not found</div>`;
     return;
   }
 
-  if (discussion.relatedEvent && !discussion._event) {
-    try {
-      const data = await getActivityById(discussion.relatedEvent);
-      const ev = data?.activity || data;
-      if (ev) {
-        discussion._event = { title: ev.title, date: ev.heldDate || ev.date, attendees: ev.participants || ev.attendees || 0 };
-      }
-    } catch {
-      try {
-        const event = await getEventById(discussion.relatedEvent);
-        if (event) {
-          discussion._event = { title: event.title, date: event.date, attendees: event.attendees || 0 };
-        }
-      } catch {}
-    }
-  }
-
-  container.innerHTML = buildDiscussionDetailHTML(discussion, []);
-  const commentsContainer = document.getElementById("discussion-detail-comments");
-  if (commentsContainer) {
-    commentsContainer.innerHTML = buildCommentSkeleton(4);
-  }
-
-  const comments = await getComments(id);
-  if (commentsContainer) {
-    const { roots, childMap } = groupComments(comments);
-    commentsContainer.innerHTML = comments.length === 0
-      ? buildEmptyState()
-      : roots.map(c => renderCommentTree(c, childMap, getUser())).join("");
-  }
-
-  const countEl = container.querySelector(".forum-comments-count");
-  if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
-
-  const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
-  if (statsEl) {
-    statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${comments.length} replies`;
-  }
-  updateFeedDiscussionReplyCount(id, comments.length);
-
+  // 2. INSTANT ZERO-LAG RENDER: Render shell immediately with skeletons
+  container.innerHTML = buildDiscussionDetailHTML(discussion, null);
   requestAnimationFrame(() => { container.scrollTop = 0; });
   wireDiscussionEvents(id, container);
+
+  // 3. PARALLEL BACKGROUND DATA FETCHING: Comments and Event fetched simultaneously
+  const fetchEventTask = (async () => {
+    if (discussion.relatedEvent && !discussion._event) {
+      try {
+        const data = await getActivityById(discussion.relatedEvent);
+        const ev = data?.activity || data;
+        if (ev) {
+          discussion._event = { title: ev.title, date: ev.heldDate || ev.date, attendees: ev.participants || ev.attendees || 0 };
+        }
+      } catch {
+        try {
+          const event = await getEventById(discussion.relatedEvent);
+          if (event) {
+            discussion._event = { title: event.title, date: event.date, attendees: event.attendees || 0 };
+          }
+        } catch {}
+      }
+      const eventWrap = container.querySelector("#discussion-event-ref-wrap");
+      if (eventWrap && discussion._event) {
+        eventWrap.innerHTML = renderEventRef(discussion.relatedEvent, discussion._event);
+      }
+    }
+  })();
+
+  const fetchCommentsTask = (async () => {
+    const comments = await getComments(id);
+    const commentsContainer = container.querySelector("#discussion-detail-comments");
+    if (commentsContainer) {
+      const { roots, childMap } = groupComments(comments);
+      commentsContainer.innerHTML = comments.length === 0
+        ? buildEmptyState()
+        : roots.map(c => renderCommentTree(c, childMap, getUser())).join("");
+    }
+
+    const countEl = container.querySelector(".forum-comments-count");
+    if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
+
+    const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
+    if (statsEl) {
+      statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${comments.length} replies`;
+    }
+    updateFeedDiscussionReplyCount(id, comments.length);
+  })();
+
+  await Promise.allSettled([fetchEventTask, fetchCommentsTask]);
+}
+
+async function postCommentOrReply({ discussionId, text, replyToId, container, inputEl, submitBtn, inlineBox }) {
+  const sanitized = sanitizeHtml(text.trim());
+  if (!sanitized) return;
+
+  if (!requireVerifiedOrRedirect()) return;
+
+  const check = canPerformAction('addComment');
+  if (!check.allowed) {
+    alert(`Please wait ${check.remaining} seconds before posting another comment.`);
+    return;
+  }
+  markActionPerformed('addComment');
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.classList.add("opacity-60", "pointer-events-none");
+  }
+
+  const currentDiscussions = window._currentDiscussions || [];
+  const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(discussionId) || (d.relatedEvent && String(d.relatedEvent) === String(discussionId)));
+
+  try {
+    let newComment;
+    if (replyToId) {
+      newComment = await addReply(discussionId, sanitized, replyToId, discContext);
+    } else {
+      newComment = await addComment(discussionId, sanitized, discContext);
+    }
+
+    grantContribution("reply").then((res) => {
+      if (res && res.newBadges && Array.isArray(res.newBadges)) {
+        res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
+      }
+    }).catch(() => {});
+
+    if (inputEl) inputEl.value = "";
+
+    if (inlineBox) {
+      inlineBox.style.display = "none";
+      const inlineInp = inlineBox.querySelector(".forum-comment-inline-input");
+      if (inlineInp) {
+        inlineInp.value = "";
+        delete inlineInp.dataset.replyToId;
+      }
+    } else {
+      const mainInput = container.querySelector("#discussion-input");
+      if (mainInput) {
+        delete mainInput.dataset.replyToId;
+        mainInput.placeholder = "Write a comment... (Press Enter to post)";
+      }
+      const banner = container.querySelector("#discussion-replying-banner");
+      if (banner) banner.style.display = "none";
+      const mainBtn = container.querySelector("#discussion-submit-btn");
+      if (mainBtn) {
+        mainBtn.innerHTML = `<span class="material-symbols-outlined text-sm">send</span> Post`;
+      }
+    }
+
+    if (newComment) {
+      const user = getUser();
+      const newCommentHTML = buildCommentHTML(newComment, user, "", replyToId ? 1 : 0);
+
+      if (replyToId) {
+        const targetComment = container.querySelector(`.discussion-detail-comment[data-comment-id="${replyToId}"]`);
+        if (targetComment) {
+          const rootComment = targetComment.classList.contains("forum-comment-nested")
+            ? targetComment.closest(".discussion-detail-comment:not(.forum-comment-nested)") || targetComment
+            : targetComment;
+
+          let repliesContainer = rootComment.querySelector(".forum-comment-replies");
+          if (!repliesContainer) {
+            repliesContainer = document.createElement("div");
+            repliesContainer.className = "forum-comment-replies";
+            const inlineEditor = rootComment.querySelector(".forum-comment-inline-reply");
+            if (inlineEditor) {
+              rootComment.querySelector(".forum-comment-body").insertBefore(repliesContainer, inlineEditor);
+            } else {
+              rootComment.querySelector(".forum-comment-body").appendChild(repliesContainer);
+            }
+          }
+          repliesContainer.classList.remove("hidden");
+
+          const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
+          if (expandBtn) {
+            expandBtn.insertAdjacentHTML("beforebegin", newCommentHTML);
+          } else {
+            repliesContainer.insertAdjacentHTML("beforeend", newCommentHTML);
+          }
+        }
+      } else {
+        const commentsList = container.querySelector("#discussion-detail-comments");
+        if (commentsList) {
+          const empty = commentsList.querySelector(".forum-comments-empty");
+          if (empty) empty.remove();
+          commentsList.insertAdjacentHTML("beforeend", newCommentHTML);
+        }
+      }
+
+      // Update counters
+      const countEl = container.querySelector(".forum-comments-count");
+      const current = parseInt(countEl?.textContent) || 0;
+      if (countEl) countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
+
+      const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
+      if (statsEl) {
+        statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
+      }
+      updateFeedDiscussionReplyCount(discussionId, current + 1);
+
+      // Scroll into view
+      const newCommentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${newComment.id || newComment._id}"]`);
+      if (newCommentEl) {
+        newCommentEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      if (!localStorage.getItem("springwave_has_posted_reply")) {
+        localStorage.setItem("springwave_has_posted_reply", "true");
+        setTimeout(() => {
+          triggerBadgeCelebration("talk_is_silver");
+        }, 600);
+      }
+    }
+  } catch (err) {
+    console.error("Failed to post comment/reply:", err);
+    showToast(err?.message || "Failed to post comment. Please try again.", true);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove("opacity-60", "pointer-events-none");
+    }
+  }
 }
 
 function wireDiscussionEvents(id, container) {
@@ -1055,75 +1208,101 @@ function wireDiscussionEvents(id, container) {
   const { signal } = container._abortController;
   container.dataset.activeDiscussionId = String(id);
 
+  const mainInput = container.querySelector("#discussion-input");
+  const mainSubmitBtn = container.querySelector("#discussion-submit-btn");
+  const banner = container.querySelector("#discussion-replying-banner");
+  const replyingToName = container.querySelector("#replying-to-name");
+  const cancelReplyBtn = container.querySelector("#cancel-reply-btn");
+
   container.querySelector("#discussion-back-btn")?.addEventListener("click", closeDiscussionDetail, { signal });
 
-  container.querySelector("#discussion-submit-btn")?.addEventListener("click", () => {
-    submitDiscussionComment(id, container);
-  }, { signal });
-  container.querySelector("#discussion-input")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+  // Main input submit
+  const handleMainSubmit = () => {
+    const text = mainInput?.value || "";
+    const replyToId = mainInput?.dataset.replyToId || null;
+    postCommentOrReply({
+      discussionId: id,
+      text,
+      replyToId,
+      container,
+      inputEl: mainInput,
+      submitBtn: mainSubmitBtn
+    });
+  };
+
+  mainSubmitBtn?.addEventListener("click", handleMainSubmit, { signal });
+
+  mainInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
       e.preventDefault();
-      submitDiscussionComment(id, container);
-    }
-  }, { signal });
-  container.querySelector("#discussion-input")?.focus();
-
-  container.querySelector("#cancel-reply-btn")?.addEventListener("click", () => {
-    const input = container.querySelector("#discussion-input");
-    if (input) {
-      delete input.dataset.replyToId;
-      input.placeholder = "Write a comment...";
-    }
-    const cancelBtn = container.querySelector("#cancel-reply-btn");
-    if (cancelBtn) cancelBtn.style.display = "none";
-  }, { signal });
-
-  container.querySelector("#discussion-delete-btn")?.addEventListener("click", async () => {
-    if (!confirm("Are you sure you want to delete this discussion?")) return;
-    const ok = await deleteDiscussion(id);
-    if (ok) {
-      closeDiscussionDetail();
-      window.location.reload();
-    } else {
-      alert("Failed to delete discussion");
+      handleMainSubmit();
     }
   }, { signal });
 
-  container.querySelector("#discussion-share-btn")?.addEventListener("click", async () => {
-    const url = `${window.location.origin}/community.html?discussion=${id}`;
-    if (navigator.share) {
-      try { await navigator.share({ title: "Check this discussion", url }); } catch {}
-    } else {
-      try { await navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
+  // Cancel reply in bottom bar
+  cancelReplyBtn?.addEventListener("click", () => {
+    if (mainInput) {
+      delete mainInput.dataset.replyToId;
+      mainInput.placeholder = "Write a comment... (Press Enter to post)";
+    }
+    if (banner) banner.style.display = "none";
+    if (mainSubmitBtn) {
+      mainSubmitBtn.innerHTML = `<span class="material-symbols-outlined text-sm">send</span> Post`;
     }
   }, { signal });
 
+  // Inline inputs: Enter key to submit
   container.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && e.target.classList.contains("forum-comment-inline-input")) {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.target.classList.contains("forum-comment-inline-input")) {
       e.preventDefault();
-      const inline = e.target.closest(".forum-comment-inline-reply");
-      inline?.querySelector(".forum-comment-inline-submit")?.click();
+      const inlineBox = e.target.closest(".forum-comment-inline-reply");
+      if (!inlineBox) return;
+      const text = e.target.value || "";
+      const replyToId = e.target.dataset.replyToId || inlineBox.dataset.parentId;
+      const submitBtn = inlineBox.querySelector(".forum-comment-inline-submit");
+      postCommentOrReply({
+        discussionId: id,
+        text,
+        replyToId,
+        container,
+        inputEl: e.target,
+        submitBtn,
+        inlineBox
+      });
     }
   }, { signal });
 
+  // Click delegation
   container.addEventListener("click", (e) => {
     const currentDiscussionId = container.dataset.activeDiscussionId || id;
+
+    // 1. Reply button clicked on a comment
     const replyBtn = e.target.closest(".forum-comment-reply-btn");
     if (replyBtn) {
       e.stopPropagation();
       const commentId = replyBtn.dataset.commentId;
-      const parentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${commentId}"]`);
-      if (!parentEl) return;
+      const author = replyBtn.dataset.author || "User";
+      const commentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${commentId}"]`);
+      if (!commentEl) return;
+
+      // Close other inline reply boxes
       container.querySelectorAll(".forum-comment-inline-reply").forEach(r => r.style.display = "none");
-      const inline = parentEl.querySelector(".forum-comment-inline-reply");
+
+      // Open the inline box of the comment
+      const inline = commentEl.querySelector(".forum-comment-inline-reply");
       if (inline) {
         inline.style.display = "flex";
         const input = inline.querySelector(".forum-comment-inline-input");
-        if (input) { input.focus(); input.dataset.replyToId = commentId; }
+        if (input) {
+          input.dataset.replyToId = commentId;
+          input.placeholder = `Reply to @${author}... (Press Enter to post)`;
+          input.focus();
+        }
       }
       return;
     }
 
+    // 2. Inline Cancel button
     const cancelInlineBtn = e.target.closest(".forum-comment-inline-cancel");
     if (cancelInlineBtn) {
       e.stopPropagation();
@@ -1131,83 +1310,36 @@ function wireDiscussionEvents(id, container) {
       if (inline) {
         inline.style.display = "none";
         const input = inline.querySelector(".forum-comment-inline-input");
-        if (input) { input.value = ""; delete input.dataset.replyToId; }
+        if (input) {
+          input.value = "";
+          delete input.dataset.replyToId;
+        }
       }
       return;
     }
 
+    // 3. Inline Submit button
     const submitInlineBtn = e.target.closest(".forum-comment-inline-submit");
     if (submitInlineBtn) {
       e.stopPropagation();
       const inline = submitInlineBtn.closest(".forum-comment-inline-reply");
       if (!inline) return;
       const input = inline.querySelector(".forum-comment-inline-input");
-      if (!input || !input.value.trim()) return;
-      const replyToId = input.dataset.replyToId;
-      if (!replyToId) return;
-      const text = input.value.trim();
-
-      if (!requireVerifiedOrRedirect()) return;
-
-      const check = canPerformAction('addComment');
-      if (!check.allowed) {
-        alert(`Please wait ${check.remaining} seconds before posting another reply.`);
-        return;
-      }
-      markActionPerformed('addComment');
-
-      const currentDiscussions = window._currentDiscussions || [];
-      const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(currentDiscussionId) || (d.relatedEvent && String(d.relatedEvent) === String(currentDiscussionId)));
-
-      addReply(currentDiscussionId, text, replyToId, discContext).then(newComment => {
-        grantContribution("reply").then((res) => {
-          if (res && res.newBadges && Array.isArray(res.newBadges)) {
-            res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
-          }
-        }).catch(() => {});
-        if (newComment) {
-          const parentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${replyToId}"]`);
-          if (parentEl) {
-            let repliesContainer = parentEl.querySelector(".forum-comment-replies");
-            if (!repliesContainer) {
-              repliesContainer = document.createElement("div");
-              repliesContainer.className = "forum-comment-replies";
-              const inlineEditor = parentEl.querySelector(".forum-comment-inline-reply");
-              if (inlineEditor) {
-                parentEl.querySelector(".forum-comment-body").insertBefore(repliesContainer, inlineEditor);
-              } else {
-                parentEl.querySelector(".forum-comment-body").appendChild(repliesContainer);
-              }
-            }
-            const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
-            if (expandBtn) {
-              expandBtn.insertAdjacentHTML("beforebegin", buildCommentHTML(newComment, getUser(), "", 1));
-            } else {
-              repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
-            }
-          }
-        }
-        input.value = "";
-        delete input.dataset.replyToId;
-        inline.style.display = "none";
-        const countEl = container.querySelector(".forum-comments-count");
-        if (countEl) {
-          const current = parseInt(countEl.textContent) || 0;
-          countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
-        }
-        const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
-        if (statsEl) {
-          const current = parseInt(statsEl.textContent.replace(/[^0-9]/g, '')) || 0;
-          statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
-        }
-        updateFeedDiscussionReplyCount(currentDiscussionId, (parseInt(countEl?.textContent) || 0) + 1);
-      }).catch(err => {
-        console.error("Failed to post reply:", err);
-        showToast(err?.message || "Failed to post reply. Please try again.", true);
+      const text = input?.value || "";
+      const replyToId = input?.dataset.replyToId || inline.dataset.parentId;
+      postCommentOrReply({
+        discussionId: currentDiscussionId,
+        text,
+        replyToId,
+        container,
+        inputEl: input,
+        submitBtn: submitInlineBtn,
+        inlineBox: inline
       });
       return;
     }
 
+    // 4. Expand hidden replies button
     const expandBtn = e.target.closest(".forum-comment-expand-btn");
     if (expandBtn) {
       e.stopPropagation();
@@ -1226,6 +1358,7 @@ function wireDiscussionEvents(id, container) {
       return;
     }
 
+    // 5. Like comment button
     const likeBtn = e.target.closest(".forum-comment-like-btn");
     if (likeBtn) {
       e.stopPropagation();
@@ -1234,7 +1367,7 @@ function wireDiscussionEvents(id, container) {
       const likeSpan = likeBtn.querySelector(".like-count");
       const currentLikes = parseInt(likeSpan?.textContent || "0");
       const wasLiked = likeBtn.classList.contains("liked");
-      if (likeSpan) likeSpan.textContent = wasLiked ? currentLikes - 1 : currentLikes + 1;
+      if (likeSpan) likeSpan.textContent = wasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
       likeBtn.classList.toggle("liked", !wasLiked);
       likeComment(currentDiscussionId, commentId).then(result => {
         if (!result) {
@@ -1245,6 +1378,7 @@ function wireDiscussionEvents(id, container) {
       return;
     }
 
+    // 6. Delete comment button
     const deleteBtn = e.target.closest(".forum-comment-delete-btn");
     if (deleteBtn) {
       e.stopPropagation();
@@ -1275,10 +1409,37 @@ function wireDiscussionEvents(id, container) {
       return;
     }
 
+    // 7. Start comment empty state button
     const startBtn = e.target.closest(".forum-comment-start-btn");
     if (startBtn) {
       const input = container.querySelector("#discussion-input");
       if (input) input.focus();
+      return;
+    }
+
+    // 8. Share & Delete discussion
+    const deleteDiscBtn = e.target.closest("#discussion-delete-btn");
+    if (deleteDiscBtn) {
+      if (!confirm("Are you sure you want to delete this discussion?")) return;
+      deleteDiscussion(currentDiscussionId).then(ok => {
+        if (ok) {
+          closeDiscussionDetail();
+          window.location.reload();
+        } else {
+          alert("Failed to delete discussion");
+        }
+      });
+      return;
+    }
+
+    const shareDiscBtn = e.target.closest("#discussion-share-btn");
+    if (shareDiscBtn) {
+      const url = `${window.location.origin}/community.html?discussion=${currentDiscussionId}`;
+      if (navigator.share) {
+        try { navigator.share({ title: "Check this discussion", url }); } catch {}
+      } else {
+        try { navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
+      }
       return;
     }
   }, { signal });
@@ -1338,90 +1499,6 @@ function hideDiscussionPopup() {
 
   overlay.classList.remove("active");
   overlay.setAttribute("hidden", "");
-}
-
-async function submitDiscussionComment(id, container) {
-  const currentDiscussionId = container.dataset.activeDiscussionId || id;
-  const input = container.querySelector("#discussion-input");
-  const text = sanitizeHtml(input.value.trim());
-  if (!text) return;
-
-  if (!requireVerifiedOrRedirect()) return;
-
-  const check = canPerformAction('addComment');
-  if (!check.allowed) {
-    alert(`Please wait ${check.remaining} seconds before posting another comment.`);
-    return;
-  }
-  markActionPerformed('addComment');
-
-  const replyToId = input.dataset.replyToId;
-  const currentDiscussions = window._currentDiscussions || [];
-  const discContext = currentDiscussions.find(d => String(d.id || d._id) === String(currentDiscussionId) || (d.relatedEvent && String(d.relatedEvent) === String(currentDiscussionId)));
-
-  try {
-    let newComment;
-    if (replyToId) {
-      newComment = await addReply(currentDiscussionId, text, replyToId, discContext);
-    } else {
-      newComment = await addComment(currentDiscussionId, text, discContext);
-    }
-    grantContribution("reply").then((res) => {
-      if (res && res.newBadges && Array.isArray(res.newBadges)) {
-        res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
-      }
-    }).catch(() => {});
-    input.value = "";
-    const submittedReplyToId = replyToId;
-    delete input.dataset.replyToId;
-    input.placeholder = "Write a comment...";
-    const cancelBtn = container.querySelector("#cancel-reply-btn");
-    if (cancelBtn) cancelBtn.style.display = "none";
-    if (newComment) {
-      if (submittedReplyToId) {
-        const parentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${submittedReplyToId}"]`);
-        if (parentEl) {
-          let repliesContainer = parentEl.querySelector(".forum-comment-replies");
-          if (!repliesContainer) {
-            repliesContainer = document.createElement("div");
-            repliesContainer.className = "forum-comment-replies";
-            const inlineEditor = parentEl.querySelector(".forum-comment-inline-reply");
-            if (inlineEditor) {
-              parentEl.querySelector(".forum-comment-body").insertBefore(repliesContainer, inlineEditor);
-            } else {
-              parentEl.querySelector(".forum-comment-body").appendChild(repliesContainer);
-            }
-          }
-          const expandBtn = repliesContainer.querySelector(".forum-comment-expand-btn");
-          if (expandBtn) {
-            expandBtn.insertAdjacentHTML("beforebegin", buildCommentHTML(newComment, getUser(), "", 1));
-          } else {
-            repliesContainer.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 1));
-          }
-        }
-      } else {
-        const list = container.querySelector("#discussion-detail-comments");
-        if (list) {
-          const empty = list.querySelector(".forum-comments-empty");
-          if (empty) empty.remove();
-          list.insertAdjacentHTML("beforeend", buildCommentHTML(newComment, getUser(), "", 0));
-        }
-      }
-      const countEl = container.querySelector(".forum-comments-count");
-      const current = parseInt(countEl?.textContent) || 0;
-      if (countEl) {
-        countEl.textContent = `${current + 1} comment${current + 1 !== 1 ? "s" : ""}`;
-      }
-      const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
-      if (statsEl) {
-        statsEl.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> ${current + 1} replies`;
-      }
-      updateFeedDiscussionReplyCount(currentDiscussionId, current + 1);
-    }
-  } catch (err) {
-    console.error("Comment submission failed:", err);
-    showToast(err?.message || "Failed to post comment. Please try again.", true);
-  }
 }
 
 function groupComments(comments) {
@@ -1531,6 +1608,13 @@ function buildDiscussionDetailHTML(d, comments) {
       ${isOwner || isAdmin ? `<button class="delete-btn" id="discussion-delete-btn"><span class="material-symbols-outlined text-base">delete</span> Delete</button>` : ""}
     </div>
   `;
+  const commentsCount = comments ? comments.length : (Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0));
+  const commentsContent = comments === null
+    ? buildCommentSkeleton(3)
+    : (comments.length === 0
+        ? buildEmptyState()
+        : (() => { const { roots, childMap } = groupComments(comments); return roots.map(c => renderCommentTree(c, childMap, user)).join(""); })());
+
   return `
     <div class="container discussion-detail">
       <div class="top-bar">
@@ -1549,11 +1633,11 @@ function buildDiscussionDetailHTML(d, comments) {
               <span class="forum-discussion-author-name">${d.author}</span>
               <span class="forum-discussion-author-uni">${d.university || "SpringWave"}</span>
             </div>
-            <span class="forum-discussion-time">${d.lastActivity}</span>
+            <span class="forum-discussion-time">${d.lastActivity || timeAgo(d.createdAt || d.date)}</span>
           </div>
           <h3 class="forum-discussion-title">${d.title}</h3>
-          <p class="forum-discussion-preview">${d.preview}</p>
-          ${eventRef}
+          <p class="forum-discussion-preview">${d.preview || d.content || ""}</p>
+          <div id="discussion-event-ref-wrap">${eventRef}</div>
           <div class="forum-discussion-meta">
             <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
             <div class="forum-discussion-tags">
@@ -1563,13 +1647,13 @@ function buildDiscussionDetailHTML(d, comments) {
           <div class="forum-discussion-stats">
             <span class="forum-discussion-stat">
               <span class="material-symbols-outlined text-sm">chat_bubble</span>
-              ${comments ? comments.length : (Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0))} replies
+              ${commentsCount} replies
             </span>
           </div>
         </div>
         
         <div class="forum-comments-header">
-          <span class="forum-comments-count">${comments.length} comment${comments.length !== 1 ? "s" : ""}</span>
+          <span class="forum-comments-count">${commentsCount} comment${commentsCount !== 1 ? "s" : ""}</span>
           <select class="forum-comments-sort" id="forum-comments-sort">
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
@@ -1578,19 +1662,30 @@ function buildDiscussionDetailHTML(d, comments) {
         </div>
         
         <div class="discussion-detail-comments" id="discussion-detail-comments">
-          ${comments.length === 0
-            ? buildEmptyState()
-            : (() => { const { roots, childMap } = groupComments(comments); return roots.map(c => renderCommentTree(c, childMap, user)).join(""); })()}
+          ${commentsContent}
         </div>
       </div>
       
       <!-- Floating Input form sits outside scroll area at absolute bottom -->
-      <div class="discussion-detail-form">
-        <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment..." data-reply-to-id="" />
-        <button class="forum-comment-submit" id="discussion-submit-btn">
-          <span class="material-symbols-outlined text-sm">send</span> Post
-        </button>
-        <button class="forum-comment-cancel-reply" id="cancel-reply-btn" style="display:none;">Cancel</button>
+      <div class="discussion-detail-form-wrap">
+        <div class="discussion-replying-banner" id="discussion-replying-banner" style="display:none;">
+          <span class="text-xs text-slate-600 font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm text-primary">reply</span>
+            Replying to <b class="text-primary font-bold" id="replying-to-name">@User</b>
+          </span>
+          <button type="button" class="replying-cancel-btn" id="cancel-reply-btn" title="Cancel reply">
+            <span class="material-symbols-outlined text-xs">close</span>
+          </button>
+        </div>
+        <div class="discussion-detail-form">
+          <div class="forum-comment-avatar forum-my-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+            ${renderAvatar(user?.avatar, user?.fullname || user?.username)}
+          </div>
+          <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment... (Press Enter to post)" data-reply-to-id="" />
+          <button class="forum-comment-submit" id="discussion-submit-btn" type="button">
+            <span class="material-symbols-outlined text-sm">send</span> Post
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -1599,63 +1694,81 @@ function buildDiscussionDetailHTML(d, comments) {
 function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtml = "", hiddenCount = 0) {
   const cId = String(c.id || c._id);
   c.id = cId;
-  const liked = c.likedBy && currentUser && c.likedBy.some ? c.likedBy.some(id => String(id) === String(currentUser._id)) : false;
-  const replyToHtml = c.replyTo && c.replyTo.userName
-    ? `<span class="forum-comment-reply-to">@${c.replyTo.userName}</span> `
-    : "";
-  const nestedClass = depth > 0 ? " forum-comment-nested" : "";
   const user = currentUser || getUser();
+  const liked = c.likedBy && user && c.likedBy.some ? c.likedBy.some(id => String(id) === String(user._id || user.id)) : false;
+  const replyToHtml = c.replyTo && (c.replyTo.userName || c.replyTo.author)
+    ? `<span class="forum-comment-reply-to">@${c.replyTo.userName || c.replyTo.author}</span> `
+    : "";
+  const isNested = depth > 0;
+  const authorName = c.author || c.userName || "Anonymous";
+
+  const canDelete = user && (
+    String(c.userID || c.userId) === String(user._id || user.id) ||
+    user.role === "admin" ||
+    (c.userName && (c.userName === user.fullname || c.userName === user.username)) ||
+    (c.author && (c.author === user.fullname || c.author === user.username))
+  );
+
   return `
-    <div class="discussion-detail-comment${nestedClass}" data-comment-id="${cId}">
-      ${depth === 0 ? `<div class="forum-comment-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName || c.author)}</div>` : ""}
+    <div class="discussion-detail-comment ${isNested ? 'forum-comment-nested' : ''}" data-comment-id="${cId}">
+      <div class="forum-comment-avatar ${isNested ? 'forum-comment-nested-avatar' : ''}" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+        ${renderAvatar(c.avatar, authorName)}
+      </div>
       <div class="forum-comment-body">
         <div class="forum-comment-header">
-          ${depth > 0 ? `<div class="forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(c.avatar, c.userName || c.author)}</div>` : ""}
-          <span class="forum-comment-author">${c.author || c.userName}</span>
+          <span class="forum-comment-author">${authorName}</span>
+          <span class="forum-comment-dot">•</span>
           <span class="forum-comment-date">${timeAgo(c.createdAt || c.date)}</span>
         </div>
-        <p class="forum-comment-text">${replyToHtml}${c.content}</p>
+        <div class="forum-comment-content">
+          <p class="forum-comment-text">${replyToHtml}${c.content}</p>
+        </div>
         <div class="forum-comment-footer">
-          <button class="forum-comment-like-btn ${liked ? 'liked' : ''}" data-comment-id="${cId}">
+          <button type="button" class="forum-comment-like-btn ${liked ? 'liked' : ''}" data-comment-id="${cId}" title="Like">
             <span class="material-symbols-outlined text-xs">thumb_up</span>
             <span class="like-count">${c.likes || 0}</span>
           </button>
-          <button class="forum-comment-reply-btn" data-comment-id="${cId}" data-author="${c.author || c.userName}">
+          <button type="button" class="forum-comment-reply-btn" data-comment-id="${cId}" data-author="${authorName}" title="Reply">
             <span class="material-symbols-outlined text-xs">reply</span>
             <span>Reply</span>
           </button>
-          ${currentUser && (
-            String(c.userID || c.userId) === String(currentUser._id || currentUser.id) ||
-            currentUser.role === "admin" ||
-            (c.userName && (c.userName === currentUser.fullname || c.userName === currentUser.username)) ||
-            (c.author && (c.author === currentUser.fullname || c.author === currentUser.username))
-          ) ? `
-          <button class="forum-comment-delete-btn" data-comment-id="${cId}" title="Delete comment">
+          ${canDelete ? `
+          <button type="button" class="forum-comment-delete-btn" data-comment-id="${cId}" title="Delete comment">
             <span class="material-symbols-outlined text-xs">delete</span>
           </button>` : ""}
         </div>
-        ${depth === 0 && (repliesHtml || hiddenCount > 0) ? `
+
+        <div class="forum-comment-inline-reply" data-parent-id="${cId}" style="display:none;">
+          <div class="forum-comment-avatar forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+            ${renderAvatar(user?.avatar, user?.fullname || user?.username)}
+          </div>
+          <div class="forum-comment-inline-body">
+            <div class="flex items-center gap-1 text-[11px] text-slate-500 font-medium mb-1">
+              <span>Replying to</span>
+              <span class="text-primary font-bold">@${authorName}</span>
+            </div>
+            <input type="text" class="forum-comment-inline-input" placeholder="Write a reply... (Press Enter to post)" data-reply-to-id="${cId}" />
+            <div class="forum-comment-inline-actions">
+              <button type="button" class="forum-comment-inline-cancel">Cancel</button>
+              <button type="button" class="forum-comment-inline-submit">
+                <span class="material-symbols-outlined text-sm">send</span> Reply
+              </button>
+            </div>
+          </div>
+        </div>
+
+        ${!isNested && (repliesHtml || hiddenCount > 0) ? `
         <div class="forum-comment-replies">
           ${repliesHtml}
           ${hiddenCount > 0 ? `
           <div class="forum-comment-extra-replies" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,opacity 0.25s ease;">
             ${hiddenHtml}
           </div>
-          <button class="forum-comment-expand-btn" data-comment-id="${c.id}" data-hidden-count="${hiddenCount}">
+          <button type="button" class="forum-comment-expand-btn" data-comment-id="${cId}" data-hidden-count="${hiddenCount}">
             <span class="forum-comment-expand-text">View ${hiddenCount} more ${hiddenCount === 1 ? "reply" : "replies"}</span>
             <span class="forum-comment-expand-text-hide" style="display:none">Show less</span>
           </button>` : ""}
         </div>` : ""}
-        <div class="forum-comment-inline-reply" data-parent-id="${c.id}" style="display:none;">
-          <div class="forum-comment-inline-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">${renderAvatar(user?.avatar, user?.fullname || user?.username)}</div>
-          <div class="forum-comment-inline-body">
-            <input type="text" class="forum-comment-inline-input" placeholder="Write a reply..." />
-            <div class="forum-comment-inline-actions">
-              <button class="forum-comment-inline-cancel">Cancel</button>
-              <button class="forum-comment-inline-submit">Reply</button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   `;
@@ -1813,6 +1926,55 @@ async function renderUniGrid() {
       if (!confirm("Delete this university? This action cannot be undone.")) return;
       const ok = await deleteUni(id);
       if (ok) window.location.reload();
+    });
+  });
+}
+
+/* =============================
+   TOPIC GRID
+   ============================= */
+
+async function renderTopicGrid() {
+  const container = document.getElementById("forumTopicGrid");
+  if (!container) return;
+  const topics = await getSkillTopics();
+  const careerTopics = document.getElementById("careerTopics");
+  const category = getCategoryFromURL();
+  if (careerTopics && category === "skills") {
+    careerTopics.style.display = "";
+  }
+  if (!topics || topics.length === 0) {
+    container.innerHTML = `
+      <div class="forum-empty" style="grid-column:1/-1;">
+        <span class="material-symbols-outlined forum-empty-icon">school</span>
+        <p class="forum-empty-title">No skill topics yet</p>
+        <p class="forum-empty-desc">Skill discussion topics are being curated. Stay tuned!</p>
+      </div>
+    `;
+    return;
+  }
+  container.innerHTML = topics
+    .map(
+      (t) => `
+    <div class="forum-topic-card" data-topic="${t.name}" style="cursor:pointer;">
+      <div class="forum-topic-icon" style="background: ${t.color}15; color: ${t.color};">
+        <span class="material-symbols-outlined text-2xl">${t.icon}</span>
+      </div>
+      <div class="forum-topic-info">
+        <h3 class="forum-topic-name">${t.name}</h3>
+        <p class="forum-topic-desc">${t.description}</p>
+        <span class="forum-topic-count">${t.discussionCount} discussions</span>
+      </div>
+    </div>
+  `
+    )
+    .join("");
+
+  container.querySelectorAll(".forum-topic-card").forEach((card) => {
+    card.addEventListener("click", async () => {
+      const topic = card.dataset.topic;
+      if (!topic) return;
+      window.location.href = `./community.html?cat=skills&topic=${encodeURIComponent(topic)}`;
     });
   });
 }
@@ -2371,6 +2533,13 @@ function initPostModal() {
 
         const discId = result._id || result.id;
         showSuccessToast("Discussion posted successfully! Click here to view", discId ? `./community.html?discussion=${discId}` : null, "View Discussion");
+
+        if (!localStorage.getItem("springwave_has_posted_disc")) {
+          localStorage.setItem("springwave_has_posted_disc", "true");
+          setTimeout(() => {
+            triggerBadgeCelebration("so_it_begins");
+          }, 600);
+        }
 
         const uniId = communityId || document.querySelector(".forum-uni-join-btn.joined")?.closest(".forum-uni-card")?.dataset.uniId;
         if (uniId) {

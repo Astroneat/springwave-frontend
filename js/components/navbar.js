@@ -3,6 +3,7 @@ import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificat
 import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t, applyTranslation } from "../lib/i18n.js";
 import { initPageTransition } from "./pageLoader.js";
+import { initBadgeCelebration } from "./badgeCelebration.js";
 
 export function populateUserChip(user, activeSection) {
     if (!user) return;
@@ -227,6 +228,7 @@ export async function loadNavbar({ activeSection } = {}) {
     await initI18n();
     initLangSwitcher();
     initSlidingIndicator();
+    initBadgeCelebration();
 
     return document.getElementById("navbar");
 }
