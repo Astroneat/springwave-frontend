@@ -892,24 +892,8 @@ async function renderParticipatedEventsPanel() {
 
   const badgeStorageKey = `springwave_badges_${user?._id || 'guest'}`;
   const contribStorageKey = `springwave_contrib_${user?._id || 'guest'}`;
-  const stored = localStorage.getItem(badgeStorageKey);
-  const prevBadges = stored ? JSON.parse(stored) : [];
-  const newBadges = mergedBadges.filter(k => !prevBadges.includes(k));
   localStorage.setItem(badgeStorageKey, JSON.stringify(mergedBadges));
   localStorage.setItem(contribStorageKey, JSON.stringify(c));
-
-  if (newBadges.length > 0) {
-    setTimeout(() => {
-      // Trigger full celebration modal for the newest badge, and toast for remaining
-      triggerBadgeCelebration(newBadges[0], { isInspect: false });
-      if (newBadges.length > 1) {
-        newBadges.slice(1).forEach(key => {
-          const meta = ALL_BADGES.find(b => b.key === key);
-          if (meta) showBadgeToast(meta);
-        });
-      }
-    }, 600);
-  }
 
   const isHost = user && user.role === "host";
   const isAdmin = user && user.role === "admin";
