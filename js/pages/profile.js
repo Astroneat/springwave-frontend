@@ -1008,74 +1008,137 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
   const grid = document.getElementById("badges-grid");
   if (!grid) return;
 
-  grid.innerHTML = `
-    <div class="badges-all">
-      ${ALL_BADGES.map(b => {
-        const earned = earnedKeys.has(b.key);
-        const progress = getBadgeProgress(b.key, c, user, favoritesCount, participationsCount);
-        const { categoryKey, rarityKey } = getBadgeDetails(b);
+  const TIERS_CONFIG = [
+    {
+      key: "newbie",
+      tierNum: "Tier 1",
+      title: "Newbie (Common)",
+      desc: "Introductory onboarding milestones — Easiest to achieve",
+      icon: "waving_hand",
+      colorClass: "text-blue-700 bg-blue-50/70 border-blue-100",
+      accentBg: "bg-blue-600"
+    },
+    {
+      key: "explorer",
+      tierNum: "Tier 2",
+      title: "Activity Explorer (Uncommon)",
+      desc: "Early discovery through activities, favorites, and certificates",
+      icon: "explore",
+      colorClass: "text-emerald-700 bg-emerald-50/70 border-emerald-100",
+      accentBg: "bg-emerald-600"
+    },
+    {
+      key: "contributor",
+      tierNum: "Tier 3",
+      title: "Community Contributor (Rare)",
+      desc: "Active forum engagement, helpful replies, and event hosting",
+      icon: "forum",
+      colorClass: "text-purple-700 bg-purple-50/70 border-purple-100",
+      accentBg: "bg-purple-600"
+    },
+    {
+      key: "legendary",
+      tierNum: "Tier 4",
+      title: "Legendary (Epic / Master)",
+      desc: "Ultimate long-term platform achievements — Hardest to achieve",
+      icon: "stars",
+      colorClass: "text-amber-700 bg-amber-50/70 border-amber-100",
+      accentBg: "bg-amber-500"
+    }
+  ];
 
-        let progressHtml = "";
-        if (!earned && progress) {
-          const pct = Math.min(100, Math.round((progress.current / progress.target) * 100));
-          progressHtml = `
-            <div class="badge-progress-container">
-              <div class="badge-progress-info">
-                <span>${t("badges.status.progress")}</span>
-                <span>${progress.current} / ${progress.target}</span>
-              </div>
-              <div class="badge-progress-bar">
-                <div class="badge-progress-fill" style="transform: scaleX(${pct / 100});"></div>
-              </div>
+  grid.innerHTML = TIERS_CONFIG.map(tier => {
+    const tierBadges = ALL_BADGES.filter(b => b.tier === tier.key);
+    const tierEarnedCount = tierBadges.filter(b => earnedKeys.has(b.key)).length;
+
+    const cardsHtml = tierBadges.map(b => {
+      const earned = earnedKeys.has(b.key);
+      const progress = getBadgeProgress(b.key, c, user, favoritesCount, participationsCount);
+      const { categoryKey, rarityKey } = getBadgeDetails(b);
+
+      let progressHtml = "";
+      if (!earned && progress) {
+        const pct = Math.min(100, Math.round((progress.current / progress.target) * 100));
+        progressHtml = `
+          <div class="badge-progress-container">
+            <div class="badge-progress-info">
+              <span>${t("badges.status.progress")}</span>
+              <span>${progress.current} / ${progress.target}</span>
             </div>
-          `;
-        }
-
-        const label = t(`badges.list.${b.key}.label`);
-        const desc = t(`badges.list.${b.key}.desc`);
-        const category = t(`badges.categories.${categoryKey}`);
-        const rarity = t(`badges.rarity.${rarityKey}`);
-        const statusEarned = t("badges.status.earned");
-        const statusLocked = t("badges.status.locked");
-
-        const footerHtml = (!earned && progress) 
-          ? progressHtml 
-          : `<div class="badge-meta">
-               <span>${category}</span>
-               <span class="badge-meta-dot">●</span>
-               <span>${rarity}</span>
-             </div>`;
-
-        const statusHtml = `
-          <div class="badge-status-group">
-            <span class="badge-tier-pill">${rarity}</span>
-            <div class="badge-status ${earned ? "earned" : "locked"}">
-              <span class="material-symbols-outlined badge-status-icon">${earned ? "check" : "lock"}</span>
-              <span>${earned ? statusEarned : statusLocked}</span>
+            <div class="badge-progress-bar">
+              <div class="badge-progress-fill" style="transform: scaleX(${pct / 100});"></div>
             </div>
           </div>
         `;
+      }
 
-        return `
-          <div class="badge-card tier-${b.tier} ${earned ? "earned cursor-pointer hover:scale-[1.03] transition-transform" : "locked"}" data-badge-key="${b.key}" data-earned="${earned}">
-            <div class="badge-card-top">
-              <div class="badge-emblem ${earned ? "earned" : "locked"}">
-                <span class="material-symbols-outlined badge-icon">${b.icon}</span>
-              </div>
-              ${statusHtml}
-            </div>
-            
-            <div class="badge-info">
-              <h4 class="badge-label">${label}</h4>
-              <p class="badge-desc">${desc}</p>
-            </div>
-            
-            ${footerHtml}
+      const label = t(`badges.list.${b.key}.label`);
+      const desc = t(`badges.list.${b.key}.desc`);
+      const category = t(`badges.categories.${categoryKey}`);
+      const rarity = t(`badges.rarity.${rarityKey}`);
+      const statusEarned = t("badges.status.earned");
+      const statusLocked = t("badges.status.locked");
+
+      const footerHtml = (!earned && progress) 
+        ? progressHtml 
+        : `<div class="badge-meta">
+             <span>${category}</span>
+             <span class="badge-meta-dot">●</span>
+             <span>${rarity}</span>
+           </div>`;
+
+      const statusHtml = `
+        <div class="badge-status-group">
+          <span class="badge-tier-pill">${rarity}</span>
+          <div class="badge-status ${earned ? "earned" : "locked"}">
+            <span class="material-symbols-outlined badge-status-icon">${earned ? "check" : "lock"}</span>
+            <span>${earned ? statusEarned : statusLocked}</span>
           </div>
-        `;
-      }).join("")}
-    </div>
-  `;
+        </div>
+      `;
+
+      return `
+        <div class="badge-card tier-${b.tier} ${earned ? "earned cursor-pointer hover:scale-[1.03] transition-transform" : "locked"}" data-badge-key="${b.key}" data-earned="${earned}">
+          <div class="badge-card-top">
+            <div class="badge-emblem ${earned ? "earned" : "locked"}">
+              <span class="material-symbols-outlined badge-icon">${b.icon}</span>
+            </div>
+            ${statusHtml}
+          </div>
+          
+          <div class="badge-info">
+            <h4 class="badge-label">${label}</h4>
+            <p class="badge-desc">${desc}</p>
+          </div>
+          
+          ${footerHtml}
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="badge-tier-group mb-8 last:mb-2">
+        <div class="flex items-center justify-between p-3.5 mb-4 rounded-xl border ${tier.colorClass}">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-xl">${tier.icon}</span>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${tier.accentBg} text-white">${tier.tierNum}</span>
+                <h3 class="font-bold text-sm text-gray-900">${tier.title}</h3>
+              </div>
+              <p class="text-xs text-gray-500 mt-0.5">${tier.desc}</p>
+            </div>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-lg bg-white/90 border border-gray-200/60 text-gray-700 shadow-2xs">
+            ${tierEarnedCount} / ${tierBadges.length} ${t("badges.status.earned", "Unlocked")}
+          </span>
+        </div>
+        <div class="badges-all">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+  }).join("");
 
   // Attach interactive click listener
   grid.querySelectorAll(".badge-card[data-badge-key]").forEach(card => {
