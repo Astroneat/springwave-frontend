@@ -48,6 +48,7 @@ import { getCurrentUser } from "../api/auth.js";
 import { addBadgeNotification } from "../lib/notifications.js";
 import { getPublicOrganizations, toggleFollowOrganization, getOrganizationPublicEvents, getMyOrganizations } from "../api/organizations.js";
 import { CDN_DOMAIN } from "../config.js";
+import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 
 const CATEGORIES = {
   all:     { label: () => t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
@@ -1122,6 +1123,13 @@ async function postCommentOrReply({ discussionId, text, replyToId, container, in
       const newCommentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${newComment.id || newComment._id}"]`);
       if (newCommentEl) {
         newCommentEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      if (!localStorage.getItem("springwave_has_posted_reply")) {
+        localStorage.setItem("springwave_has_posted_reply", "true");
+        setTimeout(() => {
+          triggerBadgeCelebration("talk_is_silver");
+        }, 600);
       }
     }
   } catch (err) {
@@ -2420,6 +2428,13 @@ function initPostModal() {
 
         const discId = result._id || result.id;
         showSuccessToast("Discussion posted successfully! Click here to view", discId ? `./community.html?discussion=${discId}` : null, "View Discussion");
+
+        if (!localStorage.getItem("springwave_has_posted_disc")) {
+          localStorage.setItem("springwave_has_posted_disc", "true");
+          setTimeout(() => {
+            triggerBadgeCelebration("so_it_begins");
+          }, 600);
+        }
 
         const uniId = communityId || document.querySelector(".forum-uni-join-btn.joined")?.closest(".forum-uni-card")?.dataset.uniId;
         if (uniId) {

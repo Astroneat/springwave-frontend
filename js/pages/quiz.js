@@ -5,6 +5,7 @@ import { fetchContent } from "../lib/utils.js";
 import { submitSurvey, getSurveyQuestions, getSurveyResult } from "../api/survey.js";
 import { initI18n, getLang, setLang, t, applyTranslation } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
+import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 
 const HARDCODED_QUESTIONS = [
   {
@@ -754,4 +755,10 @@ function renderResults(personaKey, clientEval) {
     lastResultData = null;
     showScreen("quizStart");
   });
+
+  // Trigger Achievement Celebration with Graffiti & Confetti FX
+  setTimeout(() => {
+    triggerBadgeCelebration("self_discovery");
+  }, 450);
 }
+

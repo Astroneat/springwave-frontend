@@ -18,6 +18,7 @@ import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { t } from "../lib/i18n.js";
 import { populateUniversitySelect } from "../api/universities.js";
+import { triggerBadgeCelebration, BADGE_DEFINITIONS } from "../components/badgeCelebration.js";
 
 const popupOverlay = document.getElementById("popup-overlay");
 const popupContainer = document.getElementById("popup-container");
@@ -800,11 +801,15 @@ async function renderParticipatedEventsPanel() {
 
   if (newBadges.length > 0) {
     setTimeout(() => {
-      newBadges.forEach(key => {
-        const meta = ALL_BADGES.find(b => b.key === key);
-        if (meta) showBadgeToast(meta);
-      });
-    }, 800);
+      // Trigger full celebration modal for the newest badge, and toast for remaining
+      triggerBadgeCelebration(newBadges[0], { isInspect: false });
+      if (newBadges.length > 1) {
+        newBadges.slice(1).forEach(key => {
+          const meta = ALL_BADGES.find(b => b.key === key);
+          if (meta) showBadgeToast(meta);
+        });
+      }
+    }, 600);
   }
 
   const { level, current, next, progress } = calcContribLevel(c.score);
@@ -919,7 +924,7 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
         `;
 
         return `
-          <div class="badge-card tier-${b.tier} ${earned ? "earned" : "locked"}">
+          <div class="badge-card tier-${b.tier} ${earned ? "earned cursor-pointer hover:scale-[1.03] transition-transform" : "locked"}" data-badge-key="${b.key}" data-earned="${earned}">
             <div class="badge-card-top">
               <div class="badge-emblem ${earned ? "earned" : "locked"}">
                 <span class="material-symbols-outlined badge-icon">${b.icon}</span>
@@ -938,6 +943,17 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
       }).join("")}
     </div>
   `;
+
+  // Attach interactive click listener
+  grid.querySelectorAll(".badge-card[data-badge-key]").forEach(card => {
+    card.addEventListener("click", () => {
+      const key = card.dataset.badgeKey;
+      const isEarned = card.dataset.earned === "true";
+      if (isEarned) {
+        triggerBadgeCelebration(key, { isInspect: true });
+      }
+    });
+  });
 }
 
 function showBadgeToast(badge) {
