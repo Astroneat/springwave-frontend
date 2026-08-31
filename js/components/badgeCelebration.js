@@ -539,6 +539,9 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
 
   const tierMeta = TIER_COLORS[badge.tier] || TIER_COLORS.newbie;
   const isInspect = options.isInspect || false;
+  const isProfilePage = window.location.pathname.includes("profile.html") || 
+                        window.location.pathname.endsWith("/profile") || 
+                        document.getElementById("badges-section") !== null;
 
   // Remove any existing celebration modal
   const existing = document.getElementById("badge-celebration-modal");
@@ -619,10 +622,12 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
           <span class="material-symbols-outlined text-sm">celebration</span>
           <span>Replay FX</span>
         </button>
-        <a href="/profile.html#badges-section" class="badge-modal-btn primary-btn tier-${badge.tier}" id="badge-view-profile-btn">
+        ${!isProfilePage ? `
+        <a href="/profile.html#badge-${badge.key}" class="badge-modal-btn primary-btn tier-${badge.tier}" id="badge-view-profile-btn">
           <span>View in Profile</span>
           <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </a>
+        ` : ""}
       </div>
     </div>
   `;

@@ -147,13 +147,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Check hash for badges redirection scroll
-    if (window.location.hash === "#badges-section") {
-        setTimeout(() => {
-            const el = document.getElementById("badges-section");
-            if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
+    function scrollToBadgeTarget() {
+        const hash = window.location.hash;
+        if (!hash || (!hash.startsWith("#badge-") && hash !== "#badges-section")) return;
+
+        let targetEl = null;
+        if (hash.startsWith("#badge-")) {
+            const key = hash.replace("#badge-", "");
+            targetEl = document.querySelector(`.badge-card[data-badge-key="${key}"]`);
+        }
+        if (!targetEl) {
+            targetEl = document.getElementById("badges-section");
+        }
+        if (targetEl) {
+            targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (targetEl.classList.contains("badge-card")) {
+                targetEl.classList.add("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]", "transition-all", "duration-500");
+                setTimeout(() => {
+                    targetEl.classList.remove("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]");
+                }, 3000);
             }
-        }, 100);
+        }
+    }
+
+    if (window.location.hash.includes("badge")) {
+        setTimeout(scrollToBadgeTarget, 200);
+        setTimeout(scrollToBadgeTarget, 600); // Secondary fallback after dynamic badges load
     }
 
     // 🚀 2. Parallel background sync for live fresh data
