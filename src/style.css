@@ -18437,3 +18437,20 @@ body {
   background: #134496 !important;
 }
 
+.badge-modal-card.tier-legendary {
+  box-shadow: 0 25px 60px -12px rgba(217, 119, 6, 0.35), 0 0 0 2px #fde68a !important;
+}
+
+.badge-modal-card.tier-contributor {
+  box-shadow: 0 25px 60px -12px rgba(124, 58, 237, 0.25), 0 0 0 2px #ddd6fe !important;
+}
+
+.badge-modal-card.tier-explorer {
+  box-shadow: 0 25px 60px -12px rgba(5, 150, 105, 0.25), 0 0 0 2px #a7f3d0 !important;
+}
+
+.badge-modal-card.tier-newbie {
+  box-shadow: 0 25px 60px -12px rgba(23, 85, 186, 0.25), 0 0 0 2px #bfdbfe !important;
+}
+
+

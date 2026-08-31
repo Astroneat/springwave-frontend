@@ -81,7 +81,7 @@ const TIER_COLORS = {
 };
 
 /**
- * Plays a lightweight melodic chime using the Web Audio API (Zero audio file downloads needed)
+ * Plays distinct synthesized melodies and waveforms tailored to each badge tier
  */
 function playCelebrationChime(tier = "newbie") {
   try {
@@ -90,38 +90,132 @@ function playCelebrationChime(tier = "newbie") {
     const ctx = new AudioCtx();
     const now = ctx.currentTime;
 
-    const notes = tier === "legendary" 
-      ? [523.25, 659.25, 783.99, 1046.50] // C5, E5, G5, C6 triumph
-      : [440.00, 554.37, 659.25, 880.00]; // A4, C#5, E5, A5 chime
+    if (tier === "legendary") {
+      // 👑 Legendary: 6-note Royal Fanfare with harmonic overtones
+      const notes = [261.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // C4 -> G4 -> C5 -> E5 -> G5 -> C6
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const oscHarmonic = ctx.createOscillator();
+        const gain = ctx.createGain();
 
-    notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now + i * 0.08);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now + i * 0.09);
 
-      gain.gain.setValueAtTime(0, now + i * 0.08);
-      gain.gain.linearRampToValueAtTime(0.12, now + i * 0.08 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.6);
+        oscHarmonic.type = "triangle";
+        oscHarmonic.frequency.setValueAtTime(freq * 2, now + i * 0.09);
 
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0, now + i * 0.09);
+        gain.gain.linearRampToValueAtTime(0.18, now + i * 0.09 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.09 + 0.85);
 
-      osc.start(now + i * 0.08);
-      osc.stop(now + i * 0.08 + 0.65);
-    });
+        osc.connect(gain);
+        oscHarmonic.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + i * 0.09);
+        oscHarmonic.start(now + i * 0.09);
+        osc.stop(now + i * 0.09 + 0.9);
+        oscHarmonic.stop(now + i * 0.09 + 0.9);
+      });
+    } else if (tier === "contributor") {
+      // 🔮 Contributor (Rare): 4-note Harmonic Arpeggio
+      const notes = [349.23, 440.00, 523.25, 698.46]; // F4 -> A4 -> C5 -> F5
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, now + i * 0.08);
+
+        gain.gain.setValueAtTime(0, now + i * 0.08);
+        gain.gain.linearRampToValueAtTime(0.14, now + i * 0.08 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.6);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + i * 0.08);
+        osc.stop(now + i * 0.08 + 0.65);
+      });
+    } else if (tier === "explorer") {
+      // 🌿 Explorer (Uncommon): 3-note Ascending Nature Chime
+      const notes = [440.00, 554.37, 659.25]; // A4 -> C#5 -> E5
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now + i * 0.08);
+
+        gain.gain.setValueAtTime(0, now + i * 0.08);
+        gain.gain.linearRampToValueAtTime(0.12, now + i * 0.08 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.45);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + i * 0.08);
+        osc.stop(now + i * 0.08 + 0.5);
+      });
+    } else {
+      // 🔹 Newbie (Common): 2-note Crisp Double-Ping
+      const notes = [523.25, 659.25]; // C5 -> E5
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now + i * 0.09);
+
+        gain.gain.setValueAtTime(0, now + i * 0.09);
+        gain.gain.linearRampToValueAtTime(0.10, now + i * 0.09 + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.09 + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + i * 0.09);
+        osc.stop(now + i * 0.09 + 0.4);
+      });
+    }
 
     setTimeout(() => {
       if (ctx.state !== "closed") ctx.close();
-    }, 1500);
+    }, 1800);
   } catch (e) {
     // Audio autoplay restrictions are safe to ignore silently
   }
 }
 
 /**
- * Ephemeral HTML5 Canvas Particle Explosion (Destroys itself after 1.8 seconds)
+ * Helper to draw a 5-pointed star on canvas
+ */
+function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+  let rot = (Math.PI / 2) * 3;
+  let x = cx;
+  let y = cy;
+  let step = Math.PI / spikes;
+
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - outerRadius);
+  for (let i = 0; i < spikes; i++) {
+    x = cx + Math.cos(rot) * outerRadius;
+    y = cy + Math.sin(rot) * outerRadius;
+    ctx.lineTo(x, y);
+    rot += step;
+
+    x = cx + Math.cos(rot) * innerRadius;
+    y = cy + Math.sin(rot) * innerRadius;
+    ctx.lineTo(x, y);
+    rot += step;
+  }
+  ctx.lineTo(cx, cy - outerRadius);
+  ctx.closePath();
+  ctx.fill();
+}
+
+/**
+ * Ephemeral HTML5 Canvas Particle Explosion with tier-specific dynamics
  */
 export function launchConfettiBurst(tier = "newbie") {
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -142,26 +236,58 @@ export function launchConfettiBurst(tier = "newbie") {
   ctx.scale(dpr, dpr);
 
   const palette = (TIER_COLORS[tier] || TIER_COLORS.newbie).palette;
-  const particleCount = tier === "legendary" ? 80 : 55;
-  const particles = [];
+  
+  // Tier-specific particle counts and velocities
+  let particleCount = 45;
+  let speedMultiplier = 1;
+  let gravity = 0.22;
 
+  if (tier === "legendary") {
+    particleCount = 110;
+    speedMultiplier = 1.45;
+    gravity = 0.18;
+  } else if (tier === "contributor") {
+    particleCount = 75;
+    speedMultiplier = 1.2;
+    gravity = 0.20;
+  } else if (tier === "explorer") {
+    particleCount = 60;
+    speedMultiplier = 1.1;
+    gravity = 0.22;
+  }
+
+  const particles = [];
   const originX = width / 2;
   const originY = height / 2 - 40;
 
   for (let i = 0; i < particleCount; i++) {
     const angle = (Math.random() * Math.PI * 2);
-    const speed = Math.random() * 9 + 4;
+    const speed = (Math.random() * 9 + 4) * speedMultiplier;
+    
+    // Choose shape based on tier
+    let shape = "rect";
+    const rand = Math.random();
+    if (tier === "legendary") {
+      shape = rand > 0.6 ? "star" : (rand > 0.3 ? "rect" : "circle");
+    } else if (tier === "contributor") {
+      shape = rand > 0.5 ? "circle" : "rect";
+    } else if (tier === "explorer") {
+      shape = rand > 0.4 ? "rect" : "circle";
+    } else {
+      shape = rand > 0.5 ? "circle" : "rect";
+    }
+
     particles.push({
       x: originX,
       y: originY,
       vx: Math.cos(angle) * speed * (Math.random() * 1.5 + 0.5),
-      vy: Math.sin(angle) * speed * (Math.random() * 1.5 + 0.5) - 3,
-      size: Math.random() * 8 + 4,
+      vy: Math.sin(angle) * speed * (Math.random() * 1.5 + 0.5) - (tier === "legendary" ? 4.5 : 3),
+      size: (Math.random() * 8 + 4) * (tier === "legendary" ? 1.2 : 1),
       color: palette[Math.floor(Math.random() * palette.length)],
-      shape: Math.random() > 0.4 ? "rect" : "circle",
+      shape,
       rotation: Math.random() * 360,
-      rotSpeed: (Math.random() - 0.5) * 12,
-      gravity: 0.22,
+      rotSpeed: (Math.random() - 0.5) * 14,
+      gravity,
       drag: 0.965,
       alpha: 1
     });
@@ -169,7 +295,7 @@ export function launchConfettiBurst(tier = "newbie") {
 
   let animationFrameId;
   const startTime = performance.now();
-  const DURATION_MS = 1800;
+  const DURATION_MS = tier === "legendary" ? 2200 : 1800;
 
   function render(time) {
     const elapsed = time - startTime;
@@ -193,7 +319,9 @@ export function launchConfettiBurst(tier = "newbie") {
         ctx.translate(p.x, p.y);
         ctx.rotate((p.rotation * Math.PI) / 180);
 
-        if (p.shape === "rect") {
+        if (p.shape === "star") {
+          drawStar(ctx, 0, 0, 5, p.size, p.size / 2);
+        } else if (p.shape === "rect") {
           ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
         } else {
           ctx.beginPath();
