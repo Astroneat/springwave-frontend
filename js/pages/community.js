@@ -513,23 +513,38 @@ function initFeedTabs() {
 function initForumSidebarToggle() {
   const toggleBtns = document.querySelectorAll(".forum-mobile-filter-btn");
   const sidebar = document.getElementById("forumSidebar");
+  const closeSidebar = () => {
+    sidebar?.classList.remove("open");
+    document.body.style.overflow = "";
+  };
+
   if (sidebar && toggleBtns.length > 0) {
     toggleBtns.forEach(toggle => {
       toggle.addEventListener("click", () => {
-        sidebar.classList.toggle("open");
+        const isOpen = sidebar.classList.toggle("open");
+        document.body.style.overflow = isOpen ? "hidden" : "";
       });
     });
-    document.addEventListener("click", (e) => {
-      const clickedToggle = Array.from(toggleBtns).some(btn => btn === e.target || btn.contains(e.target));
-      if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !clickedToggle) {
-        sidebar.classList.remove("open");
+    sidebar.addEventListener("click", (e) => {
+      if (e.target === sidebar) {
+        closeSidebar();
       }
     });
   }
+
   const closeBtn = document.getElementById("forumSidebarToggle");
   if (closeBtn) {
-    closeBtn.addEventListener("click", () => sidebar.classList.remove("open"));
+    closeBtn.addEventListener("click", closeSidebar);
   }
+
+  const closeIcon = document.getElementById("forumSidebarCloseIcon");
+  if (closeIcon) {
+    closeIcon.addEventListener("click", closeSidebar);
+  }
+
+  document.querySelectorAll(".forum-category-item").forEach((link) => {
+    link.addEventListener("click", closeSidebar);
+  });
 }
 
 let _popularRenderSeq = 0;

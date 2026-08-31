@@ -17,6 +17,7 @@ export async function initI18n() {
     console.error("i18n init error:", e);
   }
   applyTranslation();
+  window.dispatchEvent(new CustomEvent("language-changed", { detail: { lang: currentLang } }));
   return currentLang;
 }
 

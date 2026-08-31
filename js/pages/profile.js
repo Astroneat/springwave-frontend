@@ -112,7 +112,7 @@ function renderCachedProfileAndBadges() {
     if (scoreTarget) scoreTarget.textContent = nextLabel;
     if (statDiscussions) statDiscussions.textContent = cachedContrib.discussionsStarted || 0;
     if (statCertificates) statCertificates.textContent = cachedContrib.certificatesEarned || 0;
-
+    badgeRenderData = { earnedKeys, c: cachedContrib, user, favoritesCount: 0, participationsCount: 0 };
     renderBadgesPanel(earnedKeys, cachedContrib, user, 0, 0);
 }
 
@@ -684,40 +684,7 @@ async function renderAIProfile() {
   }
 }
 
-const ALL_BADGES = [
-  // ── Newbie Tier ──
-  { key: "hello_world",        icon: "gesture",         tier: "newbie" },
-  { key: "talk_is_silver",     icon: "comment",         tier: "newbie" },
-  { key: "so_it_begins",       icon: "rocket_launch",   tier: "newbie" },
-  { key: "self_discovery",     icon: "psychology",      tier: "newbie" },
-
-  // ── Activity Explorer Tier ──
-  { key: "active_explorer",    label: "Active Explorer",    icon: "explore",         desc: "Favourited 5 activities — \"Always hunting for the next big student event.\"", tier: "explorer" },
-  { key: "event_goer",         label: "Event Goer",         icon: "event_available", desc: "Participated in 1 activity — \"Made it to an event. Real world interaction unlocked!\"", tier: "explorer" },
-  { key: "rising_host",        label: "Rising Host",        icon: "campaign",        desc: "Hosted your first activity — \"Welcoming students, organizing schedules.\"", tier: "explorer" },
-  { key: "grand_host",         label: "Grand Host",         icon: "co_present",      desc: "Hosted 5 activities — \"A pillar of student life. You build communities.\"", tier: "explorer" },
-
-  // ── Community Contributor ──
-  { key: "conversation_starter", label: "Conversation Starter", icon: "chat",       desc: "Started 5 discussions — \"You're basically a talk show host now.\"", tier: "contributor" },
-  { key: "helper",               label: "Helper",                icon: "forum",      desc: "Wrote 10 replies — \"Your keyboard should be a registered charity.\"", tier: "contributor" },
-  { key: "chatterbox",           label: "Chatterbox",            icon: "speaker_notes", desc: "Wrote 50 replies — \"Do you ever sleep? Do you ever stop typing?\"", tier: "contributor" },
-  { key: "respected",            label: "Respected",             icon: "thumb_up",   desc: "Received 20 likes — \"People approve of your existence. Digitally, at least.\"", tier: "contributor" },
-
-  // ── Legendary ──
-  { key: "the_oracle",         label: "The Oracle",          icon: "auto_awesome",   desc: "Received 50 likes — \"You don't give advice. You drop prophecies.\"", tier: "legendary" },
-  { key: "trendsetter",        label: "Trendsetter",         icon: "waves",          desc: "Started 20 discussions — \"You're not following trends. You're creating them.\"", tier: "legendary" },
-  { key: "community_star",     label: "Community Star",      icon: "stars",          desc: "Reached 100 contribution score — \"You're basically the main character now.\"", tier: "legendary" },
-  { key: "keyboard_warrior",   label: "Keyboard Warrior",    icon: "keyboard",       desc: "Wrote 100 replies — \"Your keyboard has seen things. Horrible, wonderful things.\"", tier: "legendary" },
-  { key: "mentor",             label: "Mentor",              icon: "school",         desc: "Reached Level 5 — \"You have ascended. Use your power wisely.\"", tier: "legendary" },
-  { key: "the_sage",           label: "The Sage",            icon: "emoji_objects",  desc: "Reached Level 6 — \"You are the final boss of this community.\"", tier: "legendary" },
-  { key: "one_man_show",       label: "One-Man Show",        icon: "theater_comedy", desc: "10x more replies than discussions started — \"Ever considered podcasting?\"", tier: "legendary" },
-  { key: "quality_over_quantity", label: "Quality > Quantity", icon: "target",       desc: "Started ≤ 3 discussions yet each got 5+ likes — \"You barely speak, but when you do, people listen.\"", tier: "legendary" },
-
-  // ── Knowledge Category (Certificates) ──
-  { key: "certified_novice",    label: "Certified Novice",    icon: "card_membership", desc: "Earned 1 certificate — \"First milestone down. The path of wisdom opens.\"", tier: "explorer" },
-  { key: "certified_expert",    label: "Certified Expert",    icon: "workspace_premium", desc: "Earned 5 certificates — \"A certified scholar. Your knowledge base grows deeper.\"", tier: "contributor" },
-  { key: "certified_master",    label: "Certified Master",    icon: "military_tech",  desc: "Earned 10 certificates — \"Ultimate scholar status. Academic brilliance unlocked!\"", tier: "legendary" },
-];
+const ALL_BADGES = BADGE_DEFINITIONS;
 
 function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
   switch (key) {
@@ -1040,13 +1007,14 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
       const progress = getBadgeProgress(b.key, c, user, favoritesCount, participationsCount);
       const { categoryKey, rarityKey } = getBadgeDetails(b);
 
+      const statusProgress = t("badges.status.progress", "Progress");
       let progressHtml = "";
       if (!earned && progress) {
         const pct = Math.min(100, Math.round((progress.current / progress.target) * 100));
         progressHtml = `
           <div class="badge-progress-container">
             <div class="badge-progress-info">
-              <span>${t("badges.status.progress")}</span>
+              <span>${statusProgress}</span>
               <span>${progress.current} / ${progress.target}</span>
             </div>
             <div class="badge-progress-bar">
@@ -1056,12 +1024,13 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
         `;
       }
 
-      const label = t(`badges.list.${b.key}.label`);
-      const desc = t(`badges.list.${b.key}.desc`);
-      const category = t(`badges.categories.${categoryKey}`);
-      const rarity = t(`badges.rarity.${rarityKey}`);
-      const statusEarned = t("badges.status.earned");
-      const statusLocked = t("badges.status.locked");
+      const def = BADGE_DEFINITIONS.find(item => item.key === b.key) || b;
+      const label = t(`badges.list.${b.key}.label`, def.label || b.label || b.key);
+      const desc = t(`badges.list.${b.key}.desc`, def.desc || b.desc || "");
+      const category = t(`badges.categories.${categoryKey}`, def.category || capitalize(categoryKey));
+      const rarity = t(`badges.rarity.${rarityKey}`, capitalize(rarityKey));
+      const statusEarned = t("badges.status.earned", "Earned");
+      const statusLocked = t("badges.status.locked", "Locked");
 
       const footerHtml = (!earned && progress) 
         ? progressHtml 

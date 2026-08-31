@@ -27,7 +27,13 @@
     <aside class="forum-sidebar-left" id="forumSidebar">
       <div class="forum-sidebar-left-inner">
         <div class="forum-sidebar-section">
-          <h3 class="forum-sidebar-title" data-i18n="community.categories">Categories</h3>
+          <div class="flex items-center justify-between mb-3 lg:hidden">
+            <h3 class="forum-sidebar-title !mb-0" data-i18n="community.categories">Categories</h3>
+            <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 border-none bg-transparent cursor-pointer" id="forumSidebarCloseIcon" aria-label="Close sidebar">
+              <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+          </div>
+          <h3 class="forum-sidebar-title hidden lg:block" data-i18n="community.categories">Categories</h3>
           <nav class="forum-category-list" id="categoryList">
             <a class="forum-category-item" href="./community.html" data-i18n="community.all_discussions">
               <span class="material-symbols-outlined forum-category-icon">forum</span>
