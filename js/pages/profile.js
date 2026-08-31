@@ -34,19 +34,93 @@ function closePopup() {
     }, 300);
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+function renderCachedProfileAndBadges() {
+    const user = getUser();
+    if (!user) return;
+
+    currentUser = user;
+
+    const nameEl = document.getElementById("profile-name");
+    if (nameEl) nameEl.textContent = user.username || user.fullname || "";
+    const emailEl = document.getElementById("profile-email");
+    if (emailEl) emailEl.textContent = user.email || "-";
+    const phoneEl = document.getElementById("profile-phone");
+    if (phoneEl) phoneEl.textContent = user.phoneNo || "-";
+    const usernameEl = document.getElementById("profile-username");
+    if (usernameEl) usernameEl.textContent = user.fullname || "-";
+
+    if (user.dob) {
+        const dobEl = document.getElementById("profile-dob");
+        if (dobEl) dobEl.textContent = formatDate(user.dob, false);
+    }
+
+    if (user.school) {
+        const schoolEl = document.getElementById("profile-school");
+        if (schoolEl) schoolEl.textContent = user.school;
+    }
+
+    const roleMap = { student: t("user.student", "Student"), host: t("user.host", "Host"), admin: t("user.admin", "Admin") };
+    const roleEl = document.getElementById("profile-role");
+    if (roleEl) roleEl.textContent = roleMap[user.role] || "Student";
+
+    const initial = (user.username || user.fullname || "?").charAt(0).toUpperCase();
+    const avatarImg = document.getElementById("avatar-image");
+    const avatarInitial = document.getElementById("avatar-initial");
+    if (user.avatar && avatarImg) {
+        avatarImg.src = user.avatar;
+        avatarImg.style.display = "";
+        if (avatarInitial) avatarInitial.style.display = "none";
+    } else {
+        if (avatarImg) avatarImg.style.display = "none";
+        if (avatarInitial) {
+            avatarInitial.textContent = initial;
+            avatarInitial.style.display = "";
+        }
+    }
+
+    // Immediately populate Badges and Contribute Score from localStorage
+    const badgeStorageKey = `springwave_badges_${user._id || 'guest'}`;
+    const contribStorageKey = `springwave_contrib_${user._id || 'guest'}`;
+    
+    const storedBadges = localStorage.getItem(badgeStorageKey);
+    const earnedKeys = new Set(storedBadges ? JSON.parse(storedBadges) : ["hello_world"]);
+
+    let cachedContrib = { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] };
+    try {
+        const savedContrib = localStorage.getItem(contribStorageKey);
+        if (savedContrib) cachedContrib = JSON.parse(savedContrib);
+    } catch {}
+
+    const { level, current, next, progress } = calcContribLevel(cachedContrib.score || 0);
+    const pct = Math.round(progress * 100);
+    const nextLabel = next !== null ? `${current} / ${next} pts` : `${cachedContrib.score || 0} pts (Max)`;
+
+    const scoreVal = document.getElementById("contribute-score-val");
+    const levelEl = document.getElementById("contribute-level");
+    const progressBar = document.getElementById("contribute-progress-bar");
+    const scoreTarget = document.getElementById("contribute-score-target");
+    const statDiscussions = document.getElementById("stat-discussions");
+    const statCertificates = document.getElementById("stat-certificates");
+
+    if (scoreVal) scoreVal.textContent = `${cachedContrib.score || 0} pts`;
+    if (levelEl) levelEl.textContent = `Lv.${level}`;
+    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (scoreTarget) scoreTarget.textContent = nextLabel;
+    if (statDiscussions) statDiscussions.textContent = cachedContrib.discussionsStarted || 0;
+    if (statCertificates) statCertificates.textContent = cachedContrib.certificatesEarned || 0;
+
+    renderBadgesPanel(earnedKeys, cachedContrib, user, 0, 0);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
     if (!isAuthenticated()) {
         window.location.href = "/login.html";
         return;
     }
 
-    await loadNavbar();
-    await loadFooter();
-    await initChatbot();
-    await loadUserProfile();
-    await renderRoadmapSection();
-    await renderParticipatedEventsPanel();
-    await renderAIProfile();
+    // ⚡ 1. Render immediate cached state in 0ms (Zero delay!)
+    renderCachedProfileAndBadges();
+
     initEditProfile();
     initChangePasswordModal();
     initChangeEmailModal();
@@ -62,8 +136,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (el) {
                 el.scrollIntoView({ behavior: "smooth", block: "start" });
             }
-        }, 150);
+        }, 100);
     }
+
+    // 🚀 2. Parallel background sync for live fresh data
+    Promise.allSettled([
+        loadNavbar(),
+        loadFooter(),
+        initChatbot(),
+        loadUserProfile(),
+        renderRoadmapSection(),
+        renderParticipatedEventsPanel(),
+        renderAIProfile()
+    ]);
 });
 
 async function loadNavbar() {
@@ -583,38 +668,36 @@ async function renderAIProfile() {
 }
 
 const ALL_BADGES = [
-  // ── Newbie Tier ──
+  // ── Tier 1: Newbie (Common / Introductory) ──
   { key: "hello_world",        label: "Hello World",        icon: "gesture",         desc: "Created your account — \"You exist. That's the first step.\"", tier: "newbie" },
+  { key: "self_discovery",     label: "Self-Discovery",     icon: "psychology",      desc: "Completed the personality quiz — \"You stared into the quiz, and the quiz stared back.\"", tier: "newbie" },
   { key: "talk_is_silver",     label: "Talk is Silver",     icon: "comment",         desc: "Wrote your first reply — \"You said something. The internet is proud.\"", tier: "newbie" },
   { key: "so_it_begins",       label: "So It Begins",       icon: "rocket_launch",   desc: "Started your first discussion — \"Another thread joins the infinite void.\"", tier: "newbie" },
-  { key: "self_discovery",     label: "Self-Discovery",     icon: "psychology",      desc: "Completed the personality quiz — \"You stared into the quiz, and the quiz stared back.\"", tier: "newbie" },
 
-  // ── Activity Explorer Tier ──
+  // ── Tier 2: Activity Explorer (Uncommon / Early Progression) ──
   { key: "active_explorer",    label: "Active Explorer",    icon: "explore",         desc: "Favourited 5 activities — \"Always hunting for the next big student event.\"", tier: "explorer" },
   { key: "event_goer",         label: "Event Goer",         icon: "event_available", desc: "Participated in 1 activity — \"Made it to an event. Real world interaction unlocked!\"", tier: "explorer" },
+  { key: "certified_novice",    label: "Certified Novice",    icon: "card_membership", desc: "Earned 1 certificate — \"First milestone down. The path of wisdom opens.\"", tier: "explorer" },
   { key: "rising_host",        label: "Rising Host",        icon: "campaign",        desc: "Hosted your first activity — \"Welcoming students, organizing schedules.\"", tier: "explorer" },
-  { key: "grand_host",         label: "Grand Host",         icon: "co_present",      desc: "Hosted 5 activities — \"A pillar of student life. You build communities.\"", tier: "explorer" },
 
-  // ── Community Contributor ──
+  // ── Tier 3: Community Contributor (Rare / Active Platform Member) ──
   { key: "conversation_starter", label: "Conversation Starter", icon: "chat",       desc: "Started 5 discussions — \"You're basically a talk show host now.\"", tier: "contributor" },
   { key: "helper",               label: "Helper",                icon: "forum",      desc: "Wrote 10 replies — \"Your keyboard should be a registered charity.\"", tier: "contributor" },
   { key: "chatterbox",           label: "Chatterbox",            icon: "speaker_notes", desc: "Wrote 50 replies — \"Do you ever sleep? Do you ever stop typing?\"", tier: "contributor" },
   { key: "respected",            label: "Respected",             icon: "thumb_up",   desc: "Received 20 likes — \"People approve of your existence. Digitally, at least.\"", tier: "contributor" },
+  { key: "certified_expert",    label: "Certified Expert",    icon: "workspace_premium", desc: "Earned 5 certificates — \"A certified scholar. Your knowledge base grows deeper.\"", tier: "contributor" },
+  { key: "grand_host",         label: "Grand Host",         icon: "co_present",      desc: "Hosted 5 activities — \"A pillar of student life. You build communities.\"", tier: "contributor" },
 
-  // ── Legendary ──
+  // ── Tier 4: Legendary (Epic / Ultimate Platform Milestones) ──
   { key: "the_oracle",         label: "The Oracle",          icon: "auto_awesome",   desc: "Received 50 likes — \"You don't give advice. You drop prophecies.\"", tier: "legendary" },
   { key: "trendsetter",        label: "Trendsetter",         icon: "waves",          desc: "Started 20 discussions — \"You're not following trends. You're creating them.\"", tier: "legendary" },
-  { key: "community_star",     label: "Community Star",      icon: "stars",          desc: "Reached 100 contribution score — \"You're basically the main character now.\"", tier: "legendary" },
   { key: "keyboard_warrior",   label: "Keyboard Warrior",    icon: "keyboard",       desc: "Wrote 100 replies — \"Your keyboard has seen things. Horrible, wonderful things.\"", tier: "legendary" },
+  { key: "community_star",     label: "Community Star",      icon: "stars",          desc: "Reached 100 contribution score — \"You're basically the main character now.\"", tier: "legendary" },
   { key: "mentor",             label: "Mentor",              icon: "school",         desc: "Reached Level 5 — \"You have ascended. Use your power wisely.\"", tier: "legendary" },
   { key: "the_sage",           label: "The Sage",            icon: "emoji_objects",  desc: "Reached Level 6 — \"You are the final boss of this community.\"", tier: "legendary" },
+  { key: "certified_master",    label: "Certified Master",    icon: "military_tech",  desc: "Earned 10 certificates — \"Ultimate scholar status. Academic brilliance unlocked!\"", tier: "legendary" },
   { key: "one_man_show",       label: "One-Man Show",        icon: "theater_comedy", desc: "10x more replies than discussions started — \"Ever considered podcasting?\"", tier: "legendary" },
   { key: "quality_over_quantity", label: "Quality > Quantity", icon: "target",       desc: "Started ≤ 3 discussions yet each got 5+ likes — \"You barely speak, but when you do, people listen.\"", tier: "legendary" },
-
-  // ── Knowledge Category (Certificates) ──
-  { key: "certified_novice",    label: "Certified Novice",    icon: "card_membership", desc: "Earned 1 certificate — \"First milestone down. The path of wisdom opens.\"", tier: "explorer" },
-  { key: "certified_expert",    label: "Certified Expert",    icon: "workspace_premium", desc: "Earned 5 certificates — \"A certified scholar. Your knowledge base grows deeper.\"", tier: "contributor" },
-  { key: "certified_master",    label: "Certified Master",    icon: "military_tech",  desc: "Earned 10 certificates — \"Ultimate scholar status. Academic brilliance unlocked!\"", tier: "legendary" },
 ];
 
 function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
@@ -653,14 +736,16 @@ async function renderParticipatedEventsPanel() {
   let globalCheckedInTickets = [];
   
   try {
-    try {
-      let tickets = [];
-    const res = await getMyTickets();
-    tickets = res.tickets || [];
-    globalCheckedInTickets = tickets.filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
-  } catch (err) {
-    console.warn("Failed to fetch user tickets:", err);
-  }
+    const [ticketsResult, contribResult, favsResult] = await Promise.allSettled([
+      getMyTickets(),
+      getUserContribution(),
+      getFavourites()
+    ]);
+
+    if (ticketsResult.status === "fulfilled" && ticketsResult.value?.tickets) {
+      const tickets = ticketsResult.value.tickets || [];
+      globalCheckedInTickets = tickets.filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
+    }
 
   window.changeParticipatedPage = (page) => {
     renderParticipatedPage(page);
@@ -767,24 +852,17 @@ async function renderParticipatedEventsPanel() {
 
   renderParticipatedPage(1);
 
-  let data;
-  try {
-    data = await getUserContribution();
-  } catch {
-    data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] } };
+  let data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] } };
+  if (contribResult.status === "fulfilled" && contribResult.value) {
+    data = contribResult.value;
   }
 
-  // Fetch event activity metrics for gamification calculations
   let favoritesCount = 0;
-  let participationsCount = 0;
-  try {
-    const { activities } = await getFavourites();
-    favoritesCount = (activities || []).length;
-  } catch (err) {
-    console.warn("Failed to fetch favorites count:", err);
+  if (favsResult.status === "fulfilled" && favsResult.value?.activities) {
+    favoritesCount = favsResult.value.activities.length;
   }
   // Calculate Events Attended directly from the checked in tickets
-  participationsCount = globalCheckedInTickets ? globalCheckedInTickets.length : 0;
+  const participationsCount = globalCheckedInTickets ? globalCheckedInTickets.length : 0;
 
   const c = data.contribution;
   const user = currentUser || getUser();
@@ -794,10 +872,12 @@ async function renderParticipatedEventsPanel() {
   const earnedKeys = new Set(mergedBadges);
 
   const badgeStorageKey = `springwave_badges_${user?._id || 'guest'}`;
+  const contribStorageKey = `springwave_contrib_${user?._id || 'guest'}`;
   const stored = localStorage.getItem(badgeStorageKey);
   const prevBadges = stored ? JSON.parse(stored) : [];
   const newBadges = mergedBadges.filter(k => !prevBadges.includes(k));
   localStorage.setItem(badgeStorageKey, JSON.stringify(mergedBadges));
+  localStorage.setItem(contribStorageKey, JSON.stringify(c));
 
   if (newBadges.length > 0) {
     setTimeout(() => {
