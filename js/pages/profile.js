@@ -1071,18 +1071,18 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
 
     return `
       <div class="badge-tier-group mb-8 last:mb-2">
-        <div class="flex items-center justify-between p-3.5 mb-4 rounded-xl border ${tier.colorClass}">
-          <div class="flex items-center gap-2.5">
-            <span class="material-symbols-outlined text-xl">${tier.icon}</span>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${tier.accentBg} text-white">${tier.tierNum}</span>
+        <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 p-3.5 mb-4 rounded-xl border ${tier.colorClass}">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="material-symbols-outlined text-xl shrink-0">${tier.icon}</span>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${tier.accentBg} text-white shrink-0 whitespace-nowrap inline-flex items-center justify-center leading-normal select-none">${tier.tierNum}</span>
                 <h3 class="font-bold text-sm text-gray-900">${tier.title}</h3>
               </div>
               <p class="text-xs text-gray-500 mt-0.5">${tier.desc}</p>
             </div>
           </div>
-          <span class="text-xs font-bold px-3 py-1 rounded-lg bg-white/90 border border-gray-200/60 text-gray-700 shadow-2xs">
+          <span class="text-xs font-bold px-3 py-1 rounded-lg bg-white/90 border border-gray-200/60 text-gray-700 shadow-2xs shrink-0 whitespace-nowrap">
             ${tierEarnedCount} / ${tierBadges.length} ${t("badges.status.earned", "Unlocked")}
           </span>
         </div>

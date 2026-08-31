@@ -581,12 +581,14 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
       </button>
 
       <div class="badge-modal-top">
-        <span class="badge-modal-tier-pill" style="background: ${tierMeta.bg}; color: ${tierMeta.primary}; border: 1px solid ${tierMeta.border};">
-          <span class="material-symbols-outlined text-xs">military_tech</span> ${tierMeta.label} Badge
-        </span>
-        <span class="badge-modal-xp-pill" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #0f172a;">
-          +${badge.xp || 25} XP
-        </span>
+        <div class="badge-modal-pills-group">
+          <span class="badge-modal-tier-pill" style="background: ${tierMeta.bg}; color: ${tierMeta.primary}; border: 1px solid ${tierMeta.border};">
+            <span class="material-symbols-outlined text-xs">military_tech</span> ${tierMeta.label} Badge
+          </span>
+          <span class="badge-modal-xp-pill" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #0f172a;">
+            +${badge.xp || 25} XP
+          </span>
+        </div>
       </div>
 
       <!-- 3D Emblem Container -->
