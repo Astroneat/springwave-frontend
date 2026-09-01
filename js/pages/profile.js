@@ -1131,6 +1131,8 @@ function showBadgeToast(badge) {
   const toast = document.createElement("div");
   toast.className = "badge-toast";
   toast.style.bottom = `${24 + offset}px`;
+  toast.style.cursor = "pointer";
+  toast.title = "Click to view badge";
   toast.innerHTML = `
     <div class="badge-toast-icon">
       <span class="material-symbols-outlined">${badge.icon}</span>
@@ -1140,6 +1142,22 @@ function showBadgeToast(badge) {
       <span class="badge-toast-label">${badge.label}</span>
     </div>
   `;
+
+  toast.addEventListener("click", () => {
+    const targetKey = badge.key;
+    const targetEl = targetKey ? document.querySelector(`.badge-card[data-badge-key="${targetKey}"]`) : null;
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      targetEl.classList.add("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]", "transition-all", "duration-500");
+      setTimeout(() => {
+        targetEl.classList.remove("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]");
+      }, 3000);
+    } else {
+      const section = document.getElementById("badges-section");
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+
   document.body.appendChild(toast);
 
   requestAnimationFrame(() => toast.classList.add("show"));
