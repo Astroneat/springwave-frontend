@@ -47,7 +47,7 @@ const TIER_COLORS = {
     border: "#bfdbfe",
     label: "Common",
     stampText: "★ UNLOCKED ★",
-    palette: ["#1755ba", "#38bdf8", "#60a5fa", "#93c5fd", "#ffffff"]
+    palette: ["#1755ba", "#38bdf8", "#60a5fa", "#93c5fd", "#fde047", "#ffffff"]
   },
   explorer: {
     primary: "#059669",
@@ -56,7 +56,7 @@ const TIER_COLORS = {
     border: "#a7f3d0",
     label: "Uncommon",
     stampText: "★ EXPLORER ★",
-    palette: ["#059669", "#10b981", "#34d399", "#6ee7b7", "#ffffff"]
+    palette: ["#059669", "#10b981", "#34d399", "#6ee7b7", "#38bdf8", "#fde047", "#ffffff"]
   },
   contributor: {
     primary: "#7c3aed",
@@ -65,7 +65,7 @@ const TIER_COLORS = {
     border: "#ddd6fe",
     label: "Rare",
     stampText: "★ PROVEN ★",
-    palette: ["#7c3aed", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ffffff"]
+    palette: ["#7c3aed", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ec4899", "#38bdf8", "#fde047", "#ffffff"]
   },
   legendary: {
     primary: "#d97706",
@@ -74,16 +74,12 @@ const TIER_COLORS = {
     border: "#fde68a",
     label: "Legendary",
     stampText: "👑 LEGENDARY 👑",
-    palette: ["#d97706", "#f59e0b", "#fbbf24", "#fef08a", "#ffffff"]
+    palette: ["#d97706", "#f59e0b", "#fbbf24", "#fef08a", "#ef4444", "#8b5cf6", "#10b981", "#38bdf8", "#ffffff"]
   }
 };
 
 /**
- * Plays distinct synthesized melodies, acoustic textures, and celebratory soundscapes tailored to each badge tier.
- * - Newbie (Tier 1): A crisp, friendly 2-note UI pop-ping.
- * - Explorer (Tier 2): An uplifting 4-note acoustic marimba chime with shimmering crystal bell overtone.
- * - Contributor (Tier 3): A triumphant brass-synth fanfare with rich sub-bass, layered chord resonance, and sparkling cascade.
- * - Legendary (Tier 4): A grand cinematic royal victory fanfare featuring a deep sub-bass impact, majestic 3-part brass orchestral progression, glorious climax chord, and a fireworks shower of golden star chimes.
+ * Plays distinct synthesized melodies with fireworks whistles, sub-bass detonations, and celestial sparkles.
  */
 function playCelebrationChime(tier = "newbie") {
   try {
@@ -95,7 +91,7 @@ function playCelebrationChime(tier = "newbie") {
     }
     const now = ctx.currentTime;
 
-    // Helper to create a shaped, enveloping tone
+    // Helper: shaped tone
     const playTone = ({ freq, type = "sine", startTime, duration, attack = 0.015, gainVal = 0.12, decay = true }) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -119,163 +115,172 @@ function playCelebrationChime(tier = "newbie") {
       return { osc, gain };
     };
 
+    // Helper: Fireworks Launch Whoosh
+    const playLaunchWhoosh = (delay = 0, targetFreq = 1200) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(120, now + delay);
+      osc.frequency.exponentialRampToValueAtTime(targetFreq, now + delay + 0.16);
+      g.gain.setValueAtTime(0.0001, now + delay);
+      g.gain.linearRampToValueAtTime(0.06, now + delay + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.18);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.2);
+    };
+
+    // Helper: Fireworks Boom
+    const playFireworkDetonation = (delay = 0.12, pitch = 130, strength = 0.25) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(pitch, now + delay);
+      osc.frequency.exponentialRampToValueAtTime(32, now + delay + 0.45);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(220, now + delay);
+      g.gain.setValueAtTime(0.0001, now + delay);
+      g.gain.linearRampToValueAtTime(strength, now + delay + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.5);
+      osc.connect(filter);
+      filter.connect(g);
+      g.connect(ctx.destination);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.55);
+    };
+
+    // Launch rocket whooshes
+    playLaunchWhoosh(0, 1100);
+    playFireworkDetonation(0.12, tier === "legendary" ? 140 : 110, tier === "legendary" ? 0.35 : 0.22);
+
     if (tier === "legendary") {
-      // ════════════════════════════════════════════════════════════════════
-      // 👑 TIER 4: LEGENDARY — GRAND ROYAL CORONATION & CINEMATIC FANFARE
-      // ════════════════════════════════════════════════════════════════════
+      // 👑 TIER 4: LEGENDARY — GRAND ROYAL CORONATION & MULTI-FIREWORKS FESTIVAL
+      playLaunchWhoosh(0.25, 1400);
+      playFireworkDetonation(0.38, 160, 0.32);
+      playLaunchWhoosh(0.55, 1600);
+      playFireworkDetonation(0.72, 180, 0.28);
 
-      // 1. Cinematic Sub-Bass Impact Boom (Gives physical weight & epic drama)
-      const subOsc = ctx.createOscillator();
-      const subGain = ctx.createGain();
-      const subFilter = ctx.createBiquadFilter();
-      subOsc.type = "sine";
-      subOsc.frequency.setValueAtTime(95, now);
-      subOsc.frequency.exponentialRampToValueAtTime(38, now + 0.55); // Dramatic pitch drop
-
-      subFilter.type = "lowpass";
-      subFilter.frequency.setValueAtTime(160, now);
-
-      subGain.gain.setValueAtTime(0.0001, now);
-      subGain.gain.linearRampToValueAtTime(0.32, now + 0.02);
-      subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
-
-      subOsc.connect(subFilter);
-      subFilter.connect(subGain);
-      subGain.connect(ctx.destination);
-      subOsc.start(now);
-      subOsc.stop(now + 0.75);
-
-      // 2. Majestic 3-Stage Brass Fanfare Chord Progression
-      // Stage A (Announcement: G3 + D4 + B4): 0.00s - 0.16s
+      // Stage A (Announcement: G3 + D4 + B4)
       const stageA = [
-        { freq: 196.00, type: "sawtooth", g: 0.08 }, // G3
-        { freq: 293.66, type: "triangle", g: 0.12 }, // D4
-        { freq: 493.88, type: "triangle", g: 0.10 }  // B4
+        { freq: 196.00, type: "sawtooth", g: 0.09 },
+        { freq: 293.66, type: "triangle", g: 0.13 },
+        { freq: 493.88, type: "triangle", g: 0.11 }
       ];
       stageA.forEach(({ freq, type, g }) => {
         playTone({ freq, type, startTime: now, duration: 0.18, attack: 0.02, gainVal: g });
       });
 
-      // Stage B (Ascending Triumph: A3 + E4 + C#5): 0.16s - 0.34s
+      // Stage B (Ascending Triumph: A3 + E4 + C#5)
       const stageB = [
-        { freq: 220.00, type: "sawtooth", g: 0.09 }, // A3
-        { freq: 329.63, type: "triangle", g: 0.13 }, // E4
-        { freq: 554.37, type: "triangle", g: 0.12 }  // C#5
+        { freq: 220.00, type: "sawtooth", g: 0.10 },
+        { freq: 329.63, type: "triangle", g: 0.14 },
+        { freq: 554.37, type: "triangle", g: 0.13 }
       ];
       stageB.forEach(({ freq, type, g }) => {
         playTone({ freq, type, startTime: now + 0.16, duration: 0.20, attack: 0.02, gainVal: g });
       });
 
-      // Stage C (Glorious Royal Climax: C3 + G3 + C4 + E4 + G4 + C5 + E5 + G5): 0.34s - 2.4s
+      // Stage C (Glorious Royal Climax)
       const climaxVoices = [
-        { freq: 130.81, type: "sawtooth", g: 0.10, dur: 1.8 }, // C3 warm low brass
-        { freq: 196.00, type: "triangle", g: 0.12, dur: 1.8 }, // G3
-        { freq: 261.63, type: "sawtooth", g: 0.12, dur: 1.9 }, // C4
-        { freq: 329.63, type: "triangle", g: 0.14, dur: 2.0 }, // E4
-        { freq: 392.00, type: "sawtooth", g: 0.13, dur: 2.0 }, // G4
-        { freq: 523.25, type: "sine",     g: 0.15, dur: 2.2 }, // C5
-        { freq: 659.25, type: "sine",     g: 0.14, dur: 2.2 }, // E5
-        { freq: 1046.50, type: "sine",    g: 0.12, dur: 2.4 }  // C6 high shine
+        { freq: 130.81, type: "sawtooth", g: 0.11, dur: 2.2 },
+        { freq: 196.00, type: "triangle", g: 0.13, dur: 2.2 },
+        { freq: 261.63, type: "sawtooth", g: 0.14, dur: 2.3 },
+        { freq: 329.63, type: "triangle", g: 0.15, dur: 2.4 },
+        { freq: 392.00, type: "sawtooth", g: 0.14, dur: 2.4 },
+        { freq: 523.25, type: "sine",     g: 0.16, dur: 2.6 },
+        { freq: 659.25, type: "sine",     g: 0.15, dur: 2.6 },
+        { freq: 1046.50, type: "sine",    g: 0.13, dur: 2.8 }
       ];
       climaxVoices.forEach(({ freq, type, g, dur }) => {
         playTone({ freq, type, startTime: now + 0.34, duration: dur, attack: 0.03, gainVal: g });
       });
 
-      // 3. Golden Fireworks Sparkle Cascade (High crystalline arpeggios showering down)
+      // Golden Fireworks Sparkle Cascade
       const sparkleNotes = [
-        { freq: 1318.51, delay: 0.38 }, // E6
-        { freq: 1567.98, delay: 0.44 }, // G6
-        { freq: 1975.53, delay: 0.50 }, // B6
-        { freq: 2093.00, delay: 0.56 }, // C7
-        { freq: 2637.02, delay: 0.63 }, // E7
-        { freq: 3135.96, delay: 0.70 }, // G7
-        { freq: 4186.01, delay: 0.78 }  // C8 apex shimmer
+        { freq: 1318.51, delay: 0.38 },
+        { freq: 1567.98, delay: 0.46 },
+        { freq: 1975.53, delay: 0.54 },
+        { freq: 2093.00, delay: 0.62 },
+        { freq: 2637.02, delay: 0.72 },
+        { freq: 3135.96, delay: 0.82 },
+        { freq: 4186.01, delay: 0.94 }
       ];
       sparkleNotes.forEach(({ freq, delay }) => {
-        playTone({ freq, type: "sine", startTime: now + delay, duration: 0.7, attack: 0.005, gainVal: 0.08 });
+        playTone({ freq, type: "sine", startTime: now + delay, duration: 0.75, attack: 0.005, gainVal: 0.09 });
       });
 
     } else if (tier === "contributor") {
-      // ════════════════════════════════════════════════════════════════════
-      // 🔮 TIER 3: CONTRIBUTOR — ENERGETIC HEROIC SYNTH FANFARE
-      // ════════════════════════════════════════════════════════════════════
+      // 🔮 TIER 3: CONTRIBUTOR — HEROIC SYNTH FANFARE WITH DUAL DETONATIONS
+      playLaunchWhoosh(0.28, 1350);
+      playFireworkDetonation(0.42, 140, 0.26);
 
-      // 1. Warm Bass Pulse
+      // Bass Pulse
       playTone({ freq: 130.81, type: "triangle", startTime: now, duration: 0.3, attack: 0.02, gainVal: 0.18 });
       playTone({ freq: 174.61, type: "triangle", startTime: now + 0.28, duration: 0.9, attack: 0.02, gainVal: 0.20 });
 
-      // 2. Triumphant Ascending Arpeggio (F Major -> Power Chords)
+      // Ascending Arpeggio
       const fanfareSteps = [
-        { freq: 349.23, delay: 0.00, dur: 0.22, g: 0.12 }, // F4
-        { freq: 440.00, delay: 0.08, dur: 0.22, g: 0.13 }, // A4
-        { freq: 523.25, delay: 0.16, dur: 0.24, g: 0.14 }, // C5
-        { freq: 698.46, delay: 0.24, dur: 0.26, g: 0.16 }, // F5
+        { freq: 349.23, delay: 0.00, dur: 0.22, g: 0.13 },
+        { freq: 440.00, delay: 0.08, dur: 0.22, g: 0.14 },
+        { freq: 523.25, delay: 0.16, dur: 0.24, g: 0.15 },
+        { freq: 698.46, delay: 0.24, dur: 0.26, g: 0.17 },
       ];
       fanfareSteps.forEach(({ freq, delay, dur, g }) => {
         playTone({ freq, type: "triangle", startTime: now + delay, duration: dur, attack: 0.015, gainVal: g });
         playTone({ freq: freq * 2, type: "sine", startTime: now + delay, duration: dur * 0.7, attack: 0.01, gainVal: g * 0.4 });
       });
 
-      // 3. Sustained Power Chord Arrival (F5 + A5 + C6)
+      // Power Chord Arrival
       const powerChord = [
-        { freq: 349.23, type: "sawtooth", g: 0.08 }, // F4
-        { freq: 698.46, type: "triangle", g: 0.15 }, // F5
-        { freq: 880.00, type: "sine",     g: 0.14 }, // A5
-        { freq: 1046.50, type: "sine",    g: 0.13 }  // C6
+        { freq: 349.23, type: "sawtooth", g: 0.09 },
+        { freq: 698.46, type: "triangle", g: 0.16 },
+        { freq: 880.00, type: "sine",     g: 0.15 },
+        { freq: 1046.50, type: "sine",    g: 0.14 }
       ];
       powerChord.forEach(({ freq, type, g }) => {
-        playTone({ freq, type, startTime: now + 0.32, duration: 1.1, attack: 0.025, gainVal: g });
+        playTone({ freq, type, startTime: now + 0.32, duration: 1.3, attack: 0.025, gainVal: g });
       });
 
-      // 4. Shimmering Celesta Sparkles
-      const sparkles = [1396.91, 1760.00, 2093.00]; // F6, A6, C7
+      // Sparkles
+      const sparkles = [1396.91, 1760.00, 2093.00, 2793.83];
       sparkles.forEach((freq, i) => {
-        playTone({ freq, type: "sine", startTime: now + 0.42 + i * 0.08, duration: 0.5, attack: 0.005, gainVal: 0.06 });
+        playTone({ freq, type: "sine", startTime: now + 0.42 + i * 0.09, duration: 0.55, attack: 0.005, gainVal: 0.07 });
       });
 
     } else if (tier === "explorer") {
-      // ════════════════════════════════════════════════════════════════════
       // 🌿 TIER 2: EXPLORER — CHEERFUL MARIMBA CHIME & CRYSTAL HARMONICS
-      // ════════════════════════════════════════════════════════════════════
+      playLaunchWhoosh(0.18, 1200);
+      playFireworkDetonation(0.32, 120, 0.18);
 
-      // Warm 4-note ascending chord progression (A4 -> C#5 -> E5 -> A5)
       const melody = [
-        { freq: 440.00, delay: 0.00, dur: 0.35, g: 0.12 }, // A4
-        { freq: 554.37, delay: 0.09, dur: 0.38, g: 0.13 }, // C#5
-        { freq: 659.25, delay: 0.18, dur: 0.42, g: 0.14 }, // E5
-        { freq: 880.00, delay: 0.27, dur: 0.65, g: 0.16 }, // A5 (accent ring)
+        { freq: 440.00, delay: 0.00, dur: 0.35, g: 0.13 },
+        { freq: 554.37, delay: 0.09, dur: 0.38, g: 0.14 },
+        { freq: 659.25, delay: 0.18, dur: 0.42, g: 0.15 },
+        { freq: 880.00, delay: 0.27, dur: 0.75, g: 0.18 },
       ];
-
       melody.forEach(({ freq, delay, dur, g }) => {
-        // Fundamental
         playTone({ freq, type: "sine", startTime: now + delay, duration: dur, attack: 0.01, gainVal: g });
-        // Metallic bell harmonic overtone
-        playTone({ freq: freq * 2.756, type: "sine", startTime: now + delay, duration: dur * 0.45, attack: 0.005, gainVal: g * 0.3 });
+        playTone({ freq: freq * 2.756, type: "sine", startTime: now + delay, duration: dur * 0.45, attack: 0.005, gainVal: g * 0.35 });
       });
-
-      // Light crystal tail sparkle
-      playTone({ freq: 1318.51, type: "sine", startTime: now + 0.38, duration: 0.45, attack: 0.005, gainVal: 0.07 });
+      playTone({ freq: 1318.51, type: "sine", startTime: now + 0.38, duration: 0.5, attack: 0.005, gainVal: 0.08 });
+      playTone({ freq: 1760.00, type: "sine", startTime: now + 0.48, duration: 0.6, attack: 0.005, gainVal: 0.07 });
 
     } else {
-      // ════════════════════════════════════════════════════════════════════
-      // 🔹 TIER 1: NEWBIE — CRISP, FRIENDLY DOUBLE-PING UI POP
-      // ════════════════════════════════════════════════════════════════════
+      // 🔹 TIER 1: NEWBIE — CRISP, FRIENDLY DOUBLE-PING POP
+      playTone({ freq: 783.99, type: "sine", startTime: now, duration: 0.18, attack: 0.008, gainVal: 0.12 });
+      playTone({ freq: 1567.98, type: "triangle", startTime: now, duration: 0.10, attack: 0.005, gainVal: 0.04 });
 
-      // Note 1: Friendly starter blip (G5 783.99Hz)
-      playTone({ freq: 783.99, type: "sine", startTime: now, duration: 0.18, attack: 0.008, gainVal: 0.11 });
-      playTone({ freq: 1567.98, type: "triangle", startTime: now, duration: 0.10, attack: 0.005, gainVal: 0.03 });
-
-      // Note 2: Bright confirming pop (C6 1046.50Hz)
-      playTone({ freq: 1046.50, type: "sine", startTime: now + 0.09, duration: 0.28, attack: 0.008, gainVal: 0.13 });
-      playTone({ freq: 2093.00, type: "triangle", startTime: now + 0.09, duration: 0.15, attack: 0.005, gainVal: 0.04 });
+      playTone({ freq: 1046.50, type: "sine", startTime: now + 0.09, duration: 0.32, attack: 0.008, gainVal: 0.14 });
+      playTone({ freq: 2093.00, type: "triangle", startTime: now + 0.09, duration: 0.18, attack: 0.005, gainVal: 0.05 });
+      playTone({ freq: 2637.02, type: "sine", startTime: now + 0.18, duration: 0.45, attack: 0.005, gainVal: 0.07 });
     }
 
     setTimeout(() => {
       if (ctx.state !== "closed") ctx.close();
-    }, 2800);
-  } catch (e) {
-    // Audio autoplay restrictions are safe to ignore silently
-  }
+    }, 3500);
+  } catch (e) {}
 }
 
 /**
@@ -319,7 +324,7 @@ function drawDiamond(ctx, cx, cy, size) {
 }
 
 /**
- * Ephemeral HTML5 Canvas Particle Explosion with tier-specific dynamics
+ * Multi-Rocket High-Performance Fireworks & Confetti Cannon Physics Simulator
  */
 export function launchConfettiBurst(tier = "newbie") {
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -340,73 +345,137 @@ export function launchConfettiBurst(tier = "newbie") {
   ctx.scale(dpr, dpr);
 
   const palette = (TIER_COLORS[tier] || TIER_COLORS.newbie).palette;
-  
-  // Tier-specific particle counts, velocities, and physics
-  let particleCount = 26;
-  let speedMultiplier = 0.85;
-  let gravity = 0.26;
-  let DURATION_MS = 1100;
-
-  if (tier === "legendary") {
-    particleCount = 125;
-    speedMultiplier = 1.55;
-    gravity = 0.16;
-    DURATION_MS = 2500;
-  } else if (tier === "contributor") {
-    particleCount = 80;
-    speedMultiplier = 1.25;
-    gravity = 0.19;
-    DURATION_MS = 1900;
-  } else if (tier === "explorer") {
-    particleCount = 50;
-    speedMultiplier = 1.05;
-    gravity = 0.22;
-    DURATION_MS = 1500;
-  }
-
   const particles = [];
   const shockwaves = [];
-  const originX = width / 2;
-  const originY = height / 2 - 40;
+  const rockets = [];
+  const timedSpawns = [];
 
-  // Add initial expanding energy shockwave for higher tiers
-  if (tier === "legendary" || tier === "contributor") {
+  let DURATION_MS = 2800;
+  if (tier === "legendary") DURATION_MS = 4800;
+  else if (tier === "contributor") DURATION_MS = 3800;
+  else if (tier === "explorer") DURATION_MS = 3200;
+
+  function createExplosion(x, y, count, colorPalette, sparkType = "mixed", speedScale = 1.0) {
     shockwaves.push({
-      x: originX,
-      y: originY,
-      radius: 5,
-      maxRadius: tier === "legendary" ? 220 : 150,
-      color: tier === "legendary" ? "#fbbf24" : "#a78bfa",
-      lineWidth: tier === "legendary" ? 6 : 4,
-      alpha: 1
+      x, y,
+      radius: 4,
+      maxRadius: tier === "legendary" ? 290 : (tier === "contributor" ? 230 : 170),
+      color: colorPalette[0] || "#fbbf24",
+      lineWidth: tier === "legendary" ? 5 : 3.5,
+      alpha: 0.95
     });
-  }
 
-  function spawnParticles(count, ox, oy, speedMul, isSecondary = false) {
+    if (tier === "legendary" || tier === "contributor") {
+      shockwaves.push({
+        x, y,
+        radius: 2,
+        maxRadius: tier === "legendary" ? 210 : 150,
+        color: "#ffffff",
+        lineWidth: 2.5,
+        alpha: 1
+      });
+    }
+
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = (Math.random() * 9 + 4) * speedMul;
-      
+      const speed = (Math.random() * 12 + 5) * speedScale;
+      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+
       let shape = "circle";
       const rand = Math.random();
-      if (tier === "legendary") {
-        shape = rand > 0.55 ? "star" : (rand > 0.3 ? "diamond" : (rand > 0.15 ? "ribbon" : "circle"));
+      if (sparkType === "willow") {
+        shape = "willow";
+      } else if (tier === "legendary") {
+        shape = rand > 0.4 ? "star" : (rand > 0.2 ? "willow" : (rand > 0.08 ? "diamond" : "ribbon"));
       } else if (tier === "contributor") {
-        shape = rand > 0.6 ? "star" : (rand > 0.35 ? "ribbon" : (rand > 0.15 ? "diamond" : "circle"));
+        shape = rand > 0.45 ? "star" : (rand > 0.25 ? "willow" : (rand > 0.1 ? "diamond" : "ribbon"));
       } else if (tier === "explorer") {
-        shape = rand > 0.5 ? "rect" : (rand > 0.25 ? "diamond" : "circle");
+        shape = rand > 0.4 ? "diamond" : (rand > 0.2 ? "ribbon" : "circle");
       } else {
-        shape = rand > 0.5 ? "circle" : "rect";
+        shape = rand > 0.45 ? "circle" : (rand > 0.2 ? "ribbon" : "star");
       }
 
       particles.push({
-        x: ox,
-        y: oy,
-        vx: Math.cos(angle) * speed * (Math.random() * 1.5 + 0.5),
-        vy: Math.sin(angle) * speed * (Math.random() * 1.5 + 0.5) - (tier === "legendary" ? (isSecondary ? 5.5 : 4.5) : (tier === "contributor" ? 3.5 : 2)),
-        size: (Math.random() * 8 + 4) * (tier === "legendary" ? 1.25 : 1),
-        color: palette[Math.floor(Math.random() * palette.length)],
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - (shape === "willow" ? 1.6 : (tier === "legendary" ? 3.8 : 2.2)),
+        size: (Math.random() * 7.5 + 4) * (tier === "legendary" ? 1.35 : 1),
+        color,
         shape,
+        history: (shape === "willow" || tier === "legendary") ? [] : null,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 16,
+        rotX: Math.random() * Math.PI,
+        rotXSpeed: Math.random() * 0.16 + 0.04,
+        rotY: Math.random() * Math.PI,
+        rotYSpeed: Math.random() * 0.16 + 0.04,
+        twinklePhase: Math.random() * Math.PI * 2,
+        twinkleSpeed: Math.random() * 0.2 + 0.1,
+        swayPhase: Math.random() * Math.PI * 2,
+        gravity: shape === "willow" ? 0.14 : (tier === "legendary" ? 0.16 : 0.22),
+        drag: shape === "willow" ? 0.982 : (tier === "legendary" ? 0.976 : 0.965),
+        alpha: 1,
+        bornTime: performance.now(),
+        lifeSpan: shape === "willow" ? 2400 : 1700
+      });
+    }
+  }
+
+  // Corner Cannon Confetti Blast
+  function fireConfettiCannon(originX, originY, baseAngle, spreadAngle, count, colorPalette, power = 1.0) {
+    for (let i = 0; i < count; i++) {
+      const angle = baseAngle + (Math.random() - 0.5) * spreadAngle;
+      const speed = (Math.random() * 16 + 12) * power;
+      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+
+      const rand = Math.random();
+      const shape = rand > 0.4 ? "streamer" : (rand > 0.2 ? "ribbon" : (rand > 0.08 ? "foil_star" : "diamond"));
+
+      particles.push({
+        x: originX,
+        y: originY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: (Math.random() * 9 + 5) * (tier === "legendary" ? 1.3 : 1),
+        color,
+        shape,
+        history: null,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 22,
+        rotX: Math.random() * Math.PI,
+        rotXSpeed: Math.random() * 0.25 + 0.06,
+        rotY: Math.random() * Math.PI,
+        rotYSpeed: Math.random() * 0.25 + 0.06,
+        twinklePhase: Math.random() * Math.PI * 2,
+        twinkleSpeed: Math.random() * 0.25 + 0.1,
+        swayPhase: Math.random() * Math.PI * 2,
+        gravity: 0.18 + Math.random() * 0.08,
+        drag: 0.968,
+        alpha: 1,
+        bornTime: performance.now(),
+        lifeSpan: 3200
+      });
+    }
+  }
+
+  // Top Gentle Confetti Rain
+  function spawnConfettiRain(count, colorPalette) {
+    for (let i = 0; i < count; i++) {
+      const rx = Math.random() * width;
+      const ry = -Math.random() * 80 - 10;
+      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      const rand = Math.random();
+      const shape = rand > 0.45 ? "ribbon" : (rand > 0.2 ? "streamer" : (rand > 0.08 ? "foil_star" : "diamond"));
+
+      particles.push({
+        x: rx,
+        y: ry,
+        vx: (Math.random() - 0.5) * 2.5,
+        vy: Math.random() * 2.5 + 1.2,
+        size: (Math.random() * 8 + 4.5) * (tier === "legendary" ? 1.25 : 1),
+        color,
+        shape,
+        history: null,
         rotation: Math.random() * 360,
         rotSpeed: (Math.random() - 0.5) * 14,
         rotX: Math.random() * Math.PI,
@@ -414,18 +483,103 @@ export function launchConfettiBurst(tier = "newbie") {
         rotY: Math.random() * Math.PI,
         rotYSpeed: Math.random() * 0.15 + 0.05,
         twinklePhase: Math.random() * Math.PI * 2,
-        gravity,
-        drag: tier === "legendary" ? 0.975 : (tier === "contributor" ? 0.97 : 0.96),
-        alpha: 1
+        twinkleSpeed: Math.random() * 0.2 + 0.1,
+        swayPhase: Math.random() * Math.PI * 2,
+        gravity: 0.06 + Math.random() * 0.04,
+        drag: 0.985,
+        alpha: 1,
+        bornTime: performance.now(),
+        lifeSpan: 4000
       });
     }
   }
 
-  // Primary burst
-  spawnParticles(particleCount, originX, originY, speedMultiplier);
+  function launchRocket(startX, startY, targetX, targetY, delay = 0, count = 65, colors = palette, type = "mixed", speedScale = 1.0) {
+    rockets.push({
+      x: startX,
+      y: startY,
+      targetX,
+      targetY,
+      delay,
+      exploded: false,
+      speed: (startY - targetY) / 18,
+      color: colors[0] || "#f59e0b",
+      colors,
+      count,
+      type,
+      speedScale
+    });
+  }
 
-  // Secondary firework burst for Legendary at t = 340ms
-  let secondaryTriggered = false;
+  const cx = width / 2;
+  const cy = height / 2 - 30;
+
+  // ════════════════════════════════════════════════════════════════
+  // TIER-SPECIFIC FIREWORKS & CONFETTI BOMBARDMENT
+  // ════════════════════════════════════════════════════════════════
+
+  // Primary Center & Flanking Fireworks
+  launchRocket(cx, height + 20, cx, cy, 0, tier === "legendary" ? 130 : (tier === "contributor" ? 95 : 60), palette, "mixed", 1.2);
+  launchRocket(cx - width * 0.24, height + 20, cx - width * 0.22, cy - 40, 200, tier === "legendary" ? 90 : 55, palette, "willow", 1.1);
+  launchRocket(cx + width * 0.24, height + 20, cx + width * 0.22, cy - 40, 380, tier === "legendary" ? 90 : 55, palette, "willow", 1.1);
+
+  // 1. DUAL CORNER CONFETTI CANNONS FOR HIGHER RANKS
+  if (tier === "legendary") {
+    // Initial high-velocity confetti cannon blast
+    fireConfettiCannon(0, height + 10, -Math.PI / 4, Math.PI / 6, 85, palette, 1.25);
+    fireConfettiCannon(width, height + 10, -3 * Math.PI / 4, Math.PI / 6, 85, palette, 1.25);
+
+    // Follow-up cannon waves
+    timedSpawns.push({ delay: 350, fn: () => {
+      fireConfettiCannon(0, height + 10, -Math.PI / 3.5, Math.PI / 5, 75, palette, 1.15);
+      fireConfettiCannon(width, height + 10, -2.4 * Math.PI / 3.5, Math.PI / 5, 75, palette, 1.15);
+    }});
+    timedSpawns.push({ delay: 750, fn: () => {
+      fireConfettiCannon(0, height + 10, -Math.PI / 4, Math.PI / 5, 80, palette, 1.3);
+      fireConfettiCannon(width, height + 10, -3 * Math.PI / 4, Math.PI / 5, 80, palette, 1.3);
+      spawnConfettiRain(90, palette);
+    }});
+    timedSpawns.push({ delay: 1200, fn: () => {
+      fireConfettiCannon(width * 0.2, height + 10, -Math.PI / 2.3, Math.PI / 4, 70, palette, 1.1);
+      fireConfettiCannon(width * 0.8, height + 10, -Math.PI / 1.75, Math.PI / 4, 70, palette, 1.1);
+      spawnConfettiRain(100, palette);
+    }});
+
+    // Extra aerial fireworks volleys
+    launchRocket(cx - width * 0.36, height + 20, cx - width * 0.32, cy - 90, 600, 100, palette, "star", 1.25);
+    launchRocket(cx + width * 0.36, height + 20, cx + width * 0.32, cy - 90, 800, 100, palette, "star", 1.25);
+    launchRocket(cx, height + 20, cx, cy - 140, 1100, 150, palette, "willow", 1.4);
+    launchRocket(cx - width * 0.18, height + 20, cx - width * 0.15, cy + 40, 1450, 85, palette, "mixed", 1.15);
+    launchRocket(cx + width * 0.18, height + 20, cx + width * 0.15, cy + 40, 1650, 85, palette, "mixed", 1.15);
+
+  } else if (tier === "contributor") {
+    // Contributor dual corner confetti cannons
+    fireConfettiCannon(0, height + 10, -Math.PI / 4, Math.PI / 6, 60, palette, 1.15);
+    fireConfettiCannon(width, height + 10, -3 * Math.PI / 4, Math.PI / 6, 60, palette, 1.15);
+
+    timedSpawns.push({ delay: 450, fn: () => {
+      fireConfettiCannon(0, height + 10, -Math.PI / 3.6, Math.PI / 5, 55, palette, 1.1);
+      fireConfettiCannon(width, height + 10, -2.4 * Math.PI / 3.6, Math.PI / 5, 55, palette, 1.1);
+      spawnConfettiRain(60, palette);
+    }});
+    timedSpawns.push({ delay: 900, fn: () => {
+      spawnConfettiRain(70, palette);
+    }});
+
+    launchRocket(cx - width * 0.35, height + 20, cx - width * 0.32, cy - 90, 620, 85, palette, "star", 1.2);
+    launchRocket(cx + width * 0.35, height + 20, cx + width * 0.32, cy - 90, 820, 85, palette, "star", 1.2);
+
+  } else if (tier === "explorer") {
+    fireConfettiCannon(0, height + 10, -Math.PI / 4, Math.PI / 6, 35, palette, 1.0);
+    fireConfettiCannon(width, height + 10, -3 * Math.PI / 4, Math.PI / 6, 35, palette, 1.0);
+    timedSpawns.push({ delay: 350, fn: () => {
+      spawnConfettiRain(40, palette);
+    }});
+  } else {
+    // Newbie celebration burst
+    fireConfettiCannon(width * 0.3, height + 10, -Math.PI / 2.5, Math.PI / 5, 25, palette, 0.9);
+    fireConfettiCannon(width * 0.7, height + 10, -Math.PI / 1.7, Math.PI / 5, 25, palette, 0.9);
+  }
 
   let animationFrameId;
   const startTime = performance.now();
@@ -434,32 +588,75 @@ export function launchConfettiBurst(tier = "newbie") {
     const elapsed = time - startTime;
     ctx.clearRect(0, 0, width, height);
 
-    // Trigger secondary fireworks burst for legendary
-    if (tier === "legendary" && !secondaryTriggered && elapsed > 340) {
-      secondaryTriggered = true;
-      spawnParticles(35, originX, originY - 60, 1.35, true);
-      shockwaves.push({
-        x: originX,
-        y: originY - 60,
-        radius: 5,
-        maxRadius: 180,
-        color: "#fef08a",
-        lineWidth: 4,
-        alpha: 0.9
-      });
+    // Trigger timed spawns (confetti waves)
+    for (let i = timedSpawns.length - 1; i >= 0; i--) {
+      if (elapsed >= timedSpawns[i].delay) {
+        timedSpawns[i].fn();
+        timedSpawns.splice(i, 1);
+      }
     }
 
-    // Render expanding shockwaves
+    // Update & Render Rockets
+    for (let r of rockets) {
+      if (elapsed >= r.delay && !r.exploded) {
+        r.y -= r.speed;
+        r.x += (r.targetX - r.x) * 0.08;
+
+        // Spark trail behind rocket
+        if (Math.random() > 0.12) {
+          particles.push({
+            x: r.x + (Math.random() - 0.5) * 4,
+            y: r.y + (Math.random() * 8 + 4),
+            vx: (Math.random() - 0.5) * 2,
+            vy: Math.random() * 2 + 1,
+            size: Math.random() * 3 + 2,
+            color: r.color,
+            shape: "circle",
+            history: null,
+            rotation: 0,
+            rotSpeed: 0,
+            rotX: 0, rotXSpeed: 0, rotY: 0, rotYSpeed: 0,
+            twinklePhase: 0, twinkleSpeed: 0,
+            swayPhase: 0,
+            gravity: 0.1,
+            drag: 0.96,
+            alpha: 0.85,
+            bornTime: time,
+            lifeSpan: 800
+          });
+        }
+
+        // Draw ascending rocket head
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowColor = r.color;
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.restore();
+
+        // Check apex detonation
+        if (r.y <= r.targetY) {
+          r.exploded = true;
+          createExplosion(r.x, r.y, r.count, r.colors, r.type, r.speedScale);
+        }
+      }
+    }
+
+    // Update & Render Expanding Shockwaves
     for (let sw of shockwaves) {
       if (sw.alpha > 0.01) {
-        sw.radius += (sw.maxRadius - sw.radius) * 0.12;
-        sw.alpha *= 0.91;
+        sw.radius += (sw.maxRadius - sw.radius) * 0.13;
+        sw.alpha *= 0.90;
         ctx.save();
         ctx.beginPath();
         ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
         ctx.strokeStyle = sw.color;
         ctx.lineWidth = sw.lineWidth;
         ctx.globalAlpha = sw.alpha;
+        ctx.shadowColor = sw.color;
+        ctx.shadowBlur = 10;
         ctx.stroke();
         ctx.restore();
       }
@@ -467,27 +664,54 @@ export function launchConfettiBurst(tier = "newbie") {
 
     let aliveCount = 0;
 
+    // Update & Render Sparks & Confetti
     for (let p of particles) {
       p.x += p.vx;
       p.y += p.vy;
       p.vx *= p.drag;
       p.vy = p.vy * p.drag + p.gravity;
+
+      // Sinusoidal air drift for fluttering confetti
+      if (p.shape === "ribbon" || p.shape === "streamer") {
+        p.vx += Math.sin(time * 0.003 + p.swayPhase) * 0.12;
+      }
+
       p.rotation += p.rotSpeed;
       p.rotX += p.rotXSpeed;
       p.rotY += p.rotYSpeed;
-      p.twinklePhase += 0.15;
-      
-      const baseAlpha = Math.max(0, 1 - (elapsed / DURATION_MS));
+      p.twinklePhase += p.twinkleSpeed;
+
+      const pAge = time - p.bornTime;
+      const baseAlpha = Math.max(0, 1 - (pAge / (p.lifeSpan || 2000)));
       let currentAlpha = baseAlpha;
-      if (p.shape === "star" && (tier === "legendary" || tier === "contributor")) {
-        currentAlpha = baseAlpha * (0.65 + 0.35 * Math.sin(p.twinklePhase));
+      if (p.shape === "star" || p.shape === "diamond" || p.shape === "foil_star") {
+        currentAlpha = baseAlpha * (0.6 + 0.4 * Math.sin(p.twinklePhase));
       }
       p.alpha = currentAlpha;
+
+      if (p.history) {
+        p.history.push({ x: p.x, y: p.y });
+        if (p.history.length > 5) p.history.shift();
+      }
 
       if (p.alpha > 0.01) {
         aliveCount++;
         ctx.save();
         ctx.globalAlpha = p.alpha;
+
+        // Draw spark tail if available
+        if (p.history && p.history.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(p.history[0].x, p.history[0].y);
+          for (let k = 1; k < p.history.length; k++) {
+            ctx.lineTo(p.history[k].x, p.history[k].y);
+          }
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = p.size * 0.6;
+          ctx.lineCap = "round";
+          ctx.stroke();
+        }
+
         ctx.fillStyle = p.color;
         ctx.translate(p.x, p.y);
         ctx.rotate((p.rotation * Math.PI) / 180);
@@ -497,12 +721,14 @@ export function launchConfettiBurst(tier = "newbie") {
         const scaleY = Math.sin(p.rotY);
         ctx.scale(Math.abs(scaleX) < 0.1 ? 0.1 : scaleX, Math.abs(scaleY) < 0.1 ? 0.1 : scaleY);
 
-        if (p.shape === "star") {
+        if (p.shape === "star" || p.shape === "foil_star") {
           drawStar(ctx, 0, 0, 5, p.size, p.size / 2.2);
         } else if (p.shape === "diamond") {
           drawDiamond(ctx, 0, 0, p.size);
+        } else if (p.shape === "streamer") {
+          ctx.fillRect(-p.size * 1.3, -p.size * 0.25, p.size * 2.6, p.size * 0.5);
         } else if (p.shape === "ribbon") {
-          ctx.fillRect(-p.size / 2, -p.size / 4, p.size * 1.4, p.size * 0.45);
+          ctx.fillRect(-p.size * 0.8, -p.size * 0.35, p.size * 1.6, p.size * 0.7);
         } else if (p.shape === "rect") {
           ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
         } else {
@@ -514,7 +740,7 @@ export function launchConfettiBurst(tier = "newbie") {
       }
     }
 
-    if (elapsed < DURATION_MS && aliveCount > 0) {
+    if (elapsed < DURATION_MS && (aliveCount > 0 || rockets.some(r => !r.exploded) || timedSpawns.length > 0)) {
       animationFrameId = requestAnimationFrame(render);
     } else {
       cancelAnimationFrame(animationFrameId);
@@ -528,7 +754,7 @@ export function launchConfettiBurst(tier = "newbie") {
 }
 
 /**
- * Display the Achievement Showcase Modal with Graffiti Stamp
+ * Display the Achievement Showcase Modal with Graffiti Stamp and Multi-Stage Fireworks
  */
 export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
   let badge = badgeKeyOrObj;
@@ -547,26 +773,40 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
   const existing = document.getElementById("badge-celebration-modal");
   if (existing) existing.remove();
 
-  // Tier-specific decorative elements
-  let extraDecorativeHTML = "";
+  // Tier-specific dynamic aura, godrays and orbiting star crystals
+  let extraDecorativeHTML = `
+    <div class="badge-radial-flash" aria-hidden="true"></div>
+  `;
+
   if (badge.tier === "legendary") {
-    extraDecorativeHTML = `
+    extraDecorativeHTML += `
       <div class="badge-godrays" aria-hidden="true"></div>
       <div class="badge-crown-crest" aria-hidden="true">👑</div>
       <div class="badge-orbit-sparkle s1" aria-hidden="true">✦</div>
       <div class="badge-orbit-sparkle s2" aria-hidden="true">★</div>
       <div class="badge-orbit-sparkle s3" aria-hidden="true">✦</div>
       <div class="badge-orbit-sparkle s4" aria-hidden="true">✨</div>
+      <div class="badge-orbit-sparkle s5" aria-hidden="true">★</div>
+      <div class="badge-orbit-sparkle s6" aria-hidden="true">✦</div>
     `;
   } else if (badge.tier === "contributor") {
-    extraDecorativeHTML = `
+    extraDecorativeHTML += `
       <div class="badge-rotating-aura" aria-hidden="true"></div>
       <div class="badge-orbit-sparkle s1" aria-hidden="true">✦</div>
-      <div class="badge-orbit-sparkle s2" aria-hidden="true">✦</div>
+      <div class="badge-orbit-sparkle s2" aria-hidden="true">★</div>
+      <div class="badge-orbit-sparkle s3" aria-hidden="true">✦</div>
+      <div class="badge-orbit-sparkle s4" aria-hidden="true">✨</div>
     `;
   } else if (badge.tier === "explorer") {
-    extraDecorativeHTML = `
+    extraDecorativeHTML += `
       <div class="badge-glow-ring" aria-hidden="true"></div>
+      <div class="badge-orbit-sparkle s1" aria-hidden="true">✦</div>
+      <div class="badge-orbit-sparkle s2" aria-hidden="true">★</div>
+    `;
+  } else {
+    extraDecorativeHTML += `
+      <div class="badge-newbie-pulse" aria-hidden="true"></div>
+      <div class="badge-orbit-sparkle s1" aria-hidden="true">✦</div>
     `;
   }
 
@@ -634,7 +874,7 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
 
   document.body.appendChild(modalOverlay);
 
-  // Play audio chime and launch canvas particles
+  // Play synthesized fireworks audio & launch fireworks show
   playCelebrationChime(badge.tier);
   launchConfettiBurst(badge.tier);
 
@@ -660,6 +900,13 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
       stamp.classList.remove("stamp-in");
       void stamp.offsetWidth; // trigger reflow
       stamp.classList.add("stamp-in");
+    }
+
+    const card = modalOverlay.querySelector(".badge-modal-card");
+    if (card) {
+      card.classList.remove("slam-replay");
+      void card.offsetWidth;
+      card.classList.add("slam-replay");
     }
   });
 
@@ -722,3 +969,4 @@ export function initBadgeCelebration() {
   window.triggerBadgeCelebration = triggerBadgeCelebration;
   window.queueBadgeCelebration = queueBadgeCelebration;
 }
+
