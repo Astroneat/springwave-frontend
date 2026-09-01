@@ -309,6 +309,9 @@
     "no_results": "No results found",
     "search_error": "Search error",
     "searching": "Searching...",
+    "refreshing": "Refreshing...",
+    "loading_page": "Loading page...",
+    "loading_events": "Loading events...",
     "failed_load": "Failed to load activities",
     "no_match": "No activities match your filters",
     "no_match_hint": "Try adjusting the category or search term",
@@ -1195,121 +1198,6 @@
     "skill_ds": "Design System",
     "skill_motion": "Motion UX",
     "cta_btn_logged_in": "Go to Homepage"
-  },
-  "badges": {
-    "categories": {
-      "welcome": "Welcome",
-      "profile": "Profile",
-      "events": "Events",
-      "community": "Community",
-      "milestone": "Milestone",
-      "knowledge": "Knowledge"
-    },
-    "rarity": {
-      "common": "Common",
-      "uncommon": "Uncommon",
-      "rare": "Rare",
-      "legendary": "Legendary"
-    },
-    "status": {
-      "earned": "Earned",
-      "locked": "Locked",
-      "progress": "Progress"
-    },
-    "list": {
-      "hello_world": {
-        "label": "Hello World",
-        "desc": "Created your account — \"You exist. That's the first step.\""
-      },
-      "talk_is_silver": {
-        "label": "Talk is Silver",
-        "desc": "Wrote your first reply — \"You said something. The internet is proud.\""
-      },
-      "so_it_begins": {
-        "label": "So It Begins",
-        "desc": "Started your first discussion — \"Another thread joins the infinite void.\""
-      },
-      "self_discovery": {
-        "label": "Self-Discovery",
-        "desc": "Completed the personality quiz — \"You stared into the quiz, and the quiz stared back.\""
-      },
-      "active_explorer": {
-        "label": "Active Explorer",
-        "desc": "Favourited 5 activities — \"Always hunting for the next big student event.\""
-      },
-      "event_goer": {
-        "label": "Event Goer",
-        "desc": "Participated in 1 activity — \"Made it to an event. Real world interaction unlocked!\""
-      },
-      "rising_host": {
-        "label": "Rising Host",
-        "desc": "Hosted your first activity — \"Welcoming students, organizing schedules.\""
-      },
-      "grand_host": {
-        "label": "Grand Host",
-        "desc": "Hosted 5 activities — \"A pillar of student life. You build communities.\""
-      },
-      "conversation_starter": {
-        "label": "Conversation Starter",
-        "desc": "Started 5 discussions — \"You're basically a talk show host now.\""
-      },
-      "helper": {
-        "label": "Helper",
-        "desc": "Wrote 10 replies — \"Your keyboard should be a registered charity.\""
-      },
-      "chatterbox": {
-        "label": "Chatterbox",
-        "desc": "Wrote 50 replies — \"Do you ever sleep? Do you ever stop typing?\""
-      },
-      "respected": {
-        "label": "Respected",
-        "desc": "Received 20 likes — \"People approve of your existence. Digitally, at least.\""
-      },
-      "the_oracle": {
-        "label": "The Oracle",
-        "desc": "Received 50 likes — \"You don't give advice. You drop prophecies.\""
-      },
-      "trendsetter": {
-        "label": "Trendsetter",
-        "desc": "Started 20 discussions — \"You're not following trends. You're creating them.\""
-      },
-      "community_star": {
-        "label": "Community Star",
-        "desc": "Reached 100 contribution score — \"You're basically the main character now.\""
-      },
-      "keyboard_warrior": {
-        "label": "Keyboard Warrior",
-        "desc": "Wrote 100 replies — \"Your keyboard has seen things. Horrible, wonderful things.\""
-      },
-      "mentor": {
-        "label": "Mentor",
-        "desc": "Reached Level 5 — \"You have ascended. Use your power wisely.\""
-      },
-      "the_sage": {
-        "label": "The Sage",
-        "desc": "Reached Level 6 — \"You are the final boss of this community.\""
-      },
-      "one_man_show": {
-        "label": "One-Man Show",
-        "desc": "10x more replies than discussions started — \"Ever considered podcasting?\""
-      },
-      "quality_over_quantity": {
-        "label": "Quality > Quantity",
-        "desc": "Started ≤ 3 discussions yet each got 5+ likes — \"You barely speak, but when you do, people listen.\""
-      },
-      "certified_novice": {
-        "label": "Certified Novice",
-        "desc": "Earned 1 certificate — \"First milestone down. The path of wisdom opens.\""
-      },
-      "certified_expert": {
-        "label": "Certified Expert",
-        "desc": "Earned 5 certificates — \"A certified scholar. Your knowledge base grows deeper.\""
-      },
-      "certified_master": {
-        "label": "Certified Master",
-        "desc": "Earned 10 certificates — \"Ultimate scholar status. Academic brilliance unlocked!\""
-      }
-    }
   },
   "badges": {
     "categories": {
