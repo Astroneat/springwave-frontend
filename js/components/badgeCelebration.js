@@ -763,15 +763,18 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
   }
   if (!badge) return;
 
+  // Remove any existing celebration modal & canvas
+  const existing = document.getElementById("badge-celebration-modal");
+  if (existing) existing.remove();
+
+  const existingCanvas = document.querySelector(".sw-confetti-canvas");
+  if (existingCanvas) existingCanvas.remove();
+
   const tierMeta = TIER_COLORS[badge.tier] || TIER_COLORS.newbie;
   const isInspect = options.isInspect || false;
   const isProfilePage = window.location.pathname.includes("profile.html") || 
                         window.location.pathname.endsWith("/profile") || 
                         document.getElementById("badges-section") !== null;
-
-  // Remove any existing celebration modal
-  const existing = document.getElementById("badge-celebration-modal");
-  if (existing) existing.remove();
 
   // Tier-specific dynamic aura, godrays and orbiting star crystals
   let extraDecorativeHTML = `
@@ -891,23 +894,9 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
   closeBtn?.addEventListener("click", closeModal);
   backdrop?.addEventListener("click", closeModal);
 
+  // Replay FX triggers the exact identical shaking intro sequence
   replayBtn?.addEventListener("click", () => {
-    playCelebrationChime(badge.tier);
-    launchConfettiBurst(badge.tier);
-
-    const stamp = modalOverlay.querySelector(".badge-graffiti-stamp");
-    if (stamp) {
-      stamp.classList.remove("stamp-in");
-      void stamp.offsetWidth; // trigger reflow
-      stamp.classList.add("stamp-in");
-    }
-
-    const card = modalOverlay.querySelector(".badge-modal-card");
-    if (card) {
-      card.classList.remove("slam-replay");
-      void card.offsetWidth;
-      card.classList.add("slam-replay");
-    }
+    triggerBadgeCelebration(badge, { isInspect });
   });
 
   const handleKeyDown = (e) => {
