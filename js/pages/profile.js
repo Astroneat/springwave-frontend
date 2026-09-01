@@ -29,6 +29,92 @@ let cropperInstance = null;
 // Store badge rendering data for language change re-render
 let badgeRenderData = null;
 
+const CONTRIB_LEVELS = [
+  { level: 1, min: 0, max: 99 },
+  { level: 2, min: 100, max: 249 },
+  { level: 3, min: 250, max: 499 },
+  { level: 4, min: 500, max: 999 },
+  { level: 5, min: 1000, max: 1999 },
+  { level: 6, min: 2000, max: Infinity },
+];
+
+function calcContribLevel(score) {
+  for (const l of CONTRIB_LEVELS) {
+    if (score >= l.min && score <= l.max) {
+      const range = l.max === Infinity ? l.min : l.max - l.min + 1;
+      const progress = l.max === Infinity ? 1 : (score - l.min) / range;
+      return { level: l.level, current: score - l.min, next: l.max === Infinity ? null : range, progress: Math.min(progress, 1) };
+    }
+  }
+  return { level: 1, current: 0, next: 100, progress: 0 };
+}
+
+const ALL_BADGES = BADGE_DEFINITIONS;
+
+function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
+  switch (key) {
+    case "talk_is_silver": return { current: c?.repliesGiven || 0, target: 1 };
+    case "so_it_begins": return { current: c?.discussionsStarted || 0, target: 1 };
+    case "conversation_starter": return { current: c?.discussionsStarted || 0, target: 5 };
+    case "helper": return { current: c?.repliesGiven || 0, target: 10 };
+    case "chatterbox": return { current: c?.repliesGiven || 0, target: 50 };
+    case "respected": return { current: c?.likesReceived || 0, target: 20 };
+    case "the_oracle": return { current: c?.likesReceived || 0, target: 50 };
+    case "trendsetter": return { current: c?.discussionsStarted || 0, target: 20 };
+    case "community_star": return { current: c?.score || 0, target: 100 };
+    case "keyboard_warrior": return { current: c?.repliesGiven || 0, target: 100 };
+    case "mentor": return { current: c?.score || 0, target: 1000 };
+    case "the_sage": return { current: c?.score || 0, target: 2000 };
+
+    // Activity progress
+    case "active_explorer": return { current: favoritesCount || 0, target: 5 };
+    case "event_goer": return { current: participationsCount || 0, target: 1 };
+
+    // Knowledge progress
+    case "certified_novice": return { current: c?.certificatesEarned || 0, target: 1 };
+    case "certified_expert": return { current: c?.certificatesEarned || 0, target: 5 };
+    case "certified_master": return { current: c?.certificatesEarned || 0, target: 10 };
+    default: return null;
+  }
+}
+
+function computeLocalBadges(user, c = {}, favoritesCount = 0, participationsCount = 0) {
+  const badges = [];
+  if (user) badges.push("hello_world");
+  if ((c.repliesGiven || 0) >= 1) badges.push("talk_is_silver");
+  if ((c.discussionsStarted || 0) >= 1) badges.push("so_it_begins");
+  if (localStorage.getItem("springwave_quiz_completed") === "true") badges.push("self_discovery");
+  if ((c.discussionsStarted || 0) >= 5) badges.push("conversation_starter");
+  if ((c.repliesGiven || 0) >= 10) badges.push("helper");
+  if ((c.repliesGiven || 0) >= 50) badges.push("chatterbox");
+  if ((c.likesReceived || 0) >= 20) badges.push("respected");
+  if ((c.likesReceived || 0) >= 50) badges.push("the_oracle");
+  if ((c.discussionsStarted || 0) >= 20) badges.push("trendsetter");
+  if ((c.score || 0) >= 100) badges.push("community_star");
+  if ((c.repliesGiven || 0) >= 100) badges.push("keyboard_warrior");
+  if ((c.score || 0) >= 1000) badges.push("mentor");
+  if ((c.score || 0) >= 2000) badges.push("the_sage");
+  if ((c.repliesGiven || 0) > (c.discussionsStarted || 0) * 10 && (c.discussionsStarted || 0) > 0) badges.push("one_man_show");
+  if ((c.discussionsStarted || 0) <= 3 && (c.discussionsStarted || 0) > 0 && (c.likesReceived || 0) >= (c.discussionsStarted || 0) * 5) badges.push("quality_over_quantity");
+
+  // Activity & Event Gamification
+  if (favoritesCount >= 5) badges.push("active_explorer");
+  if (participationsCount >= 1) badges.push("event_goer");
+  if (user && user.role === "host") {
+    badges.push("rising_host");
+    if ((c.score || 0) >= 100 || favoritesCount >= 5) {
+      badges.push("grand_host");
+    }
+  }
+
+  // Knowledge & Certificates Gamification
+  if ((c.certificatesEarned || 0) >= 1) badges.push("certified_novice");
+  if ((c.certificatesEarned || 0) >= 5) badges.push("certified_expert");
+  if ((c.certificatesEarned || 0) >= 10) badges.push("certified_master");
+
+  return badges;
+}
+
 function closePopup() {
     if (!popupOverlay) return;
     popupOverlay.classList.remove("active");
@@ -43,6 +129,7 @@ function renderCachedProfileAndBadges() {
     if (!user) return;
 
     currentUser = user;
+    const userId = user._id || user.id || 'guest';
 
     const nameEl = document.getElementById("profile-name");
     if (nameEl) nameEl.textContent = user.username || user.fullname || "";
@@ -82,18 +169,34 @@ function renderCachedProfileAndBadges() {
         }
     }
 
-    // Immediately populate Badges and Contribute Score from localStorage
-    const badgeStorageKey = `springwave_badges_${user._id || 'guest'}`;
-    const contribStorageKey = `springwave_contrib_${user._id || 'guest'}`;
+    // Immediately populate Badges and Contribute Score from localStorage in 0ms
+    const badgeStorageKey = `springwave_badges_${userId}`;
+    const contribStorageKey = `springwave_contrib_${userId}`;
+    const countsStorageKey = `springwave_counts_${userId}`;
     
-    const storedBadges = localStorage.getItem(badgeStorageKey);
-    const earnedKeys = new Set(storedBadges ? JSON.parse(storedBadges) : ["hello_world"]);
-
-    let cachedContrib = { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] };
+    let cachedContrib = { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, certificatesEarned: 0, badges: [] };
     try {
         const savedContrib = localStorage.getItem(contribStorageKey);
-        if (savedContrib) cachedContrib = JSON.parse(savedContrib);
+        if (savedContrib) cachedContrib = { ...cachedContrib, ...JSON.parse(savedContrib) };
     } catch {}
+
+    let cachedCounts = { favoritesCount: 0, participationsCount: 0 };
+    try {
+        const savedCounts = localStorage.getItem(countsStorageKey);
+        if (savedCounts) cachedCounts = { ...cachedCounts, ...JSON.parse(savedCounts) };
+    } catch {}
+
+    let storedBadges = [];
+    try {
+        const savedBadges = localStorage.getItem(badgeStorageKey);
+        if (savedBadges) storedBadges = JSON.parse(savedBadges);
+    } catch {}
+
+    // Synchronously compute local badges immediately (0ms)
+    const localBadges = computeLocalBadges(user, cachedContrib, cachedCounts.favoritesCount, cachedCounts.participationsCount);
+    const serverBadges = cachedContrib.badges || [];
+    const mergedBadges = [...new Set([...storedBadges, ...serverBadges, ...localBadges])];
+    const earnedKeys = new Set(mergedBadges);
 
     const { level, current, next, progress } = calcContribLevel(cachedContrib.score || 0);
     const pct = Math.round(progress * 100);
@@ -105,6 +208,7 @@ function renderCachedProfileAndBadges() {
     const scoreTarget = document.getElementById("contribute-score-target");
     const statDiscussions = document.getElementById("stat-discussions");
     const statCertificates = document.getElementById("stat-certificates");
+    const statEvents = document.getElementById("stat-events");
 
     if (scoreVal) scoreVal.textContent = `${cachedContrib.score || 0} pts`;
     if (levelEl) levelEl.textContent = `Lv.${level}`;
@@ -112,8 +216,10 @@ function renderCachedProfileAndBadges() {
     if (scoreTarget) scoreTarget.textContent = nextLabel;
     if (statDiscussions) statDiscussions.textContent = cachedContrib.discussionsStarted || 0;
     if (statCertificates) statCertificates.textContent = cachedContrib.certificatesEarned || 0;
-    badgeRenderData = { earnedKeys, c: cachedContrib, user, favoritesCount: 0, participationsCount: 0 };
-    renderBadgesPanel(earnedKeys, cachedContrib, user, 0, 0);
+    if (statEvents) statEvents.textContent = cachedCounts.participationsCount || 0;
+
+    badgeRenderData = { earnedKeys, c: cachedContrib, user, favoritesCount: cachedCounts.favoritesCount, participationsCount: cachedCounts.participationsCount };
+    renderBadgesPanel(earnedKeys, cachedContrib, user, cachedCounts.favoritesCount, cachedCounts.participationsCount);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -573,67 +679,6 @@ function openCropModal(file, onSave) {
     });
 }
 
-/* =========================
-   CONTRIBUTION PANEL
-   ========================= */
-
-const CONTRIB_LEVELS = [
-  { level: 1, min: 0, max: 99 },
-  { level: 2, min: 100, max: 249 },
-  { level: 3, min: 250, max: 499 },
-  { level: 4, min: 500, max: 999 },
-  { level: 5, min: 1000, max: 1999 },
-  { level: 6, min: 2000, max: Infinity },
-];
-
-function calcContribLevel(score) {
-  for (const l of CONTRIB_LEVELS) {
-    if (score >= l.min && score <= l.max) {
-      const range = l.max === Infinity ? l.min : l.max - l.min + 1;
-      const progress = l.max === Infinity ? 1 : (score - l.min) / range;
-      return { level: l.level, current: score - l.min, next: l.max === Infinity ? null : range, progress: Math.min(progress, 1) };
-    }
-  }
-  return { level: 1, current: 0, next: 100, progress: 0 };
-}
-
-function computeLocalBadges(user, c, favoritesCount = 0, participationsCount = 0) {
-  const badges = [];
-  if (user) badges.push("hello_world");
-  if (c.repliesGiven >= 1) badges.push("talk_is_silver");
-  if (c.discussionsStarted >= 1) badges.push("so_it_begins");
-  if (localStorage.getItem("springwave_quiz_completed") === "true") badges.push("self_discovery");
-  if (c.discussionsStarted >= 5) badges.push("conversation_starter");
-  if (c.repliesGiven >= 10) badges.push("helper");
-  if (c.repliesGiven >= 50) badges.push("chatterbox");
-  if (c.likesReceived >= 20) badges.push("respected");
-  if (c.likesReceived >= 50) badges.push("the_oracle");
-  if (c.discussionsStarted >= 20) badges.push("trendsetter");
-  if (c.score >= 100) badges.push("community_star");
-  if (c.repliesGiven >= 100) badges.push("keyboard_warrior");
-  if (c.score >= 1000) badges.push("mentor");
-  if (c.score >= 2000) badges.push("the_sage");
-  if (c.repliesGiven > c.discussionsStarted * 10 && c.discussionsStarted > 0) badges.push("one_man_show");
-  if (c.discussionsStarted <= 3 && c.discussionsStarted > 0 && c.likesReceived >= c.discussionsStarted * 5) badges.push("quality_over_quantity");
-
-  // Activity & Event Gamification
-  if (favoritesCount >= 5) badges.push("active_explorer");
-  if (participationsCount >= 1) badges.push("event_goer");
-  if (user && user.role === "host") {
-    badges.push("rising_host");
-    if (c.score >= 100 || favoritesCount >= 5) {
-      badges.push("grand_host");
-    }
-  }
-
-  // Knowledge & Certificates Gamification
-  if (c.certificatesEarned >= 1) badges.push("certified_novice");
-  if (c.certificatesEarned >= 5) badges.push("certified_expert");
-  if (c.certificatesEarned >= 10) badges.push("certified_master");
-
-  return badges;
-}
-
 async function renderAIProfile() {
   const card = document.getElementById("ai-profile-card");
   const container = document.getElementById("ai-profile-content");
@@ -700,35 +745,6 @@ async function renderAIProfile() {
   } catch (error) {
     console.error("Failed to load AI profile:", error);
     card.style.display = "none";
-  }
-}
-
-const ALL_BADGES = BADGE_DEFINITIONS;
-
-function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
-  switch (key) {
-    case "talk_is_silver": return { current: c.repliesGiven, target: 1 };
-    case "so_it_begins": return { current: c.discussionsStarted, target: 1 };
-    case "conversation_starter": return { current: c.discussionsStarted, target: 5 };
-    case "helper": return { current: c.repliesGiven, target: 10 };
-    case "chatterbox": return { current: c.repliesGiven, target: 50 };
-    case "respected": return { current: c.likesReceived, target: 20 };
-    case "the_oracle": return { current: c.likesReceived, target: 50 };
-    case "trendsetter": return { current: c.discussionsStarted, target: 20 };
-    case "community_star": return { current: c.score, target: 100 };
-    case "keyboard_warrior": return { current: c.repliesGiven, target: 100 };
-    case "mentor": return { current: c.score, target: 1000 };
-    case "the_sage": return { current: c.score, target: 2000 };
-
-    // Activity progress
-    case "active_explorer": return { current: favoritesCount, target: 5 };
-    case "event_goer": return { current: participationsCount, target: 1 };
-
-    // Knowledge progress
-    case "certified_novice": return { current: c.certificatesEarned || 0, target: 1 };
-    case "certified_expert": return { current: c.certificatesEarned || 0, target: 5 };
-    case "certified_master": return { current: c.certificatesEarned || 0, target: 10 };
-    default: return null;
   }
 }
 
@@ -876,10 +892,13 @@ async function renderParticipatedEventsPanel() {
   const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
   const earnedKeys = new Set(mergedBadges);
 
-  const badgeStorageKey = `springwave_badges_${user?._id || 'guest'}`;
-  const contribStorageKey = `springwave_contrib_${user?._id || 'guest'}`;
+  const userId = user?._id || user?.id || 'guest';
+  const badgeStorageKey = `springwave_badges_${userId}`;
+  const contribStorageKey = `springwave_contrib_${userId}`;
+  const countsStorageKey = `springwave_counts_${userId}`;
   localStorage.setItem(badgeStorageKey, JSON.stringify(mergedBadges));
   localStorage.setItem(contribStorageKey, JSON.stringify(c));
+  localStorage.setItem(countsStorageKey, JSON.stringify({ favoritesCount, participationsCount }));
 
   const isHost = user && user.role === "host";
   const isAdmin = user && user.role === "admin";
