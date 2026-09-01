@@ -71,6 +71,11 @@ function getDiscussionParamFromURL() {
   return params.get("discussion");
 }
 
+function getCommentParamFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("comment");
+}
+
 async function enrichDiscussionsEventData(discussions) {
   const needEnrich = discussions.filter(d => d.relatedEvent && !d._event);
   if (needEnrich.length === 0) return;
@@ -381,12 +386,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     initChatbot().catch(() => {}),
     loadFooter().catch(() => {})
   ]).then(() => {
-    // Open targeted discussion parameter if set in URL
+    // Open targeted discussion and comment parameter if set in URL
     const discussionParam = getDiscussionParamFromURL();
+    const commentParam = getCommentParamFromURL();
     if (discussionParam) {
-      setTimeout(() => openDiscussionDetail(discussionParam), 200);
+      setTimeout(() => openDiscussionDetail(discussionParam, commentParam), 200);
     }
   });
+
+  window.openDiscussionDetail = openDiscussionDetail;
 
   const discussParam = urlParams.get("discuss");
   if (discussParam === "event") {
@@ -994,13 +1002,44 @@ function initDiscussionDetail() {
   });
 }
 
-async function openDiscussionDetail(id) {
+function scrollToAndHighlightComment(container, targetCommentId) {
+  if (!container || !targetCommentId) return;
+
+  const tryScroll = (attempts = 0) => {
+    const commentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${targetCommentId}"]`);
+    if (commentEl) {
+      // 1. If inside collapsed extra replies, expand parent
+      const extraReplies = commentEl.closest(".forum-comment-extra-replies");
+      if (extraReplies) {
+        extraReplies.style.maxHeight = "2000px";
+        const expandBtn = extraReplies.closest(".discussion-detail-comment")?.querySelector(".forum-comment-expand-btn");
+        if (expandBtn) expandBtn.classList.add("expanded");
+      }
+
+      // 2. Smoothly scroll into view
+      commentEl.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      // 3. Highlight with animated pulse glow and border ring
+      commentEl.classList.add("ring-2", "ring-[#23499b]", "bg-blue-50/80", "rounded-2xl", "transition-all", "duration-500", "shadow-md");
+      setTimeout(() => {
+        commentEl.classList.remove("ring-2", "ring-[#23499b]", "bg-blue-50/80", "shadow-md");
+      }, 3500);
+    } else if (attempts < 8) {
+      setTimeout(() => tryScroll(attempts + 1), 150);
+    }
+  };
+
+  setTimeout(() => tryScroll(0), 100);
+}
+
+async function openDiscussionDetail(id, targetCommentId = null) {
   const overlay = document.getElementById("discussionPopupOverlay");
   const container = document.getElementById("discussionPopupContainer");
   if (!overlay || !container) return;
 
   // Add the specific class for figma scrollable detailed modal sheets
   container.className = "popup-container discussion-detail-modal-container";
+  container.dataset.activeDiscussionId = id;
 
   const chatbot = document.getElementById("chatbot-widget");
   if (chatbot) chatbot.style.display = "none";
@@ -1067,6 +1106,10 @@ async function openDiscussionDetail(id) {
       commentsContainer.innerHTML = comments.length === 0
         ? buildEmptyState()
         : roots.map(c => renderCommentTree(c, childMap, getUser())).join("");
+
+      if (targetCommentId) {
+        scrollToAndHighlightComment(container, targetCommentId);
+      }
     }
 
     const countEl = container.querySelector(".forum-comments-count");
@@ -1080,6 +1123,10 @@ async function openDiscussionDetail(id) {
   })();
 
   await Promise.allSettled([fetchEventTask, fetchCommentsTask]);
+
+  if (targetCommentId) {
+    scrollToAndHighlightComment(container, targetCommentId);
+  }
 }
 
 async function postCommentOrReply({ discussionId, text, replyToId, container, inputEl, submitBtn, inlineBox }) {

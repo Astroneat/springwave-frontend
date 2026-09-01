@@ -7,7 +7,7 @@ let pollTimer = null;
 
 function getStorageKey() {
   const user = getUser();
-  return user ? `springwave_notifications_${user._id}` : "springwave_notifications_guest";
+  return user ? `springwave_notifications_${user._id || user.id || "guest"}` : "springwave_notifications_guest";
 }
 
 function load() {
@@ -46,7 +46,7 @@ export function addBadgeNotification(badgeKey, badgeLabel) {
   window.dispatchEvent(new CustomEvent("notifications-updated"));
 }
 
-export function addInteractionNotification(type, message, discussionId) {
+export function addInteractionNotification(type, message, discussionId, commentId = null) {
   if (!isAuthenticated()) return;
   const list = load();
   list.unshift({
@@ -56,6 +56,7 @@ export function addInteractionNotification(type, message, discussionId) {
     createdAt: new Date().toISOString(),
     read: false,
     discussionId: discussionId,
+    commentId: commentId,
   });
   if (list.length > 100) list.length = 100;
   save(list);
@@ -85,17 +86,18 @@ export async function pollServerNotifications() {
     const serverNotifs = await fetchServerNotifications();
     if (!serverNotifs || serverNotifs.length === 0) return;
     const localList = load();
-    const serverIds = new Set(serverNotifs.map(n => n._id));
+    const serverIds = new Set(serverNotifs.map(n => n._id || n.id));
     const existingIds = new Set(localList.map(n => n.id));
     const newNotifs = serverNotifs
-      .filter(n => !existingIds.has(n._id))
+      .filter(n => !existingIds.has(n._id || n.id))
       .map(n => ({
-        id: n._id,
+        id: n._id || n.id,
         type: n.type,
         message: n.message,
         createdAt: n.createdAt,
         read: n.read,
-        discussionId: n.discussionId,
+        discussionId: n.discussionId || n.discussion?._id || n.discussion || null,
+        commentId: n.commentId || n.comment?._id || n.comment || n.replyId || n.reply?._id || n.reply || null,
         actorName: n.actorName,
       }));
     if (newNotifs.length > 0) {

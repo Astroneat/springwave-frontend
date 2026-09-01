@@ -604,9 +604,13 @@ function renderNotifDropdown() {
 
     function getNotifLink(n) {
         if (n.type === 'badge') {
-            return n.badgeKey ? `/profile.html#badge-${n.badgeKey}` : '/profile.html#badges-section';
+            return n.badgeKey ? `/profile.html#badge-${encodeURIComponent(n.badgeKey)}` : '/profile.html#badges-section';
         }
-        if (n.discussionId) return `/community.html?discussion=${n.discussionId}`;
+        if (n.discussionId) {
+            let url = `/community.html?discussion=${encodeURIComponent(n.discussionId)}`;
+            if (n.commentId) url += `&comment=${encodeURIComponent(n.commentId)}`;
+            return url;
+        }
         return '#';
     }
 
@@ -657,6 +661,18 @@ function renderNotifDropdown() {
                                         targetEl.classList.remove("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]");
                                     }, 3000);
                                 }
+                            }
+                        } else {
+                            window.location.href = link;
+                        }
+                    } else if (n.discussionId) {
+                        const link = getNotifLink(n);
+                        if (window.location.pathname.includes("community.html")) {
+                            window.history.pushState({}, "", link);
+                            if (typeof window.openDiscussionDetail === "function") {
+                                window.openDiscussionDetail(n.discussionId, n.commentId);
+                            } else {
+                                window.location.href = link;
                             }
                         } else {
                             window.location.href = link;
