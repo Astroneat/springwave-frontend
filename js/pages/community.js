@@ -1084,16 +1084,19 @@ async function openDiscussionDetail(id) {
 
 async function postCommentOrReply({ discussionId, text, replyToId, container, inputEl, submitBtn, inlineBox }) {
   const sanitized = sanitizeHtml(text.trim());
-  if (!sanitized) return;
+  if (!sanitized) {
+    showToast("Please enter a comment before submitting.", true);
+    inputEl?.focus();
+    return;
+  }
 
   if (!requireVerifiedOrRedirect()) return;
 
   const check = canPerformAction('addComment');
   if (!check.allowed) {
-    alert(`Please wait ${check.remaining} seconds before posting another comment.`);
+    showToast(`Please wait ${check.remaining} seconds before posting another comment.`, true);
     return;
   }
-  markActionPerformed('addComment');
 
   if (submitBtn) {
     submitBtn.disabled = true;
@@ -1110,6 +1113,8 @@ async function postCommentOrReply({ discussionId, text, replyToId, container, in
     } else {
       newComment = await addComment(discussionId, sanitized, discContext);
     }
+
+    markActionPerformed('addComment');
 
     grantContribution("reply").then((res) => {
       if (res && res.newBadges && Array.isArray(res.newBadges)) {
@@ -2449,22 +2454,38 @@ function initPostModal() {
       }
       if (!requireVerifiedOrRedirect()) return;
 
-      const check = canPerformAction('createDiscussion');
-      if (!check.allowed) {
-        alert(`Please wait ${check.remaining} seconds before posting another discussion.`);
+      const titleInput = document.getElementById("postTitle");
+      const contentInput = document.getElementById("postContent");
+      const title = sanitizeHtml(titleInput?.value.trim() || "");
+      const content = sanitizeHtml(contentInput?.value.trim() || "");
+
+      if (!title && !content) {
+        showToast("Please enter both a title and content for your discussion.", true);
+        titleInput?.focus();
         return;
       }
 
-      const title = sanitizeHtml(document.getElementById("postTitle")?.value.trim());
       if (!title) {
-        document.getElementById("postTitle")?.focus();
+        showToast("Please enter a title for your discussion.", true);
+        titleInput?.focus();
         return;
       }
+
+      if (!content) {
+        showToast("Please enter the content for your discussion.", true);
+        contentInput?.focus();
+        return;
+      }
+
+      const check = canPerformAction('createDiscussion');
+      if (!check.allowed) {
+        showToast(`Please wait ${check.remaining} seconds before posting another discussion.`, true);
+        return;
+      }
+
       publishBtn.disabled = true;
-      markActionPerformed('createDiscussion');
       try {
         const category = categorySelect?.value || "general";
-        const content = sanitizeHtml(document.getElementById("postContent")?.value.trim() || "");
         const tagsInput = document.getElementById("postTags")?.value || "";
         const tags = tagsInput ? tagsInput.split(",").map(t => sanitizeHtml(t.trim())).filter(Boolean) : [];
 
@@ -2496,6 +2517,9 @@ function initPostModal() {
         });
 
         if (!result) return;
+
+        // Mark action performed only after successful publication
+        markActionPerformed('createDiscussion');
 
         grantContribution("discussion").then((res) => {
           if (res && res.newBadges && Array.isArray(res.newBadges)) {
