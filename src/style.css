@@ -10236,16 +10236,23 @@ textarea {
 
 /* Sidebar Custom Classes */
 .explore-sidebar {
-  width: 236px;
+  width: 240px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px; /* matching spacing */
   position: sticky;
   top: 100px;
   max-height: calc(100vh - 120px);
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 6px;
+}
+
+.explore-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding-bottom: 24px;
 }
 
 .explore-sidebar::-webkit-scrollbar {
@@ -10265,7 +10272,7 @@ textarea {
 .sidebar-section-figma {
   background: #c7dbee;
   border-radius: 16px;
-  padding: 16px 14px;
+  padding: 18px 16px;
   box-shadow: 0 8px 24px rgba(199, 219, 238, 0.25);
 }
 
