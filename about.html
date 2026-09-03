@@ -2,11 +2,14 @@
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
     rel="stylesheet">
   <title data-i18n="about.title">About Us — SpringWave</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -61,7 +64,7 @@
   </section>
 
   <!-- 2. THE ORIGIN STORY -->
-  <section class="py-20 md:py-28 bg-white border-t border-slate-200/60" id="story">
+  <section class="content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="story">
     <div class="max-w-6xl mx-auto px-6 md:px-12">
       <div class="grid md:grid-cols-12 gap-12 lg:gap-16 items-start">
         <!-- Left Column: Big Statement -->
@@ -70,7 +73,7 @@
           <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6" data-i18n="about.story_title">
             Built from real student frustration.
           </h2>
-          <div class="p-6 bg-slate-50 rounded-2xl border-l-4 border-[#23499b] text-slate-700 font-medium italic text-base leading-relaxed" data-i18n="about.story_quote">
+          <div class="p-5 sm:p-6 bg-slate-50 rounded-2xl border-l-4 border-[#23499b] text-slate-700 font-medium italic text-base leading-relaxed" data-i18n="about.story_quote">
             “We missed workshops and competitions not because we lacked passion, but because information was scattered across dozens of random fanpages and chat groups.”
           </div>
         </div>
@@ -100,9 +103,9 @@
   </section>
 
   <!-- 3. CORE ECOSYSTEM / PRODUCT PILLARS (Bento Grid) -->
-  <section class="py-20 md:py-28 bg-[#f8fafc] border-t border-slate-200/60" id="pillars">
+  <section class="content-visibility-auto section-rhythm-standard bg-[#f8fafc] border-t border-slate-200/60" id="pillars">
     <div class="max-w-6xl mx-auto px-6 md:px-12">
-      <div class="text-center max-w-2xl mx-auto mb-16">
+      <div class="text-center max-w-2xl mx-auto mb-14">
         <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.pillars_tag">CORE ECOSYSTEM</span>
         <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4" data-i18n="about.pillars_title">
           What powers SpringWave
@@ -115,7 +118,7 @@
       <!-- Bento Grid Layout -->
       <div class="grid md:grid-cols-2 gap-6">
         <!-- Pillar 1: Activities Hub -->
-        <div class="about-pillar-card p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+        <div class="about-pillar-card p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
           <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23499b] flex items-center justify-center mb-6">
             <span class="material-symbols-outlined text-2xl">event_available</span>
           </div>
@@ -182,10 +185,10 @@
   </section>
 
   <!-- 4. MEET THE TEAM (RAH TEAM - 4 DEVELOPERS) -->
-  <section class="py-20 md:py-28 bg-white border-t border-slate-200/60" id="team">
+  <section class="content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="team">
     <div class="max-w-6xl mx-auto px-6 md:px-12">
       <!-- Team Section Header -->
-      <div class="text-center max-w-3xl mx-auto mb-16">
+      <div class="text-center max-w-3xl mx-auto mb-14">
         <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.team_tag">THE BUILDERS</span>
         <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight whitespace-nowrap" data-i18n="about.team_title">
           Meet RAH Gang - Really Awesome Humans
@@ -200,7 +203,7 @@
         <!-- Developer 1: Nguyễn Viết Thành Đạt -->
         <div class="about-team-card group flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
           <div class="relative aspect-[4/5] overflow-hidden bg-slate-100">
-            <img src="/assets/images/Dat.jpg" alt="Nguyễn Viết Thành Đạt" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            <img src="/assets/images/Dat.jpg" alt="Nguyễn Viết Thành Đạt" width="400" height="500" loading="lazy" decoding="async" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
             <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-[#23499b] tracking-wider uppercase shadow-xs" data-i18n="about.badge_lead">
               LEAD & ARCHITECTURE
             </div>
@@ -235,7 +238,7 @@
         <!-- Developer 2: Nguyễn Đức Tài -->
         <div class="about-team-card group flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
           <div class="relative aspect-[4/5] overflow-hidden bg-slate-100">
-            <img src="/assets/images/Tai.jpg" alt="Nguyễn Đức Tài" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            <img src="/assets/images/Tai.jpg" alt="Nguyễn Đức Tài" width="400" height="500" loading="lazy" decoding="async" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
             <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-emerald-700 tracking-wider uppercase shadow-xs" data-i18n="about.badge_backend">
               BACKEND & SECURITY
             </div>
@@ -270,7 +273,7 @@
         <!-- Developer 3: Lê Đăng Anh Tuấn -->
         <div class="about-team-card group flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
           <div class="relative aspect-[4/5] overflow-hidden bg-slate-100">
-            <img src="/assets/images/Tuan.jpg" alt="Lê Đăng Anh Tuấn" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            <img src="/assets/images/Tuan.jpg" alt="Lê Đăng Anh Tuấn" width="400" height="500" loading="lazy" decoding="async" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
             <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-amber-700 tracking-wider uppercase shadow-xs" data-i18n="about.badge_devops">
               DEVOPS & SERVICES
             </div>
@@ -305,7 +308,7 @@
         <!-- Developer 4: Nguyễn Tiến Trường -->
         <div class="about-team-card group flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
           <div class="relative aspect-[4/5] overflow-hidden bg-slate-100">
-            <img src="/assets/images/Truong.jpg" alt="Nguyễn Tiến Trường" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            <img src="/assets/images/Truong.jpg" alt="Nguyễn Tiến Trường" width="400" height="500" loading="lazy" decoding="async" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
             <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-violet-700 tracking-wider uppercase shadow-xs" data-i18n="about.badge_design">
               PRODUCT & UI/UX
             </div>
@@ -349,9 +352,9 @@
   </section>
 
   <!-- 5. ENGINEERING VALUES & CRAFTSMANSHIP -->
-  <section class="py-20 md:py-28 bg-[#f8fafc] border-t border-slate-200/60" id="values">
+  <section class="content-visibility-auto section-rhythm-compact bg-[#f8fafc] border-t border-slate-200/60" id="values">
     <div class="max-w-6xl mx-auto px-6 md:px-12">
-      <div class="text-center max-w-2xl mx-auto mb-16">
+      <div class="text-center max-w-2xl mx-auto mb-12">
         <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.values_tag">ENGINEERING PRINCIPLES</span>
         <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight" data-i18n="about.values_title">
           Our Core Values
@@ -360,7 +363,7 @@
 
       <div class="grid md:grid-cols-3 gap-6">
         <!-- Value 1 -->
-        <div class="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
+        <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
           <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#23499b] flex items-center justify-center mb-5">
             <span class="material-symbols-outlined text-xl">tune</span>
           </div>
@@ -371,7 +374,7 @@
         </div>
 
         <!-- Value 2 -->
-        <div class="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
+        <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
           <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5">
             <span class="material-symbols-outlined text-xl">shield</span>
           </div>
@@ -382,7 +385,7 @@
         </div>
 
         <!-- Value 3 -->
-        <div class="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
+        <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
           <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center mb-5">
             <span class="material-symbols-outlined text-xl">hub</span>
           </div>
@@ -396,9 +399,9 @@
   </section>
 
   <!-- 6. EVOLUTION TIMELINE -->
-  <section class="py-20 md:py-28 bg-white border-t border-slate-200/60" id="timeline">
+  <section class="content-visibility-auto section-rhythm-standard bg-white border-t border-slate-200/60" id="timeline">
     <div class="max-w-4xl mx-auto px-6 md:px-12">
-      <div class="text-center mb-16">
+      <div class="text-center mb-14">
         <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.timeline_tag">OUR MILESTONES</span>
         <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight" data-i18n="about.timeline_title">
           The Journey So Far
@@ -461,7 +464,7 @@
   </section>
 
   <!-- 7. MINIMAL HIGH-CONTRAST CTA -->
-  <section class="py-20 md:py-28 bg-[#fafbff] border-t border-slate-200/60" id="cta">
+  <section class="content-visibility-auto section-rhythm-compact bg-[#fafbff] border-t border-slate-200/60" id="cta">
     <div class="max-w-5xl mx-auto px-6 md:px-12">
       <div class="rounded-3xl bg-slate-900 text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-xl">
         <!-- Background subtle lighting accent -->

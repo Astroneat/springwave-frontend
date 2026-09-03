@@ -87,23 +87,27 @@ function initStatsCounter() {
     const target = parseInt(rawVal, 10);
     if (isNaN(target)) return;
 
-    let current = 0;
     const duration = 1200; // ms
-    const frameRate = 1000 / 60; // 60fps
-    const totalFrames = duration / frameRate;
-    const increment = target / totalFrames;
     const isPlus = el.textContent.includes("+");
     const isPercent = el.textContent.includes("%");
+    let startTime = null;
 
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        clearInterval(timer);
-        el.textContent = target + (isPlus ? "+" : "") + (isPercent ? "%" : "");
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      // Ease out cubic
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(easeProgress * target);
+
+      if (progress < 1) {
+        el.textContent = current + (isPlus ? "+" : "") + (isPercent ? "%" : "");
+        requestAnimationFrame(step);
       } else {
-        el.textContent = Math.floor(current) + (isPlus ? "+" : "") + (isPercent ? "%" : "");
+        el.textContent = target + (isPlus ? "+" : "") + (isPercent ? "%" : "");
       }
-    }, frameRate);
+    };
+
+    requestAnimationFrame(step);
   };
 
   const observer = new IntersectionObserver(

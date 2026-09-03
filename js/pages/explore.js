@@ -666,6 +666,8 @@ async function renderCardsDirect(activities) {
         if (image) {
             image.src = activity.thumbnail;
             image.alt = activity.title;
+            image.loading = "lazy";
+            image.decoding = "async";
         }
         card.querySelector(".card-title").textContent = activity.title;
         const locationSpan = card.querySelector(".info-location");

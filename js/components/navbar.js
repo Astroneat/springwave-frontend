@@ -236,8 +236,15 @@ export async function loadNavbar({ activeSection } = {}) {
 export function initBasicScroll() {
     const navbar = document.getElementById("navbar");
     if (!navbar) return;
+    let ticking = false;
     window.addEventListener("scroll", () => {
-        navbar.classList.toggle("collapsed", window.scrollY > 60);
+        if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(() => {
+                navbar.classList.toggle("collapsed", window.scrollY > 60);
+                ticking = false;
+            });
+        }
     }, { passive: true });
 }
 

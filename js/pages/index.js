@@ -68,13 +68,24 @@ function initNavbarScroll() {
     }
   };
 
+  let ticking = false;
+  const requestUpdate = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(() => {
+        update();
+        ticking = false;
+      });
+    }
+  };
+
   update();
-  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("scroll", requestUpdate, { passive: true });
   window.addEventListener("mousemove", (e) => {
     const near = e.clientY <= HOVER_THRESHOLD;
     if (near !== mouseNearTop) {
       mouseNearTop = near;
-      update();
+      requestUpdate();
     }
   }, { passive: true });
   document.addEventListener("click", (e) => {
@@ -82,7 +93,7 @@ function initNavbarScroll() {
     const clickOutsideNotifDropdown = !e.target.closest("#notif-dropdown");
     if (clickOutsideUserMenu && clickOutsideNotifDropdown) {
       mouseNearTop = e.clientY <= HOVER_THRESHOLD;
-      update();
+      requestUpdate();
     }
   });
 }
@@ -195,21 +206,33 @@ function initHeroMockupParallax() {
   const container = card.parentElement;
   if (!container) return;
 
-  container.addEventListener("mousemove", (e) => {
-    const rect = container.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  let rect = null;
+  let rafId = null;
 
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    const rotateX = -(y - centerY) / 15;
-    const rotateY = (x - centerX) / 15;
-
-    card.style.transform = `translateZ(0) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+  container.addEventListener("mouseenter", () => {
+    rect = container.getBoundingClientRect();
   });
 
+  container.addEventListener("mousemove", (e) => {
+    if (!rect) rect = container.getBoundingClientRect();
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = -(y - centerY) / 15;
+      const rotateY = (x - centerX) / 15;
+      card.style.transform = `translateZ(0) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    });
+  }, { passive: true });
+
   container.addEventListener("mouseleave", () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    rect = null;
     card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
   });
 }

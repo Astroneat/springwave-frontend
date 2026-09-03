@@ -3,18 +3,19 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-    rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Bebas+Neue&family=Dancing+Script:wght@400..700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <title data-i18n="index.title">SpringWave | AI-Powered Student Growth Platform</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="prefetch" href="/explore.html">
 </head>
 
 <body class="bg-background text-on-surface font-body-md antialiased min-h-screen">
@@ -37,7 +38,7 @@
   <!-- HERO -->
   <!-- HERO -->
   <section class="figma-hero" id="hero" data-node-id="1:4" data-name="homepage">
-    <img src="/assets/images/hero-bg.png" alt="Scenery Background" class="figma-hero-bg" data-node-id="3:2" />
+    <img src="/assets/images/hero-bg.png" alt="Scenery Background" class="figma-hero-bg" data-node-id="3:2" fetchpriority="high" loading="eager" decoding="async" />
     
     <div class="figma-hero-content">
       <h1 class="figma-hero-title">
@@ -70,10 +71,9 @@
   </section>
 
   <!-- 1. THE SPRINGWAVE JOURNEY -->
-  <section class="journey-section py-20 md:py-24 bg-white border-t border-slate-200/60" id="core-pillars">
+  <section class="journey-section content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="core-pillars">
     <div class="landing-container">
-      <div class="journey-header text-center max-w-3xl mx-auto mb-14 reveal">
-        <div class="sw-eyebrow" data-i18n="index.pillars_title">THE SPRINGWAVE JOURNEY</div>
+      <div class="journey-header text-center max-w-3xl mx-auto mb-12 reveal">
         <h2 class="journey-heading sw-section-title" data-i18n="index.pillars_heading">Discover. Connect. Grow.</h2>
         <p class="journey-subtext sw-section-subtitle" data-i18n="index.pillars_desc">Four simple ways SpringWave helps you make the most of your student life.</p>
       </div>
@@ -189,10 +189,9 @@
   </section>
 
   <!-- 2. QUICKSTART EXPLORER SECTION -->
-  <section class="quickstart-section py-20 md:py-24 bg-[#f8fafc] border-t border-slate-200/60" id="quickstart">
+  <section class="quickstart-section content-visibility-auto section-rhythm-compact bg-[#f8fafc] border-t border-slate-200/60" id="quickstart">
     <div class="landing-container">
-      <div class="text-center max-w-3xl mx-auto mb-14 reveal">
-        <div class="sw-eyebrow">DIRECT PATHWAYS</div>
+      <div class="text-center max-w-3xl mx-auto mb-10 reveal">
         <h2 class="sw-section-title">Jump Straight Into What You Need</h2>
         <p class="sw-section-subtitle">Choose your focus — discover workshops, take your AI strengths quiz, or connect with peers.</p>
       </div>
@@ -254,10 +253,9 @@
   </section>
 
   <!-- 3. HOW IT WORKS -->
-  <section class="sw-section-normal py-20 md:py-24 bg-white border-t border-slate-200/60" id="how-it-works">
+  <section class="sw-section-normal content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="how-it-works">
     <div class="landing-container">
-      <div class="text-center max-w-3xl mx-auto mb-14 reveal">
-        <div class="sw-eyebrow" data-i18n="index.how_title">HOW IT WORKS</div>
+      <div class="text-center max-w-3xl mx-auto mb-12 reveal">
         <h2 class="sw-section-title" data-i18n="index.how_heading">Three Steps to Your Growth Journey</h2>
         <p class="sw-section-subtitle" data-i18n="index.how_desc">SpringWave's AI engine analyzes your profile and creates a personalized path toward your goals.</p>
       </div>
@@ -331,10 +329,9 @@
   </section>
 
   <!-- 4. PLATFORM PREVIEW HUB -->
-  <section class="landing-section py-20 md:py-24 bg-[#f8fafc] border-t border-slate-200/60" id="platform-preview-hub">
+  <section class="landing-section content-visibility-auto section-rhythm-standard bg-[#f8fafc] border-t border-slate-200/60" id="platform-preview-hub">
     <div class="landing-container">
-      <div class="text-center max-w-3xl mx-auto mb-14 reveal">
-        <div class="sw-eyebrow" data-i18n="index.preview_hub_title">PLATFORM HIGHLIGHTS</div>
+      <div class="text-center max-w-3xl mx-auto mb-12 reveal">
         <h2 class="sw-section-title" data-i18n="index.preview_hub_heading">Explore the SpringWave Interface</h2>
         <p class="sw-section-subtitle" data-i18n="index.preview_hub_desc">Get an inside look at the core interfaces designed to optimize your academic and skill development journey.</p>
       </div>
@@ -671,10 +668,9 @@
   </section>
 
   <!-- 5. STUDENT TESTIMONIALS SECTION -->
-  <section class="py-20 md:py-24 bg-white border-t border-slate-200/60" id="testimonials">
+  <section class="content-visibility-auto section-rhythm-compact bg-white border-t border-slate-200/60" id="testimonials">
     <div class="landing-container">
-      <div class="text-center max-w-3xl mx-auto mb-14 reveal">
-        <div class="sw-eyebrow">COMMUNITY STORIES</div>
+      <div class="text-center max-w-3xl mx-auto mb-10 reveal">
         <h2 class="sw-section-title">Loved by Students Across Campuses</h2>
         <p class="sw-section-subtitle">Real experiences from students who transformed their extracurricular journey with SpringWave.</p>
       </div>
@@ -714,14 +710,14 @@
               <i class="fa-solid fa-star text-amber-400"></i>
             </div>
             <p class="text-slate-700 text-sm leading-relaxed mb-6 italic">
-              “The AI strengths quiz was surprisingly accurate. It highlighted the exact technical skills I needed to improve and recommended an advanced backend workshop that transformed my development skills.”
+              “As a club president, managing event check-ins and attendance sheets was a nightmare. SpringWave's QR scanner and instant roster reports cut check-in delays to zero.”
             </p>
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
-            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm shadow-2xs">DT</div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">DT</div>
             <div>
-              <div class="text-xs font-bold text-slate-900">Duc Tai</div>
-              <div class="text-[10px] text-slate-500 font-medium">Backend & Security • Fullstack Developer</div>
+              <div class="font-bold text-slate-900 text-sm">Đức Tài</div>
+              <div class="text-xs text-slate-500">GDG On Campus Organizer</div>
             </div>
           </div>
         </div>
@@ -737,14 +733,14 @@
               <i class="fa-solid fa-star text-amber-400"></i>
             </div>
             <p class="text-slate-700 text-sm leading-relaxed mb-6 italic">
-              “Tracking extracurricular milestones and verifiable certificates was chaotic before SpringWave. The centralized platform and verified portfolio make showcasing achievements effortless.”
+              “The personalized roadmap with milestone tracking helped me prepare for my first national Hackathon and win 2nd place. Essential toolkit for every student.”
             </p>
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
-            <div class="w-10 h-10 rounded-full bg-blue-100 text-[#23499b] font-bold flex items-center justify-center text-sm shadow-2xs">TD</div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">TD</div>
             <div>
-              <div class="text-xs font-bold text-slate-900">Thanh Dat</div>
-              <div class="text-[10px] text-slate-500 font-medium">Team Leader & Architecture</div>
+              <div class="font-bold text-slate-900 text-sm">Thành Đạt</div>
+              <div class="text-xs text-slate-500">Computer Science Junior</div>
             </div>
           </div>
         </div>
@@ -753,10 +749,9 @@
   </section>
 
   <!-- 6. FAQ ACCORDION -->
-  <section class="sw-section-compact py-20 md:py-24 bg-[#f8fafc] border-t border-slate-200/60" id="faq">
+  <section class="sw-section-compact content-visibility-auto section-rhythm-standard bg-[#f8fafc] border-t border-slate-200/60" id="faq">
     <div class="landing-container">
-      <div class="text-center max-w-3xl mx-auto mb-14 reveal">
-        <div class="sw-eyebrow" data-i18n="index.faq_label">FAQ</div>
+      <div class="text-center max-w-3xl mx-auto mb-12 reveal">
         <h2 class="sw-section-title" data-i18n="index.faq_heading">Frequently Asked Questions</h2>
         <p class="sw-section-subtitle" data-i18n="index.faq_desc">Find answers to the most common questions about the SpringWave platform and its AI engine.</p>
       </div>
@@ -818,7 +813,7 @@
   </section>
 
   <!-- FINAL CTA -->
-  <section class="landing-section cta-gradient relative overflow-hidden">
+  <section class="landing-section content-visibility-auto section-rhythm-generous cta-gradient relative overflow-hidden">
     <div class="cta-radial-overlay"></div>
     <!-- Floating Activity Tags -->
     <div class="cta-tag-pill tag-1" data-i18n="index.floating_card_ai">AI Workshop</div>
