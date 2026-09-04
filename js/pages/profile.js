@@ -19,6 +19,7 @@ import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { t } from "../lib/i18n.js";
 import { populateUniversitySelect } from "../api/universities.js";
+import { triggerBadgeCelebration, BADGE_DEFINITIONS } from "../components/badgeCelebration.js";
 
 const popupOverlay = document.getElementById("popup-overlay");
 const popupContainer = document.getElementById("popup-container");
@@ -27,6 +28,92 @@ let cropperInstance = null;
 
 // Store badge rendering data for language change re-render
 let badgeRenderData = null;
+
+const CONTRIB_LEVELS = [
+  { level: 1, min: 0, max: 99 },
+  { level: 2, min: 100, max: 249 },
+  { level: 3, min: 250, max: 499 },
+  { level: 4, min: 500, max: 999 },
+  { level: 5, min: 1000, max: 1999 },
+  { level: 6, min: 2000, max: Infinity },
+];
+
+function calcContribLevel(score) {
+  for (const l of CONTRIB_LEVELS) {
+    if (score >= l.min && score <= l.max) {
+      const range = l.max === Infinity ? l.min : l.max - l.min + 1;
+      const progress = l.max === Infinity ? 1 : (score - l.min) / range;
+      return { level: l.level, current: score - l.min, next: l.max === Infinity ? null : range, progress: Math.min(progress, 1) };
+    }
+  }
+  return { level: 1, current: 0, next: 100, progress: 0 };
+}
+
+const ALL_BADGES = BADGE_DEFINITIONS;
+
+function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
+  switch (key) {
+    case "talk_is_silver": return { current: c?.repliesGiven || 0, target: 1 };
+    case "so_it_begins": return { current: c?.discussionsStarted || 0, target: 1 };
+    case "conversation_starter": return { current: c?.discussionsStarted || 0, target: 5 };
+    case "helper": return { current: c?.repliesGiven || 0, target: 10 };
+    case "chatterbox": return { current: c?.repliesGiven || 0, target: 50 };
+    case "respected": return { current: c?.likesReceived || 0, target: 20 };
+    case "the_oracle": return { current: c?.likesReceived || 0, target: 50 };
+    case "trendsetter": return { current: c?.discussionsStarted || 0, target: 20 };
+    case "community_star": return { current: c?.score || 0, target: 100 };
+    case "keyboard_warrior": return { current: c?.repliesGiven || 0, target: 100 };
+    case "mentor": return { current: c?.score || 0, target: 1000 };
+    case "the_sage": return { current: c?.score || 0, target: 2000 };
+
+    // Activity progress
+    case "active_explorer": return { current: favoritesCount || 0, target: 5 };
+    case "event_goer": return { current: participationsCount || 0, target: 1 };
+
+    // Knowledge progress
+    case "certified_novice": return { current: c?.certificatesEarned || 0, target: 1 };
+    case "certified_expert": return { current: c?.certificatesEarned || 0, target: 5 };
+    case "certified_master": return { current: c?.certificatesEarned || 0, target: 10 };
+    default: return null;
+  }
+}
+
+function computeLocalBadges(user, c = {}, favoritesCount = 0, participationsCount = 0) {
+  const badges = [];
+  if (user) badges.push("hello_world");
+  if ((c.repliesGiven || 0) >= 1) badges.push("talk_is_silver");
+  if ((c.discussionsStarted || 0) >= 1) badges.push("so_it_begins");
+  if (localStorage.getItem("springwave_quiz_completed") === "true") badges.push("self_discovery");
+  if ((c.discussionsStarted || 0) >= 5) badges.push("conversation_starter");
+  if ((c.repliesGiven || 0) >= 10) badges.push("helper");
+  if ((c.repliesGiven || 0) >= 50) badges.push("chatterbox");
+  if ((c.likesReceived || 0) >= 20) badges.push("respected");
+  if ((c.likesReceived || 0) >= 50) badges.push("the_oracle");
+  if ((c.discussionsStarted || 0) >= 20) badges.push("trendsetter");
+  if ((c.score || 0) >= 100) badges.push("community_star");
+  if ((c.repliesGiven || 0) >= 100) badges.push("keyboard_warrior");
+  if ((c.score || 0) >= 1000) badges.push("mentor");
+  if ((c.score || 0) >= 2000) badges.push("the_sage");
+  if ((c.repliesGiven || 0) > (c.discussionsStarted || 0) * 10 && (c.discussionsStarted || 0) > 0) badges.push("one_man_show");
+  if ((c.discussionsStarted || 0) <= 3 && (c.discussionsStarted || 0) > 0 && (c.likesReceived || 0) >= (c.discussionsStarted || 0) * 5) badges.push("quality_over_quantity");
+
+  // Activity & Event Gamification
+  if (favoritesCount >= 5) badges.push("active_explorer");
+  if (participationsCount >= 1) badges.push("event_goer");
+  if (user && user.role === "host") {
+    badges.push("rising_host");
+    if ((c.score || 0) >= 100 || favoritesCount >= 5) {
+      badges.push("grand_host");
+    }
+  }
+
+  // Knowledge & Certificates Gamification
+  if ((c.certificatesEarned || 0) >= 1) badges.push("certified_novice");
+  if ((c.certificatesEarned || 0) >= 5) badges.push("certified_expert");
+  if ((c.certificatesEarned || 0) >= 10) badges.push("certified_master");
+
+  return badges;
+}
 
 function closePopup() {
     if (!popupOverlay) return;
@@ -37,19 +124,113 @@ function closePopup() {
     }, 300);
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+function renderCachedProfileAndBadges() {
+    const user = getUser();
+    if (!user) return;
+
+    currentUser = user;
+    const userId = user._id || user.id || 'guest';
+
+    const nameEl = document.getElementById("profile-name");
+    if (nameEl) nameEl.textContent = user.username || user.fullname || "";
+    const emailEl = document.getElementById("profile-email");
+    if (emailEl) emailEl.textContent = user.email || "-";
+    const phoneEl = document.getElementById("profile-phone");
+    if (phoneEl) phoneEl.textContent = user.phoneNo || "-";
+    const usernameEl = document.getElementById("profile-username");
+    if (usernameEl) usernameEl.textContent = user.fullname || "-";
+
+    if (user.dob) {
+        const dobEl = document.getElementById("profile-dob");
+        if (dobEl) dobEl.textContent = formatDate(user.dob, false);
+    }
+
+    if (user.school) {
+        const schoolEl = document.getElementById("profile-school");
+        if (schoolEl) schoolEl.textContent = user.school;
+    }
+
+    const roleMap = { student: t("user.student", "Student"), host: t("user.host", "Host"), admin: t("user.admin", "Admin") };
+    const roleEl = document.getElementById("profile-role");
+    if (roleEl) roleEl.textContent = roleMap[user.role] || "Student";
+
+    const initial = (user.username || user.fullname || "?").charAt(0).toUpperCase();
+    const avatarImg = document.getElementById("avatar-image");
+    const avatarInitial = document.getElementById("avatar-initial");
+    if (user.avatar && avatarImg) {
+        avatarImg.src = user.avatar;
+        avatarImg.style.display = "";
+        if (avatarInitial) avatarInitial.style.display = "none";
+    } else {
+        if (avatarImg) avatarImg.style.display = "none";
+        if (avatarInitial) {
+            avatarInitial.textContent = initial;
+            avatarInitial.style.display = "";
+        }
+    }
+
+    // Immediately populate Badges and Contribute Score from localStorage in 0ms
+    const badgeStorageKey = `springwave_badges_${userId}`;
+    const contribStorageKey = `springwave_contrib_${userId}`;
+    const countsStorageKey = `springwave_counts_${userId}`;
+    
+    let cachedContrib = { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, certificatesEarned: 0, badges: [] };
+    try {
+        const savedContrib = localStorage.getItem(contribStorageKey);
+        if (savedContrib) cachedContrib = { ...cachedContrib, ...JSON.parse(savedContrib) };
+    } catch {}
+
+    let cachedCounts = { favoritesCount: 0, participationsCount: 0 };
+    try {
+        const savedCounts = localStorage.getItem(countsStorageKey);
+        if (savedCounts) cachedCounts = { ...cachedCounts, ...JSON.parse(savedCounts) };
+    } catch {}
+
+    let storedBadges = [];
+    try {
+        const savedBadges = localStorage.getItem(badgeStorageKey);
+        if (savedBadges) storedBadges = JSON.parse(savedBadges);
+    } catch {}
+
+    // Synchronously compute local badges immediately (0ms)
+    const localBadges = computeLocalBadges(user, cachedContrib, cachedCounts.favoritesCount, cachedCounts.participationsCount);
+    const serverBadges = cachedContrib.badges || [];
+    const mergedBadges = [...new Set([...storedBadges, ...serverBadges, ...localBadges])];
+    const earnedKeys = new Set(mergedBadges);
+
+    const { level, current, next, progress } = calcContribLevel(cachedContrib.score || 0);
+    const pct = Math.round(progress * 100);
+    const nextLabel = next !== null ? `${current} / ${next} pts` : `${cachedContrib.score || 0} pts (Max)`;
+
+    const scoreVal = document.getElementById("contribute-score-val");
+    const levelEl = document.getElementById("contribute-level");
+    const progressBar = document.getElementById("contribute-progress-bar");
+    const scoreTarget = document.getElementById("contribute-score-target");
+    const statDiscussions = document.getElementById("stat-discussions");
+    const statCertificates = document.getElementById("stat-certificates");
+    const statEvents = document.getElementById("stat-events");
+
+    if (scoreVal) scoreVal.textContent = `${cachedContrib.score || 0} pts`;
+    if (levelEl) levelEl.textContent = `Lv.${level}`;
+    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (scoreTarget) scoreTarget.textContent = nextLabel;
+    if (statDiscussions) statDiscussions.textContent = cachedContrib.discussionsStarted || 0;
+    if (statCertificates) statCertificates.textContent = cachedContrib.certificatesEarned || 0;
+    if (statEvents) statEvents.textContent = cachedCounts.participationsCount || 0;
+
+    badgeRenderData = { earnedKeys, c: cachedContrib, user, favoritesCount: cachedCounts.favoritesCount, participationsCount: cachedCounts.participationsCount };
+    renderBadgesPanel(earnedKeys, cachedContrib, user, cachedCounts.favoritesCount, cachedCounts.participationsCount);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
     if (!isAuthenticated()) {
         window.location.href = "/login.html";
         return;
     }
 
-    await loadNavbar();
-    await loadFooter();
-    await initChatbot();
-    await loadUserProfile();
-    await renderRoadmapSection();
-    await renderParticipatedEventsPanel();
-    await renderAIProfile();
+    // ⚡ 1. Render immediate cached state in 0ms (Zero delay!)
+    renderCachedProfileAndBadges();
+
     initEditProfile();
     initChangePasswordModal();
     initChangeEmailModal();
@@ -72,14 +253,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Check hash for badges redirection scroll
-    if (window.location.hash === "#badges-section") {
-        setTimeout(() => {
-            const el = document.getElementById("badges-section");
-            if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
+    function scrollToBadgeTarget() {
+        const hash = window.location.hash;
+        if (!hash || (!hash.startsWith("#badge-") && hash !== "#badges-section")) return;
+
+        let targetEl = null;
+        if (hash.startsWith("#badge-")) {
+            const key = hash.replace("#badge-", "");
+            targetEl = document.querySelector(`.badge-card[data-badge-key="${key}"]`);
+        }
+        if (!targetEl) {
+            targetEl = document.getElementById("badges-section");
+        }
+        if (targetEl) {
+            targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (targetEl.classList.contains("badge-card")) {
+                targetEl.classList.add("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]", "transition-all", "duration-500");
+                setTimeout(() => {
+                    targetEl.classList.remove("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]");
+                }, 3000);
             }
-        }, 150);
+        }
     }
+
+    if (window.location.hash.includes("badge")) {
+        setTimeout(scrollToBadgeTarget, 200);
+        setTimeout(scrollToBadgeTarget, 600); // Secondary fallback after dynamic badges load
+    }
+
+    // 🚀 2. Parallel background sync for live fresh data
+    Promise.allSettled([
+        loadNavbar(),
+        loadFooter(),
+        initChatbot(),
+        loadUserProfile(),
+        renderRoadmapSection(),
+        renderParticipatedEventsPanel(),
+        renderAIProfile()
+    ]);
 });
 
 async function loadNavbar() {
@@ -468,67 +679,6 @@ function openCropModal(file, onSave) {
     });
 }
 
-/* =========================
-   CONTRIBUTION PANEL
-   ========================= */
-
-const CONTRIB_LEVELS = [
-  { level: 1, min: 0, max: 99 },
-  { level: 2, min: 100, max: 249 },
-  { level: 3, min: 250, max: 499 },
-  { level: 4, min: 500, max: 999 },
-  { level: 5, min: 1000, max: 1999 },
-  { level: 6, min: 2000, max: Infinity },
-];
-
-function calcContribLevel(score) {
-  for (const l of CONTRIB_LEVELS) {
-    if (score >= l.min && score <= l.max) {
-      const range = l.max === Infinity ? l.min : l.max - l.min + 1;
-      const progress = l.max === Infinity ? 1 : (score - l.min) / range;
-      return { level: l.level, current: score - l.min, next: l.max === Infinity ? null : range, progress: Math.min(progress, 1) };
-    }
-  }
-  return { level: 1, current: 0, next: 100, progress: 0 };
-}
-
-function computeLocalBadges(user, c, favoritesCount = 0, participationsCount = 0) {
-  const badges = [];
-  if (user) badges.push("hello_world");
-  if (c.repliesGiven >= 1) badges.push("talk_is_silver");
-  if (c.discussionsStarted >= 1) badges.push("so_it_begins");
-  if (localStorage.getItem("springwave_quiz_completed") === "true") badges.push("self_discovery");
-  if (c.discussionsStarted >= 5) badges.push("conversation_starter");
-  if (c.repliesGiven >= 10) badges.push("helper");
-  if (c.repliesGiven >= 50) badges.push("chatterbox");
-  if (c.likesReceived >= 20) badges.push("respected");
-  if (c.likesReceived >= 50) badges.push("the_oracle");
-  if (c.discussionsStarted >= 20) badges.push("trendsetter");
-  if (c.score >= 100) badges.push("community_star");
-  if (c.repliesGiven >= 100) badges.push("keyboard_warrior");
-  if (c.score >= 1000) badges.push("mentor");
-  if (c.score >= 2000) badges.push("the_sage");
-  if (c.repliesGiven > c.discussionsStarted * 10 && c.discussionsStarted > 0) badges.push("one_man_show");
-  if (c.discussionsStarted <= 3 && c.discussionsStarted > 0 && c.likesReceived >= c.discussionsStarted * 5) badges.push("quality_over_quantity");
-
-  // Activity & Event Gamification
-  if (favoritesCount >= 5) badges.push("active_explorer");
-  if (participationsCount >= 1) badges.push("event_goer");
-  if (user && user.role === "host") {
-    badges.push("rising_host");
-    if (c.score >= 100 || favoritesCount >= 5) {
-      badges.push("grand_host");
-    }
-  }
-
-  // Knowledge & Certificates Gamification
-  if (c.certificatesEarned >= 1) badges.push("certified_novice");
-  if (c.certificatesEarned >= 5) badges.push("certified_expert");
-  if (c.certificatesEarned >= 10) badges.push("certified_master");
-
-  return badges;
-}
-
 async function renderAIProfile() {
   const card = document.getElementById("ai-profile-card");
   const container = document.getElementById("ai-profile-content");
@@ -598,68 +748,6 @@ async function renderAIProfile() {
   }
 }
 
-const ALL_BADGES = [
-  // ── Newbie Tier ──
-  { key: "hello_world",        icon: "gesture",         tier: "newbie" },
-  { key: "talk_is_silver",     icon: "comment",         tier: "newbie" },
-  { key: "so_it_begins",       icon: "rocket_launch",   tier: "newbie" },
-  { key: "self_discovery",     icon: "psychology",      tier: "newbie" },
-
-  // ── Activity Explorer Tier ──
-  { key: "active_explorer",    icon: "explore",         tier: "explorer" },
-  { key: "event_goer",         icon: "event_available", tier: "explorer" },
-  { key: "rising_host",        icon: "campaign",        tier: "explorer" },
-  { key: "grand_host",         icon: "co_present",      tier: "explorer" },
-
-  // ── Community Contributor ──
-  { key: "conversation_starter", icon: "chat",       tier: "contributor" },
-  { key: "helper",               icon: "forum",      tier: "contributor" },
-  { key: "chatterbox",           icon: "speaker_notes", tier: "contributor" },
-  { key: "respected",            icon: "thumb_up",   tier: "contributor" },
-
-  // ── Legendary ──
-  { key: "the_oracle",         icon: "auto_awesome",   tier: "legendary" },
-  { key: "trendsetter",        icon: "waves",          tier: "legendary" },
-  { key: "community_star",     icon: "stars",          tier: "legendary" },
-  { key: "keyboard_warrior",   icon: "keyboard",       tier: "legendary" },
-  { key: "mentor",             icon: "school",         tier: "legendary" },
-  { key: "the_sage",           icon: "emoji_objects",  tier: "legendary" },
-  { key: "one_man_show",       icon: "theater_comedy", tier: "legendary" },
-  { key: "quality_over_quantity", icon: "target",       tier: "legendary" },
-
-  // ── Knowledge Category (Certificates) ──
-  { key: "certified_novice",    icon: "card_membership", tier: "explorer" },
-  { key: "certified_expert",    icon: "workspace_premium", tier: "contributor" },
-  { key: "certified_master",    icon: "military_tech",  tier: "legendary" },
-];
-
-function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount = 0) {
-  switch (key) {
-    case "talk_is_silver": return { current: c.repliesGiven, target: 1 };
-    case "so_it_begins": return { current: c.discussionsStarted, target: 1 };
-    case "conversation_starter": return { current: c.discussionsStarted, target: 5 };
-    case "helper": return { current: c.repliesGiven, target: 10 };
-    case "chatterbox": return { current: c.repliesGiven, target: 50 };
-    case "respected": return { current: c.likesReceived, target: 20 };
-    case "the_oracle": return { current: c.likesReceived, target: 50 };
-    case "trendsetter": return { current: c.discussionsStarted, target: 20 };
-    case "community_star": return { current: c.score, target: 100 };
-    case "keyboard_warrior": return { current: c.repliesGiven, target: 100 };
-    case "mentor": return { current: c.score, target: 1000 };
-    case "the_sage": return { current: c.score, target: 2000 };
-
-    // Activity progress
-    case "active_explorer": return { current: favoritesCount, target: 5 };
-    case "event_goer": return { current: participationsCount, target: 1 };
-
-    // Knowledge progress
-    case "certified_novice": return { current: c.certificatesEarned || 0, target: 1 };
-    case "certified_expert": return { current: c.certificatesEarned || 0, target: 5 };
-    case "certified_master": return { current: c.certificatesEarned || 0, target: 10 };
-    default: return null;
-  }
-}
-
 import { getUserTickets } from "../api/user.js";
 
 async function renderParticipatedEventsPanel() {
@@ -669,14 +757,16 @@ async function renderParticipatedEventsPanel() {
   let globalCheckedInTickets = [];
   
   try {
-    try {
-      let tickets = [];
-    const res = await getMyTickets();
-    tickets = res.tickets || [];
-    globalCheckedInTickets = tickets.filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
-  } catch (err) {
-    console.warn("Failed to fetch user tickets:", err);
-  }
+    const [ticketsResult, contribResult, favsResult] = await Promise.allSettled([
+      getMyTickets(),
+      getUserContribution(),
+      getFavourites()
+    ]);
+
+    if (ticketsResult.status === "fulfilled" && ticketsResult.value?.tickets) {
+      const tickets = ticketsResult.value.tickets || [];
+      globalCheckedInTickets = tickets.filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
+    }
 
   window.changeParticipatedPage = (page) => {
     renderParticipatedPage(page);
@@ -783,24 +873,17 @@ async function renderParticipatedEventsPanel() {
 
   renderParticipatedPage(1);
 
-  let data;
-  try {
-    data = await getUserContribution();
-  } catch {
-    data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] } };
+  let data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] } };
+  if (contribResult.status === "fulfilled" && contribResult.value) {
+    data = contribResult.value;
   }
 
-  // Fetch event activity metrics for gamification calculations
   let favoritesCount = 0;
-  let participationsCount = 0;
-  try {
-    const { activities } = await getFavourites();
-    favoritesCount = (activities || []).length;
-  } catch (err) {
-    console.warn("Failed to fetch favorites count:", err);
+  if (favsResult.status === "fulfilled" && favsResult.value?.activities) {
+    favoritesCount = favsResult.value.activities.length;
   }
   // Calculate Events Attended directly from the checked in tickets
-  participationsCount = globalCheckedInTickets ? globalCheckedInTickets.length : 0;
+  const participationsCount = globalCheckedInTickets ? globalCheckedInTickets.length : 0;
 
   const c = data.contribution;
   const user = currentUser || getUser();
@@ -809,20 +892,13 @@ async function renderParticipatedEventsPanel() {
   const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
   const earnedKeys = new Set(mergedBadges);
 
-  const badgeStorageKey = `springwave_badges_${user?._id || 'guest'}`;
-  const stored = localStorage.getItem(badgeStorageKey);
-  const prevBadges = stored ? JSON.parse(stored) : [];
-  const newBadges = mergedBadges.filter(k => !prevBadges.includes(k));
+  const userId = user?._id || user?.id || 'guest';
+  const badgeStorageKey = `springwave_badges_${userId}`;
+  const contribStorageKey = `springwave_contrib_${userId}`;
+  const countsStorageKey = `springwave_counts_${userId}`;
   localStorage.setItem(badgeStorageKey, JSON.stringify(mergedBadges));
-
-  if (newBadges.length > 0) {
-    setTimeout(() => {
-      newBadges.forEach(key => {
-        const meta = ALL_BADGES.find(b => b.key === key);
-        if (meta) showBadgeToast(meta);
-      });
-    }, 800);
-  }
+  localStorage.setItem(contribStorageKey, JSON.stringify(c));
+  localStorage.setItem(countsStorageKey, JSON.stringify({ favoritesCount, participationsCount }));
 
   const isHost = user && user.role === "host";
   const isAdmin = user && user.role === "admin";
@@ -921,74 +997,150 @@ function renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCo
   const grid = document.getElementById("badges-grid");
   if (!grid) return;
 
-  grid.innerHTML = `
-    <div class="badges-all">
-      ${ALL_BADGES.map(b => {
-        const earned = earnedKeys.has(b.key);
-        const progress = getBadgeProgress(b.key, c, user, favoritesCount, participationsCount);
-        const { categoryKey, rarityKey } = getBadgeDetails(b);
+  const TIERS_CONFIG = [
+    {
+      key: "newbie",
+      tierNum: "Tier 1",
+      title: "Newbie (Common)",
+      desc: "Introductory onboarding milestones — Easiest to achieve",
+      icon: "waving_hand",
+      colorClass: "text-blue-700 bg-blue-50/70 border-blue-100",
+      accentBg: "bg-blue-600"
+    },
+    {
+      key: "explorer",
+      tierNum: "Tier 2",
+      title: "Activity Explorer (Uncommon)",
+      desc: "Early discovery through activities, favorites, and certificates",
+      icon: "explore",
+      colorClass: "text-emerald-700 bg-emerald-50/70 border-emerald-100",
+      accentBg: "bg-emerald-600"
+    },
+    {
+      key: "contributor",
+      tierNum: "Tier 3",
+      title: "Community Contributor (Rare)",
+      desc: "Active forum engagement, helpful replies, and event hosting",
+      icon: "forum",
+      colorClass: "text-purple-700 bg-purple-50/70 border-purple-100",
+      accentBg: "bg-purple-600"
+    },
+    {
+      key: "legendary",
+      tierNum: "Tier 4",
+      title: "Legendary (Epic / Master)",
+      desc: "Ultimate long-term platform achievements — Hardest to achieve",
+      icon: "stars",
+      colorClass: "text-amber-700 bg-amber-50/70 border-amber-100",
+      accentBg: "bg-amber-500"
+    }
+  ];
 
-        let progressHtml = "";
-        if (!earned && progress) {
-          const pct = Math.min(100, Math.round((progress.current / progress.target) * 100));
-          progressHtml = `
-            <div class="badge-progress-container">
-              <div class="badge-progress-info">
-                <span>${t("badges.status.progress")}</span>
-                <span>${progress.current} / ${progress.target}</span>
-              </div>
-              <div class="badge-progress-bar">
-                <div class="badge-progress-fill" style="transform: scaleX(${pct / 100});"></div>
-              </div>
+  grid.innerHTML = TIERS_CONFIG.map(tier => {
+    const tierBadges = ALL_BADGES.filter(b => b.tier === tier.key);
+    const tierEarnedCount = tierBadges.filter(b => earnedKeys.has(b.key)).length;
+
+    const cardsHtml = tierBadges.map(b => {
+      const earned = earnedKeys.has(b.key);
+      const progress = getBadgeProgress(b.key, c, user, favoritesCount, participationsCount);
+      const { categoryKey, rarityKey } = getBadgeDetails(b);
+
+      const statusProgress = t("badges.status.progress", "Progress");
+      let progressHtml = "";
+      if (!earned && progress) {
+        const pct = Math.min(100, Math.round((progress.current / progress.target) * 100));
+        progressHtml = `
+          <div class="badge-progress-container">
+            <div class="badge-progress-info">
+              <span>${statusProgress}</span>
+              <span>${progress.current} / ${progress.target}</span>
             </div>
-          `;
-        }
-
-        const label = t(`badges.list.${b.key}.label`);
-        const desc = t(`badges.list.${b.key}.desc`);
-        const category = t(`badges.categories.${categoryKey}`);
-        const rarity = t(`badges.rarity.${rarityKey}`);
-        const statusEarned = t("badges.status.earned");
-        const statusLocked = t("badges.status.locked");
-
-        const footerHtml = (!earned && progress) 
-          ? progressHtml 
-          : `<div class="badge-meta">
-               <span>${category}</span>
-               <span class="badge-meta-dot">●</span>
-               <span>${rarity}</span>
-             </div>`;
-
-        const statusHtml = `
-          <div class="badge-status-group">
-            <span class="badge-tier-pill">${rarity}</span>
-            <div class="badge-status ${earned ? "earned" : "locked"}">
-              <span class="material-symbols-outlined badge-status-icon">${earned ? "check" : "lock"}</span>
-              <span>${earned ? statusEarned : statusLocked}</span>
+            <div class="badge-progress-bar">
+              <div class="badge-progress-fill" style="transform: scaleX(${pct / 100});"></div>
             </div>
           </div>
         `;
+      }
 
-        return `
-          <div class="badge-card tier-${b.tier} ${earned ? "earned" : "locked"}">
-            <div class="badge-card-top">
-              <div class="badge-emblem ${earned ? "earned" : "locked"}">
-                <span class="material-symbols-outlined badge-icon">${b.icon}</span>
-              </div>
-              ${statusHtml}
-            </div>
-            
-            <div class="badge-info">
-              <h4 class="badge-label">${label}</h4>
-              <p class="badge-desc">${desc}</p>
-            </div>
-            
-            ${footerHtml}
+      const def = BADGE_DEFINITIONS.find(item => item.key === b.key) || b;
+      const label = t(`badges.list.${b.key}.label`, def.label || b.label || b.key);
+      const desc = t(`badges.list.${b.key}.desc`, def.desc || b.desc || "");
+      const category = t(`badges.categories.${categoryKey}`, def.category || capitalize(categoryKey));
+      const rarity = t(`badges.rarity.${rarityKey}`, capitalize(rarityKey));
+      const statusEarned = t("badges.status.earned", "Earned");
+      const statusLocked = t("badges.status.locked", "Locked");
+
+      const footerHtml = (!earned && progress) 
+        ? progressHtml 
+        : `<div class="badge-meta">
+             <span>${category}</span>
+             <span class="badge-meta-dot">●</span>
+             <span>${rarity}</span>
+           </div>`;
+
+      const statusHtml = `
+        <div class="badge-status-group">
+          <span class="badge-tier-pill">${rarity}</span>
+          <div class="badge-status ${earned ? "earned" : "locked"}">
+            <span class="material-symbols-outlined badge-status-icon">${earned ? "check" : "lock"}</span>
+            <span>${earned ? statusEarned : statusLocked}</span>
           </div>
-        `;
-      }).join("")}
-    </div>
-  `;
+        </div>
+      `;
+
+      return `
+        <div class="badge-card tier-${b.tier} ${earned ? "earned cursor-pointer hover:scale-[1.03] transition-transform" : "locked"}" data-badge-key="${b.key}" data-earned="${earned}">
+          <div class="badge-card-top">
+            <div class="badge-emblem ${earned ? "earned" : "locked"}">
+              <span class="material-symbols-outlined badge-icon">${b.icon}</span>
+            </div>
+            ${statusHtml}
+          </div>
+          
+          <div class="badge-info">
+            <h4 class="badge-label">${label}</h4>
+            <p class="badge-desc">${desc}</p>
+          </div>
+          
+          ${footerHtml}
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="badge-tier-group mb-8 last:mb-2">
+        <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 p-3.5 mb-4 rounded-xl border ${tier.colorClass}">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="material-symbols-outlined text-xl shrink-0">${tier.icon}</span>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${tier.accentBg} text-white shrink-0 whitespace-nowrap inline-flex items-center justify-center leading-normal select-none">${tier.tierNum}</span>
+                <h3 class="font-bold text-sm text-gray-900">${tier.title}</h3>
+              </div>
+              <p class="text-xs text-gray-500 mt-0.5">${tier.desc}</p>
+            </div>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-lg bg-white/90 border border-gray-200/60 text-gray-700 shadow-2xs shrink-0 whitespace-nowrap">
+            ${tierEarnedCount} / ${tierBadges.length} ${t("badges.status.earned", "Unlocked")}
+          </span>
+        </div>
+        <div class="badges-all">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Attach interactive click listener
+  grid.querySelectorAll(".badge-card[data-badge-key]").forEach(card => {
+    card.addEventListener("click", () => {
+      const key = card.dataset.badgeKey;
+      const isEarned = card.dataset.earned === "true";
+      if (isEarned) {
+        triggerBadgeCelebration(key, { isInspect: true });
+      }
+    });
+  });
 }
 
 function showBadgeToast(badge) {
@@ -998,6 +1150,8 @@ function showBadgeToast(badge) {
   const toast = document.createElement("div");
   toast.className = "badge-toast";
   toast.style.bottom = `${24 + offset}px`;
+  toast.style.cursor = "pointer";
+  toast.title = "Click to view badge";
   toast.innerHTML = `
     <div class="badge-toast-icon">
       <span class="material-symbols-outlined">${badge.icon}</span>
@@ -1007,6 +1161,22 @@ function showBadgeToast(badge) {
       <span class="badge-toast-label">${badge.label}</span>
     </div>
   `;
+
+  toast.addEventListener("click", () => {
+    const targetKey = badge.key;
+    const targetEl = targetKey ? document.querySelector(`.badge-card[data-badge-key="${targetKey}"]`) : null;
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      targetEl.classList.add("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]", "transition-all", "duration-500");
+      setTimeout(() => {
+        targetEl.classList.remove("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]");
+      }, 3000);
+    } else {
+      const section = document.getElementById("badges-section");
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+
   document.body.appendChild(toast);
 
   requestAnimationFrame(() => toast.classList.add("show"));

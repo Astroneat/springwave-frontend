@@ -3,14 +3,19 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Bebas+Neue&family=Dancing+Script:wght@400..700&display=swap"
     rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
     rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <title data-i18n="index.title">SpringWave | AI-Powered Student Growth Platform</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="prefetch" href="/explore.html">
 </head>
 
 <body class="bg-background text-on-surface font-body-md antialiased min-h-screen">
@@ -33,7 +38,7 @@
   <!-- HERO -->
   <!-- HERO -->
   <section class="figma-hero" id="hero" data-node-id="1:4" data-name="homepage">
-    <img src="/assets/images/hero-bg.png" alt="Scenery Background" class="figma-hero-bg" data-node-id="3:2" />
+    <img src="/assets/images/hero-bg.png" alt="Scenery Background" class="figma-hero-bg" data-node-id="3:2" fetchpriority="high" loading="eager" decoding="async" />
     
     <div class="figma-hero-content">
       <h1 class="figma-hero-title">
@@ -65,128 +70,192 @@
     </div>
   </section>
 
-  <!-- CORE PILLARS / ECOSYSTEM REDESIGN -->
-  <section class="journey-section" id="core-pillars">
-    <div class="journey-header reveal">
-      <div class="journey-eyebrow sw-eyebrow" data-i18n="index.pillars_title">THE SPRINGWAVE JOURNEY</div>
-      <h2 class="journey-heading sw-section-title" data-i18n="index.pillars_heading">Discover. Connect. Grow.</h2>
-      <p class="journey-subtext sw-section-subtitle" data-i18n="index.pillars_desc">Four simple ways SpringWave helps you make the most of your student life.</p>
+  <!-- 1. THE SPRINGWAVE JOURNEY -->
+  <section class="journey-section content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="core-pillars">
+    <div class="landing-container">
+      <div class="journey-header text-center max-w-3xl mx-auto mb-12 reveal">
+        <h2 class="journey-heading sw-section-title" data-i18n="index.pillars_heading">Discover. Connect. Grow.</h2>
+        <p class="journey-subtext sw-section-subtitle" data-i18n="index.pillars_desc">Four simple ways SpringWave helps you make the most of your student life.</p>
+      </div>
+
+      <div class="journey-wrapper reveal">
+        <div class="journey-connecting-line"></div>
+        
+        <div class="journey-grid">
+          <!-- Step 1: Discover -->
+          <a href="/quiz.html" class="journey-item discover">
+            <div class="journey-number-wrap">
+              <span class="journey-number">01</span>
+            </div>
+            <span class="journey-item-eyebrow" data-i18n="index.pillar1_eyebrow">DISCOVER</span>
+            <h3 class="journey-item-title" data-i18n="index.pillar1_title">Understand yourself</h3>
+            <p class="journey-item-desc" data-i18n="index.pillar1_desc">Discover your interests, strengths, and goals with an AI-powered profile.</p>
+            
+            <!-- Miniature UI Detail -->
+            <div class="journey-visual">
+              <div class="mini-profile-preview">
+                <div class="item"><span class="dot"></span><span data-i18n="index.pillar1_preview_1">Interests: Coding, Design</span></div>
+                <div class="item"><span class="dot"></span><span data-i18n="index.pillar1_preview_2">Goals: Hackathons, PM</span></div>
+              </div>
+            </div>
+
+            <div class="journey-item-cta">
+              <span data-i18n="index.pillar_cta1">Take the quiz</span>
+              <span class="arrow">&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Step 2: Explore -->
+          <a href="/explore.html" class="journey-item explore">
+            <div class="journey-number-wrap">
+              <span class="journey-number">02</span>
+            </div>
+            <span class="journey-item-eyebrow" data-i18n="index.pillar2_eyebrow">EXPLORE</span>
+            <h3 class="journey-item-title" data-i18n="index.pillar2_title">Find your opportunities</h3>
+            <p class="journey-item-desc" data-i18n="index.pillar2_desc">Discover activities, competitions, workshops, and events that match your interests.</p>
+            
+            <!-- Miniature UI Detail -->
+            <div class="journey-visual">
+              <div class="mini-explore-preview">
+                <span data-i18n="index.pillar2_tag1">Technology</span>
+                <span data-i18n="index.pillar2_tag2">Workshop</span>
+                <span data-i18n="index.pillar2_tag3">Hackathon</span>
+              </div>
+            </div>
+
+            <div class="journey-item-cta">
+              <span data-i18n="index.pillar_cta2">Explore</span>
+              <span class="arrow">&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Step 3: Connect -->
+          <a href="/community.html" class="journey-item connect">
+            <div class="journey-number-wrap">
+              <span class="journey-number">03</span>
+            </div>
+            <span class="journey-item-eyebrow" data-i18n="index.pillar3_eyebrow">CONNECT</span>
+            <h3 class="journey-item-title" data-i18n="index.pillar3_title">Meet your community</h3>
+            <p class="journey-item-desc" data-i18n="index.pillar3_desc">Join discussions, find teammates, and share useful resources with other students.</p>
+            
+            <!-- Miniature UI Detail -->
+            <div class="journey-visual">
+              <div class="mini-connect-preview">
+                <div class="mini-connect-avatars">
+                  <div class="circle"></div>
+                  <div class="circle"></div>
+                  <div class="circle"></div>
+                </div>
+                <span class="mini-connect-bubble" data-i18n="index.pillar3_bubble">Teammates Found!</span>
+              </div>
+            </div>
+
+            <div class="journey-item-cta">
+              <span data-i18n="index.pillar_cta3">Community</span>
+              <span class="arrow">&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Step 4: Grow -->
+          <a href="/profile.html#badges-section" class="journey-item grow">
+            <div class="journey-number-wrap">
+              <span class="journey-number">04</span>
+            </div>
+            <span class="journey-item-eyebrow" data-i18n="index.pillar4_eyebrow">GROW</span>
+            <h3 class="journey-item-title" data-i18n="index.pillar4_title">Build your journey</h3>
+            <p class="journey-item-desc" data-i18n="index.pillar4_desc">Earn XP, unlock badges, and make your progress visible.</p>
+            
+            <!-- Miniature UI Detail -->
+            <div class="journey-visual">
+              <div class="mini-grow-preview">
+                <div class="mini-grow-header">
+                  <span data-i18n="index.pillar4_level">LEVEL 04</span>
+                  <span>+120 XP</span>
+                </div>
+                <div class="mini-grow-track">
+                  <div class="mini-grow-fill"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="journey-item-cta">
+              <span data-i18n="index.pillar_cta4">View profile</span>
+              <span class="arrow">&rarr;</span>
+            </div>
+          </a>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="journey-wrapper reveal">
-      <div class="journey-connecting-line"></div>
-      
-      <div class="journey-grid">
-        <!-- Step 1: Discover -->
-        <a href="/quiz.html" class="journey-item discover">
-          <div class="journey-number-wrap">
-            <span class="journey-number">01</span>
-          </div>
-          <span class="journey-item-eyebrow" data-i18n="index.pillar1_eyebrow">DISCOVER</span>
-          <h3 class="journey-item-title" data-i18n="index.pillar1_title">Understand yourself</h3>
-          <p class="journey-item-desc" data-i18n="index.pillar1_desc">Discover your interests, strengths, and goals with an AI-powered profile.</p>
-          
-          <!-- Miniature UI Detail -->
-          <div class="journey-visual">
-            <div class="mini-profile-preview">
-              <div class="item"><span class="dot"></span><span data-i18n="index.pillar1_preview_1">Interests: Coding, Design</span></div>
-              <div class="item"><span class="dot"></span><span data-i18n="index.pillar1_preview_2">Goals: Hackathons, PM</span></div>
-            </div>
-          </div>
+  <!-- 2. QUICKSTART EXPLORER SECTION -->
+  <section class="quickstart-section content-visibility-auto section-rhythm-compact bg-[#f8fafc] border-t border-slate-200/60" id="quickstart">
+    <div class="landing-container">
+      <div class="text-center max-w-3xl mx-auto mb-10 reveal">
+        <h2 class="sw-section-title">Jump Straight Into What You Need</h2>
+        <p class="sw-section-subtitle">Choose your focus — discover workshops, take your AI strengths quiz, or connect with peers.</p>
+      </div>
 
-          <div class="journey-item-cta">
-            <span data-i18n="index.pillar_cta1">Take the quiz</span>
-            <span class="arrow">&rarr;</span>
+      <div class="quickstart-grid reveal">
+        <!-- Card 1: AI Quiz -->
+        <a href="/quiz.html" class="quickstart-card group">
+          <div class="quickstart-icon-wrap">
+            <span class="material-symbols-outlined text-xl">psychology</span>
+          </div>
+          <h3 class="quickstart-title">AI Strengths Quiz</h3>
+          <p class="quickstart-desc">Take the 2-minute strengths assessment to receive personalized event recommendations matched to your career path.</p>
+          <div class="quickstart-action">
+            <span>Start Assessment</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </div>
         </a>
 
-        <!-- Step 2: Explore -->
-        <a href="/explore.html" class="journey-item explore">
-          <div class="journey-number-wrap">
-            <span class="journey-number">02</span>
+        <!-- Card 2: Workshops & Hackathons -->
+        <a href="/explore.html?category=workshop" class="quickstart-card group">
+          <div class="quickstart-icon-wrap" style="color: #0284c7; background: #e0f2fe;">
+            <span class="material-symbols-outlined text-xl">terminal</span>
           </div>
-          <span class="journey-item-eyebrow" data-i18n="index.pillar2_eyebrow">EXPLORE</span>
-          <h3 class="journey-item-title" data-i18n="index.pillar2_title">Find your opportunities</h3>
-          <p class="journey-item-desc" data-i18n="index.pillar2_desc">Discover activities, competitions, workshops, and events that match your interests.</p>
-          
-          <!-- Miniature UI Detail -->
-          <div class="journey-visual">
-            <div class="mini-explore-preview">
-              <span data-i18n="index.pillar2_tag1">Technology</span>
-              <span data-i18n="index.pillar2_tag2">Workshop</span>
-              <span data-i18n="index.pillar2_tag3">Hackathon</span>
-            </div>
-          </div>
-
-          <div class="journey-item-cta">
-            <span data-i18n="index.pillar_cta2">Explore</span>
-            <span class="arrow">&rarr;</span>
+          <h3 class="quickstart-title">Workshops & Hackathons</h3>
+          <p class="quickstart-desc">Browse software engineering hackathons, UI/UX sprints, and technical masterclasses across top partner universities.</p>
+          <div class="quickstart-action" style="color: #0284c7;">
+            <span>Browse Tech Events</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </div>
         </a>
 
-        <!-- Step 3: Connect -->
-        <a href="/community.html" class="journey-item connect">
-          <div class="journey-number-wrap">
-            <span class="journey-number">03</span>
+        <!-- Card 3: Student Community -->
+        <a href="/community.html" class="quickstart-card group">
+          <div class="quickstart-icon-wrap" style="color: #7c3aed; background: #f5f3ff;">
+            <span class="material-symbols-outlined text-xl">forum</span>
           </div>
-          <span class="journey-item-eyebrow" data-i18n="index.pillar3_eyebrow">CONNECT</span>
-          <h3 class="journey-item-title" data-i18n="index.pillar3_title">Meet your community</h3>
-          <p class="journey-item-desc" data-i18n="index.pillar3_desc">Join discussions, find teammates, and share useful resources with other students.</p>
-          
-          <!-- Miniature UI Detail -->
-          <div class="journey-visual">
-            <div class="mini-connect-preview">
-              <div class="mini-connect-avatars">
-                <div class="circle"></div>
-                <div class="circle"></div>
-                <div class="circle"></div>
-              </div>
-              <span class="mini-connect-bubble" data-i18n="index.pillar3_bubble">Teammates Found!</span>
-            </div>
-          </div>
-
-          <div class="journey-item-cta">
-            <span data-i18n="index.pillar_cta3">Community</span>
-            <span class="arrow">&rarr;</span>
+          <h3 class="quickstart-title">Cross-Campus Forum</h3>
+          <p class="quickstart-desc">Connect with peers, find hackathon teammates, ask questions, and share study tips with students from other faculties.</p>
+          <div class="quickstart-action" style="color: #7c3aed;">
+            <span>Join Discussions</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </div>
         </a>
 
-        <!-- Step 4: Grow -->
-        <a href="/profile.html#badges-section" class="journey-item grow">
-          <div class="journey-number-wrap">
-            <span class="journey-number">04</span>
+        <!-- Card 4: Verified Portfolio & Certificates -->
+        <a href="/profile.html" class="quickstart-card group">
+          <div class="quickstart-icon-wrap" style="color: #059669; background: #ecfdf5;">
+            <span class="material-symbols-outlined text-xl">workspace_premium</span>
           </div>
-          <span class="journey-item-eyebrow" data-i18n="index.pillar4_eyebrow">GROW</span>
-          <h3 class="journey-item-title" data-i18n="index.pillar4_title">Build your journey</h3>
-          <p class="journey-item-desc" data-i18n="index.pillar4_desc">Earn XP, unlock badges, and make your progress visible.</p>
-          
-          <!-- Miniature UI Detail -->
-          <div class="journey-visual">
-            <div class="mini-grow-preview">
-              <div class="mini-grow-header">
-                <span data-i18n="index.pillar4_level">LEVEL 04</span>
-                <span>+120 XP</span>
-              </div>
-              <div class="mini-grow-track">
-                <div class="mini-grow-fill"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="journey-item-cta">
-            <span data-i18n="index.pillar_cta4">View profile</span>
-            <span class="arrow">&rarr;</span>
+          <h3 class="quickstart-title">Verified Portfolio</h3>
+          <p class="quickstart-desc">Accumulate XP, unlock 16 badges, and download verifiable activity certificates directly to your LinkedIn & resume.</p>
+          <div class="quickstart-action" style="color: #059669;">
+            <span>View My Profile</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </div>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- HOW IT WORKS -->
-  <section class="sw-section-normal" id="how-it-works" style="background: var(--sw-background);">
+  <!-- 3. HOW IT WORKS -->
+  <section class="sw-section-normal content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="how-it-works">
     <div class="landing-container">
-      <div class="text-center mb-16 reveal">
-        <div class="sw-eyebrow" data-i18n="index.how_title">How It Works</div>
+      <div class="text-center max-w-3xl mx-auto mb-12 reveal">
         <h2 class="sw-section-title" data-i18n="index.how_heading">Three Steps to Your Growth Journey</h2>
         <p class="sw-section-subtitle" data-i18n="index.how_desc">SpringWave's AI engine analyzes your profile and creates a personalized path toward your goals.</p>
       </div>
@@ -252,18 +321,17 @@
               </div>
             </div>
 
-        <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step3_desc">Track progress, develop skills, and follow your AI-generated roadmap toward your dream career.</p>
+            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step3_desc">Track progress, develop skills, and follow your AI-generated roadmap toward your dream career.</p>
           </a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- PLATFORM PREVIEW HUB -->
-  <section class="landing-section" id="platform-preview-hub" style="background: #ffffff; padding: 80px 0;">
+  <!-- 4. PLATFORM PREVIEW HUB -->
+  <section class="landing-section content-visibility-auto section-rhythm-standard bg-[#f8fafc] border-t border-slate-200/60" id="platform-preview-hub">
     <div class="landing-container">
-      <div class="text-center mb-12 reveal">
-        <div class="sw-eyebrow" data-i18n="index.preview_hub_title">Platform Highlights</div>
+      <div class="text-center max-w-3xl mx-auto mb-12 reveal">
         <h2 class="sw-section-title" data-i18n="index.preview_hub_heading">Explore the SpringWave Interface</h2>
         <p class="sw-section-subtitle" data-i18n="index.preview_hub_desc">Get an inside look at the core interfaces designed to optimize your academic and skill development journey.</p>
       </div>
@@ -428,7 +496,7 @@
 
         <!-- Tab 3: Growth Dashboard -->
         <div class="preview-tab-panel" id="preview-dashboard">
-          <div class="grid md:grid-cols-[1fr_1.5fr] gap-8 items-start bg-white p-8 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div class="grid md:grid-cols-[1fr_1.5fr] gap-8 items-start bg-white p-8 rounded-3xl border border-slate-200/80 shadow-sm">
             <div>
               <h3 class="text-xl font-bold text-slate-900 mb-4" data-i18n="index.dashboard_preview_title">Gamified Dashboard</h3>
               <p class="text-xs text-slate-500 leading-relaxed mb-6" data-i18n="index.dashboard_preview_desc">Track contribution levels, milestones, and unlock 16 badges representing your community engagement. Receive matching recommendations as you participate.</p>
@@ -599,11 +667,91 @@
     </div>
   </section>
 
-  <!-- FAQ ACCORDION -->
-  <section class="sw-section-compact" id="faq" style="background: var(--sw-background);">
+  <!-- 5. STUDENT TESTIMONIALS SECTION -->
+  <section class="content-visibility-auto section-rhythm-compact bg-white border-t border-slate-200/60" id="testimonials">
     <div class="landing-container">
-      <div class="text-center mb-16 reveal">
-        <div class="sw-eyebrow" data-i18n="index.faq_label">FAQ</div>
+      <div class="text-center max-w-3xl mx-auto mb-10 reveal">
+        <h2 class="sw-section-title">Loved by Students Across Campuses</h2>
+        <p class="sw-section-subtitle">Real experiences from students who transformed their extracurricular journey with SpringWave.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6 reveal">
+        <!-- Testimonial 1: Tien Truong -->
+        <div class="p-6 rounded-3xl bg-[#fafbff] border border-slate-200/80 flex flex-col justify-between shadow-2xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <div>
+            <div class="flex items-center gap-1.5 text-yellow-400 mb-4 text-sm">
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+            </div>
+            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic">
+              “I used to struggle finding hackathon teammates and design challenges. Through SpringWave, I connected with passionate peers and found events perfectly matching my UI/UX journey.”
+            </p>
+          </div>
+          <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
+            <div class="w-10 h-10 rounded-full bg-violet-100 text-violet-700 font-bold flex items-center justify-center text-sm shadow-2xs">TT</div>
+            <div>
+              <div class="text-xs font-bold text-slate-900">Tien Truong</div>
+              <div class="text-[10px] text-slate-500 font-medium">UI/UX Designer • Product Lead</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial 2: Duc Tai -->
+        <div class="p-6 rounded-3xl bg-[#fafbff] border border-slate-200/80 flex flex-col justify-between shadow-2xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <div>
+            <div class="flex items-center gap-1.5 text-yellow-400 mb-4 text-sm">
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+            </div>
+            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic">
+              “As a club president, managing event check-ins and attendance sheets was a nightmare. SpringWave's QR scanner and instant roster reports cut check-in delays to zero.”
+            </p>
+          </div>
+          <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">DT</div>
+            <div>
+              <div class="font-bold text-slate-900 text-sm">Đức Tài</div>
+              <div class="text-xs text-slate-500">GDG On Campus Organizer</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial 3: Thanh Dat -->
+        <div class="p-6 rounded-3xl bg-[#fafbff] border border-slate-200/80 flex flex-col justify-between shadow-2xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <div>
+            <div class="flex items-center gap-1.5 text-yellow-400 mb-4 text-sm">
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+              <i class="fa-solid fa-star text-amber-400"></i>
+            </div>
+            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic">
+              “The personalized roadmap with milestone tracking helped me prepare for my first national Hackathon and win 2nd place. Essential toolkit for every student.”
+            </p>
+          </div>
+          <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">TD</div>
+            <div>
+              <div class="font-bold text-slate-900 text-sm">Thành Đạt</div>
+              <div class="text-xs text-slate-500">Computer Science Junior</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. FAQ ACCORDION -->
+  <section class="sw-section-compact content-visibility-auto section-rhythm-standard bg-[#f8fafc] border-t border-slate-200/60" id="faq">
+    <div class="landing-container">
+      <div class="text-center max-w-3xl mx-auto mb-12 reveal">
         <h2 class="sw-section-title" data-i18n="index.faq_heading">Frequently Asked Questions</h2>
         <p class="sw-section-subtitle" data-i18n="index.faq_desc">Find answers to the most common questions about the SpringWave platform and its AI engine.</p>
       </div>
@@ -665,7 +813,7 @@
   </section>
 
   <!-- FINAL CTA -->
-  <section class="landing-section cta-gradient relative overflow-hidden">
+  <section class="landing-section content-visibility-auto section-rhythm-generous cta-gradient relative overflow-hidden">
     <div class="cta-radial-overlay"></div>
     <!-- Floating Activity Tags -->
     <div class="cta-tag-pill tag-1" data-i18n="index.floating_card_ai">AI Workshop</div>

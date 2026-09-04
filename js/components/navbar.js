@@ -3,6 +3,7 @@ import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificat
 import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t, applyTranslation } from "../lib/i18n.js";
 import { initPageTransition } from "./pageLoader.js";
+import { initBadgeCelebration } from "./badgeCelebration.js";
 
 export function populateUserChip(user, activeSection) {
     if (!user) return;
@@ -227,6 +228,7 @@ export async function loadNavbar({ activeSection } = {}) {
     await initI18n();
     initLangSwitcher();
     initSlidingIndicator();
+    initBadgeCelebration();
 
     return document.getElementById("navbar");
 }
@@ -234,8 +236,15 @@ export async function loadNavbar({ activeSection } = {}) {
 export function initBasicScroll() {
     const navbar = document.getElementById("navbar");
     if (!navbar) return;
+    let ticking = false;
     window.addEventListener("scroll", () => {
-        navbar.classList.toggle("collapsed", window.scrollY > 60);
+        if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(() => {
+                navbar.classList.toggle("collapsed", window.scrollY > 60);
+                ticking = false;
+            });
+        }
     }, { passive: true });
 }
 
@@ -601,8 +610,14 @@ function renderNotifDropdown() {
     }
 
     function getNotifLink(n) {
-        if (n.type === 'badge') return '/profile.html';
-        if (n.discussionId) return `/community.html?discussion=${n.discussionId}`;
+        if (n.type === 'badge') {
+            return n.badgeKey ? `/profile.html#badge-${encodeURIComponent(n.badgeKey)}` : '/profile.html#badges-section';
+        }
+        if (n.discussionId) {
+            let url = `/community.html?discussion=${encodeURIComponent(n.discussionId)}`;
+            if (n.commentId) url += `&comment=${encodeURIComponent(n.commentId)}`;
+            return url;
+        }
         return '#';
     }
 
@@ -638,9 +653,40 @@ function renderNotifDropdown() {
                     markRead(id);
                     if (n.type === 'event_review' && n.eventId) {
                         import('./reviewModal.js').then(m => m.openReviewModal(n.eventId, n.message));
+                    } else if (n.type === 'badge') {
+                        const targetBadgeKey = n.badgeKey;
+                        const link = targetBadgeKey ? `/profile.html#badge-${targetBadgeKey}` : '/profile.html#badges-section';
+                        if (window.location.pathname.includes("profile.html")) {
+                            window.location.hash = targetBadgeKey ? `badge-${targetBadgeKey}` : 'badges-section';
+                            let targetEl = targetBadgeKey ? document.querySelector(`.badge-card[data-badge-key="${targetBadgeKey}"]`) : null;
+                            if (!targetEl) targetEl = document.getElementById("badges-section");
+                            if (targetEl) {
+                                targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                                if (targetEl.classList.contains("badge-card")) {
+                                    targetEl.classList.add("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]", "transition-all", "duration-500");
+                                    setTimeout(() => {
+                                        targetEl.classList.remove("ring-4", "ring-primary/60", "shadow-2xl", "scale-[1.04]");
+                                    }, 3000);
+                                }
+                            }
+                        } else {
+                            window.location.href = link;
+                        }
+                    } else if (n.discussionId) {
+                        const link = getNotifLink(n);
+                        if (window.location.pathname.includes("community.html")) {
+                            window.history.pushState({}, "", link);
+                            if (typeof window.openDiscussionDetail === "function") {
+                                window.openDiscussionDetail(n.discussionId, n.commentId);
+                            } else {
+                                window.location.href = link;
+                            }
+                        } else {
+                            window.location.href = link;
+                        }
                     } else {
                         const link = getNotifLink(n);
-                        if (link) window.location.href = link;
+                        if (link && link !== '#') window.location.href = link;
                     }
                 }
             }

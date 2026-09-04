@@ -13,6 +13,8 @@ import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml, escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
+import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
+import { showExploreLoading, hideExploreLoading, bindLoadingLanguage, EXPLORE_SKELETON_OPTIONS } from "../lib/exploreLoading.js";
 
 let allActivities = [];
 let masterActivitiesList = [];
@@ -26,6 +28,19 @@ let cachedTemplate = null;
 let participateQueue = [];
 let activeParticipations = 0;
 const MAX_CONCURRENT_PARTICIPATIONS = 3;
+let loadingLanguageDisposer = null;
+
+function trackLoadingLanguage(container, messageKey) {
+    if (loadingLanguageDisposer) loadingLanguageDisposer();
+    loadingLanguageDisposer = bindLoadingLanguage(container, messageKey);
+}
+
+function clearLoadingLanguage() {
+    if (loadingLanguageDisposer) {
+        loadingLanguageDisposer();
+        loadingLanguageDisposer = null;
+    }
+}
 
 async function enqueueParticipate(fn) {
     return new Promise((resolve, reject) => {
@@ -227,8 +242,12 @@ async function loadRecommendations() {
 
     try {
         const data = await getRecommendations();
-        const recommended = data?.events || data?.recommendations || [];
-        if (recommended.length === 0) return;
+        const rawRecommended = data?.events || data?.recommendations || [];
+        const recommended = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
+        if (recommended.length === 0) {
+            section.style.display = "none";
+            return;
+        }
 
         section.style.display = "block";
         container.innerHTML = recommended.slice(0, 6).map(a => {
@@ -304,7 +323,11 @@ function initSearchButton() {
         }
 
         const cardsContainer = document.getElementById("cards-container");
-        cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching")}</div>`;
+        showExploreLoading(cardsContainer, {
+            messageKey: "explore.searching",
+            ...EXPLORE_SKELETON_OPTIONS.search,
+        });
+        trackLoadingLanguage(cardsContainer, "explore.searching");
         const pagContainer = document.getElementById("pagination-container");
         if (pagContainer) pagContainer.style.display = "none";
 
@@ -383,7 +406,10 @@ function initSearchButton() {
                 return;
             }
             await renderCards(activities);
+            clearLoadingLanguage();
         } catch (e) {
+            clearLoadingLanguage();
+            hideExploreLoading();
             cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.search_error")}</div>`;
         }
     };
@@ -418,7 +444,11 @@ function initSearchButton() {
         currentStatus = "upcoming";
 
         const cardsContainer = document.getElementById("cards-container");
-        if (cardsContainer) cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("explore.searching") || "Refreshing..."}</div>`;
+        showExploreLoading(cardsContainer, {
+            messageKey: "explore.refreshing",
+            ...EXPLORE_SKELETON_OPTIONS.refresh,
+        });
+        trackLoadingLanguage(cardsContainer, "explore.refreshing");
         const pagContainer = document.getElementById("pagination-container");
         if (pagContainer) pagContainer.style.display = "none";
 
@@ -426,10 +456,34 @@ function initSearchButton() {
             const data = await getActivities();
             masterActivitiesList = data.activities || [];
             await renderCards(masterActivitiesList);
+            clearLoadingLanguage();
         } catch (e) {
+            clearLoadingLanguage();
+            hideExploreLoading();
             if (cardsContainer) cardsContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted)">${t("common.error") || "Error fetching data"}</div>`;
         }
     });
+
+    // Sync clear button visibility on navbar search
+    const navbarClearBtn = document.getElementById("search-navbar-clear");
+    const navbarSearchContainer = document.getElementById("navbarSearchContainer");
+    const updateNavbarSearchState = () => {
+        const hasVal = Boolean(navbarInput?.value?.trim());
+        navbarSearchContainer?.classList.toggle("has-value", hasVal);
+    };
+
+    if (navbarClearBtn && navbarInput) {
+        navbarClearBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navbarInput.value = "";
+            if (searchPref) searchPref.value = "";
+            updateNavbarSearchState();
+            navbarInput.focus();
+            clearTimeout(debounceTimeout);
+            performSearch();
+        });
+    }
 
     // Typing in either preferences or navbar search inputs triggers search with debounce
     const inputs = [searchPref, navbarInput].filter(Boolean);
@@ -438,6 +492,7 @@ function initSearchButton() {
             const val = e.target.value;
             if (searchPref && searchPref !== e.target && searchPref.value !== val) searchPref.value = val;
             if (navbarInput && navbarInput !== e.target && navbarInput.value !== val) navbarInput.value = val;
+            updateNavbarSearchState();
 
             clearTimeout(debounceTimeout);
             debounceTimeout = setTimeout(performSearch, 350);
@@ -450,10 +505,22 @@ function initSearchButton() {
             }
         });
     });
+
+    updateNavbarSearchState();
 }
 
 async function loadCards() {
     const cardsContainer = document.getElementById("cards-container");
+    const urlParams = new URLSearchParams(window.location.search);
+    const tag = urlParams.get("tag");
+    const keyword = urlParams.get("keyword");
+    const messageKey = keyword ? "explore.searching" : "explore.loading_events";
+    showExploreLoading(cardsContainer, {
+        messageKey,
+        ...EXPLORE_SKELETON_OPTIONS.initial,
+    });
+    trackLoadingLanguage(cardsContainer, messageKey);
+
     try {
         if (!cachedTemplate) {
             const templateHTML = await fetchContent("./components/cards.html");
@@ -462,9 +529,6 @@ async function loadCards() {
             cachedTemplate = doc.querySelector(".card");
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const tag = urlParams.get("tag");
-        const keyword = urlParams.get("keyword");
         const category = urlParams.get("category");
 
         let activities = [];
@@ -507,8 +571,11 @@ async function loadCards() {
         allActivities = activities;
         if (typeof window.__renderSearchCalendar === "function") window.__renderSearchCalendar();
         await applyFiltersAndSort();
+        clearLoadingLanguage();
     } catch (err) {
         console.error(err);
+        clearLoadingLanguage();
+        hideExploreLoading();
         cardsContainer.innerHTML = `<div class="empty-state">${t("explore.failed_load")}</div>`;
     }
 }
@@ -599,6 +666,8 @@ async function renderCardsDirect(activities) {
         if (image) {
             image.src = activity.thumbnail;
             image.alt = activity.title;
+            image.loading = "lazy";
+            image.decoding = "async";
         }
         card.querySelector(".card-title").textContent = activity.title;
         const locationSpan = card.querySelector(".info-location");
@@ -729,6 +798,11 @@ function renderPaginationControls(totalItems, totalPages) {
         btn.addEventListener("click", async () => {
             const page = parseInt(btn.dataset.page, 10);
             if (!isNaN(page)) {
+                const cardsContainer = document.getElementById("cards-container");
+                if (cardsContainer) {
+                    cardsContainer.querySelectorAll(".explore-skeleton-card").forEach(el => el.classList.add("fade-out"));
+                }
+
                 // Scroll to results header smoothly, accounting for fixed navbar
                 const target = document.querySelector(".results-header");
                 if (target) {
@@ -791,7 +865,10 @@ function initSidebar() {
         const navbarInput = document.getElementById("search-navbar");
         const locInput = document.getElementById("search-location");
         if (searchInput) searchInput.value = "";
-        if (navbarInput) navbarInput.value = "";
+        if (navbarInput) {
+            navbarInput.value = "";
+            document.getElementById("navbarSearchContainer")?.classList.remove("has-value");
+        }
         if (locInput) locInput.value = "";
         if (typeof window.__resetSearchDates === "function") {
             window.__resetSearchDates();
@@ -882,7 +959,15 @@ function initCardClickHandlers() {
             favLocks.add(id);
             try {
                 if (active) await removeFavourite(id);
-                else await addFavourite(id);
+                else {
+                    await addFavourite(id);
+                    if (cachedFavIds && cachedFavIds.size >= 5 && !localStorage.getItem("springwave_has_earned_explorer")) {
+                        localStorage.setItem("springwave_has_earned_explorer", "true");
+                        setTimeout(() => {
+                            triggerBadgeCelebration("active_explorer");
+                        }, 500);
+                    }
+                }
             } catch (err) {
                 star.classList.toggle("active");
                 if (cachedFavIds) {

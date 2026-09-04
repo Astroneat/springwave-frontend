@@ -837,10 +837,13 @@ function showLeaveEventConfirmModal(onConfirmCallback) {
     if (!modal) {
         modal = document.createElement("div");
         modal.id = "leaveEventConfirmModal";
-        modal.className = "fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden";
+        modal.className = "fixed inset-0 z-[15000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden";
+        modal.style.zIndex = "15000";
         modal.setAttribute("role", "dialog");
         modal.setAttribute("aria-modal", "true");
         document.body.appendChild(modal);
+    } else {
+        modal.style.zIndex = "15000";
     }
 
     modal.innerHTML = `

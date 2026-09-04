@@ -3,7 +3,7 @@ import { login, googleLogin, microsoftLogin, forgotPassword, resetPassword } fro
 import { createSession, setSigningKey, isAuthenticated } from "../lib/session.js";
 import { ensureSession } from "../api/client.js";
 import { GOOGLE_CLIENT_ID, MICROSOFT_CLIENT_ID, API_BASE_URL, TURNSTILE_SITE_KEY } from "../config.js";
-import { initI18n, t } from "../lib/i18n.js";
+import { initI18n, getLang, setLang, t, applyTranslation } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { isSchoolEmail } from "../lib/utils.js";
 
@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await ensureSession();
     }
     await initI18n();
+    initLanguageSwitcher();
     initLoginForm();
     initGoogleLogin();
     initMicrosoftLogin();
@@ -21,6 +22,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     initPasswordToggles();
     initPasswordResetModals();
 });
+
+function initLanguageSwitcher() {
+    const btn = document.getElementById("authLangToggleBtn");
+    const text = document.getElementById("authLangText");
+    if (text) text.textContent = getLang().toUpperCase();
+
+    btn?.addEventListener("click", async () => {
+        const nextLang = getLang() === "en" ? "vi" : "en";
+        await setLang(nextLang);
+        if (text) text.textContent = nextLang.toUpperCase();
+    });
+
+    window.addEventListener("language-changed", (e) => {
+        const lang = (e.detail?.lang || getLang()).toUpperCase();
+        if (text) text.textContent = lang;
+        applyTranslation(document);
+        document.querySelectorAll(".auth-toggle-btn[data-toggle-target]").forEach((toggleBtn) => {
+            const input = document.getElementById(toggleBtn.dataset.toggleTarget);
+            if (!input) return;
+            const isHidden = input.type === "password";
+            toggleBtn.textContent = isHidden ? t("auth.show") : t("auth.hide");
+        });
+    });
+}
 
 function initPasswordToggles() {
     document.querySelectorAll(".auth-toggle-btn[data-toggle-target]").forEach((btn) => {
@@ -75,13 +100,13 @@ function initLoginForm() {
         e.preventDefault();
         const check = canPerformAction('login');
         if (!check.allowed) {
-            setStatus(`Please wait ${check.remaining} seconds before trying again.`, true);
+            setStatus(t("login.please_wait_throttle", { remaining: check.remaining }, `Please wait ${check.remaining} seconds before trying again.`), true);
             return;
         }
         markActionPerformed('login');
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
-        setStatus("Logging in", false);
+        setStatus(t("login.logging_in", "Logging in..."), false);
         
         let cfTurnstileResponse = undefined;
         if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
@@ -89,7 +114,7 @@ function initLoginForm() {
         }
 
         if (!cfTurnstileResponse) {
-            setStatus("Please complete the captcha.", true);
+            setStatus(t("login.complete_captcha", "Please complete the captcha."), true);
             if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
                 turnstile.reset(turnstileWidgetId);
             }
@@ -110,7 +135,7 @@ function initLoginForm() {
             if (data.user && !data.user.emailVerified) {
                 showVerificationWarning(data.user.email);
             } else {
-                setStatus("Logged in successfully! Redirecting...", false);
+                setStatus(t("login.login_success", "Logged in successfully! Redirecting..."), false);
                 setTimeout(() => { window.location.href = "/index.html"; }, 600);
             }
         } catch(err) {
@@ -118,7 +143,7 @@ function initLoginForm() {
                 turnstile.reset(turnstileWidgetId);
             }
             if(err.status === 401) {
-                setStatus("Invalid credentials", true);
+                setStatus(t("login.invalid_credentials", "Invalid credentials"), true);
                 return;
             }
             setStatus(err.message, true);
@@ -143,13 +168,13 @@ function initLoginForm() {
                 <div class="auth-status-icon pending">
                     <span class="material-symbols-outlined">mark_email_unread</span>
                 </div>
-                <h2 class="text-xl font-bold mb-2" style="color: var(--brand);">Email Not Verified</h2>
-                <p class="text-sm mb-6" style="color: var(--color-text-secondary);">Please check your email (${email}) and click the verification link.</p>
+                <h2 class="text-xl font-bold mb-2" style="color: var(--brand);">${t("login.email_not_verified", "Email Not Verified")}</h2>
+                <p class="text-sm mb-6" style="color: var(--color-text-secondary);">${t("login.check_email_desc", { email }, `Please check your email (${email}) and click the verification link.`)}</p>
                 <button id="resend-btn" type="button" class="auth-submit-btn mb-3">
-                    Resend Verification Email
+                    ${t("login.resend_verification", "Resend Verification Email")}
                 </button>
                 <a href="index.html" class="text-sm font-bold text-center block" style="color: var(--brand);">
-                    Go to Home
+                    ${t("login.home", "Back to home")}
                 </a>
                 <p id="resend-status" class="text-sm mt-3" style="color: var(--color-text-secondary);"></p>
             </div>
@@ -159,7 +184,7 @@ function initLoginForm() {
             const status = document.getElementById("resend-status");
             const btn = document.getElementById("resend-btn");
             btn.disabled = true;
-            btn.textContent = "Sending...";
+            btn.textContent = t("login.saving", "Sending...");
             status.textContent = "";
             try {
                 const resp = await fetch(baseUrl + "/auth/resend-verification", {
@@ -168,18 +193,18 @@ function initLoginForm() {
                 });
                 const data = await resp.json();
                 if (resp.ok) {
-                    status.textContent = data.message || "Verification email sent!";
+                    status.textContent = data.message || t("login.verification_sent", "Verification email sent!");
                     status.className = "text-sm mt-3 " + (data.emailSent === false ? "text-yellow-600" : "text-green-600");
                 } else {
-                    status.textContent = data.error || "Failed to resend.";
+                    status.textContent = data.error || t("login.resend_failed", "Failed to resend.");
                     status.className = "text-sm mt-3 text-red-500";
                 }
             } catch {
-                status.textContent = "Network error. Try again.";
+                status.textContent = t("login.network_error", "Network error. Try again.");
                 status.className = "text-sm mt-3 text-red-500";
             }
             btn.disabled = false;
-            btn.textContent = "Resend Verification Email";
+            btn.textContent = t("login.resend_verification", "Resend Verification Email");
         });
     }
 }
@@ -208,7 +233,7 @@ function initGoogleLogin() {
                     }
 
                     try {
-                        statusMsg.textContent = "Signing in with Google...";
+                        statusMsg.textContent = t("login.signing_in_google", "Signing in with Google...");
                         statusMsg.classList.remove("error-msg");
                         statusMsg.classList.add("success-msg");
 
@@ -242,7 +267,7 @@ function initGoogleLogin() {
         const client = getGoogleTokenClient();
         if (!client) {
             const statusMsg = document.getElementById("status-msg");
-            statusMsg.textContent = "Đang tải Google SDK, vui lòng thử lại sau...";
+            statusMsg.textContent = t("login.loading_sdk", "Loading Google SDK, please try again...");
             statusMsg.classList.remove("success-msg");
             statusMsg.classList.add("error-msg");
             return;

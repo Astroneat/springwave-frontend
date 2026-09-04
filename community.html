@@ -2,11 +2,14 @@
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
     rel="stylesheet">
   <title data-i18n="community.title">Community - SpringWave</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -27,7 +30,13 @@
     <aside class="forum-sidebar-left" id="forumSidebar">
       <div class="forum-sidebar-left-inner">
         <div class="forum-sidebar-section">
-          <h3 class="forum-sidebar-title" data-i18n="community.categories">Categories</h3>
+          <div class="flex items-center justify-between mb-3 lg:hidden">
+            <h3 class="forum-sidebar-title !mb-0" data-i18n="community.categories">Categories</h3>
+            <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 border-none bg-transparent cursor-pointer" id="forumSidebarCloseIcon" aria-label="Close sidebar">
+              <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+          </div>
+          <h3 class="forum-sidebar-title hidden lg:block" data-i18n="community.categories">Categories</h3>
           <nav class="forum-category-list" id="categoryList">
             <a class="forum-category-item" href="./community.html" data-i18n="community.all_discussions">
               <span class="material-symbols-outlined forum-category-icon">forum</span>
@@ -40,10 +49,6 @@
             <a class="forum-category-item" href="./community.html?cat=event" data-i18n="community.event_discussions">
               <span class="material-symbols-outlined forum-category-icon">event</span>
               Event Discussions
-            </a>
-            <a class="forum-category-item" href="./community.html?cat=skills" data-i18n="community.skill_development">
-              <span class="material-symbols-outlined forum-category-icon">school</span>
-              Skill Development
             </a>
             <a class="forum-category-item" href="./community.html?cat=uni" data-i18n="community.uni_communities">
               <span class="material-symbols-outlined forum-category-icon">account_balance</span>
@@ -109,23 +114,10 @@
             Categories
           </button>
         </div>
-        <div class="forum-discussions" id="forumDiscussions">
+        <div class="forum-discussions content-visibility-auto" id="forumDiscussions">
           <!-- populated by JS -->
         </div>
         <div id="forumPagination" class="pagination-container" style="display: none;"></div>
-      </div>
-
-      <!-- SKILL TOPICS SECTION (Skill banners) -->
-      <div class="forum-section" id="careerTopics" style="display: none;">
-        <div class="forum-section-header">
-          <div class="forum-section-title-group">
-            <h2 class="forum-section-title" data-i18n="community.skills_heading">Skills Discussions</h2>
-            <p class="forum-section-subtitle" data-i18n="community.skills_sub">Explore topics by skill area and interest</p>
-          </div>
-        </div>
-        <div class="forum-topic-grid" id="forumTopicGrid">
-          <!-- populated by JS -->
-        </div>
       </div>
 
       <div class="forum-section" id="universities" style="display: none;">
@@ -237,7 +229,6 @@
           <select id="postCategory" style="display:none;">
             <option value="general" data-i18n="community.general">General</option>
             <option value="event" data-i18n="community.event_discussions">Event Discussion</option>
-            <option value="skills" data-i18n="community.skill_development">Skill Development</option>
           </select>
           <div class="forum-category-selector-pills" id="postCategoryPills">
             <button type="button" class="category-select-pill active" data-category="general">
@@ -247,10 +238,6 @@
             <button type="button" class="category-select-pill" data-category="event">
               <span class="material-symbols-outlined">event</span>
               <span data-i18n="community.event_discussions">Event Discussion</span>
-            </button>
-            <button type="button" class="category-select-pill" data-category="skills">
-              <span class="material-symbols-outlined">school</span>
-              <span data-i18n="community.skill_development">Skill Development</span>
             </button>
           </div>
         </div>
@@ -283,24 +270,6 @@
           </div>
           <div id="postEventCards" class="forum-post-event-cards">
             <div class="forum-post-loading-events" data-i18n="community.loading_events">Loading events...</div>
-          </div>
-          <div id="postSkillPills" class="forum-post-skill-pills" style="display:none;">
-            <label class="forum-post-pill" data-skill="Communication">
-              <span class="forum-post-pill-icon" style="background:#3B82F6;">forum</span>
-              Communication
-            </label>
-            <label class="forum-post-pill" data-skill="Technical">
-              <span class="forum-post-pill-icon" style="background:#8B5CF6;">code</span>
-              Technical
-            </label>
-            <label class="forum-post-pill" data-skill="Creativity">
-              <span class="forum-post-pill-icon" style="background:#F59E0B;">palette</span>
-              Creativity
-            </label>
-            <label class="forum-post-pill" data-skill="Social Impact">
-              <span class="forum-post-pill-icon" style="background:#10B981;">volunteer_activism</span>
-              Social Impact
-            </label>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import "../../src/style.css";
 import { register } from "../api/auth.js";
 import { isAuthenticated } from "../lib/session.js";
-import { initI18n, t } from "../lib/i18n.js";
+import { initI18n, getLang, setLang, t, applyTranslation } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { getDeviceFingerprint } from "../lib/device.js";
@@ -11,11 +11,36 @@ let turnstileWidgetId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initI18n();
+    initLanguageSwitcher();
     await loadSchools();
     initTurnstile();
     initRegisterForm();
     initPasswordToggles();
 });
+
+function initLanguageSwitcher() {
+    const btn = document.getElementById("authLangToggleBtn");
+    const text = document.getElementById("authLangText");
+    if (text) text.textContent = getLang().toUpperCase();
+
+    btn?.addEventListener("click", async () => {
+        const nextLang = getLang() === "en" ? "vi" : "en";
+        await setLang(nextLang);
+        if (text) text.textContent = nextLang.toUpperCase();
+    });
+
+    window.addEventListener("language-changed", (e) => {
+        const lang = (e.detail?.lang || getLang()).toUpperCase();
+        if (text) text.textContent = lang;
+        applyTranslation(document);
+        document.querySelectorAll(".auth-toggle-btn[data-toggle-target]").forEach((toggleBtn) => {
+            const input = document.getElementById(toggleBtn.dataset.toggleTarget);
+            if (!input) return;
+            const isHidden = input.type === "password";
+            toggleBtn.textContent = isHidden ? t("auth.show") : t("auth.hide");
+        });
+    });
+}
 
 function initPasswordToggles() {
     document.querySelectorAll(".auth-toggle-btn[data-toggle-target]").forEach((btn) => {
@@ -72,7 +97,7 @@ function initRegisterForm() {
 
         const check = canPerformAction('register');
         if (!check.allowed) {
-            setStatus(`Please wait ${check.remaining} seconds before trying again.`, true);
+            setStatus(t("register.please_wait_throttle", { remaining: check.remaining }, `Please wait ${check.remaining} seconds before trying again.`), true);
             return;
         }
         markActionPerformed('register');
@@ -108,7 +133,7 @@ function initRegisterForm() {
         }
 
         if (!data.cfTurnstileResponse) {
-            setStatus("Please complete the captcha.", true);
+            setStatus(t("register.complete_captcha", "Please complete the captcha."), true);
             if (typeof turnstile !== "undefined" && turnstileWidgetId !== null) {
                 turnstile.reset(turnstileWidgetId);
             }
@@ -116,22 +141,22 @@ function initRegisterForm() {
         }
 
         if(data.password.length < 8) {
-            setStatus("Password must be at least 6 characters.", true);
+            setStatus(t("register.min_password_length", "Password must be at least 8 characters."), true);
             return;
         }
         if(data.password !== confirmPassword) {
-            setStatus("Passwords do not match.", true);
+            setStatus(t("register.passwords_mismatch", "Passwords do not match."), true);
             return;
         }
 
-        setStatus("Registering...", false);
+        setStatus(t("register.creating_account", "Creating your account..."), false);
         try {
             const result = await register(data);
 
             if (result.emailSent) {
                 showVerificationMessage(data.email);
             } else {
-                setStatus("Account created! Redirecting to login...", false);
+                setStatus(t("register.register_success", "Registration successful! Redirecting..."), false);
                 setTimeout(() => { window.location.href = "/login.html"; }, 1500);
             }
         } catch (err) {
@@ -153,12 +178,12 @@ function initRegisterForm() {
                 <div class="auth-status-icon" style="background: rgba(16, 185, 129, 0.12);">
                     <span class="material-symbols-outlined" style="color: #059669;">mark_email_unread</span>
                 </div>
-                <h2 class="text-xl font-bold mb-3" style="color: var(--brand);">Check Your Email</h2>
-                <p class="text-sm mb-1" style="color: var(--color-text-secondary);">We sent a verification link to:</p>
+                <h2 class="text-xl font-bold mb-3" style="color: var(--brand);">${t("register.check_email_title", "Check Your Email")}</h2>
+                <p class="text-sm mb-1" style="color: var(--color-text-secondary);">${t("register.sent_link_to", "We sent a verification link to:")}</p>
                 <p class="text-base font-semibold mb-4" style="color: var(--color-text-primary);">${email}</p>
-                <p class="text-sm mb-6" style="color: var(--color-text-muted);">Click the link in the email to verify your account, then log in.</p>
+                <p class="text-sm mb-6" style="color: var(--color-text-muted);">${t("register.click_link_desc", "Click the link in the email to verify your account, then log in.")}</p>
                 <a href="login.html" class="auth-submit-btn" style="text-decoration:none;">
-                    Go to Login
+                    ${t("register.go_to_login", "Go to Login")}
                 </a>
             </div>
         `;

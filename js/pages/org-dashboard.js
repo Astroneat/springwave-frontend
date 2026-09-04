@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { CDN_DOMAIN } from "../config.js";
-import { t } from "../lib/i18n.js";
+import { t, getLang } from "../lib/i18n.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
@@ -11,6 +11,7 @@ import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, init
 import { getEventCertificates, issueCertificates, revokeCertificate, restoreCertificate } from "../api/certificates.js";
 import { getHostReviews, updateActivity } from "../api/activities.js";
 import { getOrgAnalytics, getEventAnalytics, downloadOrgExcelReport, downloadEventExcelReport } from "../api/analytics.js";
+import { populateOrgUniversitySelect } from "../api/universities.js";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 
@@ -52,6 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initCreateEvent();
   initEventsTabs();
   initParticipantEventSelect();
+  initPdfExportButtons();
   initAttendanceEventSelect();
   initCertEventSelect();
   initCertBackgroundManager();
@@ -339,7 +341,10 @@ function switchSection(section) {
   });
 
   const ps = document.getElementById("participant-event-select");
-  if (section === "participants" && ps && ps.value) loadParticipants(ps.value);
+  if (section === "participants") {
+    if (ps && ps.value) loadParticipants(ps.value);
+    updatePdfExportButton();
+  }
   const as = document.getElementById("attendance-event-select");
   if (section === "attendance" && as && as.value) loadAttendance(as.value);
   const cs = document.getElementById("cert-event-select");
@@ -1398,11 +1403,12 @@ function initParticipantEventSelect() {
         document.getElementById("participant-count").textContent = "0";
       }
     }
+    updatePdfExportButton();
   });
 }
 
-
 let currentParticipantsList = [];
+let currentEvent = null; // currently loaded event for participants section
 
 function renderParticipantsTable(list) {
   const tbody = document.getElementById("participants-table-body");
@@ -1533,7 +1539,7 @@ async function loadParticipants(eventId) {
     const combinedMap = new Map();
 
     records.forEach(r => {
-      const isExt = r.isExternal === true || Boolean(r.externalParticipant) || r.user?.isExternal === true || r.checkinMethod === 'excel_import' || r.checkinMethod === 'manual';
+      const isExt = r.isExternal === true || Boolean(r.externalParticipant) || r.user?.isExternal === true || (!r.user && Boolean(r.externalParticipant));
       if (isExt) {
         const extId = r._id;
         combinedMap.set(`ext_${extId}`, {
@@ -1542,9 +1548,14 @@ async function loadParticipants(eventId) {
           fullname: r.externalParticipant?.fullname || r.user?.fullname || "Unknown",
           studentId: r.externalParticipant?.studentId || r.user?.studentId || "",
           email: r.externalParticipant?.email || r.user?.email || "",
+          phoneNo: r.externalParticipant?.phoneNo || r.externalParticipant?.phone || r.user?.phoneNo || r.user?.phone || "",
+          school: r.externalParticipant?.school || r.user?.school || "",
+          class: r.externalParticipant?.class || r.user?.class || "",
+          major: r.externalParticipant?.major || r.user?.major || "",
           isExternal: true,
           status: r.status || "absent",
-          joinedAt: r.createdAt
+          joinedAt: r.createdAt,
+          notes: r.notes || r.note || ""
         });
       } else if (r.user) {
         const uid = r.user._id ? String(r.user._id) : `u_${r._id}`;
@@ -1554,10 +1565,15 @@ async function loadParticipants(eventId) {
           fullname: r.user.fullname || "Unknown",
           studentId: r.user.studentId || r.user.username || "",
           email: r.user.email || "",
+          phoneNo: r.user.phoneNo || r.user.phone || "",
+          school: r.user.school || "",
+          class: r.user.class || "",
+          major: r.user.major || "",
           avatar: r.user.avatar || "",
           isExternal: false,
           status: r.status || "absent",
-          joinedAt: r.createdAt
+          joinedAt: r.createdAt,
+          notes: r.notes || r.note || ""
         });
       }
     });
@@ -1565,17 +1581,34 @@ async function loadParticipants(eventId) {
     if (Array.isArray(eventParticipants)) {
       for (const p of eventParticipants) {
         const uid = typeof p === 'object' && p._id ? String(p._id) : String(p);
-        if (!combinedMap.has(`user_${uid}`)) {
+        if (combinedMap.has(`user_${uid}`)) {
+          // Enrich missing user details from populated event.participants
+          const existing = combinedMap.get(`user_${uid}`);
+          if (typeof p === 'object' && p._id) {
+            if (!existing.avatar && p.avatar) existing.avatar = p.avatar;
+            if ((!existing.fullname || existing.fullname === 'Unknown') && p.fullname) existing.fullname = p.fullname;
+            if (!existing.studentId && (p.studentId || p.username)) existing.studentId = p.studentId || p.username;
+            if (!existing.email && p.email) existing.email = p.email;
+            if (!existing.school && p.school) existing.school = p.school;
+            if (!existing.class && p.class) existing.class = p.class;
+            if (!existing.major && p.major) existing.major = p.major;
+          }
+        } else {
           if (typeof p === 'object' && p._id) {
             combinedMap.set(`user_${uid}`, {
               _id: p._id,
               fullname: p.fullname || "Unknown",
               studentId: p.studentId || p.username || "",
               email: p.email || "",
+              phoneNo: p.phoneNo || p.phone || "",
+              school: p.school || "",
+              class: p.class || "",
+              major: p.major || "",
               avatar: p.avatar || "",
               isExternal: false,
               status: "absent",
-              joinedAt: p.joinedAt || event.createdAt
+              joinedAt: p.joinedAt || event.createdAt,
+              notes: ""
             });
           }
         }
@@ -1583,6 +1616,7 @@ async function loadParticipants(eventId) {
     }
 
     currentParticipantsList = Array.from(combinedMap.values());
+    currentEvent = event || {};
     const countEl = document.getElementById("participant-count");
     if (countEl) countEl.textContent = currentParticipantsList.length;
 
@@ -1604,7 +1638,872 @@ async function loadParticipants(eventId) {
   }
 }
 
-// ─── Edit External Participant Modal ───
+// ─── Participant List PDF Export ───
+
+function escapePdfHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+let pdfExportColumns = [];
+
+function getDefaultPdfExportColumns() {
+  const lang = getLang();
+  return [
+    { id: "stt", key: "stt", name: lang === "vi" ? "STT" : "No.", type: "system", w: 12, minW: 8, maxW: 24 },
+    { id: "studentId", key: "studentId", name: lang === "vi" ? "Mã sinh viên" : "Student ID", type: "system", w: 28, minW: 18, maxW: 50 },
+    { id: "fullname", key: "fullname", name: lang === "vi" ? "Họ và tên" : "Full Name", type: "system", w: 48, minW: 25, maxW: 90 },
+    { id: "email", key: "email", name: "Email", type: "system", w: 45, minW: 25, maxW: 90 },
+    { id: "note", key: "note", name: lang === "vi" ? "Ghi chú" : "Notes", type: "custom", isDefault: true, w: 38, minW: 18, maxW: 90 },
+  ];
+}
+
+// Extract column value from participant object
+function getParticipantColValue(p, col, idx, lang) {
+  const key = col.key || col.id;
+  if (key === "stt" || col.id === "stt") {
+    return String(idx + 1);
+  }
+  if (key === "studentId" || col.id === "studentId") {
+    return p.studentId || "—";
+  }
+  if (key === "fullname" || col.id === "fullname") {
+    return p.fullname || "—";
+  }
+  if (key === "email" || col.id === "email") {
+    return p.email || "—";
+  }
+  if (key === "phoneNo" || col.id === "phoneNo" || key === "phone") {
+    return p.phoneNo || p.phone || "—";
+  }
+  if (key === "school" || col.id === "school") {
+    return p.school || "—";
+  }
+  if (key === "class" || col.id === "class") {
+    return p.class || "—";
+  }
+  if (key === "major" || col.id === "major") {
+    return p.major || "—";
+  }
+  if (key === "status" || col.id === "status") {
+    const isAttended = p.status === "attended" || p.status === "present";
+    return isAttended ? (lang === "vi" ? "Có mặt" : "Present") : (lang === "vi" ? "Vắng mặt" : "Absent");
+  }
+  if (key === "note" || col.id === "note") {
+    return (p.notes && p.notes.trim()) ? p.notes : "";
+  }
+  // Custom columns left blank for physical handwriting/checking
+  return "";
+}
+
+// Safe Dynamic CDN / Window Loader for jsPDF & AutoTable
+function loadExternalScript(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      if (existing.dataset.loaded === "true" || window.jspdf) return resolve();
+      existing.addEventListener("load", () => resolve());
+      existing.addEventListener("error", (e) => reject(e));
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.onload = () => {
+      s.dataset.loaded = "true";
+      resolve();
+    };
+    s.onerror = (err) => reject(err);
+    document.head.appendChild(s);
+  });
+}
+
+async function getJsPDF() {
+  if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+  await loadExternalScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  return window.jspdf?.jsPDF;
+}
+
+async function getAutoTable() {
+  if (typeof window.jspdf?.jsPDF?.prototype?.autoTable === "function" || window.jspdf?.autoTable) return true;
+  await loadExternalScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js");
+  return true;
+}
+
+function arrayBufferToBase64(buffer) {
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
+let cachedPlusJakartaRegularBase64 = null;
+let cachedPlusJakartaBoldBase64 = null;
+let cachedAleoBoldBase64 = null;
+let cachedRobotoRegularBase64 = null;
+
+async function setupJsPDFFonts(doc) {
+  try {
+    if (!cachedPlusJakartaRegularBase64 || !cachedPlusJakartaBoldBase64 || !cachedAleoBoldBase64) {
+      const [regularRes, boldRes, aleoRes] = await Promise.all([
+        fetch("/fonts/PlusJakartaSans-Regular.ttf").then(r => {
+          if (!r.ok) throw new Error("PlusJakartaSans-Regular font not found");
+          return r.arrayBuffer();
+        }),
+        fetch("/fonts/PlusJakartaSans-Bold.ttf").then(r => {
+          if (!r.ok) throw new Error("PlusJakartaSans-Bold font not found");
+          return r.arrayBuffer();
+        }),
+        fetch("/fonts/Aleo-Bold.ttf").then(r => {
+          if (!r.ok) throw new Error("Aleo-Bold font not found");
+          return r.arrayBuffer();
+        })
+      ]);
+      cachedPlusJakartaRegularBase64 = arrayBufferToBase64(regularRes);
+      cachedPlusJakartaBoldBase64 = arrayBufferToBase64(boldRes);
+      cachedAleoBoldBase64 = arrayBufferToBase64(aleoRes);
+    }
+
+    doc.addFileToVFS("PlusJakartaSans-Regular.ttf", cachedPlusJakartaRegularBase64);
+    doc.addFont("PlusJakartaSans-Regular.ttf", "PlusJakartaSans", "normal");
+
+    doc.addFileToVFS("PlusJakartaSans-Bold.ttf", cachedPlusJakartaBoldBase64);
+    doc.addFont("PlusJakartaSans-Bold.ttf", "PlusJakartaSans", "bold");
+
+    doc.addFileToVFS("Aleo-Bold.ttf", cachedAleoBoldBase64);
+    doc.addFont("Aleo-Bold.ttf", "Aleo", "bold");
+
+    doc.setFont("PlusJakartaSans", "normal");
+    return { fontName: "PlusJakartaSans", logoFont: "Aleo" };
+  } catch (err) {
+    console.warn("Could not load PlusJakartaSans, attempting fallback:", err);
+    try {
+      if (!cachedRobotoRegularBase64) {
+        const robotoRes = await fetch("/fonts/Roboto-Regular.ttf").then(r => r.arrayBuffer());
+        cachedRobotoRegularBase64 = arrayBufferToBase64(robotoRes);
+      }
+      doc.addFileToVFS("Roboto-Regular.ttf", cachedRobotoRegularBase64);
+      doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+      doc.setFont("Roboto", "normal");
+      return { fontName: "Roboto", logoFont: "Roboto" };
+    } catch {
+      doc.setFont("helvetica", "normal");
+      return { fontName: "helvetica", logoFont: "helvetica" };
+    }
+  }
+}
+
+function openPdfExportModal() {
+  const ps = document.getElementById("participant-event-select");
+  const eventId = ps?.value;
+  if (!eventId) {
+    alert(t("org_dashboard.pdf_no_participants", "Please select an event first."));
+    return;
+  }
+  if (!currentParticipantsList || currentParticipantsList.length === 0) {
+    alert(t("org_dashboard.pdf_no_participants", "No participants to export for this event."));
+    return;
+  }
+
+  const overlay = document.getElementById("pdf-export-overlay");
+  if (!overlay) return;
+
+  // Initialize columns with default columns (including default "Ghi chú" column and default widths)
+  pdfExportColumns = getDefaultPdfExportColumns();
+
+  const colInput = document.getElementById("pdf-new-column-input");
+  if (colInput) colInput.value = "";
+
+  updatePdfModalHeaderInfo();
+  renderPdfColumnChips();
+  renderPdfPreviewDoc();
+  updatePdfFooterInfo();
+
+  overlay.removeAttribute("hidden");
+  requestAnimationFrame(() => overlay.classList.add("active"));
+  document.body.style.overflow = "hidden";
+}
+
+function closePdfExportModal() {
+  const overlay = document.getElementById("pdf-export-overlay");
+  if (!overlay) return;
+  overlay.classList.remove("active");
+  document.body.style.overflow = "";
+  setTimeout(() => overlay.setAttribute("hidden", ""), 200);
+}
+
+function updatePdfModalHeaderInfo() {
+  const event = currentEvent || {};
+  const org = currentOrgs.find(o => o._id === currentOrgId) || {};
+  const lang = getLang();
+
+  const eventNameEl = document.getElementById("pdf-modal-event-name");
+  if (eventNameEl) eventNameEl.textContent = event.title || (lang === "vi" ? "Sự kiện" : "Event");
+
+  const countEl = document.getElementById("pdf-modal-participant-count");
+  if (countEl) countEl.textContent = `${currentParticipantsList.length} ${lang === "vi" ? "người tham gia" : "participants"}`;
+
+  const docOrgEl = document.getElementById("pdf-doc-org-name");
+  if (docOrgEl) docOrgEl.textContent = org.name || "SpringWave Organization";
+
+  const docEventTitleEl = document.getElementById("pdf-doc-event-title");
+  if (docEventTitleEl) docEventTitleEl.textContent = event.title || "—";
+
+  const docHeldDateEl = document.getElementById("pdf-doc-held-date");
+  if (docHeldDateEl) docHeldDateEl.textContent = event.heldDate ? formatDate(event.heldDate) : "—";
+
+  const docLocEl = document.getElementById("pdf-doc-location");
+  if (docLocEl) docLocEl.textContent = event.location || event.address || "—";
+
+  const docCountEl = document.getElementById("pdf-doc-count");
+  if (docCountEl) docCountEl.textContent = `${currentParticipantsList.length} ${lang === "vi" ? "người" : "people"}`;
+
+  const docDateEl = document.getElementById("pdf-doc-date");
+  if (docDateEl) {
+    const now = new Date();
+    docDateEl.textContent = now.toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US") + " " + now.toLocaleTimeString(lang === "vi" ? "vi-VN" : "en-US", { hour: "2-digit", minute: "2-digit" });
+  }
+}
+
+function handleMovePdfColumn(colId, direction) {
+  const index = pdfExportColumns.findIndex(c => c.id === colId);
+  if (index < 0) return;
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= pdfExportColumns.length) return;
+
+  const temp = pdfExportColumns[index];
+  pdfExportColumns[index] = pdfExportColumns[targetIndex];
+  pdfExportColumns[targetIndex] = temp;
+
+  renderPdfColumnChips();
+  renderPdfPreviewDoc();
+}
+
+function handleRenamePdfColumn(colId) {
+  const target = pdfExportColumns.find(c => c.id === colId);
+  if (!target) return;
+  const lang = getLang();
+  const promptText = lang === "vi" ? `Nhập tên mới cho cột "${target.name}":` : `Enter new name for column "${target.name}":`;
+  const newName = prompt(promptText, target.name);
+  if (newName === null) return;
+  const trimmed = newName.trim();
+  if (!trimmed) {
+    alert(t("org_dashboard.pdf_col_error_empty", "Column name cannot be empty."));
+    return;
+  }
+  target.name = trimmed;
+  renderPdfColumnChips();
+  renderPdfPreviewDoc();
+}
+
+function handleAdjustPdfColWidth(colId, delta) {
+  const target = pdfExportColumns.find(c => c.id === colId);
+  if (!target) return;
+  const currentW = target.w || 40;
+  const min = target.minW || 10;
+  const max = target.maxW || 120;
+  const newW = Math.max(min, Math.min(max, currentW + delta));
+  if (newW !== currentW) {
+    target.w = newW;
+    renderPdfColumnChips();
+    renderPdfPreviewDoc();
+  }
+}
+
+function handleDeletePdfColumn(colId) {
+  if (pdfExportColumns.length <= 1) {
+    alert(getLang() === "vi" ? "Cần giữ lại ít nhất 1 cột trong danh sách." : "You must keep at least 1 column.");
+    return;
+  }
+  pdfExportColumns = pdfExportColumns.filter(c => c.id !== colId);
+  renderPdfColumnChips();
+  renderPdfPreviewDoc();
+  updatePdfFooterInfo();
+}
+
+function handleAddPdfCustomColumn(colName, colKey, defaultW) {
+  const trimmed = (colName || "").trim();
+  if (!trimmed) {
+    alert(t("org_dashboard.pdf_col_error_empty", "Column name cannot be empty."));
+    return false;
+  }
+
+  const exists = pdfExportColumns.some(c => c.name.toLowerCase() === trimmed.toLowerCase());
+  if (exists) {
+    alert(t("org_dashboard.pdf_col_error_dup", "This column name already exists."));
+    return false;
+  }
+
+  if (pdfExportColumns.length >= 10) {
+    alert(t("org_dashboard.pdf_col_limit", "Maximum number of columns reached (10)."));
+    return false;
+  }
+
+  // Detect key if not provided
+  let key = colKey || "custom";
+  let w = defaultW || 40;
+  let type = "custom";
+
+  const lower = trimmed.toLowerCase();
+  if (!colKey) {
+    if (lower.includes("sđt") || lower.includes("số điện thoại") || lower.includes("phone")) {
+      key = "phoneNo";
+      w = 38;
+      type = "system";
+    } else if (lower.includes("trường") || lower.includes("school") || lower.includes("university")) {
+      key = "school";
+      w = 50;
+      type = "system";
+    } else if (lower.includes("lớp") || lower.includes("class")) {
+      key = "class";
+      w = 28;
+      type = "system";
+    } else if (lower.includes("ngành") || lower.includes("chuyên ngành") || lower.includes("major")) {
+      key = "major";
+      w = 45;
+      type = "system";
+    } else if (lower.includes("trạng thái") || lower.includes("status")) {
+      key = "status";
+      w = 32;
+      type = "system";
+    }
+  }
+
+  const newId = `col_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  pdfExportColumns.push({
+    id: newId,
+    key: key,
+    name: trimmed,
+    type: type,
+    w: w,
+    minW: 10,
+    maxW: 120
+  });
+
+  renderPdfColumnChips();
+  renderPdfPreviewDoc();
+  updatePdfFooterInfo();
+  return true;
+}
+
+function renderPdfColumnChips() {
+  const container = document.getElementById("pdf-column-chips-container");
+  if (!container) return;
+
+  const total = pdfExportColumns.length;
+  const lang = getLang();
+
+  container.innerHTML = pdfExportColumns.map((col, idx) => {
+    const isFirst = idx === 0;
+    const isLast = idx === total - 1;
+    const isDbField = col.key && col.key !== "custom" && col.key !== "note";
+
+    return `
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-slate-200 shadow-2xs hover:border-slate-300 transition-all text-xs font-semibold text-slate-800">
+        <!-- Reorder Left -->
+        <button type="button" class="pdf-move-col-btn text-slate-400 hover:text-primary transition-all p-0 border-none bg-transparent cursor-pointer flex items-center justify-center ${isFirst ? 'opacity-20 cursor-not-allowed pointer-events-none' : ''}" data-id="${col.id}" data-dir="-1" title="${lang === 'vi' ? 'Di chuyển sang trái' : 'Move left'}">
+          <i class="fa-solid fa-chevron-left text-[10px]"></i>
+        </button>
+
+        <!-- Column Name & Rename Trigger -->
+        <button type="button" class="pdf-rename-col-btn inline-flex items-center gap-1 hover:text-primary transition-all border-none bg-transparent cursor-pointer p-0 text-xs font-bold text-slate-800" data-id="${col.id}" title="${lang === 'vi' ? 'Bấm để đổi tên cột' : 'Click to rename column'}">
+          ${isDbField ? '<span class="w-1.5 h-1.5 rounded-full bg-sky-500 mr-0.5" title="Dữ liệu từ hệ thống"></span>' : ''}
+          <span class="max-w-[110px] truncate">${escapePdfHtml(col.name)}</span>
+          <i class="fa-solid fa-pen text-[9px] text-slate-400 hover:text-primary"></i>
+        </button>
+
+        <!-- Width Stepper -->
+        <div class="inline-flex items-center gap-0.5 bg-slate-100 px-1 py-0.5 rounded-md text-[10px] border border-slate-200/60 select-none">
+          <button type="button" class="pdf-width-btn w-3.5 h-3.5 rounded text-[10px] font-bold text-slate-600 hover:bg-white hover:text-primary transition-all flex items-center justify-center border-none cursor-pointer leading-none p-0" data-id="${col.id}" data-delta="-5" title="${lang === 'vi' ? 'Giảm độ rộng' : 'Decrease width'}">-</button>
+          <span class="font-mono font-bold text-primary min-w-[24px] text-center">${col.w || 40}mm</span>
+          <button type="button" class="pdf-width-btn w-3.5 h-3.5 rounded text-[10px] font-bold text-slate-600 hover:bg-white hover:text-primary transition-all flex items-center justify-center border-none cursor-pointer leading-none p-0" data-id="${col.id}" data-delta="5" title="${lang === 'vi' ? 'Tăng độ rộng' : 'Increase width'}">+</button>
+        </div>
+
+        <!-- Reorder Right -->
+        <button type="button" class="pdf-move-col-btn text-slate-400 hover:text-primary transition-all p-0 border-none bg-transparent cursor-pointer flex items-center justify-center ${isLast ? 'opacity-20 cursor-not-allowed pointer-events-none' : ''}" data-id="${col.id}" data-dir="1" title="${lang === 'vi' ? 'Di chuyển sang phải' : 'Move right'}">
+          <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        </button>
+
+        <!-- Delete / Remove -->
+        <button type="button" class="pdf-remove-col-btn text-slate-400 hover:text-red-600 ml-0.5 border-none bg-transparent cursor-pointer p-0 text-xs flex items-center justify-center" data-id="${col.id}" title="${lang === 'vi' ? 'Xóa cột' : 'Remove column'}">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  // Attach event listeners
+  container.querySelectorAll(".pdf-move-col-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const dir = parseInt(btn.dataset.dir, 10) || 0;
+      handleMovePdfColumn(id, dir);
+    });
+  });
+
+  container.querySelectorAll(".pdf-rename-col-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      handleRenamePdfColumn(id);
+    });
+  });
+
+  container.querySelectorAll(".pdf-width-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const delta = parseInt(btn.dataset.delta, 10) || 0;
+      handleAdjustPdfColWidth(id, delta);
+    });
+  });
+
+  container.querySelectorAll(".pdf-remove-col-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      handleDeletePdfColumn(id);
+    });
+  });
+}
+
+function renderPdfPreviewDoc() {
+  const theadRow = document.getElementById("pdf-table-header-row");
+  const tbody = document.getElementById("pdf-table-body");
+  if (!theadRow || !tbody) return;
+
+  const lang = getLang();
+
+  theadRow.innerHTML = pdfExportColumns.map(col => {
+    const key = col.key || col.id;
+    const isStt = col.id === "stt" || key === "stt";
+    const isCompact = isStt || key === "class" || key === "status" || key === "phoneNo";
+
+    let thClasses = "py-2 px-2.5 text-xs font-bold border-r border-slate-700 last:border-r-0 uppercase tracking-wider select-none";
+    if (isStt) {
+      thClasses += " text-center w-12 shrink-0";
+    } else if (isCompact) {
+      thClasses += " text-left whitespace-nowrap shrink-0";
+    } else {
+      thClasses += " text-left";
+    }
+
+    return `
+      <th class="${thClasses}">
+        <div class="flex items-center ${isStt ? 'justify-center' : 'justify-between'} gap-1.5">
+          <span class="truncate">${escapePdfHtml(col.name)}</span>
+          <span class="text-[9px] font-mono font-normal text-slate-300 opacity-75 shrink-0">(${col.w || 40}mm)</span>
+        </div>
+      </th>
+    `;
+  }).join("");
+
+  if (!currentParticipantsList || currentParticipantsList.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="${pdfExportColumns.length}" class="py-8 text-center text-slate-400 italic">
+          ${t("org_dashboard.pdf_no_participants", "No participants to display.")}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = currentParticipantsList.map((p, idx) => {
+    const isEven = idx % 2 === 1;
+    const rowBg = isEven ? "bg-slate-50/70" : "bg-white";
+
+    return `
+      <tr class="${rowBg} border-b border-slate-200">
+        ${pdfExportColumns.map(col => {
+          const val = getParticipantColValue(p, col, idx, lang);
+          const key = col.key || col.id;
+          const isStt = col.id === "stt" || key === "stt";
+          const isStudentId = col.id === "studentId" || key === "studentId";
+          const isFullname = col.id === "fullname" || key === "fullname";
+          const isEmail = col.id === "email" || key === "email";
+          const isCompact = isStt || key === "class" || key === "phoneNo" || key === "status";
+
+          let tdClass = "py-1.5 px-2.5 text-xs border-r border-slate-200 last:border-r-0";
+          if (isStt) {
+            tdClass += " text-center text-slate-500 font-mono w-12 shrink-0";
+          } else if (isStudentId) {
+            tdClass += " font-mono font-semibold text-slate-800 whitespace-nowrap shrink-0";
+          } else if (isFullname) {
+            tdClass += " font-medium text-slate-900";
+          } else if (isEmail) {
+            tdClass += " text-slate-600 truncate max-w-[200px]";
+          } else if (isCompact) {
+            tdClass += " text-slate-700 whitespace-nowrap shrink-0";
+          } else {
+            tdClass += " text-slate-700";
+          }
+
+          return `<td class="${tdClass}">${escapePdfHtml(val)}</td>`;
+        }).join("")}
+      </tr>
+    `;
+  }).join("");
+}
+
+function updatePdfFooterInfo() {
+  const footerInfo = document.getElementById("pdf-footer-info");
+  if (!footerInfo) return;
+  const lang = getLang();
+  const pCount = currentParticipantsList ? currentParticipantsList.length : 0;
+  footerInfo.textContent = `${pCount} ${lang === "vi" ? "người tham gia" : "participants"} • ${pdfExportColumns.length} ${lang === "vi" ? "cột" : "columns"}`;
+}
+
+async function generateAndDownloadPdf() {
+  const btn = document.getElementById("pdf-download-action-btn");
+  if (!btn) return;
+  const originalHtml = btn.innerHTML;
+
+  try {
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>${t("org_dashboard.pdf_loading", "Generating PDF...")}</span>`;
+
+    const jsPDFClass = await getJsPDF();
+    if (!jsPDFClass) throw new Error("Could not load jsPDF library");
+    await getAutoTable();
+
+    const doc = new jsPDFClass({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+      compress: true,
+    });
+
+    const fonts = await setupJsPDFFonts(doc);
+    const fontName = fonts.fontName;
+    const logoFont = fonts.logoFont;
+
+    const event = currentEvent || {};
+    const org = currentOrgs.find(o => o._id === currentOrgId) || {};
+    const lang = getLang();
+
+    const cleanEventName = (event.title || "Event")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "_");
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const filename = `${cleanEventName}_DanhSachThamGia_${dateStr}.pdf`;
+
+    doc.setProperties({
+      title: `${event.title || "Participant_List"} - SpringWave`,
+      subject: "SpringWave Participant List Export",
+      author: org.name || "SpringWave Organization",
+      creator: "SpringWave Platform",
+    });
+
+    // Clean headers & body (WITHOUT any UI width hints like "(12mm)")
+    const head = [pdfExportColumns.map(c => c.name)];
+    const body = (currentParticipantsList || []).map((p, idx) => {
+      return pdfExportColumns.map(col => getParticipantColValue(p, col, idx, lang));
+    });
+
+    const pageW = 297;
+    const margin = 14;
+    const usableW = pageW - margin * 2; // 269mm
+
+    // Draw header on the first page
+    const drawDocumentHeader = (docInstance) => {
+      // 1. SpringWave Logo with authentic Aleo typography
+      docInstance.setFont(logoFont, "bold");
+      docInstance.setFontSize(14);
+      docInstance.setTextColor(23, 85, 186); // #1755ba
+      docInstance.text("Spring", margin, 14.5);
+      const springW = docInstance.getTextWidth("Spring");
+
+      docInstance.setTextColor(2, 132, 199); // #0284c7
+      docInstance.text("Wave", margin + springW, 14.5);
+      const waveW = docInstance.getTextWidth("Wave");
+
+      // Separator dot & Org Name
+      docInstance.setFont(fontName, "normal");
+      docInstance.setFontSize(11);
+      docInstance.setTextColor(203, 213, 225); // #cbd5e1
+      docInstance.text("•", margin + springW + waveW + 3, 14.5);
+
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(9.5);
+      docInstance.setTextColor(100, 116, 139); // #64748b
+      const maxOrgW = usableW - (springW + waveW + 10) - 75;
+      const orgNameStr = docInstance.splitTextToSize(org.name || "SpringWave Organization", maxOrgW)[0] || "";
+      docInstance.text(orgNameStr, margin + springW + waveW + 7, 14.5);
+
+      // Title
+      const titleText = lang === "vi" ? "DANH SÁCH NGƯỜI THAM GIA" : "PARTICIPANT LIST";
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(13);
+      docInstance.setTextColor(15, 23, 42); // #0f172a
+      docInstance.text(titleText, margin, 23.5);
+
+      // Export Date (Right aligned)
+      const now = new Date();
+      const exportDateStr = (lang === "vi" ? "Ngày xuất: " : "Export Date: ") +
+        now.toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US") + " " +
+        now.toLocaleTimeString(lang === "vi" ? "vi-VN" : "en-US", { hour: "2-digit", minute: "2-digit" });
+      docInstance.setFont(fontName, "normal");
+      docInstance.setFontSize(8);
+      docInstance.setTextColor(148, 163, 184); // #94a3b8
+      docInstance.text(exportDateStr, pageW - margin, 14.5, { align: "right" });
+
+      // Meta Info Card (Dynamically expanding for long Location / Event title)
+      const cardY = 26.5;
+      const w1 = Math.round(usableW * 0.32 * 10) / 10; // Event: 32% (86mm)
+      const w2 = Math.round(usableW * 0.20 * 10) / 10; // Date: 20% (53.8mm)
+      const w3 = Math.round(usableW * 0.34 * 10) / 10; // Location: 34% (91.4mm)
+      const w4 = usableW - (w1 + w2 + w3);            // Participants: 14% (37.8mm)
+
+      const eventTitle = event.title || "—";
+      const heldDate = event.heldDate ? formatDate(event.heldDate) : "—";
+      const location = event.location || event.address || "—";
+      const pCount = `${(currentParticipantsList || []).length} ${lang === "vi" ? "người" : "people"}`;
+
+      // Measure multi-line wrapping
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(8.5);
+      const eventLines = docInstance.splitTextToSize(eventTitle, w1 - 8);
+
+      docInstance.setFont(fontName, "normal");
+      docInstance.setFontSize(8.5);
+      const locLines = docInstance.splitTextToSize(location, w3 - 8);
+
+      const maxLines = Math.max(eventLines.length, locLines.length, 1);
+      const lineHeight = 4.0;
+      const dynamicCardH = Math.max(16, 12.5 + (maxLines - 1) * lineHeight);
+
+      // Card Background & Border
+      docInstance.setFillColor(248, 250, 252); // #f8fafc
+      docInstance.setDrawColor(226, 232, 240); // #e2e8f0
+      docInstance.setLineWidth(0.35);
+      docInstance.roundedRect(margin, cardY, usableW, dynamicCardH, 2.5, 2.5, "FD");
+
+      // Column 1: Event
+      const col1X = margin;
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(7);
+      docInstance.setTextColor(148, 163, 184);
+      docInstance.text(lang === "vi" ? "SỰ KIỆN" : "EVENT", col1X + 4, cardY + 5.2);
+
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(8.5);
+      docInstance.setTextColor(30, 41, 59);
+      eventLines.forEach((line, i) => {
+        docInstance.text(line, col1X + 4, cardY + 10.8 + (i * lineHeight));
+      });
+
+      // Column 2: Date
+      const col2X = margin + w1;
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(7);
+      docInstance.setTextColor(148, 163, 184);
+      docInstance.text(lang === "vi" ? "THỜI GIAN" : "DATE", col2X + 4, cardY + 5.2);
+
+      docInstance.setFont(fontName, "normal");
+      docInstance.setFontSize(8.5);
+      docInstance.setTextColor(51, 65, 85);
+      docInstance.text(heldDate, col2X + 4, cardY + 10.8);
+
+      // Column 3: Location
+      const col3X = margin + w1 + w2;
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(7);
+      docInstance.setTextColor(148, 163, 184);
+      docInstance.text(lang === "vi" ? "ĐỊA ĐIỂM" : "LOCATION", col3X + 4, cardY + 5.2);
+
+      docInstance.setFont(fontName, "normal");
+      docInstance.setFontSize(8.5);
+      docInstance.setTextColor(51, 65, 85);
+      locLines.forEach((line, i) => {
+        docInstance.text(line, col3X + 4, cardY + 10.8 + (i * lineHeight));
+      });
+
+      // Column 4: Participant count
+      const col4X = margin + w1 + w2 + w3;
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(7);
+      docInstance.setTextColor(148, 163, 184);
+      docInstance.text(lang === "vi" ? "SỐ LƯỢNG" : "PARTICIPANTS", col4X + 4, cardY + 5.2);
+
+      docInstance.setFont(fontName, "bold");
+      docInstance.setFontSize(9);
+      docInstance.setTextColor(16, 185, 129); // #10b981 emerald
+      docInstance.text(pCount, col4X + 4, cardY + 10.8);
+
+      return cardY + dynamicCardH;
+    };
+
+    const headerBottomY = drawDocumentHeader(doc);
+    const tableStartY = headerBottomY + 3.5;
+
+    // Dynamic Column styles setup with intelligent auto-shrink & balanced width distribution
+    const totalConfiguredW = pdfExportColumns.reduce((sum, c) => sum + (Number(c.w) || 35), 0);
+
+    const columnStyles = {};
+    pdfExportColumns.forEach((col, idx) => {
+      const key = col.key || col.id;
+      const isStt = col.id === "stt" || key === "stt";
+      const isStudentId = col.id === "studentId" || key === "studentId";
+      const isFullname = col.id === "fullname" || key === "fullname";
+      const isEmail = col.id === "email" || key === "email";
+      const isPhone = key === "phoneNo" || col.id === "phoneNo" || key === "phone";
+      const isClass = key === "class" || col.id === "class";
+      const isStatus = key === "status" || col.id === "status";
+
+      // Calculate auto-shrunk width proportionally fitting usable table width
+      let colWidth = Math.round(((Number(col.w) || 35) / totalConfiguredW) * usableW * 10) / 10;
+
+      // Smart upper/lower bounds for compact data cells
+      if (isStt) {
+        colWidth = Math.max(10, Math.min(13, colWidth));
+      } else if (isClass) {
+        colWidth = Math.max(16, Math.min(24, colWidth));
+      } else if (isStudentId) {
+        colWidth = Math.max(22, Math.min(30, colWidth));
+      } else if (isPhone) {
+        colWidth = Math.max(24, Math.min(32, colWidth));
+      } else if (isStatus) {
+        colWidth = Math.max(20, Math.min(28, colWidth));
+      }
+
+      const styleObj = { cellWidth: colWidth };
+      if (isStt) {
+        styleObj.halign = "center";
+      } else if (isStudentId) {
+        styleObj.fontStyle = "bold";
+      } else if (isFullname) {
+        styleObj.fontStyle = "bold";
+      } else if (isEmail) {
+        styleObj.textColor = [71, 85, 105];
+      } else {
+        styleObj.textColor = [15, 23, 42];
+      }
+
+      columnStyles[idx] = styleObj;
+    });
+
+    // Call AutoTable
+    doc.autoTable({
+      head: head,
+      body: body,
+      startY: tableStartY,
+      margin: { left: margin, right: margin, bottom: 16, top: 16 },
+      theme: "grid",
+      styles: {
+        font: fontName,
+        fontSize: 8.5,
+        cellPadding: { top: 2.2, bottom: 2.2, left: 2.5, right: 2.5 },
+        lineColor: [226, 232, 240], // #e2e8f0
+        lineWidth: 0.15,
+        textColor: [15, 23, 42], // #0f172a
+        overflow: "linebreak",
+        valign: "middle",
+      },
+      headStyles: {
+        font: fontName,
+        fontStyle: "bold",
+        fontSize: 8.5,
+        fillColor: [30, 41, 59], // #1e293b slate 800
+        textColor: [255, 255, 255],
+        lineWidth: 0.15,
+        lineColor: [51, 65, 85],
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252], // #f8fafc
+      },
+      columnStyles: columnStyles,
+      showHead: "everyPage",
+      didDrawPage: (data) => {
+        // Redraw minimal header on page 2+
+        if (data.pageNumber > 1) {
+          doc.setFont(fontName, "bold");
+          doc.setFontSize(8);
+          doc.setTextColor(100, 116, 139);
+          doc.text(`SpringWave • ${event.title || "Event"} - ${lang === "vi" ? "Danh sách người tham gia" : "Participant List"}`, margin, 10);
+        }
+
+        // Page footer on every page
+        doc.setFont(fontName, "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(148, 163, 184);
+        doc.text("SpringWave Platform • https://springwave.io", margin, 203);
+
+        const pageStr = `${lang === "vi" ? "Trang" : "Page"} ${data.pageNumber}`;
+        doc.text(pageStr, pageW - margin, 203, { align: "right" });
+      },
+    });
+
+    doc.save(filename);
+    closePdfExportModal();
+  } catch (err) {
+    console.error("PDF generation error:", err);
+    alert(t("org_dashboard.pdf_export_error", "Could not generate PDF. Please try again."));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
+}
+
+function initPdfExportButtons() {
+  const exportBtn = document.getElementById("pdf-export-btn");
+  exportBtn?.addEventListener("click", openPdfExportModal);
+
+  document.getElementById("pdf-export-close-btn")?.addEventListener("click", closePdfExportModal);
+  document.getElementById("pdf-export-cancel-btn")?.addEventListener("click", closePdfExportModal);
+  document.getElementById("pdf-export-backdrop")?.addEventListener("click", closePdfExportModal);
+
+  const addBtn = document.getElementById("pdf-add-column-btn");
+  const colInput = document.getElementById("pdf-new-column-input");
+
+  const onAddCol = () => {
+    if (colInput && handleAddPdfCustomColumn(colInput.value)) {
+      colInput.value = "";
+    }
+  };
+
+  addBtn?.addEventListener("click", onAddCol);
+  colInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onAddCol();
+    }
+  });
+
+  document.querySelectorAll(".pdf-col-preset-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const colName = btn.dataset.col;
+      const colKey = btn.dataset.key;
+      const colW = parseInt(btn.dataset.w, 10) || 40;
+      if (colName) handleAddPdfCustomColumn(colName, colKey, colW);
+    });
+  });
+
+  document.getElementById("pdf-download-action-btn")?.addEventListener("click", generateAndDownloadPdf);
+}
+
+function updatePdfExportButton() {
+  const btn = document.getElementById("pdf-export-btn");
+  const ps = document.getElementById("participant-event-select");
+  if (!btn || !ps) return;
+  const hasEvent = Boolean(ps.value);
+  btn.disabled = !hasEvent;
+  btn.classList.toggle("opacity-50", !hasEvent);
+  btn.classList.toggle("cursor-not-allowed", !hasEvent);
+}
+
+
 
 function openEditExternalModal(attendanceId, fullname, studentId, email) {
   const overlay = document.getElementById("edit-ext-overlay");
@@ -3675,6 +4574,11 @@ function loadSettings(org) {
   document.getElementById("settings-instagram").value = org.socialLinks?.instagram || "";
   document.getElementById("settings-twitter").value = org.socialLinks?.twitter || "";
   
+  const universityVal = org.university?._id || org.university || "";
+  populateOrgUniversitySelect("settings-university", universityVal).catch(e =>
+    console.error("Failed to populate settings university:", e)
+  );
+
   const avatarPreview = document.getElementById("settings-avatar-preview");
   if (avatarPreview) {
     avatarPreview.src = org.avatar || "/assets/images/default-org-avatar.png";
@@ -3730,8 +4634,10 @@ function initSettingsForm() {
   document.getElementById("org-settings-form").addEventListener("submit", async e => {
     e.preventDefault();
     if (!currentOrgId) return;
+    const uniInput = document.getElementById("settings-university");
     const data = {
       name: document.getElementById("settings-name").value.trim(),
+      university: uniInput ? (uniInput.value || null) : null,
       description: document.getElementById("settings-desc").value.trim(),
       contactInfo: {
         phoneNo: document.getElementById("settings-phone").value.trim(),
@@ -3890,6 +4796,12 @@ function updateAnalyticsScopeUI() {
 
   const wrapper = document.getElementById("analytics-report-event-select-wrapper");
   if (wrapper) wrapper.classList.toggle("hidden", analyticsScope !== "event");
+
+  // Hide "Total Events" KPI when viewing a single event
+  const totalEventsCard = document.getElementById("analytics-kpi-total-events");
+  if (totalEventsCard) {
+    totalEventsCard.classList.toggle("hidden", analyticsScope === "event");
+  }
 
   const selectedEvent = currentEvents.find(e => e._id === analyticsEventId);
   const exportBtn = document.getElementById("export-org-excel-btn");

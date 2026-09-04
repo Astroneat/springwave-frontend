@@ -2,166 +2,99 @@
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
     rel="stylesheet">
   <title data-i18n="about.title">About Us — SpringWave</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 
-<body class="bg-background text-on-surface font-body-md antialiased min-h-screen">
+<body class="bg-[#fafbff] text-slate-900 font-body-md antialiased min-h-screen selection:bg-blue-100 selection:text-blue-900">
 
   <div id="navbar-container"></div>
 
-  <!-- HERO -->
-  <section class="relative pt-24 pb-8 overflow-hidden bg-[#faf8ff]" id="about-hero">
-    <!-- Animated Glowing Background Blobs -->
-    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="mesh-blob-1 absolute top-[10%] left-[10%] w-[350px] h-[350px] rounded-full bg-blue-500/10 blur-[100px]"></div>
-      <div class="mesh-blob-2 absolute bottom-[20%] right-[10%] w-[300px] h-[300px] rounded-full bg-purple-500/10 blur-[100px]"></div>
-    </div>
+  <!-- 1. HERO SECTION -->
+  <section class="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-gradient-to-b from-[#f0f4fd] via-[#fafbff] to-[#ffffff]" id="about-hero">
+    <!-- Subtle Grid Background -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f015_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f015_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
 
-    <div class="relative max-w-container-max mx-auto px-6 md:px-12 w-full z-10">
-      <div class="grid md:grid-cols-12 gap-12 items-center">
-        <!-- Text Hero column -->
-        <div class="md:col-span-7 text-left">
-          <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-blue-50 border border-blue-100 text-[11px] font-bold text-[#3b6fd4] uppercase tracking-widest mb-4">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#3b6fd4] animate-ping"></span>
-            WE BUILD THE FUTURE OF STUDENT LIFE
-          </span>
-          <h1 class="font-headline-lg text-[36px] md:text-[52px] font-extrabold text-[#0f172a] leading-[1.05] tracking-tight mb-4">
-            Discover.<br>Connect.<br>Grow.
-          </h1>
-          <p class="font-body-md text-[17px] text-[#475569] leading-relaxed max-w-lg mb-4">
-            SpringWave is a unified digital ecosystem built by students, for students. We integrate academic, social, and professional discovery into one beautiful, fluid platform.
+    <div class="relative max-w-6xl mx-auto px-6 md:px-12 text-center z-10">
+      <!-- Tag Badge -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-100/80 text-xs font-semibold text-[#23499b] tracking-wide mb-6 shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-[#23499b]"></span>
+        <span data-i18n="about.badge">BY STUDENTS - FOR STUDENTS</span>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12] mb-6 max-w-4xl mx-auto" data-i18n="about.hero_title">
+        Empowering student life through unified discovery.
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-base sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mb-12" data-i18n="about.hero_desc">
+        SpringWave is a modern digital platform designed to bridge academic, extracurricular, and community opportunities across universities into one seamless experience.
+      </p>
+
+      <!-- Minimalist Key Metrics Bar -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto border border-slate-200/80 bg-white/80 backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div class="text-center p-2">
+          <div class="text-3xl sm:text-4xl font-extrabold text-[#23499b] tracking-tight about-stat-num" data-val="4">4</div>
+          <div class="text-xs sm:text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider" data-i18n="about.stat_members">Core Builders</div>
+        </div>
+        <div class="text-center p-2 border-l border-slate-100 md:border-slate-200/80">
+          <div class="text-3xl sm:text-4xl font-extrabold text-[#23499b] tracking-tight about-stat-num" data-val="12">12+</div>
+          <div class="text-xs sm:text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider" data-i18n="about.stat_modules">Integrated Modules</div>
+        </div>
+        <div class="text-center p-2 border-t md:border-t-0 md:border-l border-slate-100 md:border-slate-200/80">
+          <div class="text-3xl sm:text-4xl font-extrabold text-[#23499b] tracking-tight about-stat-num" data-val="4">4+</div>
+          <div class="text-xs sm:text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider" data-i18n="about.stat_campuses">University Focus</div>
+        </div>
+        <div class="text-center p-2 border-t md:border-t-0 border-l border-slate-100 md:border-slate-200/80">
+          <div class="text-3xl sm:text-4xl font-extrabold text-[#23499b] tracking-tight about-stat-num" data-val="100">100%</div>
+          <div class="text-xs sm:text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider" data-i18n="about.stat_mission">Shared Goal</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. THE ORIGIN STORY -->
+  <section class="content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="story">
+    <div class="max-w-6xl mx-auto px-6 md:px-12">
+      <div class="grid md:grid-cols-12 gap-12 lg:gap-16 items-start">
+        <!-- Left Column: Big Statement -->
+        <div class="md:col-span-5">
+          <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.story_tag">THE ORIGIN</span>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6" data-i18n="about.story_title">
+            Built from real student frustration.
+          </h2>
+          <div class="p-5 sm:p-6 bg-slate-50 rounded-2xl border-l-4 border-[#23499b] text-slate-700 font-medium italic text-base leading-relaxed" data-i18n="about.story_quote">
+            “We missed workshops and competitions not because we lacked passion, but because information was scattered across dozens of random fanpages and chat groups.”
+          </div>
+        </div>
+
+        <!-- Right Column: Narrative -->
+        <div class="md:col-span-7 space-y-6 text-slate-600 text-base sm:text-lg leading-relaxed pt-2">
+          <p data-i18n="about.story_p1">
+            As first-year university students in Da Nang, we experienced firsthand how difficult it was to navigate extracurricular life. Crucial announcements, workshop sign-ups, and student club recruitments were constantly buried under social media algorithms.
           </p>
-        </div>
-
-        <!-- 3D Orb Artwork Column -->
-        <div class="md:col-span-5 flex justify-center items-center">
-          <div class="orb-container">
-            <div class="orb-sphere"></div>
-            <div class="orb-ring r1"></div>
-            <div class="orb-ring r2"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hero Statistics -->
-      <div class="about-stats-row border-t border-slate-200/50 pt-8 mt-12">
-        <div class="about-stat-badge">
-          <div class="about-stat-num text-[#0f172a]" data-val="4">4</div>
-          <div class="about-stat-label text-[#64748b]">Team Members</div>
-        </div>
-        <div class="about-stat-badge">
-          <div class="about-stat-num text-[#0f172a]" data-val="20">20+</div>
-          <div class="about-stat-label text-[#64748b]">Features</div>
-        </div>
-        <div class="about-stat-badge">
-          <div class="about-stat-num text-[#0f172a]" data-val="1">1</div>
-          <div class="about-stat-label text-[#64748b]">Mission</div>
-        </div>
-        <div class="about-stat-badge">
-          <div class="about-stat-num text-[#0f172a]" data-val="9999">∞</div>
-          <div class="about-stat-label text-[#64748b]">Possibilities</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- THE NARRATIVE TIMELINE FLOWCHART -->
-  <section class="py-20 md:py-28 bg-white border-t border-[rgba(15,23,42,0.06)]" id="why">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="text-center mb-16">
-        <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-3">The Problem & The Pitch</span>
-        <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]">Why SpringWave was Born</h2>
-      </div>
-
-      <div class="pain-flow-container">
-        <!-- Node 1: Pain -->
-        <div class="pain-flow-node">
-          <span class="text-xs font-bold text-rose-500 uppercase tracking-wider block mb-2">Fragmented Info</span>
-          <h4 class="font-bold text-[17px] text-[#0f172a] mb-2">Facebook, Email, Chats</h4>
-          <p class="text-[15px] text-slate-500 leading-relaxed">Students miss workshops & events because announcements are scattered across dozens of platforms.</p>
-        </div>
-
-        <!-- Connection -->
-        <div class="pain-flow-arrow"><span class="material-symbols-outlined">arrow_forward</span></div>
-
-        <!-- Node 2: Arrow -->
-        <div class="pain-flow-node" style="border-color: rgba(59,111,212,0.25);">
-          <span class="text-xs font-bold text-blue-500 uppercase tracking-wider block mb-2">The SpringWave Core</span>
-          <h4 class="font-bold text-[17px] text-[#0f172a] mb-2">Unified Central Platform</h4>
-          <p class="text-[15px] text-slate-500 leading-relaxed">Gathering, cataloging, and structuring every student event into one single, clean database.</p>
-        </div>
-
-        <!-- Connection -->
-        <div class="pain-flow-arrow"><span class="material-symbols-outlined">arrow_forward</span></div>
-
-        <!-- Node 3: Result -->
-        <div class="pain-flow-node">
-          <span class="text-xs font-bold text-emerald-500 uppercase tracking-wider block mb-2">Total Clarity</span>
-          <h4 class="font-bold text-[17px] text-[#0f172a] mb-2">Everything Organized</h4>
-          <p class="text-[15px] text-slate-500 leading-relaxed">Students navigate their growth trajectory, connect with clubs, and find events without hassle.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- INTERACTIVE MISSION DIAGRAM -->
-  <section class="py-20 md:py-28 bg-[#fafafa]" id="mission-diagram">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="grid md:grid-cols-2 gap-12 items-center">
-        <div>
-          <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-4">Mission Visualization</span>
-          <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a] mb-6">Our Interconnected Roster</h2>
-          <p class="font-body-md text-[15px] text-slate-600 leading-relaxed mb-6">
-            SpringWave doesn't just display events. We link core modules together to build a complete developmental cycle. Hover or click on the nodes in the diagram to inspect how they connect.
+          <p data-i18n="about.story_p2">
+            We founded RAH TEAM with a clear purpose: create a single, clean, student-centric home where every event, discussion, and roadmap is structured, searchable, and verified.
           </p>
-          
-          <!-- Interactive Description Box -->
-          <div class="p-6 bg-white rounded-2xl border border-[rgba(15,23,42,0.06)] shadow-sm min-h-[120px] transition-all duration-300" id="node-info-card">
-            <h4 class="font-bold text-[#0f172a] text-[17px] mb-2" id="node-info-title">Interactive Core</h4>
-            <p class="text-[15px] text-slate-500 leading-relaxed" id="node-info-text">Select any of the outer nodes surrounding SpringWave in the diagram to view detailed descriptions of their role inside our system.</p>
-          </div>
-        </div>
 
-        <!-- Map Drawing Column -->
-        <div class="flex justify-center">
-          <div class="mission-map" id="interactive-map">
-            <!-- Center Node -->
-            <div class="map-center">
-              <span class="map-center-title">SpringWave</span>
-              <span class="map-center-desc" id="map-inner-desc">Core Hub</span>
+          <div class="grid grid-cols-2 gap-4 pt-4">
+            <div class="p-4 rounded-xl bg-blue-50/50 border border-blue-100/60">
+              <div class="text-[#23499b] font-bold text-lg mb-1" data-i18n="about.story_card_1_title">01. Centralized</div>
+              <div class="text-xs sm:text-sm text-slate-500" data-i18n="about.story_card_1_desc">Every workshop & hackathon structured in one unified database.</div>
             </div>
-
-            <!-- SVG Lines -->
-            <svg class="map-svg" viewBox="0 0 600 380">
-              <line class="map-line line-ai" x1="300" y1="190" x2="300" y2="30"></line>
-              <line class="map-line line-comm" x1="300" y1="190" x2="550" y2="145"></line>
-              <line class="map-line line-events" x1="300" y1="190" x2="480" y2="340"></line>
-              <line class="map-line line-quiz" x1="300" y1="190" x2="120" y2="340"></line>
-              <line class="map-line line-growth" x1="300" y1="190" x2="50" y2="145"></line>
-            </svg>
-
-            <!-- Outer Nodes -->
-            <div class="map-node node-ai active" data-node="ai" title="AI Recommendation System">
-              <span class="material-symbols-outlined text-[#7c3aed]">auto_awesome</span>
-            </div>
-            <div class="map-node node-comm" data-node="comm" title="Cross-University Community Network">
-              <span class="material-symbols-outlined text-[#0ea5e9]">groups</span>
-            </div>
-            <div class="map-node node-events" data-node="events" title="Unified Activities Roster">
-              <span class="material-symbols-outlined text-[#10b981]">event</span>
-            </div>
-            <div class="map-node node-quiz" data-node="quiz" title="Personality Quiz Module">
-              <span class="material-symbols-outlined text-[#f43f5e]">psychology</span>
-            </div>
-            <div class="map-node node-growth" data-node="growth" title="Growth Analytics Dashboard">
-              <span class="material-symbols-outlined text-[#f59e0b]">trending_up</span>
+            <div class="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/60">
+              <div class="text-emerald-700 font-bold text-lg mb-1" data-i18n="about.story_card_2_title">02. Verified</div>
+              <div class="text-xs sm:text-sm text-slate-500" data-i18n="about.story_card_2_desc">Authenticated student profiles & trustworthy organizers.</div>
             </div>
           </div>
         </div>
@@ -169,297 +102,392 @@
     </div>
   </section>
 
-  <!-- BENTO GRID CORE VALUES -->
-  <section class="py-20 md:py-28 bg-white border-t border-[rgba(15,23,42,0.06)]" id="believe">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="text-center mb-16">
-        <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-3" data-i18n="about.believe_title">What We Believe</span>
-        <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]">Our Core Values</h2>
+  <!-- 3. CORE ECOSYSTEM / PRODUCT PILLARS (Bento Grid) -->
+  <section class="content-visibility-auto section-rhythm-standard bg-[#f8fafc] border-t border-slate-200/60" id="pillars">
+    <div class="max-w-6xl mx-auto px-6 md:px-12">
+      <div class="text-center max-w-2xl mx-auto mb-14">
+        <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.pillars_tag">CORE ECOSYSTEM</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4" data-i18n="about.pillars_title">
+          What powers SpringWave
+        </h2>
+        <p class="text-base sm:text-lg text-slate-600 leading-relaxed" data-i18n="about.pillars_subtitle">
+          An interconnected suite of tools designed to guide you through your university journey.
+        </p>
       </div>
 
       <!-- Bento Grid Layout -->
-      <div class="bento-values-grid">
-        <!-- Card 1 (Community First - Double Width) -->
-        <div class="bento-value-card v1">
-          <div class="bento-value-icon text-[#7c3aed]">
-            <span class="material-symbols-outlined">groups</span>
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Pillar 1: Activities Hub -->
+        <div class="about-pillar-card p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23499b] flex items-center justify-center mb-6">
+            <span class="material-symbols-outlined text-2xl">event_available</span>
           </div>
-          <div>
-            <h4>Community First</h4>
-            <p>Technology should serve people and community first. We design features that build meaningful university bridges rather than isolating users.</p>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_1_tag_1">Workshops</span>
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_1_tag_2">Hackathons</span>
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_1_tag_3">Recruitments</span>
           </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2" data-i18n="about.pillar_1_title">Unified Activities Hub</h3>
+          <p class="text-slate-600 text-sm sm:text-base leading-relaxed" data-i18n="about.pillar_1_desc">
+            Search, filter, and register for workshops, hackathons, seminars, and club recruitments across universities in one place.
+          </p>
         </div>
 
-        <!-- Card 2 (Accessibility - Single Width) -->
-        <div class="bento-value-card v2">
-          <div class="bento-value-icon text-[#0ea5e9]">
-            <span class="material-symbols-outlined">map</span>
+        <!-- Pillar 2: Community Network -->
+        <div class="about-pillar-card p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-6">
+            <span class="material-symbols-outlined text-2xl">forum</span>
           </div>
-          <div>
-            <h4>Equal Access</h4>
-            <p>Opportunities should never be limited by lack of information. We democratize access to academic growth.</p>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_2_tag_1">Discussions</span>
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_2_tag_2">Peer Feedback</span>
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_2_tag_3">Cross-Uni Hub</span>
           </div>
-        </div>
-      </div>
-
-      <div class="bento-values-grid-row-2">
-        <!-- Card 3 (AI Co-pilot - Single Width) -->
-        <div class="bento-value-card v3">
-          <div class="bento-value-icon text-[#10b981]">
-            <span class="material-symbols-outlined">auto_awesome</span>
-          </div>
-          <div>
-            <h4>AI Companion</h4>
-            <p>AI should be a co-pilot, not a replacement, helping students parse interests and discover opportunities organically.</p>
-          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2" data-i18n="about.pillar_2_title">Cross-Campus Community</h3>
+          <p class="text-slate-600 text-sm sm:text-base leading-relaxed" data-i18n="about.pillar_2_desc">
+            Engage in genuine academic and social discussions with students from different faculties and partner universities.
+          </p>
         </div>
 
-        <!-- Card 4 (Potential - Double Width) -->
-        <div class="bento-value-card v4">
-          <div class="bento-value-icon text-[#f43f5e]">
-            <span class="material-symbols-outlined">rocket_launch</span>
+        <!-- Pillar 3: AI Navigator -->
+        <div class="about-pillar-card p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-6">
+            <span class="material-symbols-outlined text-2xl">auto_awesome</span>
           </div>
-          <div>
-            <h4>Unique Potential</h4>
-            <p>Every student has unique potential waiting to be discovered. We build tools that make this exploration engaging, rewarding, and fun.</p>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_3_tag_1">Gemini Matching</span>
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_3_tag_2">Strengths Quiz</span>
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_3_tag_3">Career Roadmaps</span>
           </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2" data-i18n="about.pillar_3_title">AI Growth Navigator</h3>
+          <p class="text-slate-600 text-sm sm:text-base leading-relaxed" data-i18n="about.pillar_3_desc">
+            Discover personalized event recommendations and skill paths based on your major, strengths, and quiz results.
+          </p>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- TECHNOLOGY SHOWCASE -->
-  <section class="py-20 md:py-28 bg-[#fafafa]" id="tech-stack">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="text-center mb-16">
-        <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-3">Our Platform Architecture</span>
-        <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]">The Technologies Behind SpringWave</h2>
-      </div>
-
-      <div class="tech-glass-grid">
-        <!-- React -->
-        <div class="tech-glass-card">
-          <div class="tech-logo-placeholder text-[#61dafb] bg-[#61dafb]/5"><i class="fa-brands fa-react"></i></div>
-          <span class="text-sm font-bold text-slate-800">React</span>
-        </div>
-        <!-- Node.js -->
-        <div class="tech-glass-card">
-          <div class="tech-logo-placeholder text-[#339933] bg-[#339933]/5"><i class="fa-brands fa-node-js"></i></div>
-          <span class="text-sm font-bold text-slate-800">Node.js</span>
-        </div>
-        <!-- MongoDB -->
-        <div class="tech-glass-card">
-          <div class="tech-logo-placeholder text-[#47a248] bg-[#47a248]/5"><span class="material-symbols-outlined">database</span></div>
-          <span class="text-sm font-bold text-slate-800">MongoDB</span>
-        </div>
-        <!-- Gemini API -->
-        <div class="tech-glass-card">
-          <div class="tech-logo-placeholder text-[#7c3aed] bg-[#7c3aed]/5"><span class="material-symbols-outlined">auto_awesome</span></div>
-          <span class="text-sm font-bold text-slate-800">Gemini AI</span>
-        </div>
-        <!-- Tailwind CSS -->
-        <div class="tech-glass-card">
-          <div class="tech-logo-placeholder text-[#38bdf8] bg-[#38bdf8]/5"><i class="fa-brands fa-css3-alt"></i></div>
-          <span class="text-sm font-bold text-slate-800">Tailwind CSS</span>
-        </div>
-        <!-- Express -->
-        <div class="tech-glass-card">
-          <div class="tech-logo-placeholder text-[#1e293b] bg-[#1e293b]/5"><span class="material-symbols-outlined">api</span></div>
-          <span class="text-sm font-bold text-slate-800">Express</span>
+        <!-- Pillar 4: Verified Student Identity -->
+        <div class="about-pillar-card p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
+            <span class="material-symbols-outlined text-2xl">verified_user</span>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_4_tag_1">Student ID Guard</span>
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_4_tag_2">Badges</span>
+            <span class="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600" data-i18n="about.pillar_4_tag_3">Certificates</span>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2" data-i18n="about.pillar_4_title">Verified Student Identity</h3>
+          <p class="text-slate-600 text-sm sm:text-base leading-relaxed" data-i18n="about.pillar_4_desc">
+            Authentic student verification and activity certificates to build your verifiable extracurricular portfolio.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- TEAM (MEET THE TEAM - KEEPING ALL PORTRAITS AND CARDS) -->
-  <section class="py-20 md:py-28 bg-white border-t border-[rgba(15,23,42,0.06)]" id="team">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
-        <div>
-          <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-4" data-i18n="about.team_title">Meet The Team</span>
-          <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]" data-i18n="about.team_desc">SpringWave is developed by RAH.</h2>
-        </div>
-        <p class="text-[14px] text-[#64748b] max-w-sm mt-4 md:mt-0" data-i18n="about.team_subtitle">
-          We are first-year students with a passion for technology, AI, and building real-world products.
+  <!-- 4. MEET THE TEAM (RAH TEAM - 4 DEVELOPERS) -->
+  <section class="content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="team">
+    <div class="max-w-6xl mx-auto px-6 md:px-12">
+      <!-- Team Section Header -->
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.team_tag">THE BUILDERS</span>
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight whitespace-nowrap" data-i18n="about.team_title">
+          Meet RAH Gang - Really Awesome Humans
+        </h2>
+        <p class="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto mt-4 leading-relaxed" data-i18n="about.team_subtitle">
+          Passionate first-year software engineering students dedicated to crafting high-quality, practical technology for the student community.
         </p>
       </div>
 
-      <!-- Upgraded Team Grid (Retains Roster, Adds Social/Skill Drawers) -->
-      <div class="team-grid-editorial">
-        <!-- Member 1: Dat -->
-        <div class="team-card-editorial accent-blue">
-          <div class="team-card-inner">
-            <div class="team-avatar-editorial">
-              <img src="/assets/images/Dat.jpg" alt="Nguyễn Viết Thành Đạt" class="team-avatar-img-editorial" />
-            </div>
-            <h4 class="team-name-editorial" data-i18n="about.member_1">Nguyễn Viết Thành Đạt</h4>
-            <p class="team-role-editorial" data-i18n="about.member_1_role">Team Leader & Fullstack Developer</p>
-          </div>
-          
-          <!-- Slide-up Drawer Details overlay -->
-          <div class="team-drawer-details">
-            <div class="team-skills-row">
-              <span class="team-skill-tag">Next.js</span>
-              <span class="team-skill-tag">Node</span>
-              <span class="team-skill-tag">AI Integration</span>
-            </div>
-            <p class="team-personal-quote">"Building product experiences that students genuinely love to use every day."</p>
-            <div class="team-fav-tech">Fav Tech: <span>Gemini AI</span></div>
-            <div class="team-socials-editorial">
-              <a href="#" class="team-social-link-editorial">Github</a>
-              <a href="#" class="team-social-link-editorial">Linkedin</a>
+      <!-- 4-Column Developer Cards Grid -->
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Developer 1: Nguyễn Viết Thành Đạt -->
+        <div class="about-team-card group flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
+          <div class="relative aspect-[4/5] overflow-hidden bg-slate-100">
+            <img src="/assets/images/Dat.jpg" alt="Nguyễn Viết Thành Đạt" width="400" height="500" loading="lazy" decoding="async" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-[#23499b] tracking-wider uppercase shadow-xs" data-i18n="about.badge_lead">
+              LEAD & ARCHITECTURE
             </div>
           </div>
-        </div>
-
-        <!-- Member 2: Tai -->
-        <div class="team-card-editorial accent-emerald">
-          <div class="team-card-inner">
-            <div class="team-avatar-editorial">
-              <img src="/assets/images/Tai.jpg" alt="Nguyễn Đức Tài" class="team-avatar-img-editorial" />
+          <div class="p-5 xl:p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="text-[15px] sm:text-base xl:text-lg font-bold text-slate-900 mb-1 tracking-tight whitespace-nowrap" data-i18n="about.member_1_name">Nguyễn Viết Thành Đạt</h3>
+              <p class="text-xs font-semibold text-[#23499b] mb-3" data-i18n="about.member_1_role">Team Leader & Fullstack Developer</p>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4" data-i18n="about.member_1_bio">
+                Leads project architecture, core frontend design, and AI integration with a focus on fluid user experiences.
+              </p>
             </div>
-            <h4 class="team-name-editorial" data-i18n="about.member_2">Nguyễn Đức Tài</h4>
-            <p class="team-role-editorial" data-i18n="about.member_2_role">Fullstack Developer</p>
-          </div>
-
-          <!-- Slide-up Drawer Details overlay -->
-          <div class="team-drawer-details">
-            <div class="team-skills-row">
-              <span class="team-skill-tag">Express</span>
-              <span class="team-skill-tag">MongoDB</span>
-              <span class="team-skill-tag">System Design</span>
-            </div>
-            <p class="team-personal-quote">"Optimizing databases and securing APIs to make SpringWave blazing fast."</p>
-            <div class="team-fav-tech">Fav Tech: <span>MongoDB</span></div>
-            <div class="team-socials-editorial">
-              <a href="#" class="team-social-link-editorial">Github</a>
-              <a href="#" class="team-social-link-editorial">Linkedin</a>
+            <div>
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_arch">Architecture</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_frontend">Frontend</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_ai">AI Integration</span>
+              </div>
+              <div class="pt-3 border-t border-slate-100">
+                <a href="https://github.com/Astroneat" target="_blank" rel="noopener noreferrer" class="group/git inline-flex items-center justify-between w-full px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-900 border border-slate-200/90 hover:border-slate-900 text-slate-700 hover:text-white text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-sm">
+                  <span class="inline-flex items-center gap-2">
+                    <i class="fa-brands fa-github text-sm text-slate-800 group-hover/git:text-white transition-colors"></i>
+                    <span class="font-bold tracking-tight">@Astroneat</span>
+                  </span>
+                  <span class="material-symbols-outlined text-[13px] text-slate-400 group-hover/git:text-white group-hover/git:translate-x-0.5 transition-all">arrow_outward</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Member 3: Tuan -->
-        <div class="team-card-editorial accent-amber">
-          <div class="team-card-inner">
-            <div class="team-avatar-editorial">
-              <img src="/assets/images/Tuan.jpg" alt="Lê Đăng Anh Tuấn" class="team-avatar-img-editorial" />
+        <!-- Developer 2: Nguyễn Đức Tài -->
+        <div class="about-team-card group flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
+          <div class="relative aspect-[4/5] overflow-hidden bg-slate-100">
+            <img src="/assets/images/Tai.jpg" alt="Nguyễn Đức Tài" width="400" height="500" loading="lazy" decoding="async" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-emerald-700 tracking-wider uppercase shadow-xs" data-i18n="about.badge_backend">
+              BACKEND & SECURITY
             </div>
-            <h4 class="team-name-editorial" data-i18n="about.member_3">Lê Đăng Anh Tuấn</h4>
-            <p class="team-role-editorial" data-i18n="about.member_3_role">Fullstack Developer</p>
           </div>
-
-          <!-- Slide-up Drawer Details overlay -->
-          <div class="team-drawer-details">
-            <div class="team-skills-row">
-              <span class="team-skill-tag">Node</span>
-              <span class="team-skill-tag">REST APIs</span>
-              <span class="team-skill-tag">DevOps</span>
+          <div class="p-5 xl:p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="text-[15px] sm:text-base xl:text-lg font-bold text-slate-900 mb-1 tracking-tight whitespace-nowrap" data-i18n="about.member_2_name">Nguyễn Đức Tài</h3>
+              <p class="text-xs font-semibold text-emerald-600 mb-3" data-i18n="about.member_2_role">Fullstack Developer</p>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4" data-i18n="about.member_2_bio">
+                Architects backend REST APIs, authentication security, database modeling, and community discussion engines.
+              </p>
             </div>
-            <p class="team-personal-quote">"Designing clean architecture patterns and automating continuous deployments."</p>
-            <div class="team-fav-tech">Fav Tech: <span>Express.js</span></div>
-            <div class="team-socials-editorial">
-              <a href="#" class="team-social-link-editorial">Github</a>
-              <a href="#" class="team-social-link-editorial">Linkedin</a>
+            <div>
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_rest">REST API</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_mongo">MongoDB</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_security">Auth Security</span>
+              </div>
+              <div class="pt-3 border-t border-slate-100">
+                <a href="https://github.com/ndtai1527" target="_blank" rel="noopener noreferrer" class="group/git inline-flex items-center justify-between w-full px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-900 border border-slate-200/90 hover:border-slate-900 text-slate-700 hover:text-white text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-sm">
+                  <span class="inline-flex items-center gap-2">
+                    <i class="fa-brands fa-github text-sm text-slate-800 group-hover/git:text-white transition-colors"></i>
+                    <span class="font-bold tracking-tight">@ndtai1527</span>
+                  </span>
+                  <span class="material-symbols-outlined text-[13px] text-slate-400 group-hover/git:text-white group-hover/git:translate-x-0.5 transition-all">arrow_outward</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Member 4: Truong -->
-        <div class="team-card-editorial accent-violet">
-          <div class="team-card-inner">
-            <div class="team-avatar-editorial">
-              <img src="/assets/images/Truong.jpg" alt="Nguyễn Tiến Trường" class="team-avatar-img-editorial" />
+        <!-- Developer 3: Lê Đăng Anh Tuấn -->
+        <div class="about-team-card group flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
+          <div class="relative aspect-[4/5] overflow-hidden bg-slate-100">
+            <img src="/assets/images/Tuan.jpg" alt="Lê Đăng Anh Tuấn" width="400" height="500" loading="lazy" decoding="async" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-amber-700 tracking-wider uppercase shadow-xs" data-i18n="about.badge_devops">
+              DEVOPS & SERVICES
             </div>
-            <h4 class="team-name-editorial" data-i18n="about.member_4">Nguyễn Tiến Trường</h4>
-            <p class="team-role-editorial" data-i18n="about.member_4_role">UI/UX Designer</p>
           </div>
-
-          <!-- Slide-up Drawer Details overlay -->
-          <div class="team-drawer-details">
-            <div class="team-skills-row">
-              <span class="team-skill-tag">Figma</span>
-              <span class="team-skill-tag">Framer</span>
-              <span class="team-skill-tag">Tailwind</span>
+          <div class="p-5 xl:p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="text-[15px] sm:text-base xl:text-lg font-bold text-slate-900 mb-1 tracking-tight whitespace-nowrap" data-i18n="about.member_3_name">Lê Đăng Anh Tuấn</h3>
+              <p class="text-xs font-semibold text-amber-600 mb-3" data-i18n="about.member_3_role">Fullstack Developer</p>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4" data-i18n="about.member_3_bio">
+                Builds robust server routes, administrative control dashboards, and deployment automation pipelines.
+              </p>
             </div>
-            <p class="team-personal-quote">"Focusing on alignment, grids, typography, and motion details."</p>
-            <div class="team-fav-tech">Fav Tech: <span>Figma</span></div>
-            <div class="team-socials-editorial">
-              <a href="#" class="team-social-link-editorial">Github</a>
-              <a href="#" class="team-social-link-editorial">Linkedin</a>
+            <div>
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_devops">DevOps</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_admin">Admin Engine</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_node">Node.js</span>
+              </div>
+              <div class="pt-3 border-t border-slate-100">
+                <a href="https://github.com/ldagtuangu" target="_blank" rel="noopener noreferrer" class="group/git inline-flex items-center justify-between w-full px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-900 border border-slate-200/90 hover:border-slate-900 text-slate-700 hover:text-white text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-sm">
+                  <span class="inline-flex items-center gap-2">
+                    <i class="fa-brands fa-github text-sm text-slate-800 group-hover/git:text-white transition-colors"></i>
+                    <span class="font-bold tracking-tight">@ldagtuangu</span>
+                  </span>
+                  <span class="material-symbols-outlined text-[13px] text-slate-400 group-hover/git:text-white group-hover/git:translate-x-0.5 transition-all">arrow_outward</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Developer 4: Nguyễn Tiến Trường -->
+        <div class="about-team-card group flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
+          <div class="relative aspect-[4/5] overflow-hidden bg-slate-100">
+            <img src="/assets/images/Truong.jpg" alt="Nguyễn Tiến Trường" width="400" height="500" loading="lazy" decoding="async" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-violet-700 tracking-wider uppercase shadow-xs" data-i18n="about.badge_design">
+              PRODUCT & UI/UX
+            </div>
+          </div>
+          <div class="p-5 xl:p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="text-[15px] sm:text-base xl:text-lg font-bold text-slate-900 mb-1 tracking-tight whitespace-nowrap" data-i18n="about.member_4_name">Nguyễn Tiến Trường</h3>
+              <p class="text-xs font-semibold text-violet-600 mb-3" data-i18n="about.member_4_role">UI/UX Designer</p>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4" data-i18n="about.member_4_bio">
+                Crafts typography, design tokens, responsive layouts, and interactive design systems across the entire platform.
+              </p>
+            </div>
+            <div>
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_figma">Figma</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_ds">Design System</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600" data-i18n="about.skill_motion">Motion UX</span>
+              </div>
+              <div class="pt-3 border-t border-slate-100">
+                <a href="https://github.com/Doctor-mine" target="_blank" rel="noopener noreferrer" class="group/git inline-flex items-center justify-between w-full px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-900 border border-slate-200/90 hover:border-slate-900 text-slate-700 hover:text-white text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-sm">
+                  <span class="inline-flex items-center gap-2">
+                    <i class="fa-brands fa-github text-sm text-slate-800 group-hover/git:text-white transition-colors"></i>
+                    <span class="font-bold tracking-tight">@Doctor-mine</span>
+                  </span>
+                  <span class="material-symbols-outlined text-[13px] text-slate-400 group-hover/git:text-white group-hover/git:translate-x-0.5 transition-all">arrow_outward</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="mt-20 text-center max-w-3xl mx-auto border-t border-[rgba(15,23,42,0.06)] pt-12">
-        <p class="text-[15px] text-[#475569] leading-relaxed italic" data-i18n="about.journey">
-          "SpringWave is not just a school project — it is the beginning of a journey to create technology solutions that bring real value to the Vietnamese student community."
+      <!-- Team Journey Quote -->
+      <div class="mt-16 text-center max-w-3xl mx-auto p-8 rounded-3xl bg-slate-50 border border-slate-200/60">
+        <p class="text-base sm:text-lg text-slate-700 leading-relaxed italic mb-3" data-i18n="about.quote_text">
+          “SpringWave is not just a school project — it is our commitment to building technology that brings lasting value to student life.”
         </p>
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest" data-i18n="about.quote_author">— RAH TEAM</span>
       </div>
     </div>
   </section>
 
-  <!-- DEVELOPMENT TIMELINE JOURNEY -->
-  <section class="py-20 md:py-28 bg-[#fafafa] border-t border-[rgba(15,23,42,0.06)]" id="timeline">
-    <div class="max-w-container-max mx-auto px-6 md:px-12">
-      <div class="text-center mb-16">
-        <span class="text-[12px] font-bold text-[#3b6fd4] uppercase tracking-widest block mb-3">Our History</span>
-        <h2 class="font-headline-md text-3xl font-extrabold text-[#0f172a]">The Journey of RAH</h2>
+  <!-- 5. ENGINEERING VALUES & CRAFTSMANSHIP -->
+  <section class="content-visibility-auto section-rhythm-compact bg-[#f8fafc] border-t border-slate-200/60" id="values">
+    <div class="max-w-6xl mx-auto px-6 md:px-12">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.values_tag">ENGINEERING PRINCIPLES</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight" data-i18n="about.values_title">
+          Our Core Values
+        </h2>
       </div>
 
-      <div class="journey-timeline">
-        <!-- Interactive progress bar -->
-        <div class="journey-timeline-progress" id="timeline-progress"></div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Value 1 -->
+        <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#23499b] flex items-center justify-center mb-5">
+            <span class="material-symbols-outlined text-xl">tune</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="about.value_1_title">Simplicity & Focus</h3>
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n="about.value_1_desc">
+            No bloated feeds or unnecessary clutter. We build focused interfaces that respect your time and attention.
+          </p>
+        </div>
 
+        <!-- Value 2 -->
+        <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5">
+            <span class="material-symbols-outlined text-xl">shield</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="about.value_2_title">Authenticity & Trust</h3>
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n="about.value_2_desc">
+            Verified student identities and curated event organizers ensure high-quality, reliable opportunities.
+          </p>
+        </div>
+
+        <!-- Value 3 -->
+        <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center mb-5">
+            <span class="material-symbols-outlined text-xl">hub</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="about.value_3_title">Open Collaboration</h3>
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n="about.value_3_desc">
+            Bridging barriers between clubs and universities to foster a collaborative student ecosystem.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. EVOLUTION TIMELINE -->
+  <section class="content-visibility-auto section-rhythm-standard bg-white border-t border-slate-200/60" id="timeline">
+    <div class="max-w-4xl mx-auto px-6 md:px-12">
+      <div class="text-center mb-14">
+        <span class="text-xs font-bold text-[#23499b] uppercase tracking-widest block mb-3" data-i18n="about.timeline_tag">OUR MILESTONES</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight" data-i18n="about.timeline_title">
+          The Journey So Far
+        </h2>
+      </div>
+
+      <!-- Minimalist Milestone Steps -->
+      <div class="relative border-l-2 border-slate-200 ml-4 md:ml-32 space-y-10 py-2">
         <!-- Step 1 -->
-        <div class="journey-step active">
-          <div class="journey-step-title">The Idea (March 2026)</div>
-          <p class="journey-step-desc">Brainstorming solutions to resolve fragmentation of college extracurricular activities.</p>
+        <div class="relative pl-8 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-white border-4 border-[#23499b] group-hover:scale-125 transition-transform duration-200"></div>
+          <div class="md:absolute md:-left-36 md:top-1 text-xs font-bold text-[#23499b] uppercase tracking-wider mb-1 md:mb-0" data-i18n="about.step_1_date">March 2026</div>
+          <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1" data-i18n="about.step_1_title">The Concept</h3>
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n="about.step_1_desc">
+            Identified information fragmentation across Da Nang universities and conceptualized SpringWave.
+          </p>
         </div>
+
         <!-- Step 2 -->
-        <div class="journey-step">
-          <div class="journey-step-title">Research & Interviews (April 2026)</div>
-          <p class="journey-step-desc">Talking to student leaders and university administrators to identify core catalog requirements.</p>
+        <div class="relative pl-8 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-white border-4 border-[#23499b] group-hover:scale-125 transition-transform duration-200"></div>
+          <div class="md:absolute md:-left-36 md:top-1 text-xs font-bold text-[#23499b] uppercase tracking-wider mb-1 md:mb-0" data-i18n="about.step_2_date">April 2026</div>
+          <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1" data-i18n="about.step_2_title">Research & Design</h3>
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n="about.step_2_desc">
+            Interviewed club leaders, crafted UI design systems in Figma, and mapped user flows.
+          </p>
         </div>
+
         <!-- Step 3 -->
-        <div class="journey-step">
-          <div class="journey-step-title">Interactive Prototyping (May 2026)</div>
-          <p class="journey-step-desc">Building and refining low-fidelity Figma drafts and defining recommendation loops.</p>
+        <div class="relative pl-8 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-white border-4 border-[#23499b] group-hover:scale-125 transition-transform duration-200"></div>
+          <div class="md:absolute md:-left-36 md:top-1 text-xs font-bold text-[#23499b] uppercase tracking-wider mb-1 md:mb-0" data-i18n="about.step_3_date">May 2026</div>
+          <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1" data-i18n="about.step_3_title">Fullstack Engineering</h3>
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n="about.step_3_desc">
+            Developed backend APIs, MongoDB schemas, interactive components, and Gemini AI matching.
+          </p>
         </div>
+
         <!-- Step 4 -->
-        <div class="journey-step">
-          <div class="journey-step-title">System Development (June 2026)</div>
-          <p class="journey-step-desc">Writing Node.js routers, MongoDB schemas, Gemini recommendation integrations, and Tailwind styling.</p>
+        <div class="relative pl-8 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-white border-4 border-[#23499b] group-hover:scale-125 transition-transform duration-200"></div>
+          <div class="md:absolute md:-left-36 md:top-1 text-xs font-bold text-[#23499b] uppercase tracking-wider mb-1 md:mb-0" data-i18n="about.step_4_date">June 2026</div>
+          <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1" data-i18n="about.step_4_title">Refinement & Polish</h3>
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n="about.step_4_desc">
+            Optimized performance, implemented i18n localization, and finalized community features.
+          </p>
         </div>
+
         <!-- Step 5 -->
-        <div class="journey-step">
-          <div class="journey-step-title">Launch & Beyond (Future)</div>
-          <p class="journey-step-desc">Exposing SpringWave to initial university campuses and scaling communities nationwide.</p>
+        <div class="relative pl-8 group">
+          <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-white border-4 border-slate-400 group-hover:scale-125 transition-transform duration-200"></div>
+          <div class="md:absolute md:-left-36 md:top-1 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 md:mb-0" data-i18n="about.step_5_date">Beyond</div>
+          <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1" data-i18n="about.step_5_title">Campus Deployment</h3>
+          <p class="text-sm text-slate-600 leading-relaxed" data-i18n="about.step_5_desc">
+            Expanding partner universities and onboarding student clubs across the region.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="py-24 bg-[#090d16] relative overflow-hidden" id="cta">
-    <!-- Soft Decorative Mesh Backdrops -->
-    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="mesh-blob-1 absolute -top-[10%] -left-[10%] w-[320px] h-[320px] rounded-full bg-blue-500/10 blur-[90px]"></div>
-      <div class="mesh-blob-2 absolute -bottom-[10%] -right-[10%] w-[320px] h-[320px] rounded-full bg-purple-500/10 blur-[90px]"></div>
-    </div>
+  <!-- 7. MINIMAL HIGH-CONTRAST CTA -->
+  <section class="content-visibility-auto section-rhythm-compact bg-[#fafbff] border-t border-slate-200/60" id="cta">
+    <div class="max-w-5xl mx-auto px-6 md:px-12">
+      <div class="rounded-3xl bg-slate-900 text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-xl">
+        <!-- Background subtle lighting accent -->
+        <div class="absolute top-0 right-1/4 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="relative max-w-container-max mx-auto px-6 md:px-12 text-center z-10">
-      <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-6">
-        Ready?<br>Let's build the future together.
-      </h2>
-      <p class="text-[16px] text-slate-400 mb-10 max-w-lg mx-auto" data-i18n="about.cta_desc">
-        Join SpringWave today and discover opportunities that match who you are.
-      </p>
-      <a href="/register.html"
-        class="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-base bg-white text-[#0f172a] hover:bg-slate-100 hover:shadow-xl hover:-translate-y-0.5 transition-all active:translate-y-0 duration-300">
-        <span data-i18n="about.cta_btn">Get Started</span>
-        <span class="material-symbols-outlined text-lg">arrow_forward</span>
-      </a>
+        <div class="relative z-10 max-w-2xl mx-auto">
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4" data-i18n="about.cta_title">
+            Ready to explore what's next?
+          </h2>
+          <p class="text-slate-400 text-base sm:text-lg leading-relaxed mb-8" data-i18n="about.cta_desc">
+            Join hundreds of students discovering activities, building skills, and growing together on SpringWave.
+          </p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/register.html" id="about-cta-btn" class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-sm bg-white text-slate-900 hover:bg-slate-100 transition-all shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+              <span id="about-cta-btn-text" data-i18n="about.cta_btn">Get Started Today</span>
+              <span class="material-symbols-outlined text-base">arrow_forward</span>
+            </a>
+            <a href="/explore.html" class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-sm bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition-all flex items-center justify-center" data-i18n="about.cta_explore">
+              Explore Activities
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 

@@ -2,10 +2,11 @@
 
 <html class="scroll-smooth" lang="en"><head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>Register Your Organization | SpringWave</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -62,6 +63,18 @@
 <div class="md:col-span-2">
 <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="orgName">Organization Name</label>
 <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="orgName" name="orgName" placeholder="e.g., Vietnam Student Association" required="" type="text"/>
+</div>
+<div class="md:col-span-2">
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="orgUniversity">Trường Đại học trực thuộc / Affiliated University</label>
+<div class="relative">
+<select class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all appearance-none pr-10" id="orgUniversity" name="university">
+<option value="">Tự do / Không thuộc trường nào (Independent)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</div>
+</div>
+<p class="font-caption text-outline mt-1.5 text-xs">Chọn trường đại học nếu CLB/tổ chức trực thuộc một trường, hoặc để "Tự do" nếu là tổ chức độc lập.</p>
 </div>
 <div class="md:col-span-2">
 <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyName">Third Party Sponsor / Reference (Optional)</label>

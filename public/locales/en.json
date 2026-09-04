@@ -219,7 +219,16 @@
     "faq_q3": "Can I register as an organizer (Host) on the platform?",
     "faq_a3": "Yes, absolutely! By clicking \"Register Host\" in the navbar, you can submit an organizer request. Once approved by the administrator, you'll gain access to the Organization Dashboard to create activities, map venues, register attendees, and scan attendance QR codes.",
     "faq_q4": "Is student verification required to participate in events?",
-    "faq_a4": "Some official partner workshops and tournaments require verified student status to ensure certificate integrity. You can easily upload a student ID image in your settings, and the administrative dashboard will verify it within 24 hours."
+    "faq_a4": "Some official partner workshops and tournaments require verified student status to ensure certificate integrity. You can easily upload a student ID image in your settings, and the administrative dashboard will verify it within 24 hours.",
+    "preview_hub_title": "Platform Highlights",
+    "preview_hub_heading": "Explore the SpringWave Interface",
+    "preview_hub_desc": "Get an inside look at the core interfaces designed to optimize your academic and skill development journey.",
+    "tab_ai": "AI Recommendations",
+    "tab_forum": "Student Forum",
+    "tab_dashboard": "Gamified Dashboard",
+    "take_quiz_to_see_matches": "Try AI Matchmaker",
+    "view_all_discussions": "Join the Discussions",
+    "view_profile": "Go to Profile"
   },
   "footer": {
     "brand_desc": "Connecting students, organizers, and communities through competitions, social activities, and events.",
@@ -239,7 +248,22 @@
     "privacy": "Privacy",
     "contact": "Contact",
     "rights": "© 2026 SpringWave. All rights reserved.",
-    "made_for": "Made for students & communities."
+    "made_for": "Made for students & communities.",
+    "col_discover": "Discover",
+    "link_activities": "Browse Activities",
+    "link_forum": "Community Forum",
+    "link_quiz": "AI Personality Quiz",
+    "link_about": "About SpringWave",
+    "col_community": "Community",
+    "link_uni": "University Hubs",
+    "link_events": "Event Discussions",
+    "link_mine": "My Discussions",
+    "col_account": "Account",
+    "link_profile": "My Profile",
+    "link_home": "Home",
+    "copyright": "© 2026 SpringWave. All rights reserved.",
+    "made_by": "Made for students, by students.",
+    "link_skills": "Skills & Roadmaps"
   },
   "explore": {
     "title": "Explore Activities - SpringWave",
@@ -285,6 +309,9 @@
     "no_results": "No results found",
     "search_error": "Search error",
     "searching": "Searching...",
+    "refreshing": "Refreshing...",
+    "loading_page": "Loading page...",
+    "loading_events": "Loading events...",
     "failed_load": "Failed to load activities",
     "no_match": "No activities match your filters",
     "no_match_hint": "Try adjusting the category or search term",
@@ -321,7 +348,15 @@
     "leave_modal_title": "Leave Event?",
     "leave_modal_desc": "Are you sure you want to leave this event? You will lose your registered ticket, and your slot may be taken by another student.",
     "leave_modal_cancel": "Keep Registration",
-    "leave_modal_confirm": "Confirm Leave"
+    "leave_modal_confirm": "Confirm Leave",
+    "status": "Status",
+    "select_location_title": "Select Location",
+    "please_login": "Please login first to favourite activities!",
+    "registered_count": "{n} registered",
+    "view_full_banner": "View full banner",
+    "about_activity": "About this Activity",
+    "write_comment": "Write a thought or question...",
+    "see_more_comments": "See more comments"
   },
   "auth": {
     "show": "Show",
@@ -359,7 +394,20 @@
     "or": "OR",
     "enter_password": "Enter password",
     "signin_google": "Sign in with Google",
-    "signin_microsoft": "Sign in with Microsoft"
+    "signin_microsoft": "Sign in with Microsoft",
+    "please_wait_throttle": "Please wait {remaining} seconds before trying again.",
+    "logging_in": "Logging in...",
+    "complete_captcha": "Please complete the captcha.",
+    "login_success": "Logged in successfully! Redirecting...",
+    "invalid_credentials": "Invalid credentials",
+    "signing_in_google": "Signing in with Google...",
+    "signing_in_microsoft": "Signing in with Microsoft...",
+    "email_not_verified": "Email Not Verified",
+    "check_email_desc": "Please check your email ({email}) and click the verification link.",
+    "resend_verification": "Resend Verification Email",
+    "verification_sent": "Verification email sent!",
+    "resend_failed": "Failed to resend.",
+    "network_error": "Network error. Try again."
   },
   "register": {
     "title": "SpringWave - Register",
@@ -391,7 +439,19 @@
     "phone": "Phone Number",
     "register_btn": "REGISTER",
     "has_account": "Already have an account?",
-    "login_now": "Login now"
+    "login_now": "Login now",
+    "student_id": "Student ID Code (Optional)",
+    "please_wait_throttle": "Please wait {remaining} seconds before trying again.",
+    "complete_captcha": "Please complete the captcha.",
+    "passwords_mismatch": "Passwords do not match.",
+    "creating_account": "Creating your account...",
+    "register_success": "Registration successful! Redirecting...",
+    "select_school_placeholder": "-- Select your school --",
+    "check_email_title": "Check Your Email",
+    "sent_link_to": "We sent a verification link to:",
+    "click_link_desc": "Click the link in the email to verify your account, then log in.",
+    "go_to_login": "Go to Login",
+    "min_password_length": "Password must be at least 8 characters."
   },
   "community": {
     "title": "Community - SpringWave",
@@ -401,7 +461,6 @@
     "all_discussions": "All Discussions",
     "general_chat": "General Chat",
     "event_discussions": "Event Discussions",
-    "skill_development": "Skill Development",
     "uni_communities": "University Communities",
     "org_communities": "Organizations",
     "my_discussions": "My Discussions",
@@ -415,8 +474,6 @@
     "all_universities": "All Universities",
     "all_skills": "All Skills",
     "add_uni": "Add University",
-    "skills_heading": "Skills Discussions",
-    "skills_sub": "Explore topics by skill area and interest",
     "start_discussion": "Start a Discussion",
     "title_label": "Title",
     "category_label": "Category",
@@ -441,7 +498,12 @@
     "profile_modal_title": "Complete Your Profile",
     "profile_modal_desc": "To start discussions and interact with the community, please complete your profile first.",
     "profile_modal_btn": "Complete Profile",
-    "profile_modal_later": "Later"
+    "profile_modal_later": "Later",
+    "hero_title": "Student Community & Hubs",
+    "hero_desc": "Connect with fellow students, discuss upcoming events, and share knowledge.",
+    "tab_latest": "Latest",
+    "tab_hot": "Hot Discussions",
+    "search_events": "Search events..."
   },
   "profile": {
     "title": "Profile - SpringWave",
@@ -537,78 +599,46 @@
     "verified_student": "Verified Student",
     "no_participated_events": "You haven't participated in any events yet.",
     "alert_complete_profile_event": "Please update your complete personal info (DOB, School, Class, Major, Phone) in the Profile page before joining.",
-    "alert_complete_profile_comment": "Please update your complete personal info (DOB, School, Class, Major, Phone) in the Profile page before commenting."
+    "alert_complete_profile_comment": "Please update your complete personal info (DOB, School, Class, Major, Phone) in the Profile page before commenting.",
+    "participated_events": "Participated Events",
+    "save_password": "Save Password"
   },
   "quiz": {
     "title": "SpringWave - AI Quiz",
-    "multi_select": "Select all that apply to you",
-    "start_title": "Discover Your Perfect Activities",
     "exit_quiz": "Exit",
+    "start_title": "Discover Your Perfect Activities",
     "start_desc": "Answer 10 quick questions to get AI-powered activity recommendations tailored to you.",
     "questions": "10 questions",
-    "duration": "2–3 min",
-    "ai_results": "AI Identification",
+    "duration": "2-3 min",
+    "ai_results": "AI results",
     "start_btn": "Start Quiz",
-    "next": "Next",
     "previous": "Previous",
-    "finish": "Reveal Your Persona",
-    "result_title": "Your Student Archetype",
-    "result_desc": "Based on a comprehensive analysis of your responses, here is your unique persona and tailored roadmap.",
-    "strengths_title": "Key Strengths",
-    "advice_title": "Personal Advice & Overcoming Obstacles",
-    "suggested_activities": "Recommended Activity Pathway",
-    "explore_activities": "Explore Matching Events",
-    "register_explore": "Register to Explore",
+    "next": "Next",
+    "explore_activities": "Explore Recommended Activities",
     "retake": "Retake Quiz",
     "retake_btn": "Retake Quiz",
-    "analyzing": "AI is analyzing your profile and curating your personalized pathway...",
     "question": "Question",
-    "persona_badge": "Identified Persona",
-    "match_rate": "Match Confidence",
-    "recommended_types": "Best Matching Event Formats",
-    "personas": {
-      "tech_builder": {
-        "title": "The Tech Builder",
-        "tagline": "Passionate about decoding technology and building impactful digital solutions",
-        "strengths": ["Logical & analytical problem solving", "High tech self-learning agility", "Builder mindset"],
-        "advice": "Don't hesitate to step beyond the screen to showcase your creations and connect with multidisciplinary peers in social meetups."
-      },
-      "community_leader": {
-        "title": "The Community Leader",
-        "tagline": "Spreading positive energy, empowering peers, and bringing people together",
-        "strengths": ["Inspiring communication", "Team coordination & leadership", "Empathy & community intuition"],
-        "advice": "Remember to pace your energy and cultivate deep domain expertise alongside coordinating social initiatives."
-      },
-      "creative_innovator": {
-        "title": "The Creative Innovator",
-        "tagline": "Thinking outside the box, appreciating aesthetics, and pursuing breakthrough ideas",
-        "strengths": ["Aesthetic & lateral thinking", "Openness to novel perspectives", "Visualizing abstract ideas into reality"],
-        "advice": "Combine your creative flair with tech and business fundamentals to turn imaginative concepts into viable projects."
-      },
-      "career_strategist": {
-        "title": "The Career Strategist",
-        "tagline": "Goal-driven, optimizing pathways, and ready to accelerate professional milestones",
-        "strengths": ["Clear strategic goal setting", "Professional etiquette & competencies", "Fast at seizing market opportunities"],
-        "advice": "Beyond chasing career milestones, cultivate authentic friendships for a well-rounded and memorable university experience."
-      },
-      "deep_learner": {
-        "title": "The Deep Learner",
-        "tagline": "Driven by academic depth, intellectual rigor, and mastering core fundamentals",
-        "strengths": ["Deep research capability", "Sharp critical thinking", "Patience & attention to detail"],
-        "advice": "Apply your theoretical insights to real-world challenges and join small-group workshops to confidently share your perspectives."
-      },
-      "changemaker": {
-        "title": "The Changemaker",
-        "tagline": "Driven by compassion, community action, and creating lasting positive social impact",
-        "strengths": ["Empathy & volunteer dedication", "Community mobilization", "High sense of social responsibility"],
-        "advice": "Blend your volunteer passion with structured project management tools for sustainable and measurable social impact."
-      },
-      "dynamic_explorer": {
-        "title": "The Dynamic Explorer",
-        "tagline": "Versatile, curious, and eager to dive into diverse new experiences",
-        "strengths": ["High adaptability", "Multidisciplinary skillset", "Limitless curiosity & energy"],
-        "advice": "After exploring diverse domains, hone in on 1–2 key strengths to cultivate your distinctive personal signature."
-      }
+    "multi_select": "Select all that apply",
+    "finish": "Finish",
+    "analyzing": "Analyzing your answers...",
+    "persona_badge": "Your Persona",
+    "strengths_title": "Key Strengths",
+    "advice_title": "Growth Advice",
+    "suggested_activities": "Suggested Activities",
+    "register_explore": "Register to Explore Activities",
+    "result_title": "Your Personality Profile",
+    "result_desc": "Based on your responses, here's how you score across four key areas.",
+    "categories": {
+      "academic_stage": "Academic Stage",
+      "core_interests": "Core Interests",
+      "activity_pref": "Activity Preferences",
+      "team_role": "Team Role",
+      "learning_style": "Learning Style",
+      "key_goals": "Key Goals",
+      "main_obstacle": "Main Obstacle",
+      "environment": "Environment",
+      "schedule": "Schedule",
+      "key_motivator": "Key Motivator"
     },
     "q1": {
       "question": "What academic year are you currently in?",
@@ -705,7 +735,120 @@
         "Exciting, cutting-edge and curiosity-sparking topics",
         "Free entry with valuable certificates and cool swags"
       ]
-    }
+    },
+    "personas": {
+      "tech_builder": {
+        "title": "Tech Builder",
+        "tagline": "Crafting solutions and building future systems through code and technology.",
+        "strengths": [
+          "Logical Thinking",
+          "Software Architecture",
+          "Problem Solving",
+          "Technical Mastery"
+        ],
+        "advice": "Keep challenging yourself with complex algorithm problems, build personal projects, and collaborate in hackathons to polish your engineering skills."
+      },
+      "community_leader": {
+        "title": "Community Leader",
+        "tagline": "Empowering teams, coordinating projects, and creating strong community bonds.",
+        "strengths": [
+          "Leadership",
+          "Organization",
+          "Public Speaking",
+          "Strategic Planning"
+        ],
+        "advice": "Take on coordination roles in student organizations, practice active listening, and guide teams towards shared objectives."
+      },
+      "creative_innovator": {
+        "title": "Creative Innovator",
+        "tagline": "Bringing unique ideas to life through design, content, and artistic expression.",
+        "strengths": [
+          "Visual Design",
+          "Creative Thinking",
+          "Ideation",
+          "Aesthetic Sense"
+        ],
+        "advice": "Keep building your creative portfolio, experiment with new design trends, and collaborate with tech partners to turn ideas into visual realities."
+      },
+      "career_strategist": {
+        "title": "Career Strategist",
+        "tagline": "Optimizing opportunities, refining professional skills, and mapping career success.",
+        "strengths": [
+          "Resume Writing",
+          "Networking",
+          "Industry Knowledge",
+          "Goal Alignment"
+        ],
+        "advice": "Attend corporate networking events, search for early internships, and refine your portfolio to showcase measurable accomplishments."
+      },
+      "deep_learner": {
+        "title": "Deep Learner",
+        "tagline": "Unlocking knowledge, investigating academic concepts, and researching details.",
+        "strengths": [
+          "Academic Research",
+          "Critical Analysis",
+          "Focused Study",
+          "Data Literacy"
+        ],
+        "advice": "Participate in university scientific research groups, read research papers in your field, and share study strategies with others."
+      },
+      "changemaker": {
+        "title": "Changemaker",
+        "tagline": "Creating positive community impact, supporting others, and driving social change.",
+        "strengths": [
+          "Empathy",
+          "Social Responsibility",
+          "Collaboration",
+          "Facilitation"
+        ],
+        "advice": "Engage in social volunteer groups, coordinate community-driven events, and practice sustainable teamwork."
+      },
+      "dynamic_explorer": {
+        "title": "Dynamic Explorer",
+        "tagline": "Trying new things, welcoming diverse experiences, and enjoying student life.",
+        "strengths": [
+          "Adaptability",
+          "Curiosity",
+          "Versatility",
+          "Open-mindedness"
+        ],
+        "advice": "Keep exploring multiple fields without pressure, participate in clubs, and build a wide variety of soft skills."
+      }
+    },
+    "switch_lang": "Switch Language",
+    "types": {
+      "hackathon": "Hackathon",
+      "tech_talk": "Tech Talk",
+      "coding_workshop": "Coding Workshop",
+      "seminar": "Seminar",
+      "networking": "Networking",
+      "community_event": "Community Event",
+      "leadership_workshop": "Leadership Workshop",
+      "art_festival": "Art Festival",
+      "design_workshop": "Design Workshop",
+      "music_show": "Music Show",
+      "exhibition": "Exhibition",
+      "career_talk": "Career Talk",
+      "case_challenge": "Case Challenge",
+      "company_tour": "Company Tour",
+      "industry_workshop": "Industry Workshop",
+      "research_seminar": "Research Seminar",
+      "masterclass": "Masterclass",
+      "academic_conference": "Academic Conference",
+      "study_group": "Study Group",
+      "volunteer_campaign": "Volunteer Campaign",
+      "charity_event": "Charity Event",
+      "environmental_project": "Environmental Project",
+      "community_forum": "Community Forum",
+      "cultural_festival": "Cultural Festival",
+      "hands_on_workshop": "Hands-on Workshop",
+      "club_fair": "Club Fair",
+      "social_gathering": "Social Gathering"
+    },
+    "exit_modal_title": "Exit AI Quiz?",
+    "exit_modal_desc": "Are you sure you want to stop the quiz? Your current progress will not be saved.",
+    "exit_modal_cancel": "Continue Quiz",
+    "exit_modal_confirm": "Exit Quiz"
   },
   "host": {
     "title": "Create New Activity - SpringWave",
@@ -842,7 +985,8 @@
     "events_count": "{{n}} events",
     "events_count_one": "{{n}} event",
     "create_event_title": "Create New Event",
-    "edit_event_title": "Edit Event"
+    "edit_event_title": "Edit Event",
+    "description": "Platform administration and event moderation panel."
   },
   "complete_profile": {
     "title": "SpringWave - Complete Profile",
@@ -860,7 +1004,14 @@
     "class": "Class",
     "major": "Major",
     "phone": "Phone Number",
-    "submit_btn": "COMPLETE PROFILE"
+    "submit_btn": "COMPLETE PROFILE",
+    "subtitle": "Fill in your details to complete your account setup.",
+    "student_id": "Student ID Code (Optional)",
+    "please_wait_throttle": "Please wait {remaining} seconds.",
+    "fill_required_fields": "Please fill in all required fields.",
+    "saving": "Saving...",
+    "profile_completed": "Profile completed! Redirecting...",
+    "verified_email_badge": "(verified email)"
   },
   "verification": {
     "schoolEmailVerified": "Your school email has been verified automatically! You can now participate in events.",
@@ -918,7 +1069,14 @@
     "no": "No",
     "unknown": "Unknown",
     "language": "Language",
-    "link_copied": "Link copied to clipboard!"
+    "link_copied": "Link copied to clipboard!",
+    "download": "Download",
+    "has_cert": "Supported",
+    "no_cert": "None",
+    "enable_attendance": "Active",
+    "disable_attendance": "Disabled",
+    "registration_link": "External Registration Link",
+    "no_description": "No description provided."
   },
   "description": {
     "details": "Details",
@@ -932,32 +1090,114 @@
   },
   "about": {
     "title": "About Us — SpringWave",
-    "hero_label": "About Us",
-    "hero_title": "We Are SpringWave",
-    "hero_desc": "Built by students, for students — a platform that helps you discover opportunities, connect with communities, and grow beyond the classroom.",
-    "why_title": "Why SpringWave?",
-    "why_desc": "Students often miss out on opportunities because information about workshops, competitions, extracurricular activities, and academic programs is scattered across dozens of fanpages, Facebook groups, and websites. We built SpringWave to change that.",
-    "why_goal": "A central platform where students can discover academic and extracurricular activities that match their interests, abilities, and personal growth direction.",
-    "believe_title": "What We Believe",
-    "believe_1": "Every student has unique potential waiting to be discovered.",
-    "believe_2": "Opportunities should never be limited by lack of information.",
-    "believe_3": "AI can be a companion that helps students make better choices.",
-    "believe_4": "Technology should serve people and community first.",
-    "team_title": "Meet The Team",
-    "team_desc": "SpringWave is developed by RAH — Really Awesome Human.",
-    "team_subtitle": "We are first-year students with a passion for technology, AI, and building real-world products.",
+    "badge": "BUILT BY STUDENTS • FOR STUDENTS",
+    "hero_title": "Empowering student life through unified discovery.",
+    "hero_desc": "SpringWave is a modern digital platform designed to bridge academic, extracurricular, and community opportunities across universities into one seamless experience.",
+    "stat_members": "Core Builders",
+    "stat_modules": "Integrated Modules",
+    "stat_campuses": "University Focus",
+    "stat_mission": "Shared Goal",
+    "stat_mission_val": "100%",
+    "story_tag": "THE ORIGIN",
+    "story_title": "Built from real student frustration.",
+    "story_quote": "“We missed workshops and competitions not because we lacked passion, but because information was scattered across dozens of random fanpages and chat groups.”",
+    "story_p1": "As first-year university students in Da Nang, we experienced firsthand how difficult it was to navigate extracurricular life. Crucial announcements, workshop sign-ups, and student club recruitments were constantly buried under social media algorithms.",
+    "story_p2": "We founded RAH Studio with a clear purpose: create a single, clean, student-centric home where every event, discussion, and roadmap is structured, searchable, and verified.",
+    "pillars_tag": "CORE ECOSYSTEM",
+    "pillars_title": "What powers SpringWave",
+    "pillars_subtitle": "An interconnected suite of tools designed to guide you through your university journey.",
+    "pillar_1_title": "Unified Activities Hub",
+    "pillar_1_desc": "Search, filter, and register for workshops, hackathons, seminars, and club recruitments across universities in one place.",
+    "pillar_2_title": "Cross-Campus Community",
+    "pillar_2_desc": "Engage in genuine academic and social discussions with students from different faculties and partner universities.",
+    "pillar_3_title": "AI Growth Navigator",
+    "pillar_3_desc": "Discover personalized event recommendations and skill paths based on your major, strengths, and quiz results.",
+    "pillar_4_title": "Verified Student Identity",
+    "pillar_4_desc": "Authentic student verification and activity certificates to build your verifiable extracurricular portfolio.",
+    "team_tag": "THE BUILDERS",
+    "team_title": "Meet RAH Gang - Really Awesome Humans",
+    "team_subtitle": "Passionate first-year software engineering students dedicated to crafting high-quality, practical technology for the student community.",
     "member_1": "Nguyễn Viết Thành Đạt",
+    "member_1_name": "Nguyễn Viết Thành Đạt",
     "member_1_role": "Team Leader & Fullstack Developer",
+    "member_1_bio": "Leads project architecture, core frontend design, and AI integration with a focus on fluid user experiences.",
     "member_2": "Nguyễn Đức Tài",
+    "member_2_name": "Nguyễn Đức Tài",
     "member_2_role": "Fullstack Developer",
+    "member_2_bio": "Architects backend REST APIs, authentication security, database modeling, and community discussion engines.",
     "member_3": "Lê Đăng Anh Tuấn",
+    "member_3_name": "Lê Đăng Anh Tuấn",
     "member_3_role": "Fullstack Developer",
+    "member_3_bio": "Builds robust server routes, administrative control dashboards, and deployment automation pipelines.",
     "member_4": "Nguyễn Tiến Trường",
+    "member_4_name": "Nguyễn Tiến Trường",
     "member_4_role": "UI/UX Designer",
+    "member_4_bio": "Crafts typography, design tokens, responsive layouts, and interactive design systems across the entire platform.",
+    "values_tag": "ENGINEERING PRINCIPLES",
+    "values_title": "Our Core Values",
+    "value_1_title": "Simplicity & Focus",
+    "value_1_desc": "No bloated feeds or unnecessary clutter. We build focused interfaces that respect your time and attention.",
+    "value_2_title": "Authenticity & Trust",
+    "value_2_desc": "Verified student identities and curated event organizers ensure high-quality, reliable opportunities.",
+    "value_3_title": "Open Collaboration",
+    "value_3_desc": "Bridging barriers between clubs and universities to foster a collaborative student ecosystem.",
+    "timeline_tag": "OUR MILESTONES",
+    "timeline_title": "The Journey So Far",
+    "step_1_date": "March 2026",
+    "step_1_title": "The Concept",
+    "step_1_desc": "Identified information fragmentation across Da Nang universities and conceptualized SpringWave.",
+    "step_2_date": "April 2026",
+    "step_2_title": "Research & Design",
+    "step_2_desc": "Interviewed club leaders, crafted UI design systems in Figma, and mapped user flows.",
+    "step_3_date": "May 2026",
+    "step_3_title": "Fullstack Engineering",
+    "step_3_desc": "Developed backend APIs, MongoDB schemas, interactive components, and Gemini AI matching.",
+    "step_4_date": "June 2026",
+    "step_4_title": "Refinement & Polish",
+    "step_4_desc": "Optimized performance, implemented i18n localization, and finalized community features.",
+    "step_5_date": "Beyond",
+    "step_5_title": "Campus Deployment",
+    "step_5_desc": "Expanding partner universities and onboarding student clubs across the region.",
     "journey": "SpringWave is not just a school project — it is the beginning of a journey to create technology solutions that bring real value to the Vietnamese student community.",
-    "cta_title": "Ready to Start Your Journey?",
-    "cta_desc": "Join SpringWave today and discover opportunities that match who you are.",
-    "cta_btn": "Get Started"
+    "quote_text": "“SpringWave is not just a school project — it is our commitment to building technology that brings lasting value to student life.”",
+    "quote_author": "— RAH Studio Team",
+    "cta_title": "Ready to explore what's next?",
+    "cta_desc": "Join hundreds of students discovering activities, building skills, and growing together on SpringWave.",
+    "cta_btn": "Get Started Today",
+    "cta_explore": "Explore Activities",
+    "story_card_1_title": "01. Centralized",
+    "story_card_1_desc": "Every workshop & hackathon structured in one unified database.",
+    "story_card_2_title": "02. Verified",
+    "story_card_2_desc": "Authenticated student profiles & trustworthy organizers.",
+    "pillar_1_tag_1": "Workshops",
+    "pillar_1_tag_2": "Hackathons",
+    "pillar_1_tag_3": "Recruitments",
+    "pillar_2_tag_1": "Discussions",
+    "pillar_2_tag_2": "Peer Feedback",
+    "pillar_2_tag_3": "Cross-Uni Hub",
+    "pillar_3_tag_1": "Gemini Matching",
+    "pillar_3_tag_2": "Strengths Quiz",
+    "pillar_3_tag_3": "Career Roadmaps",
+    "pillar_4_tag_1": "Student ID Guard",
+    "pillar_4_tag_2": "Badges",
+    "pillar_4_tag_3": "Certificates",
+    "badge_lead": "LEAD & ARCHITECTURE",
+    "badge_backend": "BACKEND & SECURITY",
+    "badge_devops": "DEVOPS & SERVICES",
+    "badge_design": "PRODUCT & UI/UX",
+    "skill_arch": "Architecture",
+    "skill_frontend": "Frontend",
+    "skill_ai": "AI Integration",
+    "skill_rest": "REST API",
+    "skill_mongo": "MongoDB",
+    "skill_security": "Auth Security",
+    "skill_devops": "DevOps",
+    "skill_admin": "Admin Engine",
+    "skill_node": "Node.js",
+    "skill_figma": "Figma",
+    "skill_ds": "Design System",
+    "skill_motion": "Motion UX",
+    "cta_btn_logged_in": "Go to Homepage"
   },
   "badges": {
     "categories": {
@@ -1135,7 +1375,41 @@
     "avg_rating": "Average Rating",
     "total_reviews": "Total Reviews",
     "all_events": "All Events",
-    "export_report": "Export Event Report"
+    "export_report": "Export Event Report",
+    "pdf_export": "Export PDF",
+    "pdf_export_title": "Export Participants PDF",
+    "pdf_export_subtitle": "Customize columns, preview participant list, and download A4-ready PDF",
+    "pdf_columns_label": "Columns in PDF",
+    "pdf_columns_hint": "Notes column is included by default. Add or remove columns as needed.",
+    "pdf_add_col": "Add Column",
+    "pdf_col_name_placeholder": "Enter column name (e.g. Signature, Phone, Check-in)...",
+    "pdf_suggestions": "Quick suggestions:",
+    "pdf_preset_signature": "Signature",
+    "pdf_preset_checkin": "Check-in",
+    "pdf_preset_phone": "Phone",
+    "pdf_preset_gift": "Gift Received",
+    "pdf_doc_title": "PARTICIPANT LIST",
+    "pdf_doc_org": "Organizer",
+    "pdf_doc_date": "Export Date:",
+    "pdf_participant_list": "PARTICIPANT LIST",
+    "pdf_event_name": "Event:",
+    "pdf_held_date": "Date:",
+    "pdf_num_participants": "Participants:",
+    "pdf_location": "Location:",
+    "pdf_stt": "No.",
+    "pdf_student_id": "Student ID",
+    "pdf_fullname": "Full Name",
+    "pdf_email": "Email",
+    "pdf_notes": "Notes",
+    "pdf_custom_cols": "Columns",
+    "pdf_custom_cols_title": "Custom Columns",
+    "pdf_col_error_empty": "Column name cannot be empty",
+    "pdf_col_error_dup": "Column name already exists",
+    "pdf_col_limit": "Maximum number of columns reached",
+    "pdf_export_error": "Could not generate PDF. Please try again.",
+    "pdf_no_participants": "No participants to export for this event.",
+    "pdf_loading": "Generating PDF...",
+    "pdf_download_btn": "Download PDF"
   },
   "admin_universities": {
     "title": "University Management",
@@ -1154,7 +1428,8 @@
     "auto_verify": "Auto-approve student verifications",
     "view_students": "View Enrolled Students",
     "delete_title": "Delete University",
-    "no_universities": "No universities found"
+    "no_universities": "No universities found",
+    "delete_desc": "Are you sure you want to delete this university? This action cannot be undone."
   },
   "student_verify": {
     "title": "Student Verification | SpringWave",
@@ -1224,182 +1499,31 @@
     "org_role": "Organizing Committee",
     "footer_note": "© 2026 SpringWave Platform. All certificates are cryptographically tracked and verifiable."
   },
-  "quiz": {
-    "title": "SpringWave - AI Quiz",
-    "exit_quiz": "Exit",
-    "start_title": "Discover Your Perfect Activities",
-    "start_desc": "Answer 10 quick questions to get AI-powered activity recommendations tailored to you.",
-    "questions": "10 questions",
-    "duration": "2-3 min",
-    "ai_results": "AI results",
-    "start_btn": "Start Quiz",
-    "previous": "Previous",
-    "next": "Next",
-    "explore_activities": "Explore Recommended Activities",
-    "retake": "Retake Quiz",
-    "retake_btn": "Retake Quiz",
-    "question": "Question",
-    "multi_select": "Select all that apply",
-    "finish": "Finish",
-    "analyzing": "Analyzing your answers...",
-    "persona_badge": "Your Persona",
-    "strengths_title": "Key Strengths",
-    "advice_title": "Growth Advice",
-    "suggested_activities": "Suggested Activities",
-    "register_explore": "Register to Explore Activities",
-    "result_title": "Your Personality Profile",
-    "result_desc": "Based on your responses, here's how you score across four key areas.",
-    "categories": {
-      "academic_stage": "Academic Stage",
-      "core_interests": "Core Interests",
-      "activity_pref": "Activity Preferences",
-      "team_role": "Team Role",
-      "learning_style": "Learning Style",
-      "key_goals": "Key Goals",
-      "main_obstacle": "Main Obstacle",
-      "environment": "Environment",
-      "schedule": "Schedule",
-      "key_motivator": "Key Motivator"
-    },
-    "q1": {
-      "question": "What academic year are you currently in?",
-      "answers": [
-        "1st Year (Freshman - Exploring university life & opportunities)",
-        "2nd Year (Sophomore - Diving into major courses & student clubs)",
-        "3rd Year (Junior - Building skills & practical projects)",
-        "Final Year / Graduate (Senior - Resume, internship & career launch)"
-      ]
-    },
-    "q2": {
-      "question": "What is your primary field of interest or passion?",
-      "answers": [
-        "Information Technology, Software Engineering & AI",
-        "Business, Entrepreneurship & Marketing",
-        "Design, Fine Arts, Media & Content Creation",
-        "Social Sciences, Languages, Humanities & Psychology",
-        "Healthcare, Fitness & Sports",
-        "Natural Sciences & Academic Research"
-      ]
-    },
-    "q3": {
-      "question": "What type of activity inspires you the most?",
-      "answers": [
-        "Intensive masterclasses / Practical hands-on workshops",
-        "Academic contests / Hackathons & Case challenges",
-        "Arts festivals, Music concerts & Creative exhibitions",
-        "Student club meetups & Social networking gatherings",
-        "Volunteering, Community charity & Environmental campaigns"
-      ]
-    },
-    "q4": {
-      "question": "In a team or project, which role do you feel most confident in?",
-      "answers": [
-        "Team Leader / Project planner & Coordinator",
-        "Technical Specialist / Core problem solver & Builder",
-        "Idea Generator / Creative designer & Content creator",
-        "Team Connector / Member care & Supportive facilitator"
-      ]
-    },
-    "q5": {
-      "question": "How do you recharge and learn most effectively?",
-      "answers": [
-        "Engaging in lively group debates and discussions",
-        "Deep solo study in a quiet, focused environment",
-        "Learning by doing through hands-on project work",
-        "Listening to expert insights and systematic note-taking"
-      ]
-    },
-    "q6": {
-      "question": "What is your primary goal from extracurricular activities right now?",
-      "answers": [
-        "Enhancing my CV for internships and job opportunities",
-        "Expanding my network and finding like-minded friends",
-        "Sharpening soft skills and boosting public confidence",
-        "Unwinding, relieving academic stress and having fun",
-        "Exploring my hidden potential and trying new things"
-      ]
-    },
-    "q7": {
-      "question": "What is your biggest hesitation when considering joining an event?",
-      "answers": [
-        "Hesitant to go solo / Feeling shy in large unfamiliar crowds",
-        "Packed course schedules, assignments and tight deadlines",
-        "Imposter syndrome / Feeling underqualified or inexperienced",
-        "Commute distance or registration expenses",
-        "Haven't found events with truly practical value"
-      ]
-    },
-    "q8": {
-      "question": "Which event format is most convenient and comfortable for you?",
-      "answers": [
-        "Right on campus",
-        "Off-campus at city venues or corporate headquarters",
-        "Virtual / Online (Zoom, Google Meet)",
-        "Flexible, as long as the topic is engaging"
-      ]
-    },
-    "q9": {
-      "question": "When are you most available to fully participate in activities?",
-      "answers": [
-        "Weekend mornings (Saturday / Sunday)",
-        "Weekend afternoons",
-        "Weekday evenings (6PM - 9PM)",
-        "Short intervals between lecture sessions"
-      ]
-    },
-    "q10": {
-      "question": "What factor motivates you to register immediately?",
-      "answers": [
-        "Close friends or peers are going along",
-        "Renowned guest speakers and industry-leading mentors",
-        "Job/internship opportunities, recommendation letters, or prizes",
-        "Exciting, cutting-edge and curiosity-sparking topics",
-        "Free entry with valuable certificates and cool swags"
-      ]
-    },
-    "personas": {
-      "tech_builder": {
-        "title": "Tech Builder",
-        "tagline": "Crafting solutions and building future systems through code and technology.",
-        "strengths": ["Logical Thinking", "Software Architecture", "Problem Solving", "Technical Mastery"],
-        "advice": "Keep challenging yourself with complex algorithm problems, build personal projects, and collaborate in hackathons to polish your engineering skills."
-      },
-      "community_leader": {
-        "title": "Community Leader",
-        "tagline": "Empowering teams, coordinating projects, and creating strong community bonds.",
-        "strengths": ["Leadership", "Organization", "Public Speaking", "Strategic Planning"],
-        "advice": "Take on coordination roles in student organizations, practice active listening, and guide teams towards shared objectives."
-      },
-      "creative_innovator": {
-        "title": "Creative Innovator",
-        "tagline": "Bringing unique ideas to life through design, content, and artistic expression.",
-        "strengths": ["Visual Design", "Creative Thinking", "Ideation", "Aesthetic Sense"],
-        "advice": "Keep building your creative portfolio, experiment with new design trends, and collaborate with tech partners to turn ideas into visual realities."
-      },
-      "career_strategist": {
-        "title": "Career Strategist",
-        "tagline": "Optimizing opportunities, refining professional skills, and mapping career success.",
-        "strengths": ["Resume Writing", "Networking", "Industry Knowledge", "Goal Alignment"],
-        "advice": "Attend corporate networking events, search for early internships, and refine your portfolio to showcase measurable accomplishments."
-      },
-      "deep_learner": {
-        "title": "Deep Learner",
-        "tagline": "Unlocking knowledge, investigating academic concepts, and researching details.",
-        "strengths": ["Academic Research", "Critical Analysis", "Focused Study", "Data Literacy"],
-        "advice": "Participate in university scientific research groups, read research papers in your field, and share study strategies with others."
-      },
-      "changemaker": {
-        "title": "Changemaker",
-        "tagline": "Creating positive community impact, supporting others, and driving social change.",
-        "strengths": ["Empathy", "Social Responsibility", "Collaboration", "Facilitation"],
-        "advice": "Engage in social volunteer groups, coordinate community-driven events, and practice sustainable teamwork."
-      },
-      "dynamic_explorer": {
-        "title": "Dynamic Explorer",
-        "tagline": "Trying new things, welcoming diverse experiences, and enjoying student life.",
-        "strengths": ["Adaptability", "Curiosity", "Versatility", "Open-mindedness"],
-        "advice": "Keep exploring multiple fields without pressure, participate in clubs, and build a wide variety of soft skills."
-      }
-    }
+  "admin_categories": {
+    "title": "Manage Categories",
+    "desc": "Create, edit, and organize activity categories and tags across the platform.",
+    "add": "Add Category",
+    "list": "Category List",
+    "no_categories": "No categories found.",
+    "add_category": "Create New Category",
+    "delete_title": "Delete Category"
+  },
+  "admin_host": {
+    "title": "Host Application Management",
+    "desc": "Review, approve, or reject organizer and club host registration requests.",
+    "search": "Search by name, organization, or email...",
+    "total": "Total Applications",
+    "pending": "Pending Review",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "registrations": "Host Applications",
+    "no_registrations": "No host registration requests found.",
+    "approve_title": "Approve Host Application",
+    "reject_title": "Reject Host Application"
+  },
+  "review": {
+    "title": "Rate & Review",
+    "subtitle": "How was your experience?",
+    "content_label": "Share your thoughts (optional)"
   }
 }
