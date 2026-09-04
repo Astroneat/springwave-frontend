@@ -11994,12 +11994,40 @@ textarea {
 
 /* Similar Activities */
 .similar-events-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 240px));
+  display: flex;
   gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  padding-top: 2px;
+  padding-left: 2px;
+  padding-right: 2px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.similar-events-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.similar-events-grid::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+
+.similar-events-grid::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.similar-events-grid::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .similar-event-card {
+  flex: 0 0 210px;
+  width: 210px;
+  min-width: 210px;
+  max-width: 210px;
   display: flex;
   flex-direction: column;
   border-radius: 14px;
@@ -12007,8 +12035,7 @@ textarea {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   cursor: pointer;
-  width: 100%;
-  max-width: 250px;
+  scroll-snap-align: start;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }

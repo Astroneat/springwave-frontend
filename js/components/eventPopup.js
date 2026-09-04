@@ -1199,7 +1199,7 @@ async function loadSimilarEvents(activityID) {
         const events = rawEvents.filter(a => {
             const status = getEventStatus(a);
             return status === 'registration_open';
-        }).slice(0, 4);
+        }).slice(0, 6);
 
         if (events.length === 0) {
             container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center" data-i18n="explore.no_similar_activities">${t('explore.no_similar_activities', 'No similar activities currently open for registration.')}</p>`;
