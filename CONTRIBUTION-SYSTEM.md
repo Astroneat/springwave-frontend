@@ -271,41 +271,43 @@ function computeBadges(contribution, user) {
 }
 ```
 
-### Forum endpoints (grant contributions)
+#### Forum endpoints (auto-grant contributions)
 
-When the forum gets a real backend, these endpoints should auto-grant:
+Forum endpoints automatically award points and evaluate badges on the backend:
 
 | Endpoint | Action |
 |---|---|
-| `POST /discussions` | Auto-call `grantContribution(userId, "discussion")` |
-| `POST /discussions/:id/comments` | Auto-call `grantContribution(userId, "reply")` |
-| `POST /comments/:id/like` | Auto-call `grantContribution(commentAuthorId, "like_received")` |
-| `POST /discussions/:id/save` | Auto-call `grantContribution(discussionAuthorId, "saved")` |
+| `POST /community/discussions` | Backend auto-evaluates contributions and returns `newBadges: [...]` |
+| `POST /community/discussions/:id/comments` | Backend auto-evaluates contributions and returns `newBadges: [...]` |
+| `POST /comments/:id/like` | Backend auto-evaluates contributions for comment author |
+| `POST /discussions/:id/save` | Backend auto-evaluates contributions for discussion author |
 
 ---
 
-## 6. Notification System
+## 6. Notification & Badge Celebration System
 
 ### How it works
 
-Notifications are **client-side only** (stored in localStorage). No backend notification endpoint needed.
+The backend evaluates newly unlocked badges when action endpoints are called, returning `newBadges: string[]` in the primary response. Badge celebrations and notifications are triggered exclusively from this response array:
 
 ```
                     ┌──────────────────────────┐
-                    │   grantContribution()     │
-                    │   returns newBadges[]     │
+                    │  Primary Action Endpoint │
+                    │ (discussions / comments) │
+                    │   returns newBadges[]    │
                     └──────────┬───────────────┘
                                │
                     ┌──────────▼───────────────┐
-                    │   addBadgeNotification()  │
-                    │   saves to localStorage   │
-                    │   fires custom event      │
+                    │ triggerBadgeCelebration()│
+                    │ addBadgeNotification()   │
+                    │   saves to localStorage  │
+                    │   fires custom event     │
                     └──────────┬───────────────┘
                                │
-              ┌────────────────▼────────────────┐
-              │  navbar.js listens for event     │
-              │  updates bell count + dropdown   │
-              └─────────────────────────────────┘
+               ┌────────────────▼────────────────┐
+               │  navbar.js listens for event     │
+               │  updates bell count + dropdown   │
+               └─────────────────────────────────┘
 ```
 
 ### Storage format
@@ -334,25 +336,20 @@ Notifications are **client-side only** (stored in localStorage). No backend noti
 - Clicking a notification → marks it read → redirects to `/profile.html`
 - Clicking outside the dropdown closes it
 
-### Notification creation
+### Badge celebration & notification creation
 
-In `community.js`, after `grantContribution(action)` resolves:
+In `community.js` and `postModal.js`, when a discussion or comment/reply creation endpoint resolves:
 
 ```js
-grantContribution("reply").then((res) => {
-  if (res && res.newBadges) {
-    res.newBadges.forEach((key) => addBadgeNotification(key, formattedLabel));
-  }
-});
+if (res && res.newBadges && res.newBadges.length > 0) {
+  res.newBadges.forEach((badgeKey) => {
+    addBadgeNotification(badgeKey, formattedLabel);
+    triggerBadgeCelebration(badgeKey);
+  });
+}
 ```
 
-The `addBadgeNotification()` function:
-- Checks if a notification for this badge already exists (dedup)
-- Saves to localStorage
-- Dispatches `notifications-updated` custom event
-- The navbar picks up the event and updates the bell icon + dropdown in real-time
-
----
+The celebration modal is triggered only for newly unlocked badges returned on that specific action. Because `newBadges` is only returned on the exact request crossing the threshold, re-logging in or navigating pages will never inappropriately re-trigger celebrations.
 
 ## 7. Toast on Profile
 
@@ -405,7 +402,7 @@ localStorage.setItem("springwave_badges", JSON.stringify(mergedBadges));
 |---|---|
 | `js/api/user.js` | Added `getUserContribution()`, `grantContribution()` |
 | `js/pages/profile.js` | Removed old EXP panel; added `computeLocalBadges()`, `CONTRIB_LEVELS`, `calcContribLevel()`, `renderContribPanel()`, `renderBadgesPanel()`, `showBadgeToast()`; imported `getUserContribution` |
-| `js/pages/community.js` | Added `grantContribution` + `addBadgeNotification` imports; changed `grantContribution` calls from fire-and-forget to promise-based with `newBadges` detection |
+| `js/pages/community.js` | Removed redundant manual `grantContribution` calls and localStorage checks; triggers badge celebration exclusively from `newBadges` in action responses |
 | `js/components/navbar.js` | Added `initNotifications()`, `renderNotifCount()`, `renderNotifDropdown()`, `timeAgo()`; imported from `notifications.js` |
 | `public/components/navbar.html` | Added `<span id="bell-count">` inside bell icon; added `<div id="notif-dropdown">` container |
 | `profile.html` | "Self-development" → "Community Contribution"; removed Stats Overview + Participated Activities; added Badges section with subtitle |
@@ -419,10 +416,10 @@ localStorage.setItem("springwave_badges", JSON.stringify(mergedBadges));
 | Feature | Current status | What backend needs to do |
 |---|---|---|
 | **`GET /user/contribution`** | ✅ Frontend calls it, falls back gracefully on error | Return `{ contribution: { score, discussionsStarted, repliesGiven, likesReceived, badges[] } }` |
-| **`POST /user/contribution/grant`** | ✅ Frontend calls it on reply/discussion | Accept `{ action }`, increment counters, return `{ contribution, newBadges? }` |
-| **Badge computation** | ✅ Frontend computes locally (15/16 badges) | Optional — backend can compute too, merged client-side |
+| **`POST /user/contribution/grant`** | Deprecated on frontend | Replaced by auto-grant in primary action endpoints |
+| **Badge computation** | ✅ Handled on backend + client-side profile preview | Returns `newBadges: [...]` on primary action endpoints |
 | **Self-Discovery badge** | ❌ Never earned (no local flag) | Add `quizCompleted` field to user; include in badge computation |
-| **Forum auto-grant** | ⚠️ Frontend calls API manually | Optional — backend can auto-grant when forum endpoints are hit |
+| **Forum auto-grant** | ✅ Handled automatically on backend | Backend returns `newBadges: [...]` in `/community/discussions` and `/comments` |
 | **Like/save grant** | ❌ Not implemented | Backend forum endpoints need to call `grantContribution` |
 | **User profile fields** | ✅ Used by `hello_world` check | Just needs `dob` and `school` in user object (already exists) |
 

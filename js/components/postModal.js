@@ -3,6 +3,8 @@ import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { createDiscussionWithScope } from "../api/forum.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
+import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
+import { addBadgeNotification } from "../lib/notifications.js";
 
 let isInitialized = false;
 
@@ -130,6 +132,13 @@ async function ensurePostModalElements() {
                 discId ? `./community.html?discussion=${discId}` : null,
                 "View Discussion"
             );
+
+            if (result?.newBadges && Array.isArray(result.newBadges) && result.newBadges.length > 0) {
+                result.newBadges.forEach((badgeKey) => {
+                    addBadgeNotification(badgeKey, badgeKey.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
+                    triggerBadgeCelebration(badgeKey);
+                });
+            }
         } catch (err) {
             alert(err?.message || "Failed to post discussion. Please try again.");
         } finally {

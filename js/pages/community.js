@@ -43,7 +43,6 @@ import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/n
 import { fetchContent, formatDate, capitalize, timeAgo } from "../lib/utils.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { getActivityById, getActivities } from "../api/activities.js";
-import { grantContribution } from "../api/user.js";
 import { getCurrentUser } from "../api/auth.js";
 import { addBadgeNotification } from "../lib/notifications.js";
 import { getPublicOrganizations, toggleFollowOrganization, getOrganizationPublicEvents, getMyOrganizations } from "../api/organizations.js";
@@ -1163,11 +1162,13 @@ async function postCommentOrReply({ discussionId, text, replyToId, container, in
 
     markActionPerformed('addComment');
 
-    grantContribution("reply").then((res) => {
-      if (res && res.newBadges && Array.isArray(res.newBadges)) {
-        res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
-      }
-    }).catch(() => {});
+    // Show badge celebrations only from newBadges returned by backend action
+    if (newComment?.newBadges && Array.isArray(newComment.newBadges) && newComment.newBadges.length > 0) {
+      newComment.newBadges.forEach((badgeKey) => {
+        addBadgeNotification(badgeKey, badgeKey.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
+        triggerBadgeCelebration(badgeKey);
+      });
+    }
 
     if (inputEl) inputEl.value = "";
 
@@ -1247,13 +1248,6 @@ async function postCommentOrReply({ discussionId, text, replyToId, container, in
       const newCommentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${newComment.id || newComment._id}"]`);
       if (newCommentEl) {
         newCommentEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-
-      if (!localStorage.getItem("springwave_has_posted_reply")) {
-        localStorage.setItem("springwave_has_posted_reply", "true");
-        setTimeout(() => {
-          triggerBadgeCelebration("talk_is_silver");
-        }, 600);
       }
     }
   } catch (err) {
@@ -2568,11 +2562,13 @@ function initPostModal() {
         // Mark action performed only after successful publication
         markActionPerformed('createDiscussion');
 
-        grantContribution("discussion").then((res) => {
-          if (res && res.newBadges && Array.isArray(res.newBadges)) {
-            res.newBadges.forEach((key) => addBadgeNotification(key, key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())));
-          }
-        }).catch(() => {});
+        // Check if any badges were unlocked during this specific action
+        if (result?.newBadges && Array.isArray(result.newBadges) && result.newBadges.length > 0) {
+          result.newBadges.forEach((badgeKey) => {
+            addBadgeNotification(badgeKey, badgeKey.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
+            triggerBadgeCelebration(badgeKey);
+          });
+        }
 
         const u = getUser();
         result.author = result.author || result.authorName || u?.fullname || u?.username || "Unknown";
@@ -2619,13 +2615,6 @@ function initPostModal() {
 
         const discId = result._id || result.id;
         showSuccessToast("Discussion posted successfully! Click here to view", discId ? `./community.html?discussion=${discId}` : null, "View Discussion");
-
-        if (!localStorage.getItem("springwave_has_posted_disc")) {
-          localStorage.setItem("springwave_has_posted_disc", "true");
-          setTimeout(() => {
-            triggerBadgeCelebration("so_it_begins");
-          }, 600);
-        }
 
         const uniId = communityId || document.querySelector(".forum-uni-join-btn.joined")?.closest(".forum-uni-card")?.dataset.uniId;
         if (uniId) {

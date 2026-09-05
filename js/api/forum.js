@@ -189,9 +189,13 @@ export async function getComments(discussionId) {
 export async function addComment(discussionId, content) {
   try {
     const data = await post(`/community/discussions/${discussionId}/comments`, { content });
-    if (data?.comment) {
-      storeComment(discussionId, data.comment);
-      return data.comment;
+    const commentObj = data?.comment || (data?._id ? data : null);
+    if (commentObj) {
+      if (data?.newBadges && Array.isArray(data.newBadges)) {
+        commentObj.newBadges = data.newBadges;
+      }
+      storeComment(discussionId, commentObj);
+      return commentObj;
     }
   } catch (err) {
     // If not found in discussions, try event comments
@@ -382,7 +386,16 @@ export async function createDiscussionWithScope({ title, content, category, tags
     postAsOrg: postAsOrg || undefined,
     orgId: orgId || undefined,
   });
-  return data?.discussion || null;
+  if (data) {
+    const disc = data.discussion || (data._id || data.id ? data : null);
+    if (disc) {
+      if (data.newBadges && Array.isArray(data.newBadges)) {
+        disc.newBadges = data.newBadges;
+      }
+      return disc;
+    }
+  }
+  return null;
 }
 
 export async function getCommunityDiscussions(communityId) {
@@ -475,11 +488,13 @@ export async function addReply(discussionId, content, replyToId) {
 
   try {
     const data = await post(`/community/discussions/${discussionId}/comments`, { content, replyToId });
-    if (data?.comment) {
+    const rawComment = data?.comment || (data?._id ? data : null);
+    if (rawComment) {
       const commentToStore = {
-        ...data.comment,
-        replyToId: data.comment.replyToId ? String(data.comment.replyToId._id || data.comment.replyToId.id || data.comment.replyToId) : String(replyToId),
-        replyTo: data.comment.replyTo || fallbackReplyTo,
+        ...rawComment,
+        replyToId: rawComment.replyToId ? String(rawComment.replyToId._id || rawComment.replyToId.id || rawComment.replyToId) : String(replyToId),
+        replyTo: rawComment.replyTo || fallbackReplyTo,
+        newBadges: (data?.newBadges && Array.isArray(data.newBadges)) ? data.newBadges : (rawComment.newBadges || []),
       };
       storeComment(discussionId, commentToStore);
       return commentToStore;
